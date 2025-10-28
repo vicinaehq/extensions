@@ -1,0 +1,323 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "swww-switcher",
+  "title": "SWWW Switcher",
+  "description": "Switch your wallpaper with swww and call a color gen to update color pallets while you are at it",
+  "categories": [],
+  "license": "MIT",
+  "author": "sovereign",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "wpgrid",
+      "title": "Wallpaper Grid",
+      "subtitle": "Wallpaper Grid",
+      "description": "Switch wallpapers using swww",
+      "mode": "view"
+    },
+    {
+      "name": "wprandom",
+      "title": "Random Wallpaper",
+      "subtitle": "Let RNG choose your style",
+      "description": "Switch wallpapers using swww",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "wallpaperPath",
+      "title": "Wallpaper Path",
+      "description": "The path containing the wallpaper images",
+      "required": true,
+      "type": "textfield"
+    },
+    {
+      "name": "gridRows",
+      "title": "Grid Rows",
+      "description": "How many rows do you want to see in the grid?",
+      "required": false,
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "3",
+          "value": "3"
+        },
+        {
+          "title": "4",
+          "value": "4"
+        },
+        {
+          "title": "5",
+          "value": "5"
+        },
+        {
+          "title": "6",
+          "value": "6"
+        }
+      ],
+      "default": "4"
+    },
+    {
+      "name": "transitionType",
+      "title": "SWWW Transition Type",
+      "description": "The animation type of the sww transition",
+      "required": false,
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "None",
+          "value": "none"
+        },
+        {
+          "title": "Simple",
+          "value": "simple"
+        },
+        {
+          "title": "Fade",
+          "value": "fade"
+        },
+        {
+          "title": "Left",
+          "value": "left"
+        },
+        {
+          "title": "Right",
+          "value": "right"
+        },
+        {
+          "title": "Top",
+          "value": "top"
+        },
+        {
+          "title": "Bottom",
+          "value": "bottom"
+        },
+        {
+          "title": "Wipe",
+          "value": "wipe"
+        },
+        {
+          "title": "Wave",
+          "value": "wave"
+        },
+        {
+          "title": "Grow",
+          "value": "grow"
+        },
+        {
+          "title": "Center",
+          "value": "center"
+        },
+        {
+          "title": "Any",
+          "value": "any"
+        },
+        {
+          "title": "Outer",
+          "value": "outer"
+        },
+        {
+          "title": "Random",
+          "value": "random"
+        }
+      ],
+      "default": "random"
+    },
+    {
+      "name": "transitionDuration",
+      "title": "SWWW Transition Duration",
+      "description": "Duration of the swww transition in seconds",
+      "required": false,
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "Eight",
+          "value": "8"
+        },
+        {
+          "title": "Five",
+          "value": "5"
+        },
+        {
+          "title": "Three",
+          "value": "3"
+        },
+        {
+          "title": "Two",
+          "value": "2"
+        },
+        {
+          "title": "One",
+          "value": "1"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "name": "transitionStep",
+      "title": "SWWW Transition Step",
+      "description": "The amount of steps from old wallpaper RBG to new wallpaper RBG",
+      "required": false,
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "Slowest Possible",
+          "value": "1"
+        },
+        {
+          "title": "Slow",
+          "value": "45"
+        },
+        {
+          "title": "Default",
+          "value": "90"
+        },
+        {
+          "title": "Quick",
+          "value": "120"
+        },
+        {
+          "title": "Fast",
+          "value": "200"
+        },
+        {
+          "title": "Instant",
+          "value": "255"
+        }
+      ],
+      "default": "90"
+    },
+    {
+      "name": "colorGenTool",
+      "title": "Color Generator",
+      "description": "Which color generation tool do you use?",
+      "required": true,
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "None",
+          "value": "none"
+        },
+        {
+          "title": "Matugen",
+          "value": "matugen"
+        },
+        {
+          "title": "Pywal",
+          "value": "pywal"
+        },
+        {
+          "title": "Wpgtk",
+          "value": "wpgtk"
+        },
+        {
+          "title": "Schemer2",
+          "value": "schemer2"
+        },
+        {
+          "title": "Colorz",
+          "value": "colorz"
+        },
+        {
+          "title": "Haishoku",
+          "value": "haishoku"
+        },
+        {
+          "title": "Wallust",
+          "value": "wallust"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "label": "Toggle Vicinae",
+      "name": "toggleVicinaeSetting",
+      "description": "Set to true to toggle vicinae on wallpaper selection",
+      "type": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "label": "Show Image Details",
+      "name": "showImageDetails",
+      "description": "Set to true to show image dimensions and size in MB.",
+      "type": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "name": "postProduction",
+      "title": "Imagemagick Post-Production",
+      "description": "Would you like to process your selected image?",
+      "required": false,
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "No",
+          "value": "no"
+        },
+        {
+          "title": "Gray Scale",
+          "value": "grayscale"
+        },
+        {
+          "title": "Gray Scale + Blur",
+          "value": "grayscaleblur"
+        },
+        {
+          "title": "Gray Scale + Heavy Blur",
+          "value": "grayscaleheavyblur"
+        },
+        {
+          "title": "Blur",
+          "value": "lightblur"
+        },
+        {
+          "title": "Blur + Darken",
+          "value": "lightblurdarken"
+        },
+        {
+          "title": "Heavy Blur",
+          "value": "heavyblur"
+        },
+        {
+          "title": "Heavy Blur + Darken",
+          "value": "heavyblurdarken"
+        },
+        {
+          "title": "Negate",
+          "value": "negate"
+        }
+      ],
+      "default": "no"
+    },
+    {
+      "name": "leftMonitor",
+      "title": "Left Monitor Name",
+      "description": "The Name of the monitor that shows the left side of the image after being split",
+      "required": false,
+      "type": "textfield"
+    },
+    {
+      "name": "rightMonitor",
+      "title": "Right Monitor Name",
+      "description": "The Name of the monitor that shows the right side of the image after being split",
+      "required": false,
+      "type": "textfield"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.12.2",
+    "image-size": "^2.0.2",
+    "jimp": "^1.6.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

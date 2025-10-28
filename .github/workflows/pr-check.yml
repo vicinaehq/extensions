@@ -1,0 +1,84 @@
+name: PR Check
+
+on:
+  pull_request:
+    paths:
+      - 'extensions/**'
+      - '.github/workflows/pr-check.yml'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      extensions: ${{ steps.detect.outputs.extensions }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed extensions
+        id: detect
+        run: |
+          # Get list of changed files in the PR
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          # Extract unique extension names from paths like "extensions/foo/..."
+          EXTENSIONS=$(echo "$CHANGED_FILES" | \
+            grep "^extensions/" | \
+            cut -d'/' -f2 | \
+            sort -u | \
+            jq -R -s -c 'split("\n") | map(select(length > 0))')
+
+          echo "Changed extensions: $EXTENSIONS"
+          echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
+
+  validate:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.extensions != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        extension: ${{ fromJson(needs.detect-changes.outputs.extensions) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Validate extension
+        run: bun scripts/validate-extension.ts ${{ matrix.extension }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        extension: ${{ fromJson(needs.detect-changes.outputs.extensions) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: extensions/${{ matrix.extension }}
+        run: bun install
+
+      - name: Build extension
+        working-directory: extensions/${{ matrix.extension }}
+        run: bunx vici build --out ../../dist/${{ matrix.extension }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.extension }}
+          path: dist/${{ matrix.extension }}
+          retention-days: 7

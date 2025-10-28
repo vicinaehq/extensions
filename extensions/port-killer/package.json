@@ -1,0 +1,34 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "port-killer",
+	"title": "Kill Port",
+	"description": "Kills a process by port",
+	"categories": [],
+	"license": "MIT",
+	"author": "LuggaPugga",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension_icon.png",
+	"commands": [
+		{
+			"name": "port-killer",
+			"title": "Kill Port",
+			"subtitle": "Kills a process by port",
+			"description": "Kills a process by port",
+			"mode": "view"
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"format": "biome format --write"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.15.3"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.2.7",
+		"typescript": "^5.9.2"
+	}
+}

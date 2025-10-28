@@ -1,0 +1,54 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "bluetooth",
+  "title": "Bluetooth",
+  "description": "Vicinae bluetooth extension for managing bluetooth devices using bluetoothctl",
+  "categories": [],
+  "license": "MIT",
+  "author": "Gelei",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "scan",
+      "title": "Scan",
+      "subtitle": "Scan for bluetooth devices",
+      "description": "Scan for bluetooth devices",
+      "mode": "view"
+    },
+    {
+      "name": "devices",
+      "title": "Devices",
+      "subtitle": "Manage paired bluetooth devices",
+      "description": "Manage paired bluetooth devices",
+      "mode": "view"
+    },
+    {
+      "name": "discoverable",
+      "title": "Discoverable",
+      "subtitle": "Make device discoverable for pairing",
+      "description": "Make device discoverable for pairing",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "connectionToggleable",
+      "type": "checkbox",
+      "title": "Connection Toggleable",
+      "description": "Use a single toggle action for connect/disconnect instead of separate actions",
+      "default": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.8.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

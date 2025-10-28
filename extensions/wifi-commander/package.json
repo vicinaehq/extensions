@@ -1,0 +1,63 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "wifi-commander",
+  "title": "Wifi Commander",
+  "description": "Complete wifi management - toggle wifi and scan networks using nmcli",
+  "categories": [
+    "system",
+    "network"
+  ],
+  "license": "MIT",
+  "author": "dagimg-dot",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "wifi_commander.png",
+  "commands": [
+    {
+      "name": "toggle-wifi-on",
+      "title": "Turn Wifi On",
+      "subtitle": "Enable Wi-Fi radio",
+      "description": "Turn on Wi-Fi radio to enable wireless connections",
+      "mode": "no-view"
+    },
+    {
+      "name": "toggle-wifi-off",
+      "title": "Turn Wifi Off",
+      "subtitle": "Disable Wi-Fi radio",
+      "description": "Turn off Wi-Fi radio to disable wireless connections",
+      "mode": "no-view"
+    },
+    {
+      "name": "restart-wifi",
+      "title": "Restart Wifi",
+      "subtitle": "Restart Wi-Fi services",
+      "description": "Restart Wi-Fi services to resolve connection issues",
+      "mode": "no-view"
+    },
+    {
+      "name": "scan-wifi",
+      "title": "Scan Wifi Networks",
+      "subtitle": "List available wifi networks",
+      "description": "Scan and display all available wifi networks with signal strength and security info",
+      "mode": "view"
+    },
+    {
+      "name": "manage-saved-networks",
+      "title": "Manage Saved Networks",
+      "subtitle": "View and manage saved Wi-Fi connections",
+      "description": "List all saved Wi-Fi networks, connect to them, or forget them",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.14.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
