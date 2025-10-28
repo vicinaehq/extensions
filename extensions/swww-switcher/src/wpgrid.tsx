@@ -12,6 +12,8 @@ import { getImagesFromPath, Image } from "./utils/image";
 import { Monitor, getMonitors } from "./utils/monitor";
 import { omniCommand } from "./utils/hyprland";
 
+// test
+
 export default function DisplayGrid() {
   const [monitors, setMonitors] = useState<Monitor[]>([]);
   const path: string = getPreferenceValues().wallpaperPath;
