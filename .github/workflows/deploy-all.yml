@@ -1,0 +1,43 @@
+name: Deploy All Extensions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  list-extensions:
+    runs-on: ubuntu-latest
+    outputs:
+      extensions: ${{ steps.list.outputs.extensions }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: List all extensions
+        id: list
+        run: |
+          # Get all extension directory names
+          EXTENSIONS=$(ls -1 extensions | jq -R -s -c 'split("\n") | map(select(length > 0))')
+
+          echo "All extensions: $EXTENSIONS"
+          echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: list-extensions
+    runs-on: ubuntu-latest
+    environment: production
+    strategy:
+      fail-fast: false
+      matrix:
+        extension: ${{ fromJson(needs.list-extensions.outputs.extensions) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Deploy extension
+        run: bun scripts/deploy-extension.ts ${{ matrix.extension }}
+        env:
+          STORE_BASE_URL: ${{ secrets.STORE_BASE_URL || 'http://localhost:3000' }}
+          STORE_API_SECRET: ${{ secrets.STORE_API_SECRET }}
