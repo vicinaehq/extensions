@@ -3,7 +3,7 @@ clean:
 .PHONY: clean
 
 deploy:
-	bun scripts/deploy.ts extensions
+	bun scripts/deploy-extension.ts $(shell ls -1 extensions)
 .PHONY: deploy
 
 deploy-single:

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "player-pilot",
+  "title": "Player Pilot",
+  "description": "A comprehensive media player controller supporting multiple players with grid view, metadata display, and customizable player filtering.",
+  "categories": [],
+  "license": "MIT",
+  "author": "dagimg-dot",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "player_pilot.png",
+  "commands": [
+    {
+      "name": "player-pilot",
+      "title": "Player Pilot",
+      "subtitle": "Control multiple media players with grid view",
+      "description": "View and control all your media players in a beautiful grid interface. Supports filtering by specific players, shows metadata, and provides individual controls for each player.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "playerctl-players",
+      "title": "Playerctl Players",
+      "description": "Comma-separated list of players to show. Use '%any' for all players, or specify names like 'spotify,brave,vlc' without the quotes to filter specific players.",
+      "default": "%any",
+      "type": "textfield",
+      "required": true
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.14.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

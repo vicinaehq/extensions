@@ -64,8 +64,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
-    needs: validate
+    needs: [detect-changes, validate]
     runs-on: ubuntu-latest
+    environment: production
     strategy:
       fail-fast: false
       matrix:
