@@ -84,27 +84,3 @@ jobs:
         env:
           STORE_BASE_URL: ${{ secrets.STORE_BASE_URL || 'http://localhost:3000' }}
           STORE_API_SECRET: ${{ secrets.STORE_API_SECRET }}
-
-      - name: Comment on commit
-        if: success()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.repos.createCommitComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-              body: `✅ Successfully deployed extension: **${{ matrix.extension }}**`
-            })
-
-      - name: Comment on failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.repos.createCommitComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-              body: `❌ Failed to deploy extension: **${{ matrix.extension }}**\n\nCheck the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`
-            })
