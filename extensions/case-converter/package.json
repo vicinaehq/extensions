@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "case-converter",
-  "title": "Convert text to different formatting styles",
+  "title": "Case converter",
   "description": "Convert text to different formatting styles",
   "categories": [
     "Developer Tools",

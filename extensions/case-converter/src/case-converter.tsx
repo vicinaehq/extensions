@@ -108,7 +108,15 @@ import {
     useEffect(() => {
       setPinned(getPinnedCases());
       setRecent(getRecentCases());
-      getFrontmostApplication().then(setFrontmostApp);
+      getFrontmostApplication()
+        .then(setFrontmostApp)
+        .catch(() => {
+          showToast({
+            style: Toast.Style.Failure,
+            title: "Window management unavailable",
+            message: "You can still use all case conversions. Copy to clipboard works perfectly.",
+          });
+        });
     }, []);
   
     useEffect(() => {
@@ -136,56 +144,33 @@ import {
     useEffect(() => {
       refreshContent();
     }, []);
-  
-    const CopyToClipboard = (props: {
-      case: CaseType;
-      modified: string;
-      pinned?: boolean;
-      recent?: boolean;
-    }): JSX.Element => {
-      return (
-        <Action
-          title="Copy to Clipboard"
-          icon={Icon.Clipboard}
-          onAction={() => {
-            setRecent([props.case, ...recent.filter((c) => c !== props.case)].slice(0, 4 + pinned.length));
-            if (!hideHUD) {
-              showHUD("Copied to Clipboard");
-            }
-            Clipboard.copy(props.modified);
-            if (preferences.popToRoot) {
-              popToRoot();
-            } else {
-              closeMainWindow();
-            }
-          }}
-        />
-      );
+
+    const handleCopyToClipboard = async (modified: string, caseType: CaseType) => {
+      await Clipboard.copy(modified);
+      setRecent([caseType, ...recent.filter((c) => c !== caseType)].slice(0, 4 + pinned.length));
+      if (!hideHUD) {
+        showHUD("Copied to Clipboard");
+      }
+      if (preferences.popToRoot) {
+        popToRoot();
+      } else {
+        closeMainWindow();
+      }
     };
-  
-    const PasteToActiveApp = (props: {
-      case: CaseType;
-      modified: string;
-      pinned?: boolean;
-      recent?: boolean;
-    }): JSX.Element | null => {
-      return frontmostApp ? (
-        <Action
-          title={`Paste in ${frontmostApp.name}`}
-          onAction={() => {
-            setRecent([props.case, ...recent.filter((c) => c !== props.case)].slice(0, 4 + pinned.length));
-            if (!hideHUD) {
-              showHUD(`Pasted in ${frontmostApp.name}`);
-            }
-            Clipboard.paste(props.modified);
-            if (preferences.popToRoot) {
-              popToRoot();
-            } else {
-              closeMainWindow();
-            }
-          }}
-        />
-      ) : null;
+
+    const handlePasteToActiveApp = async (modified: string, caseType: CaseType) => {
+      if (!frontmostApp) return;
+
+      await Clipboard.paste(modified);
+      setRecent([caseType, ...recent.filter((c) => c !== caseType)].slice(0, 4 + pinned.length));
+      if (!hideHUD) {
+        showHUD(`Pasted in ${frontmostApp.name}`);
+      }
+      if (preferences.popToRoot) {
+        popToRoot();
+      } else {
+        closeMainWindow();
+      }
     };
   
     const CaseItem = (props: {
@@ -194,21 +179,56 @@ import {
       detail: string;
       pinned?: boolean;
       recent?: boolean;
-    }): JSX.Element => {
+    }) => {
       return (
         <List.Item
           id={props.case}
           title={props.case}
-          // accessories={[{ text: props.modified }]}
           subtitle={props.modified}
           detail={<List.Item.Detail markdown={props.detail} />}
           keywords={aliases[props.case]}
           actions={
             <ActionPanel>
               <ActionPanel.Section>
-                {preferredAction === "paste" && <PasteToActiveApp {...props} />}
-                <CopyToClipboard {...props} />
-                {preferredAction === "copy" && <PasteToActiveApp {...props} />}
+                {preferredAction === "paste" ? (
+                  <>
+                    {frontmostApp && (
+                      <Action
+                        title={`Paste in ${frontmostApp.name}`}
+                        icon={Icon.TextInput}
+                        onAction={async () => {
+                          await handlePasteToActiveApp(props.modified, props.case);
+                        }}
+                      />
+                    )}
+                    <Action
+                      title="Copy to Clipboard"
+                      icon={Icon.Clipboard}
+                      onAction={async () => {
+                        await handleCopyToClipboard(props.modified, props.case);
+                      }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Action
+                      title="Copy to Clipboard"
+                      icon={Icon.Clipboard}
+                      onAction={async () => {
+                        await handleCopyToClipboard(props.modified, props.case);
+                      }}
+                    />
+                    {frontmostApp && (
+                      <Action
+                        title={`Paste in ${frontmostApp.name}`}
+                        icon={Icon.TextInput}
+                        onAction={async () => {
+                          await handlePasteToActiveApp(props.modified, props.case);
+                        }}
+                      />
+                    )}
+                  </>
+                )}
               </ActionPanel.Section>
               <ActionPanel.Section>
                 {!props.pinned ? (
