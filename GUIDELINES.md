@@ -30,6 +30,7 @@ Example: If `name` is `my-extension`, it should be located at `extensions/my-ext
 - Set the `platforms` field to `["linux"]`
 - The `title` field must be concise and clearly convey what your extension does
 - Use the `categories` field to classify your extension (see [Categories](#categories) section below)
+- Use `@vicinae/api` as a dependency.
 
 - You should provide a concise and clear description for your extension and each of its commands.
 
@@ -37,11 +38,13 @@ Example: If `name` is `my-extension`, it should be located at `extensions/my-ext
 
 Your extension **must** have a valid icon.
 
-The `icon` field in your manifest should map to an asset under the `assets` folder. If your icon is `extension_icon.png` we expect the icon to be at `assets/icon.png`.
+The `icon` field in your manifest should map to an asset under the `assets` folder. If your icon is `extension_icon.png` we expect the icon to be at `assets/extension_icon.png`.
 
-The icon should have an aspect ratio of 1:1. The recommended size is 512x512 or higher.
+Commands can also specify their own icon if they need to, otherwise the extension icon is used for every command automatically.
 
-You should probably use [ray.so/icon](https://ray.so/icon) to generate your extension icon.
+Icons should have an aspect ratio of 1:1. The recommended size is 512x512 or higher.
+
+You should probably use [ray.so/icon](https://ray.so/icon) to generate your icons.
 
 ## Quality Standards
 
