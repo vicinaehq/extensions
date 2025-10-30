@@ -3,7 +3,7 @@ import { spawnSync } from 'child_process';
 import fsp from 'fs/promises';
 import { createZipFromFolder } from './zip-utils';
 
-const STORE_BASE_URL = process.env.STORE_BASE_URL ?? 'http://localhost:3000';
+const STORE_BASE_URL = process.env.STORE_BASE_URL ?? 'http://localhost:3000/v1';
 const STORE_API_SECRET = process.env.STORE_API_SECRET ?? 'test';
 const DIST = path.join(process.cwd(), './dist');
 
@@ -52,9 +52,8 @@ async function deployExtension(extensionName: string): Promise<boolean> {
 	}
 
 	console.log(`✅ Built ${extensionName}`);
-
-	// Create zip archive
 	console.log(`Creating archive for ${extensionName}...`);
+
 	const archive = await createZipFromFolder(dist);
 	const blob = await archive.generateAsync({
 		type: 'blob',
@@ -68,7 +67,7 @@ async function deployExtension(extensionName: string): Promise<boolean> {
 	const formData = new FormData();
 	formData.set('file', file);
 
-	const uploadRes = await fetch(`${STORE_BASE_URL}/extension/upload`, {
+	const uploadRes = await fetch(`${STORE_BASE_URL}/store/upload`, {
 		method: 'POST',
 		headers: {
 			'Authorization': `Bearer ${STORE_API_SECRET}`
