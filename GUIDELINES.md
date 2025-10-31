@@ -26,10 +26,10 @@ Example: If `name` is `my-extension`, it should be located at `extensions/my-ext
 ### Manifest Requirements
 
 - At least one command - Extensions without commands cannot be used
-- Set the `platforms` field to `["linux"]`
 - The `title` field must be concise and clearly convey what your extension does
 - Use the `categories` field to classify your extension (see [Categories](#categories) section below)
 - Use `@vicinae/api` as a dependency.
+- Avoid using `@raycast/api` directly. It is okay to use `@raycast/utils` as we don't have an equivalent `@vicinae/utils` yet.
 
 - You should provide a concise and clear description for your extension and each of its commands.
 
