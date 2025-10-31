@@ -4,7 +4,6 @@ This document describes the guidelines your extension must follow to be publishe
 
 Submitting your extension to the Vicinae store means it will be downloadable by anyone using Vicinae. For this reason, we need to ensure your extension is safe for end users and will not harm their system in unexpected ways (other than user error).
 
-![](.github/assets/extension-detail-view.png)
 
 ## Requirements
 
@@ -47,6 +46,10 @@ Icons should have an aspect ratio of 1:1. The recommended size is 512x512 or hig
 You should probably use [ray.so/icon](https://ray.so/icon) to generate your icons.
 
 ## Quality Standards
+
+Your extension will be tested before it makes it to the store. 
+
+Here are a few rules to keep in mind in order to provide your users with a good experience:
 
 ### Error Handling
 
