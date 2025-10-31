@@ -22,6 +22,14 @@ async function deployExtension(extensionName: string): Promise<boolean> {
 		return false;
 	}
 
+	const manifestPath = path.join(fullPath, "package.json");
+	const manifest = JSON.parse(await fsp.readFile(manifestPath, 'utf-8'));
+
+	if (manifest.name != extensionName) {
+		console.error(`Expected extension to be at extensions/${manifest.name} but got extensions/${extensionName}`);
+		return false;
+	}
+
 	console.log(`\n📦 Deploying ${extensionName}...`);
 
 	// Install dependencies
