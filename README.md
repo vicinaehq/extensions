@@ -34,7 +34,3 @@ If your pull request is merged, your extension is automatically built, validated
 - [Vicinae Documentation](https://docs.vicinae.com/extensions/introduction)
 - [Extension Guidelines](/GUIDELINES.md)
 - [Extension Schema](https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json)
-
-## License
-
-Each extension may have its own license. Please refer to individual extension directories for specific licensing information.
