@@ -4,8 +4,7 @@
   "title": "Wifi Commander",
   "description": "Complete wifi management - toggle wifi and scan networks using nmcli",
   "categories": [
-    "system",
-    "network"
+    "System"
   ],
   "license": "MIT",
   "author": "dagimg-dot",
