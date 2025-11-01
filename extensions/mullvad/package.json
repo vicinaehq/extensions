@@ -1,0 +1,79 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "mullvad",
+  "title": "Mullvad VPN",
+  "description": "Connect, disconnect, and check if you are connected to Mullvad VPN.",
+  "icon": "mullvad-icon.png",
+  "author": "aurelleb",
+  "contributors": [],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "mullvad",
+      "title": "Check Connection",
+      "subtitle": "Mullvad",
+      "description": "Check whether you are connected to Mullvad VPN",
+      "mode": "view"
+    },
+    {
+      "name": "selectLocation",
+      "title": "Select Mullvad Location",
+      "subtitle": "Mullvad",
+      "description": "Sets the destination Mullvad server.",
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "selectByRanking",
+          "title": "Select by Ranking",
+          "label": "Use the highest ranked server for location",
+          "description": "If enabled, the highest ranked server for the given location will be used when a location is selected. If no server is ranked, Mullvad will determine the server used.",
+          "type": "checkbox",
+          "required": false,
+          "default": true
+        },
+        {
+          "name": "confirmLocationChange",
+          "title": "Confirm Location Change",
+          "label": "Confirm Location Change",
+          "description": "If enabled, a confirmation dialog is shown to confirm any location change.",
+          "type": "checkbox",
+          "required": false,
+          "default": false
+        }
+      ]
+    },
+    {
+      "name": "connect",
+      "title": "Connect",
+      "subtitle": "Mullvad",
+      "description": "Activates the VPN connection.",
+      "mode": "no-view"
+    },
+    {
+      "name": "disconnect",
+      "title": "Disconnect",
+      "subtitle": "Mullvad",
+      "description": "Deactivates the VPN connection.",
+      "mode": "no-view"
+    },
+    {
+      "name": "reconnect",
+      "title": "Reconnect",
+      "subtitle": "Mullvad",
+      "description": "Reactivates the VPN connection.",
+      "mode": "no-view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/utils": "^1.10.1",
+    "@vicinae/api": "^0.16.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  }
+}

@@ -6,6 +6,11 @@ deploy:
 	bun scripts/deploy-extension.ts $(shell ls -1 extensions)
 .PHONY: deploy
 
+validate-all:
+	bun scripts/validate-extension.ts $(shell ls -1 extensions)
+.PHONY:
+	validate-all
+
 deploy-single:
 	@if [ -z "$(EXT)" ]; then \
 		echo "Usage: make deploy-single EXT=extension-name"; \
