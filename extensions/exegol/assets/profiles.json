@@ -1,0 +1,28 @@
+{
+    "default":{
+        "workspace_path":"",
+        "cwd_mount":false,
+        "update_fs":false,
+        "volumes":"",
+        "ports":"",
+        "hostname":"",
+        "privileged":false,
+        "devices":"",
+        "disable_X11":false,
+        "disable_my_resources":false,
+        "network":"",
+        "disable_shared_timezones":false,
+        "comment":"",
+        "vpn":"",
+        "vpn_auth":"",
+        "desktop":false,
+        "desktop_config":"",
+        "log":false,
+        "log_method":"",
+        "log_compress":false,
+        "env":"",
+        "capability":"",
+        "shell":"",
+        "image":"free"
+    }
+}

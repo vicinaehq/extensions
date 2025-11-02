@@ -1,0 +1,75 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "exegol",
+  "title": "Manage Exegol containers",
+  "description": "This extension can be used to manage Exegol containers trough Vicinae.",
+  "categories": ["Applications", "Productivity"],
+  "license": "MIT",
+  "author": "lap1nou",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.svg",
+  "commands": [
+    {
+      "name": "exegol",
+      "title": "Exegol containers",
+      "subtitle": "exegol",
+      "description": "exegol",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "terminal",
+      "title": "Terminal",
+      "description": "The terminal that will be used to launch Exegol containers.",
+      "required": true,
+      "type": "dropdown",
+      "data": [
+        {
+          "title":"GNOME Terminal",
+          "value":"gnome"
+        },
+        {
+          "title":"Kitty",
+          "value":"kitty"
+        },
+        {
+          "title":"Alacritty",
+          "value":"alacritty"
+        },
+        {
+          "title":"Konsole",
+          "value":"konsole"
+        },
+        {
+          "title":"Ghostty",
+          "value":"ghostty"
+        },
+        {
+          "title":"Custom",
+          "value":"custom"
+        }
+      ]
+    },
+    {
+      "name": "custom",
+      "title": "Custom command",
+      "description": "The custom command used to spawn the container, please include the '$EXEGOL_CMD$' token to know where should the command to start the container should be included.",
+      "required": false,
+      "type": "textfield"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "^2.3.2"
+  }
+}
