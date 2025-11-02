@@ -1,0 +1,168 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "process-manager",
+  "title": "Process Manager",
+  "description": "Advanced process manager - view, kill, and control running processes",
+  "categories": ["Productivity", "System", "Developer Tools"],
+  "license": "MIT",
+  "author": "leon",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "assets/extension_icon.png",
+  "version": "1.0.0",
+  "commands": [
+    {
+      "name": "processes",
+      "title": "Process Manager",
+      "description": "View and manage running processes",
+      "mode": "view"
+    },
+    {
+      "name": "kill",
+      "title": "Kill Process",
+      "description": "Quickly kill a process by name",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "processName",
+          "type": "text",
+          "placeholder": "Process name",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "refresh-interval",
+      "title": "Refresh Interval",
+      "description": "How often to refresh process list (in seconds)",
+      "type": "dropdown",
+      "required": false,
+      "default": "2000",
+      "data": [
+        {
+          "title": "1 second",
+          "value": "1000"
+        },
+        {
+          "title": "2 seconds",
+          "value": "2000"
+        },
+        {
+          "title": "3 seconds",
+          "value": "3000"
+        },
+        {
+          "title": "5 seconds",
+          "value": "5000"
+        }
+      ]
+    },
+    {
+      "name": "sort-by-memory",
+      "title": "Sort by Memory",
+      "description": "Sort by memory usage instead of CPU",
+      "type": "checkbox",
+      "required": false,
+      "default": false
+    },
+    {
+      "name": "show-system-processes",
+      "title": "Show System Processes",
+      "description": "Include system and kernel processes",
+      "type": "checkbox",
+      "required": false,
+      "default": false
+    },
+    {
+      "name": "show-pid",
+      "title": "Show PID",
+      "description": "Display process ID in subtitle",
+      "type": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "name": "show-path",
+      "title": "Show Path",
+      "description": "Display process path in subtitle",
+      "type": "checkbox",
+      "required": false,
+      "default": false
+    },
+    {
+      "name": "search-in-paths",
+      "title": "Search in Paths",
+      "description": "Enable searching by process path",
+      "type": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "name": "search-in-pid",
+      "title": "Search in PID",
+      "description": "Enable searching by process ID",
+      "type": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "name": "close-window-after-kill",
+      "title": "Close Window After Kill",
+      "description": "Automatically close window after killing a process",
+      "type": "checkbox",
+      "required": false,
+      "default": false
+    },
+    {
+      "name": "clear-search-after-kill",
+      "title": "Clear Search After Kill",
+      "description": "Clear search bar after killing a process",
+      "type": "checkbox",
+      "required": false,
+      "default": false
+    },
+    {
+      "name": "process-limit",
+      "title": "Process Limit",
+      "description": "Maximum number of processes to display",
+      "type": "dropdown",
+      "required": false,
+      "default": "100",
+      "data": [
+        {
+          "title": "50 processes",
+          "value": "50"
+        },
+        {
+          "title": "100 processes",
+          "value": "100"
+        },
+        {
+          "title": "200 processes",
+          "value": "200"
+        },
+        {
+          "title": "500 processes",
+          "value": "500"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.0",
+    "freedesktop-icons": "^1.0.0",
+    "systeminformation": "^5.23.5",
+    "xdg-apps": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.2"
+  }
+}
