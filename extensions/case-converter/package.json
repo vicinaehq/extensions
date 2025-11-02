@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "case-converter",
   "title": "Case converter",
-  "description": "Convert text to different formatting styles",
+  "description": "Quickly convert any string into various formats, such as snake_case, camelCase, PascalCase, kebab-case, or UPPER_CASE, among many others",
   "categories": [
     "Developer Tools",
     "Productivity"
@@ -15,9 +15,8 @@
   "commands": [
     {
       "name": "case-converter",
-      "title": "Case converter",
-      "subtitle": "Transform a string to different formats",
-      "description": "Case converter is a tool that quickly transforms any text into the format you need. It instantly converts between styles such as snake_case, camelCase, PascalCase, kebab-case, UPPER_CASE, and other common programming formats. Ideal for developers who want to save time and maintain consistent conventions in their code.",
+      "title": "Convert Case",
+      "description": "Convert the case of the selected text or text in the clipboard",
       "mode": "view"
     }
   ],
