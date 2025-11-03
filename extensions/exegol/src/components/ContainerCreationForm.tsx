@@ -70,7 +70,7 @@ export const ContainerCreationForm = () => {
 			}
 		>
 			<Form.TextField id="nameNewContainer" title="Container name" />
-			<Form.Dropdown id="profileNewContainer" title="Profile">
+			<Form.Dropdown id="profileNewContainer" title="Profile (optional)">
 				{Object.keys(profiles).map((profile) => (
 					<Form.Dropdown.Item
 						value={profile.toString()}

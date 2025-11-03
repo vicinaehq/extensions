@@ -4,7 +4,7 @@ import { ExegolContainer } from "../models/ExegolContainer";
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
-import { getPreferenceValues } from "@vicinae/api";
+import { getPreferenceValues, showToast, Toast } from "@vicinae/api";
 import { existsSync } from "fs";
 import { DEFAULT_CONFIG } from "./config";
 
@@ -99,14 +99,46 @@ export async function startExegolContainer(
 	return;
 }
 
+export async function isDockerInstalled(): Promise<boolean> {
+	try {
+		await execPromise("docker -v");
+		return true;
+	} catch (error) {
+		console.log(error);
+		await showToast(
+			Toast.Style.Failure,
+			"Docker is not installed",
+			"Docker must be installed in order to use Exegol and this extension",
+		);
+		return false;
+	}
+}
+
+export async function isExegolInstalled(): Promise<boolean> {
+	try {
+		await execPromise("exegol -v");
+		return true;
+	} catch (error) {
+		console.log(error);
+		await showToast(
+			Toast.Style.Failure,
+			"Exegol is not installed",
+			"Exegol must be installed in order to use this extension, you can install it from https://exegol.com/install",
+		);
+		return false;
+	}
+}
+
 export async function listExegolContainers(): Promise<ExegolContainer[]> {
 	try {
+		if (!isDockerInstalled()) {
+			return [];
+		}
+
 		const { stdout } = await execPromise(
 			"docker ps --all --format '{{.Names}}' --filter \"name=^exegol-\" | cut -d '-' -f 2",
 		);
-
 		const lines = stdout.split("\n").map((l) => l.trim());
-
 		const result: ExegolContainer[] = [];
 
 		for (const line of lines) {

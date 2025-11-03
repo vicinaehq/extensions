@@ -9,7 +9,11 @@ import {
 	useNavigation,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { listExegolContainers, startExegolContainer } from "./utils/cli";
+import {
+	isExegolInstalled,
+	listExegolContainers,
+	startExegolContainer,
+} from "./utils/cli";
 import { ContainerCreationForm } from "./components/ContainerCreationForm";
 import { ExegolContainer } from "./models/ExegolContainer";
 import { homedir } from "os";
@@ -24,6 +28,7 @@ export default function ListDetail() {
 	const refreshContainers = async () => {
 		setIsLoading(true);
 		try {
+			await isExegolInstalled();
 			const newContainers = await listExegolContainers();
 			setExegolContainers(newContainers);
 		} catch (error) {
@@ -40,32 +45,34 @@ export default function ListDetail() {
 		refreshContainers();
 	}, []);
 
-	return (
-		<List isLoading={isLoading} searchBarPlaceholder={"Search containers..."}>
-			{containers.length === 0 && !isLoading ? (
-				<List.Section title="No Exegol containers found">
-					<List.Item
-						key="empty"
-						title=""
-						actions={
-							<ActionPanel>
-								<Action
-									title="Create a new container"
-									icon={Icon.Plus}
-									onAction={() => push(<ContainerCreationForm />)}
-								/>
-								<Action
-									title="Refresh lists"
-									icon={Icon.ArrowClockwise}
-									onAction={() => {
-										refreshContainers();
-									}}
-								/>
-							</ActionPanel>
-						}
-					/>
-				</List.Section>
-			) : (
+	if (containers.length === 0 && !isLoading) {
+		return (
+			<List
+				isLoading={isLoading}
+				searchBarPlaceholder={"Search containers..."}
+				actions={
+					<ActionPanel>
+						<Action
+							title="Create a new container"
+							icon={Icon.Plus}
+							onAction={() => push(<ContainerCreationForm />)}
+						/>
+						<Action
+							title="Refresh lists"
+							icon={Icon.ArrowClockwise}
+							onAction={() => {
+								refreshContainers();
+							}}
+						/>
+					</ActionPanel>
+				}
+			>
+				<List.EmptyView title="No Exegol containers found" />
+			</List>
+		);
+	} else {
+		return (
+			<List isLoading={isLoading} searchBarPlaceholder={"Search containers..."}>
 				<List.Section title={"Exegol containers:"}>
 					{containers.map((container) => (
 						<List.Item
@@ -117,7 +124,7 @@ export default function ListDetail() {
 						/>
 					))}
 				</List.Section>
-			)}
-		</List>
-	);
+			</List>
+		);
+	}
 }

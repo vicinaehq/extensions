@@ -14,6 +14,10 @@ This extensions can be used to manage some aspects of Exegol containers.
 
 ![](assets/Screen03.png)
 
+## Pre-requisites
+- Docker
+- Exegol, install it from: https://exegol.com/install
+
 ## Install
 You can install the required dependencies and run your extension in development mode like so:
 
