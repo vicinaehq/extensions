@@ -94,8 +94,8 @@ function parseDirectiveLine(
   }
 
   // Swap out modifiers, future update maybe
-  //let normMods = mods.replace(/\$varname/g, "SUPER");
-  let normMods = mods;
+  let normMods = mods.replace(/\$mainMod/g, "SUPER");
+  //let normMods = mods;
 
   // Mouse key mapping if bindm or key contains mouse:
   let normKey = key;
