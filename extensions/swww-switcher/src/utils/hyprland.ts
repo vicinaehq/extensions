@@ -12,6 +12,7 @@ export async function omniCommand(
   apptoggle: boolean,
   colorApp: string,
   postProduction: string,
+  userPostScript: string,
 ) {
   let success: boolean;
 
@@ -81,6 +82,23 @@ export async function omniCommand(
         });
       }
     }
+
+    if (userPostScript != "") {
+      const userPostScriptSuccess = await postScript(path, userPostScript);
+
+      if (userPostScriptSuccess) {
+        const msg: string = "Wall set";
+        showToast({
+          style: Toast.Style.Success,
+          title: "Wall set, user script done!",
+        });
+      } else {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "User script failed",
+        });
+      }
+    }
   } else {
     showToast({
       style: Toast.Style.Failure,
@@ -145,4 +163,23 @@ export const setWallpaperOnMonitor = async (
 };
 export const toggleVicinae = (): void => {
   exec(`vicinae vicinae://toggle`);
+};
+
+export const postScript = async (
+  img_path: string,
+  user_post_scrript: string,
+): Promise<boolean> => {
+  try {
+    return await new Promise<boolean>((resolve) => {
+      exec(`${user_post_scrript} ${img_path}`, (error) => {
+        if (error) {
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  } catch (error) {
+    return false;
+  }
 };

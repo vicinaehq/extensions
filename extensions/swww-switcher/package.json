@@ -190,6 +190,14 @@
       "default": "90"
     },
     {
+      "name": "postScriptPath",
+      "title": "Post wallpaper change script",
+      "description": "A script provided by the user to be executed after the wallpaper change, with the wallpaper absolute path as the first argument",
+      "required": false,
+      "type": "textfield",
+      "default": ""
+    },
+    {
       "name": "colorGenTool",
       "title": "Color Generator",
       "description": "Which color generation tool do you use?",
