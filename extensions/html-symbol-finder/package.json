@@ -33,7 +33,6 @@
     "fuse.js": "^7.1.0"
   },
   "devDependencies": {
-    "@raycast/api": "^1.103.6",
     "@raycast/eslint-config": "^2.1.1",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
