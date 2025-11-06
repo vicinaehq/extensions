@@ -5,7 +5,7 @@ Search and open KDE System Settings modules directly from Vicinae.
 ## Features
 
 - Automatically discovers all available KDE settings modules on your system
-- Works with both KDE5 and KDE6
+- Supports both KDE5 and KDE6 (legacy KDE5 modules can be enabled in preferences)
 - Search by module name, description, or keywords
 - Copy module IDs or full commands to clipboard
 - Can be enabled as a fallback command for root search

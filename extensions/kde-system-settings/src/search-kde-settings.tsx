@@ -34,20 +34,49 @@ export default function SearchSettings(props: LaunchProps) {
     loadModules();
   }, [preferences.showKDE5Modules]);
 
-  const filteredModules = modules.filter((module: KCMModule) => {
-    if (!searchText) return true;
+  const filteredModules = modules
+    .filter((module: KCMModule) => {
+      if (!searchText) return true;
 
-    const search = searchText.toLowerCase();
-    const matchesName = module.name.toLowerCase().includes(search);
-    const matchesDescription = module.description
-      .toLowerCase()
-      .includes(search);
-    const matchesKeywords = module.keywords.some((keyword: string) =>
-      keyword.toLowerCase().includes(search)
-    );
+      const searchWords = searchText
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w) => w.length > 0);
 
-    return matchesName || matchesDescription || matchesKeywords;
-  });
+      const matchesName = searchWords.every((word) =>
+        module.name.toLowerCase().includes(word)
+      );
+
+      const matchesDescription = searchWords.every((word) =>
+        module.description.toLowerCase().includes(word)
+      );
+
+      const matchesKeywords = searchWords.every((word) =>
+        module.keywords.some((keyword) => keyword.toLowerCase().includes(word))
+      );
+
+      return matchesName || matchesDescription || matchesKeywords;
+    })
+    .sort((a, b) => {
+      if (!searchText) return a.name.localeCompare(b.name);
+
+      const searchWords = searchText
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w) => w.length > 0);
+
+      const aMatchesName = searchWords.every((word) =>
+        a.name.toLowerCase().includes(word)
+      );
+      const bMatchesName = searchWords.every((word) =>
+        b.name.toLowerCase().includes(word)
+      );
+
+      if (aMatchesName && !bMatchesName) return -1;
+      if (!aMatchesName && bMatchesName) return 1;
+
+      return a.name.localeCompare(b.name);
+    });
 
   return (
     <List
