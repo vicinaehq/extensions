@@ -29,6 +29,7 @@
     "format:fix": "prettier --write ."
   },
   "dependencies": {
+    "@raycast/utils": "^2.2.2",
     "@vicinae/api": "^0.16.1",
     "fuse.js": "^7.1.0"
   },
