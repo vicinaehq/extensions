@@ -306,6 +306,13 @@
       "description": "The Name of the monitor that shows the right side of the image after being split",
       "required": false,
       "type": "textfield"
+    },
+    {
+      "name": "postCommand",
+      "title": "Post Command",
+      "description": "Run a command or even a script after setting a new wallpaper",
+      "required": false,
+      "type": "textfield"
     }
   ],
   "scripts": {

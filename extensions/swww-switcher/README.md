@@ -306,6 +306,12 @@ If you want to use ImageMagick to 'post-process' your selected image, like blur,
 
 This will save the processed image to  `~/.cache/vicinae/swww-switcher/postprod.jpg` which you can use as a wallpaper for rofi, lock screen, login screen, etc...
 
+## Post Commands
+
+If you want to run a command or even a script after setting a new wallpaper, you can use the `Post Command` option in the extension preferences dropdown menu! Add the placeholder `${wallpaper}` and it will replace it with the path to the new wallpaper!
+
+- Example: `notify-send "Wallpaper changed to ${wallpaper}"`
+
 ## License
 
 MIT

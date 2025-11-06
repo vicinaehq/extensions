@@ -12,6 +12,7 @@ export async function omniCommand(
   apptoggle: boolean,
   colorApp: string,
   postProduction: string,
+  postCommandString: string,
 ) {
   let success: boolean;
 
@@ -81,6 +82,21 @@ export async function omniCommand(
         });
       }
     }
+    if (postCommandString !== "") {
+      const postCommandSuccess = await execPostCommand(postCommandString, path);
+
+      if (postCommandSuccess) {
+        showToast({
+          style: Toast.Style.Success,
+          title: "Wall set, colors generated, post proc done, command ran!",
+        });
+      } else {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Post command failed",
+        });
+      }
+    }
   } else {
     showToast({
       style: Toast.Style.Failure,
@@ -143,6 +159,28 @@ export const setWallpaperOnMonitor = async (
     return false;
   }
 };
+
 export const toggleVicinae = (): void => {
   exec(`vicinae vicinae://toggle`);
+};
+
+export const execPostCommand = async (
+  postCommand: string,
+  imagePath: string,
+): Promise<boolean> => {
+  // Execute the command and check for errors
+  console.log(postCommand);
+  console.log(imagePath);
+  return await new Promise<boolean>((resolve) => {
+    const command = postCommand.replace(/\$\{wallpaper\}/g, imagePath);
+
+    exec(command, (error) => {
+      if (error) {
+        console.error(`Post command failed: ${error.message}`);
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+  });
 };

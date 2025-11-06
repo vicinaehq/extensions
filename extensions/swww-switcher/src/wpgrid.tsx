@@ -32,6 +32,7 @@ export default function DisplayGrid() {
   const postProduction = getPreferenceValues().postProduction;
   const leftMonitorName: string = getPreferenceValues().leftMonitor;
   const rightMonitorName: string = getPreferenceValues().rightMonitor;
+  const postCommandString: string = getPreferenceValues().postCommand;
 
   const [wallpapersPath, setWallpapersPath] = useState<string | null>(null);
   const [wallpapers, setWallpapers] = useState<Image[]>([]);
@@ -109,6 +110,7 @@ export default function DisplayGrid() {
                             preferences.toggleVicinaeSetting,
                             colorGen,
                             postProduction,
+                            postCommandString,
                           );
                         }}
                       />
@@ -130,6 +132,7 @@ export default function DisplayGrid() {
                                 preferences.toggleVicinaeSetting,
                                 colorGen,
                                 postProduction,
+                                postCommandString,
                               );
                             }}
                           />
@@ -152,6 +155,7 @@ export default function DisplayGrid() {
                               preferences.toggleVicinaeSetting,
                               colorGen,
                               postProduction,
+                              postCommandString,
                             );
                           }}
                         />
