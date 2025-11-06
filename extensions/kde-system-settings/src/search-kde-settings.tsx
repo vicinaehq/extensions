@@ -1,18 +1,38 @@
-import { ActionPanel, Action, List, LaunchProps, Icon } from "@vicinae/api";
+import {
+  ActionPanel,
+  Action,
+  List,
+  LaunchProps,
+  Icon,
+  getPreferenceValues,
+} from "@vicinae/api";
 import { useState, useEffect } from "react";
 import { openKCMModule } from "./utils/open-module-command";
 import { loadKCMModules, type KCMModule } from "./utils/module-loader";
+
+interface Preferences {
+  showKDE5Modules: boolean;
+}
 
 export default function SearchSettings(props: LaunchProps) {
   const [modules, setModules] = useState<KCMModule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState(props.fallbackText || "");
+  const preferences = getPreferenceValues<Preferences>();
 
   useEffect(() => {
-    const loadedModules = loadKCMModules();
-    setModules(loadedModules);
-    setIsLoading(false);
-  }, []);
+    const loadModules = async () => {
+      const loadedModules = await loadKCMModules();
+      const filteredModules = preferences.showKDE5Modules
+        ? loadedModules
+        : loadedModules.filter((m) => !m.isKDE5);
+
+      setModules(filteredModules);
+      setIsLoading(false);
+    };
+
+    loadModules();
+  }, [preferences.showKDE5Modules]);
 
   const filteredModules = modules.filter((module: KCMModule) => {
     if (!searchText) return true;
@@ -23,7 +43,7 @@ export default function SearchSettings(props: LaunchProps) {
       .toLowerCase()
       .includes(search);
     const matchesKeywords = module.keywords.some((keyword: string) =>
-      keyword.toLowerCase().includes(search),
+      keyword.toLowerCase().includes(search)
     );
 
     return matchesName || matchesDescription || matchesKeywords;
@@ -60,7 +80,9 @@ export default function SearchSettings(props: LaunchProps) {
                   <Action
                     title="Open Settings Module"
                     icon={Icon.Gear}
-                    onAction={() => openKCMModule(module.name, module.execCommand)}
+                    onAction={() =>
+                      openKCMModule(module.name, module.execCommand)
+                    }
                   />
                   <Action.CopyToClipboard
                     title="Copy Module ID"

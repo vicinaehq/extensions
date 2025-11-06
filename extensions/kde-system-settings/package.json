@@ -20,7 +20,17 @@
       "mode": "view"
     }
   ],
-  "preferences": [],
+  "preferences": [
+    {
+      "name": "showKDE5Modules",
+      "type": "checkbox",
+      "title": "Show Legacy KDE5 Modules",
+      "label": "Show Legacy KDE5 Modules",
+      "description": "Display KDE5 modules alongside KDE6 modules. (Some KDE5 modules may not work correctly on KDE6 systems)",
+      "default": false,
+      "required": false
+    }
+  ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",

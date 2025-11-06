@@ -1,5 +1,9 @@
 import { readFileSync, readdirSync, existsSync } from "fs";
 import { join } from "path";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 export interface KCMModule {
   id: string;
@@ -8,9 +12,35 @@ export interface KCMModule {
   icon: string;
   keywords: string[];
   execCommand: string;
+  isKDE5: boolean;
 }
 
-function parseDesktopFile(filePath: string): KCMModule | null {
+async function loadKCMDescriptions(): Promise<Map<string, string>> {
+  const descriptionsMap = new Map<string, string>();
+
+  try {
+    const { stdout } = await execAsync("kcmshell6 --list", { timeout: 5000 });
+    const lines = stdout.split("\n");
+
+    for (const line of lines) {
+      if (line.startsWith("The following") || !line.trim()) continue;
+
+      const match = line.match(/^(\S+)\s+-\s+(.+)$/);
+      if (match && match[1] && match[2]) {
+        descriptionsMap.set(match[1], match[2].trim());
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load kcmshell6 descriptions:", error);
+  }
+
+  return descriptionsMap;
+}
+
+function parseDesktopFile(
+  filePath: string,
+  descriptionsMap: Map<string, string>
+): KCMModule | null {
   try {
     const content = readFileSync(filePath, "utf-8");
     const lines = content.split("\n");
@@ -46,8 +76,15 @@ function parseDesktopFile(filePath: string): KCMModule | null {
 
     let finalModuleId = "";
     let finalCommand = "";
+    let isKDE5 = false;
 
     if (execCommand.includes("systemsettings")) {
+      const parts = execCommand.split(/\s+/);
+      if (parts.length > 1 && parts[1]) {
+        finalModuleId = parts[1];
+        finalCommand = execCommand;
+      }
+    } else if (execCommand.includes("kcmshell6")) {
       const parts = execCommand.split(/\s+/);
       if (parts.length > 1 && parts[1]) {
         finalModuleId = parts[1];
@@ -56,17 +93,31 @@ function parseDesktopFile(filePath: string): KCMModule | null {
     } else if (moduleId) {
       finalModuleId = moduleId;
       finalCommand = `kcmshell6 ${moduleId}`;
+      isKDE5 =
+        moduleId.includes("systemsettings_qwidgets") ||
+        moduleId.includes("kf5/");
     }
 
     if (!finalModuleId) return null;
 
+    if (
+      filePath.includes("/kservices5/") ||
+      filePath.includes("/kservices6/")
+    ) {
+      isKDE5 = true;
+    }
+
+    const finalDescription =
+      descriptionsMap.get(finalModuleId) || description || name;
+
     return {
       id: finalModuleId,
       name,
-      description: description || name,
+      description: finalDescription,
       icon: icon || "preferences-system",
       keywords,
       execCommand: finalCommand,
+      isKDE5,
     };
   } catch (error) {
     console.error(`Error parsing ${filePath}:`, error);
@@ -74,7 +125,8 @@ function parseDesktopFile(filePath: string): KCMModule | null {
   }
 }
 
-export function loadKCMModules(): KCMModule[] {
+export async function loadKCMModules(): Promise<KCMModule[]> {
+  const descriptionsMap = await loadKCMDescriptions();
   const modules: KCMModule[] = [];
   const seen = new Set<string>();
 
@@ -85,7 +137,7 @@ export function loadKCMModules(): KCMModule[] {
       for (const file of files) {
         if (file.startsWith("kcm_") && file.endsWith(".desktop")) {
           const filePath = join(applicationsDir, file);
-          const module = parseDesktopFile(filePath);
+          const module = parseDesktopFile(filePath, descriptionsMap);
           if (module && !seen.has(module.id)) {
             modules.push(module);
             seen.add(module.id);
@@ -104,7 +156,7 @@ export function loadKCMModules(): KCMModule[] {
       for (const file of files) {
         if (file.endsWith(".desktop")) {
           const filePath = join(kservices5Dir, file);
-          const module = parseDesktopFile(filePath);
+          const module = parseDesktopFile(filePath, descriptionsMap);
           if (module && !seen.has(module.id)) {
             modules.push(module);
             seen.add(module.id);
@@ -123,7 +175,7 @@ export function loadKCMModules(): KCMModule[] {
       for (const file of files) {
         if (file.endsWith(".desktop")) {
           const filePath = join(kservices6Dir, file);
-          const module = parseDesktopFile(filePath);
+          const module = parseDesktopFile(filePath, descriptionsMap);
           if (module && !seen.has(module.id)) {
             modules.push(module);
             seen.add(module.id);
