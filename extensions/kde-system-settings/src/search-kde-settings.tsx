@@ -59,7 +59,7 @@ export default function SearchSettings(props: LaunchProps) {
       <List.Section
         title={`Available KDE Settings Modules (${filteredModules.length})`}
       >
-        {filteredModules.length === 0 ? (
+        {filteredModules.length === 0 && !isLoading ? (
           <List.Item
             title="No modules found"
             subtitle="Try adjusting your search terms or check if KDE settings modules are installed"
