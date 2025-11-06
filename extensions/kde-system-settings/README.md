@@ -16,6 +16,8 @@ Search and open KDE System Settings modules directly from Vicinae.
 2. Press Enter or click to open the module
 3. Use copy actions to get module IDs or commands
 
+<img src="assets/screenshot.png" alt="KDE System Settings Extension Screenshot" width="700" />
+
 ### Enable as root fallback command
 
 1. Search for "Configure Fallback Commands" in Vicinae
