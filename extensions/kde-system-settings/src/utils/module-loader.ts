@@ -100,6 +100,16 @@ function parseDesktopFile(
 
     if (!finalModuleId) return null;
 
+    // skip mobile modules (designed for Plasma Mobile, not desktop systemsettings)
+    if (finalModuleId.startsWith("kcm_mobile_")) {
+      return null;
+    }
+
+    // skip modules that don't exist in kcmshell6 --list
+    if (!descriptionsMap.has(finalModuleId)) {
+      return null;
+    }
+
     if (
       filePath.includes("/kservices5/") ||
       filePath.includes("/kservices6/")
