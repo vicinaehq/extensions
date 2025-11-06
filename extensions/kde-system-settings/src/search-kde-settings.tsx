@@ -6,7 +6,7 @@ import {
   Icon,
   getPreferenceValues,
 } from "@vicinae/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { openKCMModule } from "./utils/open-module-command";
 import { loadKCMModules, type KCMModule } from "./utils/module-loader";
 
@@ -34,49 +34,53 @@ export default function SearchSettings(props: LaunchProps) {
     loadModules();
   }, [preferences.showKDE5Modules]);
 
-  const filteredModules = modules
-    .filter((module: KCMModule) => {
-      if (!searchText) return true;
+  const filteredModules = useMemo(() => {
+    return modules
+      .filter((module: KCMModule) => {
+        if (!searchText) return true;
 
-      const searchWords = searchText
-        .toLowerCase()
-        .split(/\s+/)
-        .filter((w) => w.length > 0);
+        const searchWords = searchText
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 0);
 
-      const matchesName = searchWords.every((word) =>
-        module.name.toLowerCase().includes(word)
-      );
+        const matchesName = searchWords.every((word) =>
+          module.name.toLowerCase().includes(word)
+        );
 
-      const matchesDescription = searchWords.every((word) =>
-        module.description.toLowerCase().includes(word)
-      );
+        const matchesDescription = searchWords.every((word) =>
+          module.description.toLowerCase().includes(word)
+        );
 
-      const matchesKeywords = searchWords.every((word) =>
-        module.keywords.some((keyword) => keyword.toLowerCase().includes(word))
-      );
+        const matchesKeywords = searchWords.every((word) =>
+          module.keywords.some((keyword) =>
+            keyword.toLowerCase().includes(word)
+          )
+        );
 
-      return matchesName || matchesDescription || matchesKeywords;
-    })
-    .sort((a, b) => {
-      if (!searchText) return a.name.localeCompare(b.name);
+        return matchesName || matchesDescription || matchesKeywords;
+      })
+      .sort((a, b) => {
+        if (!searchText) return a.name.localeCompare(b.name);
 
-      const searchWords = searchText
-        .toLowerCase()
-        .split(/\s+/)
-        .filter((w) => w.length > 0);
+        const searchWords = searchText
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 0);
 
-      const aMatchesName = searchWords.every((word) =>
-        a.name.toLowerCase().includes(word)
-      );
-      const bMatchesName = searchWords.every((word) =>
-        b.name.toLowerCase().includes(word)
-      );
+        const aMatchesName = searchWords.every((word) =>
+          a.name.toLowerCase().includes(word)
+        );
+        const bMatchesName = searchWords.every((word) =>
+          b.name.toLowerCase().includes(word)
+        );
 
-      if (aMatchesName && !bMatchesName) return -1;
-      if (!aMatchesName && bMatchesName) return 1;
+        if (aMatchesName && !bMatchesName) return -1;
+        if (!aMatchesName && bMatchesName) return 1;
 
-      return a.name.localeCompare(b.name);
-    });
+        return a.name.localeCompare(b.name);
+      });
+  }, [modules, searchText]);
 
   return (
     <List
