@@ -4,7 +4,9 @@
 
 Browse and quickly open a comprehensive collection of IT tools including encoders, decoders, converters, formatters, generators, and utilities for everyday development tasks.
 
-This tool is built on top of https://github.com/sharevb/it-tools, which is a fork of the original [IT-Tools repo](https://github.com/CorentinTh/it-tools).
+This tool is built on top of https://github.com/sharevb/it-tools, which is a fork of the original https://github.com/CorentinTh/it-tools.
+
+<img width="753" height="459" alt="it-tools" src="https://github.com/user-attachments/assets/9477afc7-b571-48a4-bbb1-bbafafb99793" />
 
 ## Features
 
