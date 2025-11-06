@@ -1,48 +1,41 @@
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
-
-const execAsync = promisify(exec);
+import { spawn } from "node:child_process";
 
 export interface ExecOptions {
-  timeout?: number;
-  cwd?: string;
-  env?: NodeJS.ProcessEnv;
+	cwd?: string;
+	env?: NodeJS.ProcessEnv;
+	timeout?: number;
 }
 
 export interface ExecResult {
-  success: boolean;
-  stdout: string;
-  stderr: string;
-  error?: string;
+	success: boolean;
+	stdout: string;
+	stderr: string;
+	error?: string;
 }
 
 /**
- * Execute a shell command with proper error handling
+ * Execute a command *detached* so it continues running
+ * even if the parent process (launcher UI) exits.
  */
-export async function executeCommand(
-  command: string,
-  options: ExecOptions = {}
-): Promise<ExecResult> {
-  try {
-    const { stdout, stderr } = await execAsync(command, {
-      timeout: options.timeout || 30000, // 30 second default timeout
-      cwd: options.cwd,
-      env: options.env,
-    });
+export function executeCommand(
+	command: string,
+	options: ExecOptions = {},
+): ExecResult {
+	const [cmd, ...args] = command.split(" ");
 
-    return {
-      success: true,
-      stdout: stdout.trim(),
-      stderr: stderr.trim(),
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown command error";
+	const child = spawn(cmd, args, {
+		cwd: options.cwd,
+		env: options.env,
+		detached: true,
+		stdio: "ignore", // Fully detached
+	});
 
-    return {
-      success: false,
-      stdout: "",
-      stderr: errorMessage,
-      error: errorMessage,
-    };
-  }
+	child.unref();
+
+	// Return immediately and and don't wait for the child process to exit
+	return {
+		success: true,
+		stdout: "",
+		stderr: "",
+	};
 }
