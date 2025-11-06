@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "it-tools",
+  "title": "IT Tools",
+  "description": "Access 375+ developer and IT tools directly from Vicinae. Includes converters, encoders, generators, formatters, and utilities for everyday development tasks.",
+  "categories": [
+    "Developer Tools",
+    "Productivity",
+    "Web"
+  ],
+  "license": "MIT",
+  "author": "nikbpetrov",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "it-tools-command",
+      "title": "IT Tools",
+      "subtitle": "Developer Utilities",
+      "description": "Browse and open IT tools including encoders, converters, formatters, generators and more",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "base-url",
+      "title": "IT Tools Base URL",
+      "description": "The base URL of your IT Tools instance (default: https://sharevb-it-tools.vercel.app). Can be self-hosted.",
+      "type": "textfield",
+      "default": "https://sharevb-it-tools.vercel.app",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
