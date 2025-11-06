@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "kde-system-settings",
+  "title": "KDE System Settings",
+  "description": "Search and open KDE System Settings modules directly from Vicinae",
+  "categories": [
+    "System"
+  ],
+  "license": "MIT",
+  "author": "mmstroik",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "search-kde-settings",
+      "title": "Search KDE System Settings",
+      "subtitle": "KDE",
+      "description": "List, search, and open KDE System Settings modules",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .ts,.tsx && vici lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "@types/node": "^22.18.8",
+    "@types/react": "^19.0.10",
+    "eslint": "^9.37.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.45.0"
+  }
+}
