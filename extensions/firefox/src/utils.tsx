@@ -3,13 +3,13 @@ import { homedir } from "os";
 import path from "path";
 import { promisify } from "util";
 
-import { Action, ActionPanel, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, getPreferenceValues, showToast, Toast } from "@vicinae/api";
 import ini from "ini";
 import initSqlJs, { Database } from "sql.js";
 
 export const read = promisify(readFile);
 
-export const FIREFOX_FOLDER = path.join(homedir(), ".mozilla", "firefox");
+export const FIREFOX_FOLDER = path.join(homedir(), getPreferenceValues().profile_dir);
 
 export type Profile = { name: string; path: string };
 
