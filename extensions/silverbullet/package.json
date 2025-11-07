@@ -1,0 +1,49 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "silverbullet",
+  "title": "Silverbullet",
+  "description": "Silverbullet.md notes.",
+  "icon": "extension-icon.png",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+   "preferences": [
+     {
+       "type": "textfield",
+       "title": "Silverbullet API URL",
+       "name": "silverbulletApiUrl",
+       "description": "URL of your Silverbullet.md instance (e.g., https://wiki.example.com)",
+       "required": true
+     },
+     {
+       "type": "textfield",
+       "title": "Silverbullet API Token",
+       "name": "silverbulletApiToken",
+       "description": "Your Silverbullet.md API token for Bearer authentication",
+       "required": true
+     }
+   ],
+   "commands": [
+     {
+       "name": "silverbullet-notes",
+       "title": "Notes",
+       "subtitle": "Silverbullet",
+       "description": "Browse your Silverbullet.md notes.",
+       "mode": "view"
+     }
+   ],
+  "dependencies": {
+    "@vicinae/api": "^0.15.5"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "ray publish"
+  }
+}
