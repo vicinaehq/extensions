@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
+	open,
 	List,
 	ActionPanel,
 	Action,
@@ -117,22 +118,7 @@ export default function ITToolsList() {
 									title="Open Tool"
 									icon={Icon.Globe}
 									onAction={async () => {
-										// Open URL in browser using system command
-										// This will work on Linux (xdg-open), macOS (open), and Windows (start)
-										const { exec } = require("child_process");
-										const command =
-											process.platform === "win32"
-												? `start "" "${tool.href}"`
-												: process.platform === "darwin"
-													? `open "${tool.href}"`
-													: `xdg-open "${tool.href}"`;
-
-										// Execute the command (non-blocking, ignore errors)
-										exec(command, (error: Error | null) => {
-											if (error) {
-												console.error("[IT Tools] Failed to open URL:", error);
-											}
-										});
+										await open(tool.href);
 
 										// Close Vicinae window completely
 										await closeMainWindow({
