@@ -36,8 +36,10 @@ function getToolIcon(tool: ITTool): string {
 function loadTools(preferences: PreferenceValues): ITTool[] {
 	console.log("[IT Tools] Loading tools from tools-data.json...");
 
-	const baseUrl =
-		preferences["base-url"] || "https://sharevb-it-tools.vercel.app";
+	// Normalize baseUrl by removing trailing slash to avoid double slashes
+	const baseUrl = (
+		preferences["base-url"] || "https://sharevb-it-tools.vercel.app"
+	).replace(/\/+$/, "");
 
 	const tools: ITTool[] = (toolsData as { tools: ITTool[] }).tools.map(
 		(tool) => ({
