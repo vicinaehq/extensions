@@ -44,7 +44,7 @@ This extension provides access to tools in various categories:
 
 ### Base URL
 
-By default, this extension uses the public IT-tools instance at `https://it-tools.tech`. You can configure a custom base URL in the extension preferences if you're running your own IT-tools instance.
+By default, this extension uses a public IT-tools instance at `https://sharevb-it-tools.vercel.app/`. You can configure a custom base URL in the extension preferences if you're running your own IT-tools instance.
 
 ## Development & Contribution
 
