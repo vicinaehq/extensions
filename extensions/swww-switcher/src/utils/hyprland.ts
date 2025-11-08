@@ -13,39 +13,22 @@ export async function omniCommand(
   colorApp: string,
   postProduction: string,
   postCommandString: string,
+  fps: number,
 ) {
   let success: boolean;
 
   if (monitor === "ALL") {
-    success = await setWallpaper(path, transition, steps, duration);
+    success = await setWallpaper(path, transition, steps, duration, fps);
   } else if (monitor.includes("|")) {
     const splitImages = await runConvertSplit(path);
     const monitors = monitor.split("|");
 
-    const ok1 = await setWallpaperOnMonitor(
-      splitImages[0],
-      monitors[0],
-      transition,
-      steps,
-      duration,
-    );
-    const ok2 = await setWallpaperOnMonitor(
-      splitImages[1],
-      monitors[1],
-      transition,
-      steps,
-      duration,
-    );
+    const ok1 = await setWallpaperOnMonitor(splitImages[0], monitors[0], transition, steps, duration, fps);
+    const ok2 = await setWallpaperOnMonitor(splitImages[1], monitors[1], transition, steps, duration, fps);
 
     success = ok1 && ok2;
   } else {
-    success = await setWallpaperOnMonitor(
-      path,
-      monitor,
-      transition,
-      steps,
-      duration,
-    );
+    success = await setWallpaperOnMonitor(path, monitor, transition, steps, duration, fps);
   }
 
   if (success) {
@@ -101,8 +84,7 @@ export async function omniCommand(
     showToast({
       style: Toast.Style.Failure,
       title: "ERROR: Check awww-daemon status",
-      message:
-        "Make sure awww is installed and its daemon is running (awww-daemon).",
+      message: "Make sure awww is installed and its daemon is running (awww-daemon).",
     });
   }
 }
@@ -112,13 +94,14 @@ export const setWallpaper = async (
   transition: string,
   steps: number,
   seconds: number,
+  fps: number,
 ): Promise<boolean> => {
   try {
     execSync("awww query", { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
-        `awww img ${path} -t ${transition} --transition-step ${steps} --transition-duration ${seconds}`,
+        `awww img "${path}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds} --transition-fps ${fps}`,
         (error) => {
           if (error) {
             resolve(false);
@@ -139,13 +122,14 @@ export const setWallpaperOnMonitor = async (
   transition: string,
   steps: number,
   seconds: number,
+  fps: number,
 ): Promise<boolean> => {
   try {
     execSync("awww query", { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
-        `awww img ${path} --outputs "${monitorName}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds}`,
+        `awww img "${path}" --outputs "${monitorName}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds} --transition-fps ${fps}`,
         (error) => {
           if (error) {
             resolve(false);
@@ -164,10 +148,7 @@ export const toggleVicinae = (): void => {
   exec(`vicinae vicinae://toggle`);
 };
 
-export const execPostCommand = async (
-  postCommand: string,
-  imagePath: string,
-): Promise<boolean> => {
+export const execPostCommand = async (postCommand: string, imagePath: string): Promise<boolean> => {
   // Execute the command and check for errors
   console.log(postCommand);
   console.log(imagePath);

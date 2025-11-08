@@ -190,6 +190,14 @@
       "default": "90"
     },
     {
+      "name": "transitionFPS",
+      "title": "AWWW Transition FPS",
+      "description": "The target FPS to play the animation at",
+      "type": "textfield",
+      "required": false,
+      "default": "60"
+    },
+    {
       "name": "colorGenTool",
       "title": "Color Generator",
       "description": "Which color generation tool do you use?",

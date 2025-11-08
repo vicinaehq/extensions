@@ -37,27 +37,29 @@ Dont feel like picking a wallpaper? Just run Random Wallpaper!
 
 <img src="assets/settings.png" alt="AWWW Switcher Settings" width="500" />
 
- - Wallpaper Path
- - AWWW Transition Type
-    - Default = `random`
- - AWWW Duration (In seconds)
-    - Default = `3`
- - AWWW Transition Step
-   - Default = `90`
- - Color Generator
-   - Default = `none`
- - Grid Rows
-   - Default = `4`
- - Toggle Vicinae on Selection
-   - Default = `true`
- - Show Image Details
-   - Default = `true`
- - ImageMagick Post-Production
-   - Default = `none`
- - leftmonitor
-   - Default = `unset`
- - rightmonitor
-   - Default = `unset`
+- Wallpaper Path
+- AWWW Transition Type
+  - Default = `random`
+- AWWW Duration (In seconds)
+  - Default = `3`
+- AWWW Transition Step
+  - Default = `90`
+- AWWW Transition FPS
+  - Default = `60`
+- Color Generator
+  - Default = `none`
+- Grid Rows
+  - Default = `4`
+- Toggle Vicinae on Selection
+  - Default = `true`
+- Show Image Details
+  - Default = `true`
+- ImageMagick Post-Production
+  - Default = `none`
+- leftmonitor
+  - Default = `unset`
+- rightmonitor
+  - Default = `unset`
 
 ## Quick start (development)
 
@@ -77,6 +79,7 @@ npm run build
 This produces a production bundle that can be distributed/installed per Vicinae guidelines.
 
 ## First Usage
+
 1. Launch `wallpaper grid`
 
 2. Set the path to your images.
@@ -98,19 +101,19 @@ bind = SUPER SHIFT, W, exec, vicinae vicinae://extensions/sovereign/awww-switche
 
 The folowing tranistions are supported:
 
-  - Simple
-  - Fade
-  - Left
-  - Right
-  - Top
-  - Bottom
-  - Wipe
-  - Wave
-  - Grow
-  - Center
-  - Any
-  - Outer
-  - <span style="color: red;">R</span><span style="color: orange;">a</span><span style="color: yellow;">n</span><span style="color: green;">d</span><span style="color: blue;">o</span><span style="color: indigo;">m</span>
+- Simple
+- Fade
+- Left
+- Right
+- Top
+- Bottom
+- Wipe
+- Wave
+- Grow
+- Center
+- Any
+- Outer
+- <span style="color: red;">R</span><span style="color: orange;">a</span><span style="color: yellow;">n</span><span style="color: green;">d</span><span style="color: blue;">o</span><span style="color: indigo;">m</span>
 
 ## AWWW Steps and Duration
 
@@ -137,6 +140,7 @@ Use a tool to pull colors out of a wallpaper for themeing purposes. Below is a l
 Base of this theme provided by the amazing [Sridou](https://github.com/Sridou). Check the [offical documentation](https://docs.vicinae.com/theming/matugen) for more!
 
 1. Save a template file where ever you'd like. Example below.
+
 ```
 # Vicinae Matugen Theme for awww switcher
 
@@ -276,6 +280,7 @@ input_path = '~/.config/matugen/templates/vicinae.toml'
 output_path = '~/.local/share/vicinae/themes/matugen.toml'
 post_hook = 'vicinae theme set matugen'
 ```
+
 3. Note the post hook. That's how you get Vicinae to apply the new theme.
 
 ## Split One Wallpaper for Two Monitors
@@ -304,7 +309,7 @@ If you want to use ImageMagick to 'post-process' your selected image, like blur,
 - Heavy Blur + Darken
 - Negate
 
-This will save the processed image to  `~/.cache/vicinae/awww-switcher/postprod.jpg` which you can use as a wallpaper for rofi, lock screen, login screen, etc...
+This will save the processed image to `~/.cache/vicinae/awww-switcher/postprod.jpg` which you can use as a wallpaper for rofi, lock screen, login screen, etc...
 
 ## Post Commands
 

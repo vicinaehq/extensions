@@ -8,6 +8,7 @@ export default async function RandomWallpaper() {
   const awwwTransition: string = getPreferenceValues().transitionType || "fade";
   const awwwSteps: number = parseInt(getPreferenceValues().transitionSteps) || 90;
   const awwwDuration: number = parseInt(getPreferenceValues().transitionDuration) || 3;
+  const awwwFPS: number = parseInt(getPreferenceValues().transitionFPS) || 60;
   const colorGen: string = getPreferenceValues().colorGenTool || "none";
   type Preferences = {
     toggleVicinaeSetting: boolean;
@@ -16,6 +17,7 @@ export default async function RandomWallpaper() {
   const leftMonitorName: string = getPreferenceValues().leftMonitor;
   const rightMonitorName: string = getPreferenceValues().rightMonitor;
   const postProduction = getPreferenceValues().postProduction;
+  const postCommandString: string = getPreferenceValues().postCommand;
 
   try {
     await showToast({
@@ -51,6 +53,8 @@ export default async function RandomWallpaper() {
         preferences.toggleVicinaeSetting,
         colorGen,
         postProduction,
+        postCommandString,
+        awwwFPS,
       );
     } else {
       omniCommand(
@@ -62,6 +66,8 @@ export default async function RandomWallpaper() {
         preferences.toggleVicinaeSetting,
         colorGen,
         postProduction,
+        postCommandString,
+        awwwFPS,
       );
     }
 

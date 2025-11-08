@@ -1,13 +1,5 @@
-import React, { useEffect, useState } from "react";
-import {
-  ActionPanel,
-  Action,
-  Grid,
-  showToast,
-  Toast,
-  Icon,
-  getPreferenceValues,
-} from "@vicinae/api";
+import { useEffect, useState } from "react";
+import { ActionPanel, Action, Grid, showToast, Toast, Icon, getPreferenceValues } from "@vicinae/api";
 import { getImagesFromPath, Image } from "./utils/image";
 import { Monitor, getMonitors } from "./utils/monitor";
 import { omniCommand } from "./utils/hyprland";
@@ -18,10 +10,9 @@ export default function DisplayGrid() {
   const [monitors, setMonitors] = useState<Monitor[]>([]);
   const path: string = getPreferenceValues().wallpaperPath;
   const awwwTransition: string = getPreferenceValues().transitionType || "fade";
-  const awwwSteps: number =
-    parseInt(getPreferenceValues().transitionSteps) || 90;
-  const awwwDuration: number =
-    parseInt(getPreferenceValues().transitionDuration) || 3;
+  const awwwSteps: number = parseInt(getPreferenceValues().transitionSteps) || 90;
+  const awwwDuration: number = parseInt(getPreferenceValues().transitionDuration) || 3;
+  const awwwFPS: number = parseInt(getPreferenceValues().transitionFPS) || 60;
   const colorGen: string = getPreferenceValues().colorGenTool || "none";
   const gridRows = parseInt(getPreferenceValues().gridRows) || 4;
   type Preferences = {
@@ -64,22 +55,14 @@ export default function DisplayGrid() {
       fit={Grid.Fit.Fill}
       isLoading={false}
     >
-      <Grid.Section
-        title={
-          isLoading
-            ? `Loading images in '${path}'...`
-            : `Showing images from '${path}'`
-        }
-      >
+      <Grid.Section title={isLoading ? `Loading images in '${path}'...` : `Showing images from '${path}'`}>
         {isLoading
           ? Array.from({ length: gridRows * 3 }).map((_, i) => (
               <Grid.Item
                 key={i}
                 content={{ source: "loading.gif" }}
                 title="Loading..."
-                subtitle={
-                  preferences.showImageDetails ? `480x270 • 79.5 KB` : undefined
-                }
+                subtitle={preferences.showImageDetails ? `480x270 • 79.5 KB` : undefined}
               />
             ))
           : wallpapers.map((w) => (
@@ -89,10 +72,7 @@ export default function DisplayGrid() {
                 title={w.name}
                 {...(preferences.showImageDetails && {
                   subtitle: `${w.width}x${w.height} • ${w.size.toFixed(2)} MB`,
-                  accessories: [
-                    { text: `${w.width}x${w.height}` },
-                    { text: `${w.size.toFixed(2)} MB` },
-                  ],
+                  accessories: [{ text: `${w.width}x${w.height}` }, { text: `${w.size.toFixed(2)} MB` }],
                 })}
                 actions={
                   <ActionPanel>
@@ -111,32 +91,33 @@ export default function DisplayGrid() {
                             colorGen,
                             postProduction,
                             postCommandString,
+                            awwwFPS,
                           );
                         }}
                       />
                     </ActionPanel.Section>
 
                     <ActionPanel.Section title="Split on Monitors">
-                      {monitorNames.includes(leftMonitorName) &&
-                        monitorNames.includes(rightMonitorName) && (
-                          <Action
-                            title={`Split wallpaper ${leftMonitorName} | ${rightMonitorName}`}
-                            icon={Icon.ArrowsExpand}
-                            onAction={() => {
-                              omniCommand(
-                                w.fullpath,
-                                `${leftMonitorName}|${rightMonitorName}`,
-                                awwwTransition,
-                                awwwSteps,
-                                awwwDuration,
-                                preferences.toggleVicinaeSetting,
-                                colorGen,
-                                postProduction,
-                                postCommandString,
-                              );
-                            }}
-                          />
-                        )}
+                      {monitorNames.includes(leftMonitorName) && monitorNames.includes(rightMonitorName) && (
+                        <Action
+                          title={`Split wallpaper ${leftMonitorName} | ${rightMonitorName}`}
+                          icon={Icon.ArrowsExpand}
+                          onAction={() => {
+                            omniCommand(
+                              w.fullpath,
+                              `${leftMonitorName}|${rightMonitorName}`,
+                              awwwTransition,
+                              awwwSteps,
+                              awwwDuration,
+                              preferences.toggleVicinaeSetting,
+                              colorGen,
+                              postProduction,
+                              postCommandString,
+                              awwwFPS,
+                            );
+                          }}
+                        />
+                      )}
                     </ActionPanel.Section>
 
                     <ActionPanel.Section title="Set on Specific Monitor">
@@ -156,6 +137,7 @@ export default function DisplayGrid() {
                               colorGen,
                               postProduction,
                               postCommandString,
+                              awwwFPS,
                             );
                           }}
                         />
