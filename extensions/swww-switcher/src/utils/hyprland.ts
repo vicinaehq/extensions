@@ -65,7 +65,7 @@ export async function omniCommand(
         });
       }
     }
-    if (postCommandString !== "") {
+    if (postCommandString) {
       const postCommandSuccess = await execPostCommand(postCommandString, path);
 
       if (postCommandSuccess) {
