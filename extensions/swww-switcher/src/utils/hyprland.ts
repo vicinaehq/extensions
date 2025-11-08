@@ -100,9 +100,9 @@ export async function omniCommand(
   } else {
     showToast({
       style: Toast.Style.Failure,
-      title: "ERROR: Check swww-daemon status",
+      title: "ERROR: Check awww-daemon status",
       message:
-        "Make sure swww is installed and its daemon is running (swww-daemon).",
+        "Make sure awww is installed and its daemon is running (awww-daemon).",
     });
   }
 }
@@ -114,11 +114,11 @@ export const setWallpaper = async (
   seconds: number,
 ): Promise<boolean> => {
   try {
-    execSync("swww query", { stdio: "pipe" });
+    execSync("awww query", { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
-        `swww img ${path} -t ${transition} --transition-step ${steps} --transition-duration ${seconds}`,
+        `awww img ${path} -t ${transition} --transition-step ${steps} --transition-duration ${seconds}`,
         (error) => {
           if (error) {
             resolve(false);
@@ -141,11 +141,11 @@ export const setWallpaperOnMonitor = async (
   seconds: number,
 ): Promise<boolean> => {
   try {
-    execSync("swww query", { stdio: "pipe" });
+    execSync("awww query", { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
-        `swww img ${path} --outputs "${monitorName}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds}`,
+        `awww img ${path} --outputs "${monitorName}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds}`,
         (error) => {
           if (error) {
             resolve(false);

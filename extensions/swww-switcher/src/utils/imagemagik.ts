@@ -2,22 +2,17 @@ import { exec, execSync } from "child_process";
 import * as path from "node:path";
 
 export async function runConvertSplit(imgpath: string) {
-  const outDir = ".cache/vicinae/swww-switcher";
+  const outDir = ".cache/vicinae/awww-switcher";
   console.log(`Running split of ${imgpath}`);
 
   const cmd = `mkdir -p "${outDir}" && magick "${imgpath}" -crop 50%x100% +repage "${outDir}/split_%d.jpg"`;
   execSync(cmd);
 
-  return Array.from({ length: 2 }, (_, i) =>
-    path.join(outDir, `split_${i}.jpg`),
-  );
+  return Array.from({ length: 2 }, (_, i) => path.join(outDir, `split_${i}.jpg`));
 }
 
-export const runPostProduction = async (
-  imgpath: string,
-  option: string,
-): Promise<boolean> => {
-  const outDir = ".cache/vicinae/swww-switcher";
+export const runPostProduction = async (imgpath: string, option: string): Promise<boolean> => {
+  const outDir = ".cache/vicinae/awww-switcher";
   let cmd: string;
   const postProdpath = path.join(outDir, `postprod.jpg`);
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-  "name": "swww-switcher",
-  "title": "SWWW Switcher",
-  "description": "Switch your wallpaper with swww and call a color gen to update color pallets while you are at it",
+  "name": "awww-switcher",
+  "title": "AWWW Switcher",
+  "description": "Switch your wallpaper with awww and call a color gen to update color pallets while you are at it",
   "categories": [],
   "license": "MIT",
   "author": "sovereign",
@@ -14,14 +14,14 @@
       "name": "wpgrid",
       "title": "Wallpaper Grid",
       "subtitle": "Wallpaper Grid",
-      "description": "Switch wallpapers using swww",
+      "description": "Switch wallpapers using awww",
       "mode": "view"
     },
     {
       "name": "wprandom",
       "title": "Random Wallpaper",
       "subtitle": "Let RNG choose your style",
-      "description": "Switch wallpapers using swww",
+      "description": "Switch wallpapers using awww",
       "mode": "no-view"
     }
   ],
@@ -61,7 +61,7 @@
     },
     {
       "name": "transitionType",
-      "title": "SWWW Transition Type",
+      "title": "AWWW Transition Type",
       "description": "The animation type of the sww transition",
       "required": false,
       "type": "dropdown",
@@ -127,8 +127,8 @@
     },
     {
       "name": "transitionDuration",
-      "title": "SWWW Transition Duration",
-      "description": "Duration of the swww transition in seconds",
+      "title": "AWWW Transition Duration",
+      "description": "Duration of the awww transition in seconds",
       "required": false,
       "type": "dropdown",
       "data": [
@@ -157,7 +157,7 @@
     },
     {
       "name": "transitionStep",
-      "title": "SWWW Transition Step",
+      "title": "AWWW Transition Step",
       "description": "The amount of steps from old wallpaper RBG to new wallpaper RBG",
       "required": false,
       "type": "dropdown",

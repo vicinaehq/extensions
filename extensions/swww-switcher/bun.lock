@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "swww-switcher",
+      "name": "awww-switcher",
       "dependencies": {
         "@vicinae/api": "^0.12.2",
         "image-size": "^2.0.2",

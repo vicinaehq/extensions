@@ -17,10 +17,10 @@ import { omniCommand } from "./utils/hyprland";
 export default function DisplayGrid() {
   const [monitors, setMonitors] = useState<Monitor[]>([]);
   const path: string = getPreferenceValues().wallpaperPath;
-  const swwwTransition: string = getPreferenceValues().transitionType || "fade";
-  const swwwSteps: number =
+  const awwwTransition: string = getPreferenceValues().transitionType || "fade";
+  const awwwSteps: number =
     parseInt(getPreferenceValues().transitionSteps) || 90;
-  const swwwDuration: number =
+  const awwwDuration: number =
     parseInt(getPreferenceValues().transitionDuration) || 3;
   const colorGen: string = getPreferenceValues().colorGenTool || "none";
   const gridRows = parseInt(getPreferenceValues().gridRows) || 4;
@@ -104,9 +104,9 @@ export default function DisplayGrid() {
                           omniCommand(
                             w.fullpath,
                             "ALL",
-                            swwwTransition,
-                            swwwSteps,
-                            swwwDuration,
+                            awwwTransition,
+                            awwwSteps,
+                            awwwDuration,
                             preferences.toggleVicinaeSetting,
                             colorGen,
                             postProduction,
@@ -126,9 +126,9 @@ export default function DisplayGrid() {
                               omniCommand(
                                 w.fullpath,
                                 `${leftMonitorName}|${rightMonitorName}`,
-                                swwwTransition,
-                                swwwSteps,
-                                swwwDuration,
+                                awwwTransition,
+                                awwwSteps,
+                                awwwDuration,
                                 preferences.toggleVicinaeSetting,
                                 colorGen,
                                 postProduction,
@@ -149,9 +149,9 @@ export default function DisplayGrid() {
                             omniCommand(
                               w.fullpath,
                               monitor.name,
-                              swwwTransition,
-                              swwwSteps,
-                              swwwDuration,
+                              awwwTransition,
+                              awwwSteps,
+                              awwwDuration,
                               preferences.toggleVicinaeSetting,
                               colorGen,
                               postProduction,
