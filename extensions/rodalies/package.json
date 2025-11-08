@@ -1,0 +1,95 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "rodalies",
+  "title": "Rodalies",
+  "description": "Check next Rodalies train schedules and departures",
+  "categories": ["Productivity", "Other"],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.svg",
+  "version": "1.0.0",
+   "commands": [
+     {
+       "name": "departures",
+       "title": "Departures",
+       "description": "View real-time train departures from stations",
+       "mode": "view"
+     }
+   ],
+  "preferences": [
+    {
+      "name": "refresh-interval",
+      "title": "Refresh Interval",
+      "description": "How often to refresh train data (in minutes)",
+      "type": "dropdown",
+      "required": false,
+      "default": "5",
+      "data": [
+        {
+          "title": "1 minute",
+          "value": "1"
+        },
+        {
+          "title": "5 minutes",
+          "value": "5"
+        },
+        {
+          "title": "10 minutes",
+          "value": "10"
+        },
+        {
+          "title": "15 minutes",
+          "value": "15"
+        }
+      ]
+    },
+    {
+      "name": "api-language",
+      "title": "API Language",
+      "description": "Language for API responses and station names",
+      "type": "dropdown",
+      "required": false,
+      "default": "en",
+      "data": [
+        {
+          "title": "English",
+          "value": "en"
+        },
+        {
+          "title": "English (UK)",
+          "value": "en_GB"
+        },
+        {
+          "title": "Catalan",
+          "value": "ca"
+        },
+        {
+          "title": "Catalan (Spain)",
+          "value": "ca_ES"
+        },
+        {
+          "title": "Spanish",
+          "value": "es"
+        },
+        {
+          "title": "Spanish (Spain)",
+          "value": "es_ES"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.2"
+  }
+}
