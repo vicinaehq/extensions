@@ -328,7 +328,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.12.2",
+    "@vicinae/api": "^0.16.2",
     "image-size": "^2.0.2",
     "jimp": "^1.6.0"
   },
