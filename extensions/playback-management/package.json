@@ -1,0 +1,62 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "playback-management",
+  "title": "Playback Management",
+  "description": "An extension that allows you to control playback of media on your system (play, pause, next track, ...)",
+  "categories": [
+    "Media"
+  ],
+  "license": "MIT",
+  "author": "marcinjahn",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "resume_icon.png",
+  "commands": [
+    {
+      "name": "resume-music",
+      "title": "Resume Music",
+      "subtitle": "Resume currently paused media",
+      "description": "Resume",
+      "mode": "no-view",
+      "icon": "resume_icon.png"
+    },
+    {
+      "name": "pause-music",
+      "title": "Pause Music",
+      "subtitle": "Pause currently played media",
+      "description": "Pause",
+      "mode": "no-view",
+      "icon": "pause_icon.png"
+    },
+    {
+      "name": "next-track",
+      "title": "Next Track",
+      "subtitle": "Play next track",
+      "description": "Play next track",
+      "mode": "no-view",
+      "icon": "next_icon.png"
+    },
+    {
+      "name": "previous-track",
+      "title": "Previous Track",
+      "subtitle": "Play previous track",
+      "description": "Play previous track",
+      "mode": "no-view",
+      "icon": "previous_icon.png"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
