@@ -1,0 +1,78 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "agenda",
+  "title": "Agenda",
+  "description": "View upcoming events from iCal calendars",
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "upcoming-events",
+      "title": "Upcoming Events",
+      "description": "Display upcoming events",
+      "mode": "view"
+    },
+    {
+      "name": "add-calendar",
+      "title": "Add Calendar",
+      "description": "Add a new calendar",
+      "mode": "view"
+    },
+    {
+      "name": "manage-calendars",
+      "title": "Manage Calendars",
+      "description": "View and manage configured calendars",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "refreshInterval",
+      "type": "dropdown",
+      "title": "Refresh Interval",
+      "description": "How often to refresh calendar data (in minutes)",
+      "default": "15",
+      "data": [
+        {
+          "title": "5 minutes",
+          "value": "5"
+        },
+        {
+          "title": "15 minutes",
+          "value": "15"
+        },
+        {
+          "title": "30 minutes",
+          "value": "30"
+        },
+        {
+          "title": "60 minutes",
+          "value": "60"
+        }
+      ],
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.15.5",
+    "node-ical": "^0.16.1"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.1.1",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  }
+}

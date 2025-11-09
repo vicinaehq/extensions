@@ -1,0 +1,143 @@
+import { Action, ActionPanel, Icon, List } from "@vicinae/api";
+import type { VEvent } from "node-ical";
+import { Calendar } from "../types";
+import { getCalendarName } from "../utils/calendar";
+import { getSupportedUrls, urlHandlers } from "../utils/urls";
+import { isAllDayEvent, getDisplayStart, getDisplayEnd } from "../utils/events";
+
+interface EventListItemProps {
+  event: VEvent;
+  eventCalendarUrl?: string;
+  isShowingDetail: boolean;
+  onToggleDetail: () => void;
+  calendars: Calendar[];
+}
+
+export function EventListItem({
+  event,
+  eventCalendarUrl,
+  isShowingDetail,
+  onToggleDetail,
+  calendars,
+}: EventListItemProps) {
+  const startDate = new Date(event.start);
+  const endDate = new Date(event.end);
+  const isAllDay = isAllDayEvent(startDate, endDate);
+  const displayStart = getDisplayStart(startDate, isAllDay);
+  const displayEnd = getDisplayEnd(endDate, isAllDay);
+  const calendar = eventCalendarUrl
+    ? calendars.find((cal) => cal.url === eventCalendarUrl)
+    : undefined;
+
+  return (
+    <List.Item
+      title={event.summary || "Untitled Event"}
+      subtitle={
+        isShowingDetail
+          ? undefined
+          : isAllDay
+          ? ""
+          : `${displayStart}${displayEnd ? " - " + displayEnd : ""}`
+      }
+      icon={Icon.Calendar}
+      accessories={
+        calendar
+          ? [
+              {
+                tag: {
+                  value: getCalendarName(calendar),
+                  color: calendar.color,
+                },
+              },
+            ]
+          : []
+      }
+      actions={
+        <ActionPanel>
+          {event.url && (
+            <Action.OpenInBrowser
+              title="Open Event in Browser"
+              url={event.url}
+            />
+          )}
+          {event.description &&
+            getSupportedUrls(event.description).length > 0 && (
+              <ActionPanel.Section title="Links in Description">
+                {getSupportedUrls(event.description).map((url, index) => {
+                  const handler = urlHandlers.find((h) => h.pattern.test(url));
+                  return handler ? (
+                    <Action.OpenInBrowser
+                      key={index}
+                      title={handler.name}
+                      url={url}
+                    />
+                  ) : null;
+                })}
+              </ActionPanel.Section>
+            )}
+          <ActionPanel.Section>
+            <Action
+              title={isShowingDetail ? "Hide Details" : "Show Details"}
+              onAction={onToggleDetail}
+              shortcut={{ modifiers: ["cmd"], key: "d" }}
+            />
+
+            {event.location && (
+              <Action.CopyToClipboard
+                title="Copy Location"
+                content={event.location}
+              />
+            )}
+          </ActionPanel.Section>
+        </ActionPanel>
+      }
+      detail={
+        <List.Item.Detail
+          metadata={
+            <List.Item.Detail.Metadata>
+              {[
+                event.status && (
+                  <List.Item.Detail.Metadata.Label
+                    key="status"
+                    title="Status"
+                    text={event.status}
+                  />
+                ),
+                event.location && (
+                  <List.Item.Detail.Metadata.Label
+                    key="location"
+                    title="Location"
+                    text={event.location}
+                  />
+                ),
+                event.organizer && (
+                  <List.Item.Detail.Metadata.Label
+                    key="organizer"
+                    title="Organizer"
+                    text={
+                      typeof event.organizer === "string"
+                        ? event.organizer
+                        : event.organizer?.val || "Unknown"
+                    }
+                  />
+                ),
+                event.url && (
+                  <List.Item.Detail.Metadata.Label
+                    key="url"
+                    title="URL"
+                    text={event.url}
+                  />
+                ),
+              ].filter(Boolean)}
+            </List.Item.Detail.Metadata>
+          }
+          markdown={
+            event.description
+              ? `**Description**\n\n${event.description}`
+              : undefined
+          }
+        />
+      }
+    />
+  );
+}
