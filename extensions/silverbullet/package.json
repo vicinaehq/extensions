@@ -11,33 +11,34 @@
     "Productivity"
   ],
   "license": "MIT",
-   "preferences": [
-     {
-       "type": "textfield",
-       "title": "Silverbullet API URL",
-       "name": "silverbulletApiUrl",
-       "description": "URL of your Silverbullet.md instance (e.g., https://wiki.example.com)",
-       "required": true
-     },
-     {
-       "type": "textfield",
-       "title": "Silverbullet API Token",
-       "name": "silverbulletApiToken",
-       "description": "Your Silverbullet.md API token for Bearer authentication",
-       "required": true
-     }
-   ],
-   "commands": [
-     {
-       "name": "silverbullet-notes",
-       "title": "Notes",
-       "subtitle": "Silverbullet",
-       "description": "Browse your Silverbullet.md notes.",
-       "mode": "view"
-     }
-   ],
+  "preferences": [
+    {
+      "type": "textfield",
+      "title": "Silverbullet API URL",
+      "name": "silverbulletApiUrl",
+      "description": "URL of your Silverbullet.md instance (e.g., https://wiki.example.com)",
+      "required": true
+    },
+    {
+      "type": "textfield",
+      "title": "Silverbullet API Token",
+      "name": "silverbulletApiToken",
+      "description": "Your Silverbullet.md API token for Bearer authentication",
+      "required": true
+    }
+  ],
+  "commands": [
+    {
+      "name": "silverbullet-notes",
+      "title": "Notes",
+      "subtitle": "Silverbullet",
+      "description": "Browse your Silverbullet.md notes.",
+      "mode": "view"
+    }
+  ],
   "dependencies": {
-    "@vicinae/api": "^0.15.5"
+    "@vicinae/api": "^0.15.5",
+    "fuse.js": "^7.1.0"
   },
   "scripts": {
     "build": "vici build",
