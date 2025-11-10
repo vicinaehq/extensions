@@ -1,0 +1,47 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "otp",
+	"title": "OTP",
+	"description": "Manage OTP codes. Supports TOTP, HOTP, and otpauth:// URL import.",
+	"categories": [
+		"Security",
+		"Productivity"
+	],
+	"license": "MIT",
+	"author": "knoopx",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension_icon.png",
+	"commands": [
+		{
+			"name": "add-account",
+			"title": "Add Account",
+			"subtitle": "Add a new account",
+			"description": "Add a new account with name and secret key",
+			"mode": "view"
+		},
+		{
+			"name": "list-codes",
+			"title": "Codes",
+			"subtitle": "View current codes",
+			"description": "Display current codes for all stored accounts",
+			"mode": "view"
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.16.1",
+		"otplib": "^12.0.1",
+		"qrcode": "^1.5.3"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.2",
+		"@biomejs/biome": "^2.3.4",
+		"@types/qrcode": "^1.5.5"
+	}
+}
