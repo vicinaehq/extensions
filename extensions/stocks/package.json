@@ -1,0 +1,77 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "stocks",
+  "title": "Stocks",
+  "description": "View real-time stock prices and market data for your favorite stocks using Yahoo Finance data",
+  "categories": [
+    "Finance",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "stocks",
+      "title": "Stocks",
+      "description": "Display stock prices and market data for configured stock symbols",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "symbols",
+      "type": "textfield",
+      "title": "Stock Symbols",
+      "description": "Comma-separated list of stock symbols to track (e.g., AAPL,MSFT,GOOGL,TSLA)",
+      "default": "AAPL,MSFT,GOOGL,TSLA",
+      "placeholder": "AAPL,MSFT,GOOGL,TSLA",
+      "label": "Stock Symbols",
+      "required": true
+    },
+    {
+      "name": "refreshInterval",
+      "type": "dropdown",
+      "title": "Refresh Interval",
+      "description": "How often to refresh stock data",
+      "data": [
+        {
+          "title": "30 seconds",
+          "value": "30"
+        },
+        {
+          "title": "1 minute",
+          "value": "60"
+        },
+        {
+          "title": "5 minutes",
+          "value": "300"
+        },
+        {
+          "title": "15 minutes",
+          "value": "900"
+        }
+      ],
+      "default": "60",
+      "required": true
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.15.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "eslint": "^9.37.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.45.0"
+  }
+}
