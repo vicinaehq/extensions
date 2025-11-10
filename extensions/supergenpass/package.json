@@ -1,0 +1,89 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "supergenpass",
+  "title": "SuperGenPass",
+  "description": "Generate deterministic passwords using the SuperGenPass algorithm. Create unique, strong passwords for websites based on a master password and domain.",
+  "categories": [
+    "Security",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "supergenpass",
+      "title": "Generate Password",
+      "description": "Generate a SuperGenPass password for a domain",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "masterPassword",
+      "type": "password",
+      "title": "Master Password",
+      "description": "Your master password for generating site-specific passwords",
+      "required": true,
+      "label": "Master Password"
+    },
+    {
+      "name": "length",
+      "type": "textfield",
+      "title": "Password Length",
+      "description": "Length of generated passwords (4-24 characters)",
+      "default": "10",
+      "required": false
+    },
+    {
+      "name": "hashMethod",
+      "type": "dropdown",
+      "title": "Hash Method",
+      "description": "Hash algorithm to use for password generation",
+      "data": [
+        {
+          "title": "MD5",
+          "value": "md5"
+        },
+        {
+          "title": "SHA-512",
+          "value": "sha512"
+        }
+      ],
+      "default": "md5",
+      "required": false
+    },
+    {
+      "name": "removeSubdomains",
+      "type": "checkbox",
+      "title": "Domain Processing",
+      "description": "Remove subdomains from URLs (recommended for consistent passwords across subdomains)",
+      "default": true,
+      "required": false,
+      "label": "Remove Subdomains"
+    },
+    {
+      "name": "secret",
+      "type": "password",
+      "title": "Secret Password",
+      "description": "Optional secret password appended to master password",
+      "default": "",
+      "required": false,
+      "label": "Secret Password"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.15.5",
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.0",
+    "typescript": "^5.9.3"
+  }
+}
