@@ -1,6 +1,5 @@
-import { exec } from "node:child_process";
+import { exec, type ExecException } from "node:child_process";
 import { promisify } from "node:util";
-import { getPreferenceValues } from "@vicinae/api";
 
 const execAsync = promisify(exec);
 
@@ -22,6 +21,8 @@ export type PlayerInfo = {
   metadata: PlayerMetadata | null;
 };
 
+export type PlayerCtlPlaybackAction = "play" | "pause" | "stop" | "next" | "previous";
+
 export async function getPlayerMetadata(player: string): Promise<PlayerMetadata | null> {
   try {
     const metadataRaw = await execAsync(`playerctl --player ${player} metadata`);
@@ -32,7 +33,7 @@ export async function getPlayerMetadata(player: string): Promise<PlayerMetadata 
 
     const info: PlayerMetadata = {};
 
-    info.player = metadata[0][0];
+    info.player = metadata[0]![0];
 
     for (const line of metadata) {
       if (line[1] === "xesam:title") {
@@ -44,7 +45,7 @@ export async function getPlayerMetadata(player: string): Promise<PlayerMetadata 
       } else if (line[1] === "mpris:artUrl") {
         info.albumArt = line.slice(2).join(" ");
       } else if (line[1] === "mpris:length") {
-        const us = parseInt(line[2], 10);
+        const us = parseInt(line[2]!, 10);
         const mins = Math.floor(us / 60000000);
         const remainingUs = us % 60000000;
         const secs = Math.floor(remainingUs / 1000000);
@@ -79,9 +80,9 @@ function getDisplayName(playerName: string): string {
   const splittedName = playerName.split(".")
 
   if (splittedName.length === 3) {
-    displayName = splittedName[1]
+    displayName = splittedName[1]!
   } else {
-    displayName = splittedName[0]
+    displayName = splittedName[0]!
   }
 
   return displayName.charAt(0)
@@ -89,11 +90,8 @@ function getDisplayName(playerName: string): string {
 
 }
 
-export async function getAllPlayers(): Promise<PlayerInfo[]> {
+export async function getAllPlayers(preferredPlayerNames: string[] | undefined): Promise<PlayerInfo[]> {
   try {
-    // Get preference for which players to control
-    const preferences = getPreferenceValues();
-    const preferredPlayers = preferences["playerctl-players"] as string;
 
     // Get list of all players
     const playersRaw = await execAsync("playerctl --list-all");
@@ -108,24 +106,23 @@ export async function getAllPlayers(): Promise<PlayerInfo[]> {
 
     // Filter players based on preference
     let playerNames: string[];
-    if (preferredPlayers === "%any") {
+    if (preferredPlayerNames === undefined) {
       // Show all players
       playerNames = allPlayerNames;
     } else {
       // Filter by preferred players
-      const preferredList = preferredPlayers.split(",").map((p) => p.trim());
-      playerNames = allPlayerNames.filter((name) => {
+      playerNames = allPlayerNames.filter((playerName) => {
         // Check if player name matches any preferred player (supports partial matching)
-        return preferredList.some(
-          (preferred) =>
-            name.toLowerCase().includes(preferred.toLowerCase()) ||
-            preferred.toLowerCase().includes(name.toLowerCase())
+        return preferredPlayerNames.some(
+          (preferredName) =>
+            playerName.toLowerCase().includes(preferredName.toLowerCase()) ||
+            preferredName.toLowerCase().includes(playerName.toLowerCase())
         );
       });
     }
 
     if (playerNames.length === 0) {
-      console.warn(`No players found matching preference: ${preferredPlayers}`);
+      console.warn(`No players found matching preference: ${preferredPlayerNames}`);
       return [];
     }
 
@@ -168,6 +165,25 @@ export async function getAllPlayers(): Promise<PlayerInfo[]> {
       console.warn("No media players found. Make sure a media player is running.");
       return [];
     }
+    throw error;
+  }
+}
+
+export async function executePlaybackAction(action: PlayerCtlPlaybackAction, playerName?: string): Promise<void> {
+  try {
+
+  if (playerName !== undefined) {
+    await execAsync(`playerctl --player ${playerName} ${action}`);
+  } else {
+    await execAsync(`playerctl --all-players ${action}`);
+  }
+  } catch(error: unknown) {
+    // If player is not found, it's a non-critical error and can be ignored.
+    // Possibly the user's preferred player is not active right now.
+    if ((error as ExecException).stderr?.startsWith("No players found")) {
+      return;
+    }
+
     throw error;
   }
 }

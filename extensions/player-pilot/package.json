@@ -16,6 +16,38 @@
       "subtitle": "Control multiple media players with grid view",
       "description": "View and control all your media players in a beautiful grid interface. Supports filtering by specific players, shows metadata, and provides individual controls for each player.",
       "mode": "view"
+    },
+    {
+      "name": "resume-track",
+      "title": "Resume Music",
+      "subtitle": "Resume currently paused media",
+      "description": "Resume",
+      "mode": "no-view",
+      "icon": "resume_icon.png"
+    },
+    {
+      "name": "pause-track",
+      "title": "Pause Music",
+      "subtitle": "Pause currently played media",
+      "description": "Pause",
+      "mode": "no-view",
+      "icon": "pause_icon.png"
+    },
+    {
+      "name": "next-track",
+      "title": "Next Track",
+      "subtitle": "Play next track",
+      "description": "Play next track",
+      "mode": "no-view",
+      "icon": "next_icon.png"
+    },
+    {
+      "name": "previous-track",
+      "title": "Previous Track",
+      "subtitle": "Play previous track",
+      "description": "Play previous track",
+      "mode": "no-view",
+      "icon": "previous_icon.png"
     }
   ],
   "preferences": [

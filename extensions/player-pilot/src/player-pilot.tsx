@@ -1,7 +1,7 @@
-import { exec } from "node:child_process";
 import { Action, ActionPanel, Grid, Icon, showToast, Toast } from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { getAllPlayers, type PlayerInfo as PlayerInfoType } from "./utils/playerctl";
+import { executePlaybackAction, getAllPlayers, type PlayerCtlPlaybackAction, type PlayerInfo as PlayerInfoType } from "./utils/playerctl";
+import { getPreferredPlayerNames } from "./utils/preferences";
 
 export default function PlayerInfo() {
   const [players, setPlayers] = useState<PlayerInfoType[]>([]);
@@ -14,7 +14,7 @@ export default function PlayerInfo() {
 
     async function loadPlayers() {
       try {
-        const data = await getAllPlayers();
+        const data = await getAllPlayers(getPreferredPlayerNames());
         setPlayers(data);
         if (data.length <= 2) {
           setColumns(2);
@@ -24,7 +24,7 @@ export default function PlayerInfo() {
 
         // Auto-select first player if none selected
         if (data.length > 0 && !selectedPlayer) {
-          setSelectedPlayer(data[0].displayName);
+          setSelectedPlayer(data[0]!.displayName);
         }
       } catch (e) {
         console.error("Failed to load players", e);
@@ -38,16 +38,25 @@ export default function PlayerInfo() {
     return () => clearInterval(interval);
   }, [selectedPlayer]);
 
-  const handlePlayerAction = (player: PlayerInfoType, action: string) => {
+  const handlePlayerAction = async (player: PlayerInfoType, action: PlayerCtlPlaybackAction) => {
     const actionDisplay = action.charAt(0).toUpperCase() + action.slice(1);
 
-    exec(`playerctl --player ${player.name} ${action}`, (err, _stdout) => {
-      if (err) {
-        showToast(Toast.Style.Failure, `Failed to ${actionDisplay} on ${player.displayName}`);
-      } else {
-        showToast(Toast.Style.Success, `${actionDisplay} executed on ${player.displayName}`);
-      }
-    });
+    try {
+      await executePlaybackAction(action, player.name);
+    } catch (err) {
+      showToast(
+        Toast.Style.Failure,
+        `Failed to ${actionDisplay} on ${player.displayName}`,
+      );
+
+      return;
+    }
+
+    showToast(
+      Toast.Style.Success,
+      `${actionDisplay} executed on ${player.displayName}`,
+    );
+
   };
 
   if (isLoading) {

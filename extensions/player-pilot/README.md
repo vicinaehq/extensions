@@ -10,6 +10,7 @@ A comprehensive media player controller for Vicinae that provides a beautiful gr
 - **Rich Metadata**: Displays album art, song titles, artists, and album information
 - **Individual Controls**: Play/pause, next, previous, and stop for each player
 - **Auto-refresh**: Updates every 2 seconds to keep information current
+- Individual commands for: resume, pause, next, previous
 
 ## Usage
 
@@ -17,6 +18,10 @@ A comprehensive media player controller for Vicinae that provides a beautiful gr
 2. See all your media players in a grid layout
 3. Click on any player to control it
 4. Use the action panel for play/pause, skip, and stop controls
+
+
+Or, execute individual actions (resume, pause, next, previous) as individual commands
+in Vicinae.
 
 ## Configuration
 
@@ -39,3 +44,12 @@ Works with any MPRIS-compatible media player including:
 - Rhythmbox
 - Audacious
 - And many more!
+
+## Development
+
+Run with:
+
+```sh
+bun install
+bun dev
+```
