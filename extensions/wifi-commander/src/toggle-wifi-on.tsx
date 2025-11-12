@@ -1,5 +1,5 @@
 import { getPreferenceValues, showToast } from "@vicinae/api";
-import { executeNmcliCommand, executeIwctlCommand, executeIwctlCommandSilent, type ExecResult } from "./utils/execute";
+import { executeNmcliCommand, executeIwctlCommand, type ExecResult } from "./utils/execute";
 
 export default async function ToggleWifiOn() {
   const networkCliTool = getPreferenceValues<{ "network-cli-tool": string }>();
@@ -36,7 +36,7 @@ export default async function ToggleWifiOn() {
       }
 
       result = await executeIwctlCommand("adapter", [adapterName, "set-property", "Powered", "on"]);
-      break;    
+      break;
     }
     default:
       throw new Error("Invalid network CLI tool: " + networkCliTool["network-cli-tool"]);
