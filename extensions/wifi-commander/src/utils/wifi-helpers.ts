@@ -1,4 +1,4 @@
-import { executeNmcliCommandSilent } from "./execute";
+import { executeIwctlCommand, executeNmcliCommandSilent, executeIwctlCommandSilent, type ExecResult} from "./execute";
 
 export interface WifiNetwork {
   inUse: boolean;
@@ -203,4 +203,41 @@ export async function loadCurrentConnection(): Promise<CurrentConnection | null>
     console.error("Failed to load current connection:", error);
   }
   return null;
+}
+
+/**
+ * Get the name of the Wi-Fi adapter from iwctl
+ */
+export async function getIwctlAdapter(): Promise<ExecResult> {
+  const adaptersResult = await executeIwctlCommandSilent("adapter list");
+
+  if (!adaptersResult.success) {
+    return adaptersResult;
+  }
+
+  const lines = adaptersResult.stdout.split("\n").filter((line) => line.trim());
+  let adapterName = "";
+
+  for (const line of lines) {
+    const match = line.match(/^\s*(\w+)\s+/);
+    if (match && match[1] && match[1] !== "Adapter") {
+      adapterName = match[1];
+      break;
+    }
+  }
+
+  if (!adapterName) {
+    return {
+      success: false,
+      stdout: "",
+      stderr: "No Wi-Fi adapter found",
+      error: "No Wi-Fi adapter found"
+    };
+  }
+  return {
+    success: true,
+    stdout: adapterName,
+    stderr: "",
+    error: ""
+  }
 }

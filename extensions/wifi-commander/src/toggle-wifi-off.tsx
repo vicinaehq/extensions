@@ -1,5 +1,6 @@
 import { getPreferenceValues, showToast } from "@vicinae/api";
 import { executeNmcliCommand, executeIwctlCommand, type ExecResult } from "./utils/execute";
+import { getIwctlAdapter } from "./utils/wifi-helpers";
 
 export default async function ToggleWifiOff() {
   const networkCliTool = getPreferenceValues<{ "network-cli-tool": string }>();
@@ -11,31 +12,13 @@ export default async function ToggleWifiOff() {
       break;
 
     case "iwctl": {
-      const adaptersResult = await executeIwctlCommand("adapter list");
-
-
-      const lines = adaptersResult.stdout.split("\n").filter((line) => line.trim());
-      let adapterName = "";
-
-      for (const line of lines) {
-        const match = line.match(/^\s*(\w+)\s+/);
-        if (match && match[1] && match[1] !== "Adapter") {
-          adapterName = match[1];
-          break;
-        }
-      }
-
-      if (!adapterName) {
-        result = {
-          success: false,
-          stdout: "",
-          stderr: "No Wi-Fi adapter found",
-          error: "No Wi-Fi adapter found",
-        };
+      const adapterName = await getIwctlAdapter()
+      if (!adapterName.success){
+        result = adapterName;
         break;
       }
 
-      result = await executeIwctlCommand("adapter", [adapterName, "set-property", "Powered", "off"]);
+      result = await executeIwctlCommand("adapter", [adapterName["stdout"], "set-property", "Powered", "off"]);
       break;
     }
     default:

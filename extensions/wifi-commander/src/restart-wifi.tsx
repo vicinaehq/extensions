@@ -1,7 +1,8 @@
-import { showToast } from "@vicinae/api";
-import { executeNmcliCommand } from "./utils/execute";
+import { getPreferenceValues, showToast } from "@vicinae/api";
+import { executeNmcliCommand, executeIwctlCommand, type ExecResult } from "./utils/execute";
 
 export default async function RestartWifi() {
+  const networkCliTool = getPreferenceValues<{ "network-cli-tool": string }>();
   await showToast({
     title: "Restarting Wi-Fi",
     message: "Please wait while Wi-Fi services restart...",
