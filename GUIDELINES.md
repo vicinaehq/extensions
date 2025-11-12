@@ -30,6 +30,7 @@ Example: If `name` is `my-extension`, it should be located at `extensions/my-ext
 - Use the `categories` field to classify your extension (see [Categories](#categories) section below)
 - Use `@vicinae/api` as a dependency.
 - Avoid using `@raycast/api` directly. It is okay to use `@raycast/utils` as we don't have an equivalent `@vicinae/utils` yet.
+- You should use `npm` to generate a `package-lock.json` file, even if you don't use it for development. We like bun, but right now NixOS doesn't have proper support for it.
 
 - You should provide a concise and clear description for your extension and each of its commands.
 

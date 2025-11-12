@@ -34,6 +34,7 @@ async function validateExtension(extensionName: string, checkGitHub = true): Pro
 
 	// Read package.json
 	const packageJsonPath = path.join(extensionPath, 'package.json');
+	const lockfile = path.join(extensionPath, "package-lock.json");
 	let pkg: any;
 
 	try {
@@ -46,6 +47,14 @@ async function validateExtension(extensionName: string, checkGitHub = true): Pro
 			message: `Cannot read or parse package.json: ${error}`
 		});
 		return errors;
+	}
+
+	if (!await fsp.exists(lockfile)) {
+		errors.push({
+			extension: extensionName,
+			field: 'package-lock.json',
+			message: `A package-lock.json file is required. Please use 'npm install' to generate one.`
+		});
 	}
 
 	// Validate against Zod schema
