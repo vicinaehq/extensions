@@ -5,7 +5,7 @@ export default async function ToggleWifiOn() {
   const networkCliTool = getPreferenceValues<{ "network-cli-tool": string }>();
   let result: ExecResult;
 
-  switch (networkCliTool) {
+  switch (networkCliTool["network-cli-tool"]) {
     case "nmcli":
       result = await executeNmcliCommand("radio wifi on");
       break;
@@ -36,10 +36,10 @@ export default async function ToggleWifiOn() {
       }
 
       result = await executeIwctlCommand("adapter", [adapterName, "set-property", "Powered", "on"]);
-      break;
+      break;    
     }
     default:
-      throw new Error("Invalid network CLI tool");
+      throw new Error("Invalid network CLI tool: " + networkCliTool["network-cli-tool"]);
   }
   if (result.success) {
     await showToast({
