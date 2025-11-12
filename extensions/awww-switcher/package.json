@@ -242,6 +242,7 @@
     {
       "label": "Toggle Vicinae",
       "name": "toggleVicinaeSetting",
+	  "title": "Toggle Vicinae",
       "description": "Set to true to toggle vicinae on wallpaper selection",
       "type": "checkbox",
       "required": false,
@@ -250,6 +251,7 @@
     {
       "label": "Show Image Details",
       "name": "showImageDetails",
+	  "title": "Show Image Details",
       "description": "Set to true to show image dimensions and size in MB.",
       "type": "checkbox",
       "required": false,
