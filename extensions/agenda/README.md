@@ -12,6 +12,7 @@ A [Vicinae](https://github.com/vicinaehq/vicinae) extension to view calendar eve
 - **Automatic refresh**: Configurable refresh intervals with cache change detection
 - **Event details**: Copy location to clipboard and open event URLs
 - **Future events only**: Shows only upcoming events
+- **Recurring events support**: Automatically expands recurring events (RRULE)
 - **Real-time updates**: Automatically detects calendar changes within 2 seconds
 - **Persistent settings**: Remembers your last selected calendar filter
 
