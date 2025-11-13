@@ -206,37 +206,35 @@ export async function loadCurrentConnection(): Promise<CurrentConnection | null>
 }
 
 /**
- * Get the name of the Wi-Fi adapter from iwctl
+ * Get the name of the Wi-Fi device from iwctl
  */
-export async function getIwctlAdapter(): Promise<ExecResult> {
-  const adaptersResult = await executeIwctlCommandSilent("adapter list");
+export async function getIwctlDevice(): Promise<ExecResult> {
+  let deviceName = ""
+  const devicesResult = await executeIwctlCommandSilent("device list");
 
-  if (!adaptersResult.success) {
-    return adaptersResult;
+  if (!devicesResult.success) {
+    return devicesResult;
   }
 
-  const lines = adaptersResult.stdout.split("\n").filter((line) => line.trim());
-  let adapterName = "";
+  const lines = devicesResult.stdout.split("\n").filter((line) => line.trim());
 
-  for (const line of lines) {
-    const match = line.match(/^\s*(\w+)\s+/);
-    if (match && match[1] && match[1] !== "Adapter") {
-      adapterName = match[1];
-      break;
-    }
+  if (lines){
+    deviceName = lines[4].split(/\s+/)[1];
   }
+  
 
-  if (!adapterName) {
+
+  if (!deviceName) {
     return {
       success: false,
       stdout: "",
-      stderr: "No Wi-Fi adapter found",
-      error: "No Wi-Fi adapter found"
+      stderr: "No Wi-Fi device found",
+      error: "No Wi-Fi device found"
     };
   }
   return {
     success: true,
-    stdout: adapterName,
+    stdout: deviceName,
     stderr: "",
     error: ""
   }

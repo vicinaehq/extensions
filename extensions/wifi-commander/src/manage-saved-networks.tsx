@@ -1,6 +1,6 @@
 import { Action, ActionPanel, Color, Icon, List, showToast } from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { executeNmcliCommand, executeNmcliCommandSilent } from "./utils/execute";
+import { executeNmcliCommand, executeNmcliCommandSilent, executeIwctlCommand, executeIwctlCommandSilent } from "./utils/execute";
 import {
   type CurrentConnection,
   loadCurrentConnection,

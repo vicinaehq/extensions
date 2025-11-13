@@ -1,6 +1,6 @@
 import { getPreferenceValues, showToast } from "@vicinae/api";
 import { executeNmcliCommand, executeIwctlCommand, type ExecResult } from "./utils/execute";
-import { getIwctlAdapter } from "./utils/wifi-helpers";
+import { getIwctlDevice } from "./utils/wifi-helpers";
 
 export default async function RestartWifi() {
   const networkCliTool = getPreferenceValues<{ "network-cli-tool": string }>();
@@ -34,14 +34,14 @@ export default async function RestartWifi() {
       break;
 
     case "iwctl": {
-      const adapterName = await getIwctlAdapter()
-      if (!adapterName.success){
-        onResult = adapterName;
+      const deviceName = await getIwctlDevice()
+      if (!deviceName.success){
+        onResult = deviceName;
         break;
       }
 
       // Turn off Wi-Fi
-      const offResult = await executeIwctlCommand("adapter", [adapterName["stdout"], "set-property", "Powered", "off"]);
+      const offResult = await executeIwctlCommand("device", [deviceName["stdout"], "set-property", "Powered", "off"]);
 
       if (!offResult.success) {
         await showToast({
@@ -55,7 +55,7 @@ export default async function RestartWifi() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Turn on Wi-Fi
-      onResult = await executeIwctlCommand("adapter", [adapterName["stdout"], "set-property", "Powered", "on"]);
+      onResult = await executeIwctlCommand("device", [deviceName["stdout"], "set-property", "Powered", "on"]);
       break;
     }
     default:

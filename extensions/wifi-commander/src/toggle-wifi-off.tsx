@@ -1,6 +1,6 @@
 import { getPreferenceValues, showToast } from "@vicinae/api";
 import { executeNmcliCommand, executeIwctlCommand, type ExecResult } from "./utils/execute";
-import { getIwctlAdapter } from "./utils/wifi-helpers";
+import { getIwctlDevice } from "./utils/wifi-helpers";
 
 export default async function ToggleWifiOff() {
   const networkCliTool = getPreferenceValues<{ "network-cli-tool": string }>();
@@ -12,13 +12,13 @@ export default async function ToggleWifiOff() {
       break;
 
     case "iwctl": {
-      const adapterName = await getIwctlAdapter()
+      const adapterName = await getIwctlDevice()
       if (!adapterName.success){
         result = adapterName;
         break;
       }
-
-      result = await executeIwctlCommand("adapter", [adapterName["stdout"], "set-property", "Powered", "off"]);
+      
+      result = await executeIwctlCommand("device", [adapterName["stdout"], "set-property", "Powered", "off"]);
       break;
     }
     default:

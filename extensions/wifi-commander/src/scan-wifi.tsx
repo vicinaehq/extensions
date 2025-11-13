@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Color, Icon, List, showToast, useNavigation } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import ConnectForm from "./components/ConnectForm";
-import { executeNmcliCommand, executeNmcliCommandSilent } from "./utils/execute";
+import { executeNmcliCommand, executeNmcliCommandSilent, executeIwctlCommand, executeIwctlCommandSilent } from "./utils/execute";
 import {
   loadSavedNetworks,
   loadWifiDevice,
