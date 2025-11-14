@@ -1,5 +1,5 @@
 import { showToast } from "@vicinae/api";
-import { executeNmcliCommand } from "../utils/execute";
+import { executeNmcliCommand } from "../utils/execute-nmcli";
 
 export default async function RestartWifiNmcli() {
 

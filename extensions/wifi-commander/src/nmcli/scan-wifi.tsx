@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Color, Icon, List, showToast, useNavigation } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import ConnectForm from "../components/ConnectForm";
-import { executeNmcliCommand, executeNmcliCommandSilent } from "../utils/execute";
+import { executeNmcliCommand, executeNmcliCommandSilent } from "../utils/execute-nmcli";
 import {
   loadSavedNetworks,
   loadWifiDevice,
@@ -10,7 +10,7 @@ import {
   sortNetworks,
   type WifiDevice,
   type WifiNetwork,
-} from "../utils/wifi-helpers";
+} from "../utils/wifi-helpers-nmcli";
 
 interface ScanResult {
   networks: WifiNetwork[];

@@ -1,4 +1,4 @@
-import { executeIwctlCommand, executeNmcliCommandSilent, executeIwctlCommandSilent, type ExecResult} from "./execute";
+import { executeNmcliCommandSilent } from "./execute-nmcli";
 
 export interface WifiNetwork {
   inUse: boolean;
@@ -205,37 +205,3 @@ export async function loadCurrentConnection(): Promise<CurrentConnection | null>
   return null;
 }
 
-/**
- * Get the name of the Wi-Fi device from iwctl
- */
-export async function getIwctlDevice(): Promise<ExecResult> {
-  let deviceName = ""
-  const devicesResult = await executeIwctlCommandSilent("device list");
-
-  if (!devicesResult.success) {
-    return devicesResult;
-  }
-
-  const lines = devicesResult.stdout.split("\n").filter((line) => line.trim());
-
-  if (lines){
-    deviceName = lines[4].split(/\s+/)[1];
-  }
-  
-
-
-  if (!deviceName) {
-    return {
-      success: false,
-      stdout: "",
-      stderr: "No Wi-Fi device found",
-      error: "No Wi-Fi device found"
-    };
-  }
-  return {
-    success: true,
-    stdout: deviceName,
-    stderr: "",
-    error: ""
-  }
-}

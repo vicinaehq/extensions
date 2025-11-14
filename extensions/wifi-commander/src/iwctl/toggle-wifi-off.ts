@@ -1,9 +1,9 @@
 import { showToast } from "@vicinae/api";
-import { executeIwctlCommand} from "../utils/execute";
-import { getIwctlDevice } from "../utils/wifi-helpers";
+import { executeIwctlCommand} from "../utils/execute-iwctl";
+import { getDevice } from "../utils/wifi-helpers-iwctl";
 
 export default async function ToggleWifiOnIwctl() {
-    const deviceName = await getIwctlDevice()
+    const deviceName = await getDevice()
     if (!deviceName.success){
         await showToast({
             "title": "Failed to find Device",
@@ -13,7 +13,7 @@ export default async function ToggleWifiOnIwctl() {
       }
 
     const result = await executeIwctlCommand("device", [deviceName["stdout"], "set-property", "Powered", "off"]);
-      
+
     if (result.success) {
         await showToast({
         title: "Wi-Fi Disbled",

@@ -1,6 +1,6 @@
 import { Action, ActionPanel, Color, Icon, List, showToast } from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { executeNmcliCommand, executeNmcliCommandSilent, executeIwctlCommand, executeIwctlCommandSilent } from "../utils/execute";
+import { executeNmcliCommand, executeNmcliCommandSilent } from "../utils/execute-nmcli";
 import {
   type CurrentConnection,
   loadCurrentConnection,
@@ -8,7 +8,7 @@ import {
   parseWifiList,
   type SavedNetwork,
   type WifiDevice,
-} from "../utils/wifi-helpers";
+} from "../utils/wifi-helpers-nmcli";
 
 interface SavedNetworksResult {
   networks: SavedNetwork[];

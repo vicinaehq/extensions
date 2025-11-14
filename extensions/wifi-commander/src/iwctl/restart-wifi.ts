@@ -1,6 +1,6 @@
 import { showToast } from "@vicinae/api";
-import { executeIwctlCommand } from "../utils/execute";
-import { getIwctlDevice } from "../utils/wifi-helpers";
+import { executeIwctlCommand } from "../utils/execute-iwctl";
+import { getDevice } from "../utils/wifi-helpers-iwctl";
 
 export default async function RestartWifiIwctl() {
   await showToast({
@@ -8,7 +8,7 @@ export default async function RestartWifiIwctl() {
     message: "Please wait while Wi-Fi services restart...",
   });
 
-     const deviceName = await getIwctlDevice()
+     const deviceName = await getDevice()
       if (!deviceName.success){
         await showToast({
             "title": "Failed to find Device",

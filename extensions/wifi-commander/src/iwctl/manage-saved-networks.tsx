@@ -1,6 +1,10 @@
+import { showToast } from "@vicinae/api";
 
 export default async function ManageSavedNetworksIwctl() {
-    throw new Error("TODO: implement Scan Wifi for iwctl")
+    await showToast({
+        title: "TODO",
+        message: "TODO: implement Manage saved networks for iwctl",
+      });
 }
 
 

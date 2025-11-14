@@ -1,5 +1,5 @@
 import { showToast } from "@vicinae/api";
-import { executeNmcliCommand, executeIwctlCommand, type ExecResult } from "../utils/execute";
+import { executeNmcliCommand, executeIwctlCommand, type ExecResult } from "../utils/execute-nmcli";
 
 export default async function ToggleWifiOff() {
     const result = await executeNmcliCommand("radio wifi off");

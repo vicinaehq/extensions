@@ -1,10 +1,10 @@
 import { showToast } from "@vicinae/api";
-import { executeNmcliCommand } from "../utils/execute";
+import { executeNmcliCommand } from "../utils/execute-nmcli";
 
 
 export default async function ToggleWifiOnNmcli() {
     const result = await executeNmcliCommand("radio wifi on");
-      
+
   if (result.success) {
     await showToast({
       title: "Wi-Fi Enabled",
