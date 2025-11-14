@@ -1,7 +1,7 @@
 import { showToast } from "@vicinae/api";
 import { executeNmcliCommand } from "../utils/execute";
 
-export default async function RestartWifi() {
+export default async function RestartWifiNmcli() {
 
   await showToast({
     title: "Restarting Wi-Fi",
@@ -26,7 +26,7 @@ export default async function RestartWifi() {
       // Turn on Wi-Fi
       const onResult = await executeNmcliCommand("radio wifi on");
 
-    
+
   if (onResult.success) {
     await showToast({
       title: "Wi-Fi Restarted",

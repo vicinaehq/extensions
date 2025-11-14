@@ -1,6 +1,6 @@
 # Wi‑Fi Commander
 
-A comprehensive Wi‑Fi management extension for Vicinae that provides complete control over wireless networks using `nmcli`.
+A comprehensive Wi‑Fi management extension for Vicinae that provides complete control over wireless networks using `nmcli` or `iwctl`.
 
 ## Features
 
@@ -43,7 +43,7 @@ A comprehensive Wi‑Fi management extension for Vicinae that provides complete 
 ## Requirements
 
 - Linux system with NetworkManager
-- `nmcli` command-line tool
+- `nmcli` or `iwctl` command-line tool
 - Vicinae launcher
 
 ## Installation

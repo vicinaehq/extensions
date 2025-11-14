@@ -2,7 +2,7 @@ import { showToast } from "@vicinae/api";
 import { executeIwctlCommand } from "../utils/execute";
 import { getIwctlDevice } from "../utils/wifi-helpers";
 
-export default async function RestartWifi() {
+export default async function RestartWifiIwctl() {
   await showToast({
     title: "Restarting Wi-Fi",
     message: "Please wait while Wi-Fi services restart...",
