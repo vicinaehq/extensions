@@ -1,4 +1,4 @@
-import { getPreferenceValues, } from "@vicinae/api";
+import { getPreferenceValues } from "@vicinae/api";
 import ToggleWifiOnNmcli from "./nmcli/toggle-wifi-on";
 import ToggleWifiOnIwctl from "./iwctl/toggle-wifi-on";
 
