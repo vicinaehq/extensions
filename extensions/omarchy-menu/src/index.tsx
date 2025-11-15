@@ -6,7 +6,7 @@ import {
   closeMainWindow,
 } from "@vicinae/api";
 import { exec } from "node:child_process";
-import { capitalize } from "./utils/capitalize";
+import { capitalize } from "~/utils/capitalize";
 
 import { MENU_ITEMS, MenuItem } from "./config/menu";
 
