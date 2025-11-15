@@ -1,5 +1,15 @@
 import { Icon } from "@vicinae/api";
 import { execSync } from "node:child_process";
+import {
+  terminal,
+  open_in_editor,
+  present_terminal,
+  install,
+  install_and_launch,
+  install_font,
+  install_terminal,
+  aur_install_and_launch,
+} from "~/helpers/actions";
 
 export type MenuItem = {
   id: string;
@@ -9,30 +19,6 @@ export type MenuItem = {
   items?: MenuItem[];
 };
 
-const terminal = (command: string) =>
-  `xdg-terminal-exec --app-id=com.omarchy.Omarchy ${command}`;
-const open_in_editor = (file: string) =>
-  `notify-send "Editing config file" "${file}" && omarchy-launch-editor ${file}`;
-const present_terminal = (command: string) =>
-  `omarchy-launch-floating-terminal-with-presentation ${command}`;
-const install = (name: string, pkg: string) =>
-  present_terminal(
-    `echo 'Installing ${name}...'; sudo pacman -S --noconfirm ${pkg}`,
-  );
-const install_and_launch = (name: string, pkg: string, app: string) =>
-  present_terminal(
-    `echo 'Installing ${name}...'; sudo pacman -S --noconfirm ${pkg} && setsid gtk-launch ${app}`,
-  );
-const install_font = (name: string, pkg: string, font: string) =>
-  present_terminal(
-    `echo 'Installing ${name}...'; sudo pacman -S --noconfirm --needed ${pkg} && sleep 2 && omarchy-font-set '${font}'`,
-  );
-const install_terminal = (terminalName: string) =>
-  present_terminal(`omarchy-install-terminal ${terminalName}`);
-const aur_install_and_launch = (name: string, pkg: string, app: string) =>
-  present_terminal(
-    `echo 'Installing ${name} from AUR...'; yay -S --noconfirm ${pkg} && setsid gtk-launch ${app}`,
-  );
 const themes_list = () => {
   const themes = execSync("omarchy-theme-list")
     .toString()
@@ -50,6 +36,7 @@ const themes_list = () => {
     };
   });
 };
+
 const fonts_list = () => {
   const fonts = execSync("omarchy-font-list")
     .toString()
