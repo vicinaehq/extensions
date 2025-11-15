@@ -260,7 +260,7 @@ export const MENU_ITEMS: MenuItem[] = [
         command: open_in_editor("~/.config/omarchy/branding/screensaver.txt"),
       },
       {
-        id: "abuot",
+        id: "about",
         name: "About",
         icon: "",
         command: open_in_editor("~/.config/omarchy/branding/about.txt"),
