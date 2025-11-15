@@ -4,15 +4,12 @@ import { getDevice } from "../utils/wifi-helpers-iwctl";
 
 export default async function ToggleWifiOnIwctl() {
     const deviceName = await getDevice()
-    if (!deviceName.success){
-        await showToast({
-            "title": "Failed to find Device",
-            "message": deviceName.error || "Could not find Device"
-        });
-        return
-      }
+    if (!deviceName){
+        throw new Error("Could not find network device name")
+    }
 
-    const result = await executeIwctlCommand("device", [deviceName["stdout"], "set-property", "Powered", "off"]);
+
+    const result = await executeIwctlCommand("device", [deviceName.name, "set-property", "Powered", "off"]);
 
     if (result.success) {
         await showToast({

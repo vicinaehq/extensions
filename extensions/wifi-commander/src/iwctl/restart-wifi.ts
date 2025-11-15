@@ -9,16 +9,12 @@ export default async function RestartWifiIwctl() {
   });
 
      const deviceName = await getDevice()
-      if (!deviceName.success){
-        await showToast({
-            "title": "Failed to find Device",
-            "message": deviceName.error || "Could not find Device"
-        });
-        return
+     if (!deviceName){
+      throw new Error("Could not find network device name")
       }
 
       // Turn off Wi-Fi
-      const offResult = await executeIwctlCommand("device", [deviceName["stdout"], "set-property", "Powered", "off"]);
+      const offResult = await executeIwctlCommand("device", [deviceName.name, "set-property", "Powered", "off"]);
 
       if (!offResult.success) {
         await showToast({
@@ -32,7 +28,7 @@ export default async function RestartWifiIwctl() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Turn on Wi-Fi
-      const onResult = await executeIwctlCommand("device", [deviceName["stdout"], "set-property", "Powered", "on"]);
+      const onResult = await executeIwctlCommand("device", [deviceName.name, "set-property", "Powered", "on"]);
 
   if (onResult.success) {
     await showToast({
