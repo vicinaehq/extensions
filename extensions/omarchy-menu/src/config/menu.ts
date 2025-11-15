@@ -751,14 +751,14 @@ export const MENU_ITEMS: MenuItem[] = [
             command: install("Cursor CLI", "cursor-cli"),
           },
           {
-            id: "gemini",
-            name: "Gemini",
+            id: "openai-codex",
+            name: "OpenAI Codex",
             icon: "󱚤",
             command: install("OpenAI Codex", "openai-codex-bin"),
           },
           {
-            id: "openai-codex",
-            name: "OpenAI Codex",
+            id: "gemini",
+            name: "Gemini",
             icon: "󱚤",
             command: install("Gemini", "gemini-cli"),
           },
