@@ -1,0 +1,79 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "taskwarrior",
+  "title": "Taskwarrior",
+  "description": "Manage your tasks with Taskwarrior - add, modify, and track your tasks",
+  "categories": ["Productivity", "Developer Tools"],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension-icon.png",
+  "version": "1.0.0",
+  "commands": [
+    {
+      "name": "tasks",
+      "title": "Tasks",
+      "description": "View and manage your tasks",
+      "mode": "view"
+    },
+    {
+      "name": "add-task",
+      "title": "Add Task",
+      "description": "Quickly add a new task",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "description",
+          "type": "text",
+          "placeholder": "Task description",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "default-view",
+      "title": "Default View",
+      "description": "Default task list view to show",
+      "type": "dropdown",
+      "required": false,
+      "default": "next",
+      "data": [
+        {
+          "title": "Next (most urgent)",
+          "value": "next"
+        },
+        {
+          "title": "List (all pending)",
+          "value": "list"
+        },
+        {
+          "title": "Overdue",
+          "value": "overdue"
+        },
+        {
+          "title": "Active (started)",
+          "value": "active"
+        },
+        {
+          "title": "All",
+          "value": "all"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.2"
+  }
+}
