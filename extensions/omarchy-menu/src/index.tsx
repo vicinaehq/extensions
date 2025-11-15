@@ -95,7 +95,7 @@ const DynamicList = ({ menu }: { menu: string }) => {
         return (
           <List.Item
             key={item.name}
-            title={item.name}
+            title={capitalize(item.name)}
             accessories={[{ tag: item.icon }]}
             actions={
               <ActionPanel title="Omarchy">
