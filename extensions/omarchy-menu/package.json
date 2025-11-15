@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "omarchy-menu",
+  "title": "Omarchy Menu",
+  "description": "Omarchy Menu based on the omarchy-cli",
+  "categories": [
+    "System"
+  ],
+  "license": "MIT",
+  "author": "codingcodax",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "index",
+      "title": "Omarchy Menu",
+      "description": "Go to a specific omarchy page",
+      "mode": "view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write ."
+  },
+  "dependencies": {
+    "@raycast/utils": "^2.2.2",
+    "@vicinae/api": "^0.16.1"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.1.1",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
