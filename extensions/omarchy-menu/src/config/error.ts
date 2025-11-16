@@ -1,9 +1,8 @@
-export const noOmarchyOS = `
-# Omarchy OS Required
+export const noOmarchyEnv = `
+# Unsupported Environment
+This extension is built for systems configured with the Omarchy environment (an Arch Linux–based setup).
 
-This extension requires the Omarchy OS to run.
+For details on how to set it up, visit: [https://omarchy.example/docs](https://omarchy.example/docs)
 
-Omarchy OS is an Arch Linux-based system with specific configurations.
-
-If you’re not on Omarchy OS, this extension’s features won’t be available.
+Since you're not using the Omarchy environment, some or all features may not work.
 `;

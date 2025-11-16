@@ -11,7 +11,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { capitalize } from "./utils/capitalize";
 
 import { MENU_ITEMS, MenuItem } from "./config/menu";
-import { noOmarchyOS } from "~/config/error";
+import { noOmarchyEnv } from "~/config/error";
 import { useExec } from "@raycast/utils";
 
 const findMenuItems = (
@@ -41,7 +41,7 @@ const Command = () => {
   const { push } = useNavigation();
 
   if (isLoading) return <List isLoading={true} />;
-  if (error) return <Detail markdown={noOmarchyOS} />;
+  if (error) return <Detail markdown={noOmarchyEnv} />;
 
   return (
     <List navigationTitle="Omarchy Menu" searchBarPlaceholder="Go...">
