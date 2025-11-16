@@ -154,9 +154,9 @@ export default function ScanWifiIwctl() {
       push(<ConnectForm ssid={ssid,security, wifiDevice.name} />);
     }
   };
-  }
 
-const handleDisconnect = async () => {
+
+  const handleDisconnect = async () => {
     if (!wifiDevice) {
       await showToast({
         title: "Disconnect Failed",
