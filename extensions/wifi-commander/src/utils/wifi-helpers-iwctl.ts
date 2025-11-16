@@ -1,15 +1,12 @@
 import { executeIwctlCommandSilent } from "./execute-iwctl";
+import { showToast } from "@vicinae/api";
 
 export interface WifiNetwork {
   inUse: boolean;
   ssid: string;
-  bssid: string;
-  mode: string;
-  channel: number;
-  rate: string;
   signal: number;
-  bars: string;
   security: string;
+  bssid: string;
 }
 
 export interface SavedNetwork {
@@ -48,10 +45,11 @@ export async function getDevice(): Promise<WifiDevice | null> {
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
-
+ 
   // Make sure there are enough lines
   if (lines.length > 3) {
     const parts = lines[4].split(/\s+/);
+    
     if (parts.length > 5) {
       return {
         name: parts[1] || "",
@@ -80,7 +78,7 @@ export function parseSavedConnections(output: string): SavedNetwork[] {
   if (lines.length === 0) return [];
 
 
-  lines[0] = lines[0].slice(3);
+  lines[0] = lines[0].slice(4);
 
   return lines
     .map((line) => {
@@ -140,16 +138,74 @@ export async function loadWifiDevice(): Promise<WifiDevice | null> {
 /**
  * Parse iwctl device wifi list output into structured data
  */
-// TODO:
-export function parseWifiList(output: string): WifiNetwork[] | null{
-  return null
+export async function parseWifiList(
+  output: string,
+  deviceName: string
+): Promise<WifiNetwork[]> {
+  const lines = output
+    .split("\n")
+    .slice(4)
+    .filter((line) => line.trim());
 
+  if (lines.length === 0) {
+    return [];
+  }
+
+  const networks = await Promise.all(
+    lines.map(async (line) => {
+      const stripAnsi = line.replace(/\x1b\[[0-9;]*m/g, "");
+      const startsWithGreaterThan = stripAnsi.trim().startsWith(">");
+      const cleanLine = startsWithGreaterThan
+        ? stripAnsi.trim().substring(1).trim()
+        : stripAnsi.trim();
+
+      const parts = cleanLine.split(/\s{2,}/);
+
+      if (parts.length < 2) return null;
+
+      const ssid = parts[0] || "";
+      const security = parts[1] || "";
+      const signal = parseInt(parts[2] || "-10000", 10) / 100;
+
+      // Fetch BSSID asynchronously
+      const bssidArray = await getBssid(ssid, deviceName);
+      const bssid = bssidArray || "unknown";
+
+      return {
+        inUse: startsWithGreaterThan,
+        bssid,
+        ssid,
+        signal,
+        security,
+      };
+    })
+  );
+
+  // Filter out nulls after all promises resolved
+  return networks.filter(Boolean) as WifiNetwork[];
 }
 
+
+
 /**
- * Sort networks to show connected one first
+ * Get the BSSID for each network
  */
-// TODO:
-export function sortNetworks(networks: WifiNetwork[]): WifiNetwork[] | null{
-  return null
+export async function getBssid(
+  ssid: string,
+  deviceName: string
+): Promise<string> {
+ 
+  const result = await executeIwctlCommandSilent(
+    "station",
+    [deviceName, "get-bsses", ssid]
+  );
+
+  if(!result.success) {
+    throw new Error(result.error || "Coulnt retrieve BSSID from command");
+  }
+
+  return result.stdout
+    .split("\n")
+    .slice(5)
+    .filter((line) => line.trim())[0].split(/\s{2,}/)[2];
 }

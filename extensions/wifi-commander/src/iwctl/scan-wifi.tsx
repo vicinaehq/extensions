@@ -4,11 +4,12 @@ import {
   loadSavedNetworks,
   loadWifiDevice,
   parseWifiList,
+  getBssid,
   type SavedNetwork,
-  sortNetworks,
   type WifiDevice,
   type WifiNetwork,
 } from "../utils/wifi-helpers-iwctl";
+import { executeIwctlCommandSilent } from "../utils/execute-iwctl";
 
 interface ScanResult {
   networks: WifiNetwork[];
@@ -16,13 +17,9 @@ interface ScanResult {
   error: string | null;
 }
 
-export default async function ScanWifiIwctl() {
-  await showToast({
-    title: "TODO",
-    message: "TODO: implement Scan Wifi for iwctl",
-  });
-
+export default function ScanWifiIwctl() {
   const { push } = useNavigation();
+  
   const [scanResult, setScanResult] = useState<ScanResult>({
     networks: [],
     isLoading: true,
@@ -31,9 +28,10 @@ export default async function ScanWifiIwctl() {
   const [savedNetworks, setSavedNetworks] = useState<SavedNetwork[]>([]);
   const [wifiDevice, setWifiDevice] = useState<WifiDevice | null>(null);
 
-  const loadWifiDeviceData = async () => {
+  const loadWifiDeviceData = async () => {  
     const device = await loadWifiDevice();
     setWifiDevice(device);
+    return device
   };
 
   const loadSavedNetworksData = async () => {
@@ -41,8 +39,136 @@ export default async function ScanWifiIwctl() {
     setSavedNetworks(networks);
   };
 
+  const scanWifi = async () => {
+    try {
+      setScanResult((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      // Always load device fresh, don't rely on state
+      const device = await loadWifiDevice();
+      if (!device) {
+        throw new Error("No WiFi device found");
+      }
+      
+      const executeScan = await executeIwctlCommandSilent("station", [device.name, "scan"])
+      if (!executeScan.success){
+        throw new Error(executeScan.error || "station scan failed")
+      }
+      
+      const result = await executeIwctlCommandSilent("station", [device.name, "get-networks", "rssi-dbms"])
+      
+      if (!result.success) {
+        setScanResult((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: result.error || "Failed to scan wifi networks",
+        }));
+        return;
+      }
+      const networks = await parseWifiList(result.stdout, device.name);
+      
+      setScanResult({
+        networks: networks,
+        isLoading: false,
+        error: null,
+      });
+
+    } catch (error) {
+      setScanResult({
+        networks: [],
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+      });
+    }
+    console.log("no Errors in scan")
+  };
+
+  const getSignalIcon = (rssi: number) => {
+    if (rssi >= -50) return Icon.FullSignal;
+    if (rssi >= -60) return Icon.Signal3;
+    if (rssi >= -70) return Icon.Signal2;
+    if (rssi >= -80) return Icon.Signal1;
+    if (rssi >= -100) return "signal-0";
+  };
+  
+  const getSignalPercent = (rssi: number) => {
+    if (rssi <= -100) return 0;
+    if (rssi >= -50) return 100;
+  
+    const percent = 2 * (rssi + 100);
+    return Math.round(percent);
+  };
+  
+
+  
+  const getSecurityIcon = (security: string) => {
+    if (security.includes("open")) return Icon.LockUnlocked;
+    return Icon.Lock;
+  };
+
+  const handleDisconnect = async () => {
+    console.log("called handleDIsconnect")
+    return
+  }
+
+  const handleConnect = async (ssid: string, security: string) => {
+    console.log("called connect")
+    return
+  }
 
 
+
+  useEffect(() => {
+    loadWifiDeviceData();
+    loadSavedNetworksData();
+    scanWifi();
+  }, []);
+
+  console.log("About to render final return");
+  if (scanResult.isLoading) {
+    return (
+      <List searchBarPlaceholder="Scanning wifi networks...">
+        <List.EmptyView
+          title="Scanning Networks"
+          description="Please wait while we scan for available wifi networks..."
+          icon={Icon.Clock}
+        />
+      </List>
+    );
+  }
+
+  if (scanResult.error) {
+    return (
+      <List searchBarPlaceholder="Search wifi networks...">
+        <List.EmptyView
+          title="Scan Failed"
+          description={scanResult.error}
+          icon={Icon.ExclamationMark}
+          actions={
+            <ActionPanel>
+              <Action title="Retry Scan" icon={Icon.ArrowClockwise} onAction={scanWifi} />
+            </ActionPanel>
+          }
+        />
+      </List>
+    );
+  }
+
+  if (scanResult.networks.length === 0) {
+    return (
+      <List searchBarPlaceholder="Search wifi networks...">
+        <List.EmptyView
+          title="No Networks Found"
+          description="No wifi networks were found. Make sure wifi is enabled."
+          icon={Icon.Wifi}
+          actions={
+            <ActionPanel>
+              <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={scanWifi} />
+            </ActionPanel>
+          }
+        />
+      </List>
+    );
+  }
 
   return (
     <List searchBarPlaceholder="Search wifi networks..." isShowingDetail={true}>
@@ -51,11 +177,11 @@ export default async function ScanWifiIwctl() {
           <List.Item
             key={`${network.bssid}-${network.ssid || "hidden"}`}
             title={network.ssid || "Hidden Network"}
-            subtitle={`${network.signal}% signal • ${network.security}`}
+            subtitle={`${getSignalPercent(network.signal)}% signal • ${network.security}`}
             icon={network.inUse ? Icon.CheckCircle : getSignalIcon(network.signal)}
             accessories={[
               {
-                text: network.inUse ? "Connected" : `${network.rate}`,
+                text: network.inUse ? "Connected" : "",
               },
               {
                 icon: getSecurityIcon(network.security),
@@ -69,14 +195,11 @@ export default async function ScanWifiIwctl() {
                   <List.Item.Detail.Metadata>
                     <List.Item.Detail.Metadata.Label
                       title="Signal Strength"
-                      text={`${network.signal}%`}
+                      text={`${getSignalPercent(network.signal)}%`}
                     />
-                    <List.Item.Detail.Metadata.Label title="Rate" text={network.rate} />
                     <List.Item.Detail.Metadata.Label title="Security" text={network.security} />
-                    <List.Item.Detail.Metadata.Label title="Channel" text={`${network.channel}`} />
                     <List.Item.Detail.Metadata.Separator />
                     <List.Item.Detail.Metadata.Label title="BSSID" text={network.bssid} />
-                    <List.Item.Detail.Metadata.Label title="Mode" text={network.mode} />
                     {network.inUse && (
                       <>
                         <List.Item.Detail.Metadata.Separator />
@@ -132,4 +255,5 @@ export default async function ScanWifiIwctl() {
     </List>
   );
 }
+
 
