@@ -1,6 +1,6 @@
 import { Action, ActionPanel, Color, Icon, List, showToast, useNavigation } from "@vicinae/api";
 import { useEffect, useState } from "react";
-import ConnectForm from "../components/ConnectForm";
+import ConnectForm from "../components/ConnectFormNmcli";
 import { executeNmcliCommand, executeNmcliCommandSilent } from "../utils/execute-nmcli";
 import {
   loadSavedNetworks,

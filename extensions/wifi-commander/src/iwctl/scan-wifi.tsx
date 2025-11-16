@@ -9,7 +9,7 @@ import {
   type WifiDevice,
   type WifiNetwork,
 } from "../utils/wifi-helpers-iwctl";
-import { executeIwctlCommandSilent } from "../utils/execute-iwctl";
+import { executeIwctlCommandSilent, executeIwctlCommand } from "../utils/execute-iwctl";
 
 interface ScanResult {
   networks: WifiNetwork[];
@@ -19,7 +19,7 @@ interface ScanResult {
 
 export default function ScanWifiIwctl() {
   const { push } = useNavigation();
-  
+
   const [scanResult, setScanResult] = useState<ScanResult>({
     networks: [],
     isLoading: true,
@@ -28,7 +28,7 @@ export default function ScanWifiIwctl() {
   const [savedNetworks, setSavedNetworks] = useState<SavedNetwork[]>([]);
   const [wifiDevice, setWifiDevice] = useState<WifiDevice | null>(null);
 
-  const loadWifiDeviceData = async () => {  
+  const loadWifiDeviceData = async () => {
     const device = await loadWifiDevice();
     setWifiDevice(device);
     return device
@@ -48,14 +48,14 @@ export default function ScanWifiIwctl() {
       if (!device) {
         throw new Error("No WiFi device found");
       }
-      
+
       const executeScan = await executeIwctlCommandSilent("station", [device.name, "scan"])
       if (!executeScan.success){
         throw new Error(executeScan.error || "station scan failed")
       }
-      
+
       const result = await executeIwctlCommandSilent("station", [device.name, "get-networks", "rssi-dbms"])
-      
+
       if (!result.success) {
         setScanResult((prev) => ({
           ...prev,
@@ -65,7 +65,7 @@ export default function ScanWifiIwctl() {
         return;
       }
       const networks = await parseWifiList(result.stdout, device.name);
-      
+
       setScanResult({
         networks: networks,
         isLoading: false,
@@ -89,33 +89,103 @@ export default function ScanWifiIwctl() {
     if (rssi >= -80) return Icon.Signal1;
     if (rssi >= -100) return "signal-0";
   };
-  
+
   const getSignalPercent = (rssi: number) => {
     if (rssi <= -100) return 0;
     if (rssi >= -50) return 100;
-  
+
     const percent = 2 * (rssi + 100);
     return Math.round(percent);
   };
-  
 
-  
+
+
   const getSecurityIcon = (security: string) => {
     if (security.includes("open")) return Icon.LockUnlocked;
     return Icon.Lock;
   };
 
-  const handleDisconnect = async () => {
-    console.log("called handleDIsconnect")
-    return
-  }
 
   const handleConnect = async (ssid: string, security: string) => {
     console.log("called connect")
-    return
+    // Check if this network is already saved
+    const isSaved = savedNetworks.some((network) => network.name === ssid);
+
+    // If the network is not secure, connect directly
+    if (!security || security.toLowerCase() === "open") {
+      await showToast({
+        title: "Connecting...",
+        message: `Attempting to connect to open network ${ssid}`,
+      });
+      const result = await executeIwctlCommand("station", [ wifiDevice?.name,"connect", ssid]);
+      if (result.success) {
+        await showToast({
+          title: "Connection Successful",
+          message: `Successfully connected to ${ssid}`,
+        });
+        scanWifi(); // Refresh the list to show connected status
+      } else {
+        await showToast({
+          title: "Connection Failed",
+          message: result.error || `Could not connect to ${ssid}`,
+        });
+      }
+    } else if (isSaved) {
+      // If the network is saved, connect using the saved connection
+      await showToast({
+        title: "Connecting...",
+        message: `Connecting to saved network ${ssid}`,
+      });
+      const result = await executeIwctlCommand("station", [ wifiDevice?.name,"connect", ssid]);
+      if (result.success) {
+        await showToast({
+          title: "Connection Successful",
+          message: `Successfully connected to ${ssid}`,
+        });
+        scanWifi(); // Refresh the list to show connected status
+      } else {
+        await showToast({
+          title: "Connection Failed",
+          message: result.error || `Could not connect to ${ssid}`,
+        });
+      }
+    } else {
+      // If the network is secure and not saved, push the password form
+      push(<ConnectForm ssid={ssid,security, wifiDevice.name} />);
+    }
+  };
   }
 
+const handleDisconnect = async () => {
+    if (!wifiDevice) {
+      await showToast({
+        title: "Disconnect Failed",
+        message: "No Wi-Fi device found",
+      });
+      return;
+    }
 
+    await showToast({
+      title: "Disconnecting...",
+      message: "Disconnecting from current network",
+    });
+
+    const result = await executeIwctlCommand("station ", [wifiDevice.name,  "disconnect"]);
+
+    if (result.success) {
+      await showToast({
+        title: "Disconnected",
+        message: "Successfully disconnected from current network",
+      });
+      loadWifiDeviceData(); // Refresh device status
+      scanWifi(); // Refresh the list to update connection status
+    } else {
+      await showToast({
+        title: "Disconnect Failed",
+        message: result.error || "Could not disconnect from current network",
+      });
+    }
+  };
 
   useEffect(() => {
     loadWifiDeviceData();
