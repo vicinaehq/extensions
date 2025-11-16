@@ -45,11 +45,11 @@ export async function getDevice(): Promise<WifiDevice | null> {
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
- 
+
   // Make sure there are enough lines
   if (lines.length > 3) {
     const parts = lines[4].split(/\s+/);
-    
+
     if (parts.length > 5) {
       return {
         name: parts[1] || "",
@@ -194,10 +194,10 @@ export async function getBssid(
   ssid: string,
   deviceName: string
 ): Promise<string> {
- 
+
   const result = await executeIwctlCommandSilent(
     "station",
-    [deviceName, "get-bsses", ssid]
+    [deviceName, "get-bsses", `"${ssid}"`]
   );
 
   if(!result.success) {
