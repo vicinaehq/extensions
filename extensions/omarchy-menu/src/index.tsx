@@ -5,13 +5,11 @@ import {
   useNavigation,
   closeMainWindow,
 } from "@vicinae/api";
-import { exec, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
+import { setTimeout as delay } from "node:timers/promises";
 import { capitalize } from "./utils/capitalize";
-import { promisify } from "node:util";
 
 import { MENU_ITEMS, MenuItem } from "./config/menu";
-
-const execAsync = promisify(exec);
 
 const findMenuItems = (
   items: MenuItem[],
@@ -46,6 +44,7 @@ const Command = () => {
                   title="Open"
                   onAction={async () => {
                     await closeMainWindow();
+                    await delay(80);
                     spawn(item.command ?? "", {
                       shell: true,
                       detached: true,
@@ -91,6 +90,7 @@ const DynamicList = ({ menu }: { menu: string }) => {
                     title="Open"
                     onAction={async () => {
                       await closeMainWindow();
+                      await delay(80);
                       spawn(item.command ?? "", {
                         shell: true,
                         detached: true,
