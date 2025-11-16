@@ -1,17 +1,18 @@
 import { getPreferenceValues } from "@vicinae/api";
 import ScanWifiNmcli from "./nmcli/scan-wifi";
 import ScanWifiIwclt from "./iwctl/scan-wifi";
+import { List, Icon, ActionPanel, Action } from "@vicinae/api";
 
-export default async function scanWifi() {
+export default function scanWifi() {
   const networkCliTool = getPreferenceValues<{ "network-cli-tool": string }>();
   
   switch (networkCliTool["network-cli-tool"]) {
     case "nmcli":
-      ScanWifiNmcli()
+      return ScanWifiNmcli()
       break;
 
     case "iwctl": {
-      ScanWifiIwclt()
+      return ScanWifiIwclt()
       break;
     }
     default:

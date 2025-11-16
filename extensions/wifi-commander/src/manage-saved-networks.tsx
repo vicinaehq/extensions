@@ -7,11 +7,11 @@ export default async function scanWifi() {
   
   switch (networkCliTool["network-cli-tool"]) {
     case "nmcli":
-      ManageSavedNetworksNmcli()
+      return ManageSavedNetworksNmcli()
       break;
 
     case "iwctl": {
-      ManageSavedNetworksIwctl()
+      return ManageSavedNetworksIwctl()
       break;
     }
     default:
