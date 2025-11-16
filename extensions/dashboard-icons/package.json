@@ -1,0 +1,59 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "dashboard-icons",
+	"title": "Dashboard Icons",
+	"description": "Browse and download icons from dashboardicons.com",
+	"categories": [],
+	"license": "MIT",
+	"author": "aurelleb",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension_icon.png",
+	"commands": [
+		{
+			"name": "search-icons",
+			"title": "Search Icons",
+			"subtitle": "Search Icons",
+			"description": "Search icons from dashboardicons.com",
+			"mode": "view",
+			"preferences": [
+				{
+					"name": "copy-format",
+					"type": "dropdown",
+					"title": "Default format to copy",
+					"description": "Dashboard icons are offered as multiple formats, this selects what format should be used by default when using the primary action.",
+					"default": "png",
+					"required": true,
+					"data": [
+						{
+							"title": "png",
+							"value": "png"
+						},
+						{
+							"title": "svg",
+							"value": "svg"
+						},
+						{
+							"title": "webp",
+							"value": "webp"
+						}
+					]
+				}
+			]
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"format": "biome format --write src",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.16.5"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.2",
+		"typescript": "^5.9.2"
+	}
+}
