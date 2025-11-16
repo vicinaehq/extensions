@@ -4,12 +4,15 @@ import {
   Action,
   useNavigation,
   closeMainWindow,
+  Detail,
 } from "@vicinae/api";
 import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { capitalize } from "./utils/capitalize";
 
 import { MENU_ITEMS, MenuItem } from "./config/menu";
+import { noOmarchyOS } from "~/config/error";
+import { useExec } from "@raycast/utils";
 
 const findMenuItems = (
   items: MenuItem[],
@@ -28,7 +31,17 @@ const findMenuItems = (
 };
 
 const Command = () => {
+  const { isLoading, error } = useExec(
+    "/bin/sh",
+    ["-c", "command -v omarchy-menu"],
+    {
+      execute: true,
+    },
+  );
   const { push } = useNavigation();
+
+  if (isLoading) return <List isLoading={true} />;
+  if (error) return <Detail markdown={noOmarchyOS} />;
 
   return (
     <List navigationTitle="Omarchy Menu" searchBarPlaceholder="Go...">
