@@ -38,6 +38,28 @@
 							"value": "webp"
 						}
 					]
+				},
+				{
+					"name": "columns",
+					"type": "dropdown",
+					"title": "Columns",
+					"description": "How many icons to show per row",
+					"default": "6",
+					"required": true,
+					"data": [
+						{
+							"title": "4",
+							"value": "4"
+						},
+						{
+							"title": "6",
+							"value": "6"
+						},
+						{
+							"title": "8",
+							"value": "8"
+						}
+					]
 				}
 			]
 		}

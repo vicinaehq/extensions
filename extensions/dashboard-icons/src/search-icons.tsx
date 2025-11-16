@@ -19,7 +19,6 @@ import {
 } from "@vicinae/api";
 import * as path from "node:path";
 import * as fsp from "node:fs/promises";
-import { isToken } from "typescript";
 
 const formatUrl = (name: string, format: string) =>
 	`${CDN_BASE_URL}/${format}/${name}.${format}`;
@@ -111,6 +110,8 @@ type Format = (typeof formats)[number];
 
 export default function SearchIcons() {
 	const { groupedIcons, loading, clearCache } = useDashboardIcons();
+	const preferences = getPreferenceValues();
+	const columns = parseInt(preferences.columns, 10);
 
 	const executeClearCache = async () => {
 		clearCache();
@@ -120,7 +121,7 @@ export default function SearchIcons() {
 	return (
 		<Grid
 			isLoading={loading}
-			columns={6}
+			columns={columns}
 			inset={Grid.Inset.Large}
 			searchBarPlaceholder="Search icons..."
 			filtering
