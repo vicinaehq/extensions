@@ -38,7 +38,10 @@ const groupIcons = (icons: DashboardIcon[]): IconGroup[] => {
 	const groups = new Map<string, DashboardIcon[]>();
 
 	for (const icon of icons) {
-		for (const category of icon.categories) {
+		const categories =
+			icon.categories.length > 0 ? icon.categories : ["Uncategorized"];
+
+		for (const category of categories) {
 			let grp = groups.get(category);
 			if (!grp) {
 				grp = [] as DashboardIcon[];
