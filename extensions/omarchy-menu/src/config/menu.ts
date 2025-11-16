@@ -479,7 +479,7 @@ export const MENU_ITEMS: MenuItem[] = [
         ],
       },
       {
-        id: "style",
+        id: "install-style",
         name: "Style",
         icon: "󰣇",
         items: [

@@ -5,8 +5,9 @@ import {
   useNavigation,
   closeMainWindow,
 } from "@vicinae/api";
-import { exec } from "node:child_process";
-import { capitalize } from "~/utils/capitalize";
+import { spawn } from "node:child_process";
+import { setTimeout as delay } from "node:timers/promises";
+import { capitalize } from "./utils/capitalize";
 
 import { MENU_ITEMS, MenuItem } from "./config/menu";
 
@@ -41,9 +42,14 @@ const Command = () => {
               {item.command ? (
                 <Action
                   title="Open"
-                  onAction={() => {
-                    exec(item.command ?? "");
-                    closeMainWindow();
+                  onAction={async () => {
+                    await closeMainWindow();
+                    await delay(80);
+                    spawn(item.command ?? "", {
+                      shell: true,
+                      detached: true,
+                      stdio: "ignore",
+                    }).unref();
                   }}
                 />
               ) : (
@@ -82,9 +88,14 @@ const DynamicList = ({ menu }: { menu: string }) => {
                 <ActionPanel title="Omarchy">
                   <Action
                     title="Open"
-                    onAction={() => {
-                      exec(item.command ?? "");
-                      closeMainWindow();
+                    onAction={async () => {
+                      await closeMainWindow();
+                      await delay(80);
+                      spawn(item.command ?? "", {
+                        shell: true,
+                        detached: true,
+                        stdio: "ignore",
+                      }).unref();
                     }}
                   />
                 </ActionPanel>
@@ -95,7 +106,7 @@ const DynamicList = ({ menu }: { menu: string }) => {
         return (
           <List.Item
             key={item.name}
-            title={capitalize(item.name)}
+            title={item.name}
             accessories={[{ tag: item.icon }]}
             actions={
               <ActionPanel title="Omarchy">
