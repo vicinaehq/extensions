@@ -21,6 +21,8 @@ import {
 } from "dbus-next";
 import { XMLParser } from "fast-xml-parser";
 
+const INTROSPECTABLE_IFACE = "org.freedesktop.DBus.Introspectable";
+
 const listWellKnownNames = async (bus: MessageBus) => {
 	const obj = await bus.getProxyObject(
 		"org.freedesktop.DBus",
@@ -29,8 +31,6 @@ const listWellKnownNames = async (bus: MessageBus) => {
 	const dbusInterface = obj.getInterface("org.freedesktop.DBus");
 
 	const names = (await dbusInterface.ListNames()) as string[];
-
-	console.log({ names });
 
 	return names.filter((n) => !n.startsWith(":"));
 };
@@ -78,6 +78,28 @@ const parseXMLNode = (xml: string): any => {
 		isArray: (tagName) => tags.includes(tagName),
 	});
 	return parser.parse(xml);
+};
+
+/**
+ * There is no defined way to get the introspectable root for a given service
+ * so we have to try many common conventions.
+ * This seem to be enough to cover most services.
+ */
+const getIntrospectableRoot = async (
+	bus: MessageBus,
+	name: string,
+): Promise<ProxyObject | null> => {
+	const normalized = `/${name.replace(/\./g, "/")}`;
+	const paths = [normalized, normalized.toLowerCase(), "/"];
+
+	for (const path of paths) {
+		try {
+			const obj = await bus.getProxyObject(name, path);
+			if (obj.interfaces[INTROSPECTABLE_IFACE]) return obj;
+		} catch (_) { }
+	}
+
+	return null;
 };
 
 const introspect = async (
@@ -194,14 +216,17 @@ const useServices = (bus: MessageBus) => {
 
 	const fetchServices = async () => {
 		const names = await listWellKnownNames(bus);
-		const pp = names.map<Promise<DBusNode>>(async (name) => {
-			const object = await bus.getProxyObject(name, "/");
-			return introspect(object, {
-				recursive: false,
-			});
+		const pp = names.map<Promise<DBusNode | null>>(async (name) => {
+			return getIntrospectableRoot(bus, name)
+				.then((obj) => (obj ? introspect(obj, { recursive: false }) : null))
+				.catch((e) => {
+					console.error(`Failed to getProxyObject at / for service ${name}`, e);
+					return null;
+				});
 		});
-
-		return Promise.all(pp);
+		const isValidNode = (s: DBusNode | null): s is DBusNode => !!s;
+		const results = await Promise.all(pp);
+		return results.filter(isValidNode);
 	};
 
 	useEffect(() => {
@@ -242,11 +267,37 @@ const BusSelector = (props: BusSelectorProps) => {
 
 const INTERFACE_ICON: ImageLike = { source: Icon.Info, tintColor: Color.Blue };
 
+const InterfaceItemActions = ({
+	iface,
+	path,
+	name,
+}: {
+	path: string;
+	name: string;
+	iface: IntrospectionInterface;
+}) => {
+	return (
+		<>
+			<Action.CopyToClipboard
+				title="Copy interface name"
+				content={iface.name}
+			/>
+			<Action.CopyToClipboard title="Copy path" content={path} />
+			<Action.CopyToClipboard title="Copy object name" content={name} />
+		</>
+	);
+};
+
 const MethodItem = ({
 	method,
+	iface,
+	path,
+	name,
 }: {
 	method: IntrospectionMethod;
 	path: string;
+	name: string;
+	iface: IntrospectionInterface;
 }) => {
 	const buildSignature = (method: IntrospectionMethod) => {
 		const params = method.in
@@ -267,21 +318,24 @@ const MethodItem = ({
 			actions={
 				<ActionPanel>
 					<Action.CopyToClipboard title="Copy signature" content={sig} />
-					<Action.CopyToClipboard
-						title="Copy input type chain"
-						content={method.in.map((s) => s.type).join("")}
-					/>
-					<Action.CopyToClipboard
-						title="Copy output type chain"
-						content={method.out.map((s) => s.type).join("")}
-					/>
+					<InterfaceItemActions iface={iface} path={path} name={name} />
 				</ActionPanel>
 			}
 		/>
 	);
 };
 
-const SignalItem = ({ signal }: { signal: IntrospectionSignal }) => {
+const SignalItem = ({
+	signal,
+	path,
+	name,
+	iface,
+}: {
+	signal: IntrospectionSignal;
+	path: string;
+	name: string;
+	iface: IntrospectionInterface;
+}) => {
 	const buildSignature = (signal: IntrospectionSignal) => {
 		const params = signal.args
 			.map((arg) => (arg.name ? `${arg.name}: ${arg.type}` : arg.type))
@@ -298,6 +352,7 @@ const SignalItem = ({ signal }: { signal: IntrospectionSignal }) => {
 			actions={
 				<ActionPanel>
 					<Action.CopyToClipboard title="Copy signature" content={sig} />
+					<InterfaceItemActions iface={iface} path={path} name={name} />
 				</ActionPanel>
 			}
 		/>
@@ -307,6 +362,7 @@ const SignalItem = ({ signal }: { signal: IntrospectionSignal }) => {
 const InterfaceBrowser = ({
 	iface,
 	path,
+	name,
 }: {
 	iface: IntrospectionInterface;
 	path: string;
@@ -321,12 +377,12 @@ const InterfaceBrowser = ({
 			/>
 			<List.Section title={`${iface.signals.length} signals`}>
 				{iface.signals.map((signal) => (
-					<SignalItem signal={signal} />
+					<SignalItem iface={iface} path={path} name={name} signal={signal} />
 				))}
 			</List.Section>
 			<List.Section title={`${iface.methods.length} methods`}>
 				{iface.methods.map((method) => (
-					<MethodItem path={path} method={method} />
+					<MethodItem iface={iface} name={name} path={path} method={method} />
 				))}
 			</List.Section>
 		</List>
@@ -418,6 +474,7 @@ const NodeBrowser = ({ node }: { node: DBusNode }) => {
 			<List.Section title="Interfaces">
 				{node.introspection?.interfaces.map((iface) => (
 					<List.Item
+						key={`interface-${iface}`}
 						title={iface.name}
 						icon={{ source: Icon.Info, tintColor: Color.Blue }}
 						accessories={[
@@ -456,6 +513,7 @@ const NodeBrowser = ({ node }: { node: DBusNode }) => {
 			<List.Section title="Nodes">
 				{node.introspection.nodes.map((node) => (
 					<List.Item
+						key={`interface-${node}`}
 						title={node.path}
 						icon={{
 							source: Icon.Box,
@@ -549,7 +607,7 @@ const ServiceSection = ({
 	return (
 		<List.Section title={`${title}`}>
 			{services.map((service) => (
-				<ServiceItem node={service} />
+				<ServiceItem key={service.name} node={service} />
 			))}
 		</List.Section>
 	);
