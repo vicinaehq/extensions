@@ -4,11 +4,9 @@ import {
   Action,
   useNavigation,
   closeMainWindow,
-  showHUD,
 } from "@vicinae/api";
-import { exec, execSync, spawn } from "node:child_process";
+import { exec, spawn } from "node:child_process";
 import { capitalize } from "./utils/capitalize";
-import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
 
 import { MENU_ITEMS, MenuItem } from "./config/menu";
