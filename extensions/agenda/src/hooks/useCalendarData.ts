@@ -11,7 +11,7 @@ import { CACHE_KEY } from "../constants";
 export function useCalendarData(refreshInterval: number) {
   const [calendars, setCalendars] = useState<Calendar[]>(() => getCalendars());
   const [eventsByDate, setEventsByDate] = useState<Record<string, VEvent[]>>(
-    {},
+    {}
   );
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -59,19 +59,58 @@ export function useCalendarData(refreshInterval: number) {
           for (const key in parsed) {
             const item = parsed[key];
             if (item.type === "VEVENT") {
-              const startDate = new Date(item.start);
+              // Handle recurring events
+              if (item.rrule) {
+                const rangeStart = new Date();
+                const rangeEnd = new Date();
+                rangeEnd.setMonth(rangeEnd.getMonth() + 1);
 
-              // Only include future events
-              if (startDate >= new Date()) {
-                allEvents.push(item);
-                eventCalendarsRef.current.set(item.uid, calendar.url);
+                const occurrences = item.rrule.between(
+                  rangeStart,
+                  rangeEnd,
+                  true
+                );
+
+                for (const occurrenceStart of occurrences) {
+                  const occurrenceStartDate = new Date(occurrenceStart) as any;
+                  occurrenceStartDate.tz = item.start.tz; // Copy timezone from original event
+                  const durationMs = item.end.getTime() - item.start.getTime();
+                  const occurrenceEndDate = new Date(
+                    occurrenceStartDate.getTime() + durationMs
+                  ) as any;
+                  occurrenceEndDate.tz = item.end.tz; // Copy timezone from original event
+
+                  // Create a new event instance for this occurrence
+                  const occurrenceEvent = {
+                    ...item,
+                    start: occurrenceStartDate,
+                    end: occurrenceEndDate,
+                    uid: `${item.uid}_${occurrenceStartDate.toISOString().split("T")[0]}`, // Make UID unique for each occurrence
+                    recurrenceId: occurrenceStartDate,
+                  };
+
+                  allEvents.push(occurrenceEvent as VEvent);
+                  eventCalendarsRef.current.set(
+                    occurrenceEvent.uid,
+                    calendar.url
+                  );
+                }
+              } else {
+                // Handle non-recurring events
+                const startDate = new Date(item.start);
+
+                // Only include future events
+                if (startDate >= new Date()) {
+                  allEvents.push(item);
+                  eventCalendarsRef.current.set(item.uid, calendar.url);
+                }
               }
             }
           }
         } catch (error) {
           console.error(
             `Failed to fetch calendar from ${calendar.url}:`,
-            error,
+            error
           );
           showToast({
             style: Toast.Style.Failure,
@@ -107,10 +146,10 @@ export function useCalendarData(refreshInterval: number) {
         const bDisplayStart = getDisplayStart(bStart, bIsAllDay);
         return (
           new Date(
-            aStart.toISOString().split("T")[0] + "T" + aDisplayStart,
+            aStart.toISOString().split("T")[0] + "T" + aDisplayStart
           ).getTime() -
           new Date(
-            bStart.toISOString().split("T")[0] + "T" + bDisplayStart,
+            bStart.toISOString().split("T")[0] + "T" + bDisplayStart
           ).getTime()
         );
       });
@@ -146,7 +185,7 @@ export function useCalendarData(refreshInterval: number) {
     // Set up refresh interval
     const interval = setInterval(
       () => fetchCalendarData(false),
-      refreshInterval * 60 * 1000,
+      refreshInterval * 60 * 1000
     );
 
     // Set up cache polling to detect changes from other commands

@@ -9,6 +9,8 @@ import {
 	closeMainWindow,
 	PopToRootType,
 	getPreferenceValues,
+	ImageLike,
+	Color,
 } from "@vicinae/api";
 import toolsData from "./tools-data.json";
 import type { ITTool, PreferenceValues } from "./types";
@@ -19,14 +21,10 @@ const EXTENSION_ICON = "extension_icon.png";
 /**
  * Gets the icon for a tool, validating that it's a valid data URI
  */
-function getToolIcon(tool: ITTool): string {
-	if (!tool.icon) {
-		return EXTENSION_ICON;
-	}
-
+function getToolIcon(tool: ITTool): ImageLike {
 	// Validate that the icon is a valid data URI for SVG
-	if (tool.icon.startsWith("data:image/svg+xml")) {
-		return tool.icon;
+	if (tool.icon?.startsWith("data:image/svg+xml")) {
+		return { source: tool.icon, tintColor: Color.PrimaryText };
 	}
 
 	// If it's not a valid SVG data URI, fallback to default icon
