@@ -10,6 +10,7 @@ import {
   type WifiNetwork,
 } from "../utils/wifi-helpers-iwctl";
 import { executeIwctlCommandSilent, executeIwctlCommand } from "../utils/execute-iwctl";
+import ConnectForm from "../components/ConnectFormIwctl";
 
 interface ScanResult {
   networks: WifiNetwork[];
@@ -151,9 +152,13 @@ export default function ScanWifiIwctl() {
       }
     } else {
       // If the network is secure and not saved, push the password form
-      push(<ConnectForm ssid={ssid,security, wifiDevice.name} />);
+      push(<ConnectForm ssid={ ssid } security={ security } deviceName={ wifiDevice.name } />);
     }
   };
+
+  const handleHiddenConnect = async () => {
+    return
+  }
 
 
   const handleDisconnect = async () => {
@@ -300,8 +305,13 @@ export default function ScanWifiIwctl() {
                     onAction={() => handleConnect(network.ssid, network.security)}
                     shortcut={{ modifiers: ["cmd"], key: "enter" }}
                   />
-                  // TODO: add connect hidden somewhere
+
                 )}
+                <Action.CopyToClipboard
+                  title="Connect Hidden SSID"
+                  content={handleHiddenConnect}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
+                  />
                 <Action.CopyToClipboard
                   title="Copy SSID"
                   content={network.ssid}
