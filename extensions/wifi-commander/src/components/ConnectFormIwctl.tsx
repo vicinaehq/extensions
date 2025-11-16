@@ -44,7 +44,7 @@ export default function ConnectForm({ ssid, security, deviceName }: ConnectFormP
     let result;
     if (!isEnterprise) {
       result = await executeNmcliCommand(
-        `--passphrase=${password}`, ["station", deviceName, "connect", ssid]
+        `--passphrase=${password}`, ["station", deviceName, "connect",  `"${ssid}"`]
       );
     }
     // WPA2-Enterprise / 802.1X

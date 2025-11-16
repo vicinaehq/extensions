@@ -117,7 +117,7 @@ export default function ScanWifiIwctl() {
         title: "Connecting...",
         message: `Attempting to connect to open network ${ssid}`,
       });
-      const result = await executeIwctlCommand("station", [ wifiDevice?.name,"connect", ssid]);
+      const result = await executeIwctlCommand("station", [ wifiDevice?.name,"connect",  `"${ssid}"`]);
       if (result.success) {
         await showToast({
           title: "Connection Successful",
@@ -136,7 +136,7 @@ export default function ScanWifiIwctl() {
         title: "Connecting...",
         message: `Connecting to saved network ${ssid}`,
       });
-      const result = await executeIwctlCommand("station", [ wifiDevice?.name,"connect", ssid]);
+      const result = await executeIwctlCommand("station", [ wifiDevice?.name,"connect",  `"${ssid}"`]);
       if (result.success) {
         await showToast({
           title: "Connection Successful",
@@ -300,6 +300,7 @@ export default function ScanWifiIwctl() {
                     onAction={() => handleConnect(network.ssid, network.security)}
                     shortcut={{ modifiers: ["cmd"], key: "enter" }}
                   />
+                  // TODO: add connect hidden somewhere
                 )}
                 <Action.CopyToClipboard
                   title="Copy SSID"
