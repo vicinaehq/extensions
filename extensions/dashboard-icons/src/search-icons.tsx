@@ -19,6 +19,7 @@ import {
 } from "@vicinae/api";
 import * as path from "node:path";
 import * as fsp from "node:fs/promises";
+import { isToken } from "typescript";
 
 const formatUrl = (name: string, format: string) =>
 	`${CDN_BASE_URL}/${format}/${name}.${format}`;
@@ -32,36 +33,33 @@ const iconToImage = (icon: DashboardIcon): Image.ThemedSource => {
 	};
 };
 
+const isTextFormat = (fmt: Format) => fmt === "svg";
+
 const CopyFormatAction = ({
 	icon,
 	format,
-	action,
 }: {
 	format: Format;
 	icon: DashboardIcon;
-	action: "paste" | "copy";
 }) => {
-	const download = async (): Promise<string> => {
+	const download = async () => {
 		const url = formatUrl(icon.name, format);
 		const toast = await showToast(Toast.Style.Animated, "Download icon...");
-		const iconDir = path.join(environment.supportPath, "icons");
-		const target = path.join(iconDir, `${icon.name}.${format}`);
 		const res = await fetch(url);
-		const buf = await res.bytes();
 
-		await fsp.mkdir(iconDir, { recursive: true });
-		await fsp.writeFile(target, buf);
+		if (isTextFormat(format)) {
+			await Clipboard.copy({ text: await res.text() });
+		} else {
+			const buf = await res.bytes();
+			const iconDir = path.join(environment.supportPath, "icons");
+			const target = path.join(iconDir, `${icon.name}.${format}`);
+			await fsp.mkdir(iconDir, { recursive: true });
+			await fsp.writeFile(target, buf);
+			await Clipboard.copy({ file: target });
+		}
 
 		toast.style = Toast.Style.Success;
 		toast.title = "Icon downloaded";
-
-		return target;
-	};
-
-	const handle = async () => {
-		const path = await download();
-		if (action === "copy") await Clipboard.copy({ file: path });
-		else if (action === "paste") await Clipboard.paste({ file: path });
 		await showHUD("Copied to clipboard");
 	};
 
@@ -69,7 +67,7 @@ const CopyFormatAction = ({
 		<Action
 			title={`Copy as ${format}`}
 			icon={Icon.CopyClipboard}
-			onAction={handle}
+			onAction={download}
 		></Action>
 	);
 };
@@ -85,16 +83,11 @@ const IconCell = ({ icon }: { icon: DashboardIcon }) => {
 			keywords={[...icon.categories, ...icon.aliases]}
 			actions={
 				<ActionPanel>
-					<CopyFormatAction icon={icon} format={copyFormat} action={"copy"} />
+					<CopyFormatAction icon={icon} format={copyFormat} />
 					{formats
 						.filter((fmt) => fmt !== copyFormat)
 						.map((fmt) => (
-							<CopyFormatAction
-								key={`copy-${fmt}`}
-								icon={icon}
-								format={fmt}
-								action={"copy"}
-							/>
+							<CopyFormatAction key={`copy-${fmt}`} icon={icon} format={fmt} />
 						))}
 					{formats.map((fmt) => (
 						<Action.CopyToClipboard
@@ -152,7 +145,7 @@ export default function SearchIcons() {
 				icon={Icon.Image}
 			/>
 			{groupedIcons.map((group) => (
-				<Grid.Section title={group.name}>
+				<Grid.Section title={group.name} key={group.name}>
 					{group.icons.map((icon) => (
 						<IconCell key={`${group.name}-${icon.name}`} icon={icon} />
 					))}
