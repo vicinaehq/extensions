@@ -33,22 +33,21 @@ which brotab
 
 ## Development
 
-This extension uses [PNPM](https://pnpm.io/) as package manager. To install the required dependencies and run your extension in development mode, run:
 
 ```bash
-pnpm install
+npm install
 ```
 
 To run the extension in development mode, use:
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 To build the extension for production, use:
 
 ```bash
-pnpm build
+npm run build
 ```
 
 ## Acknowledgements
