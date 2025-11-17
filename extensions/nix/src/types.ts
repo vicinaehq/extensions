@@ -314,7 +314,7 @@ export interface PullRequest {
   pr_url: string;
   state: "open" | "closed";
   username: string;
-  created_at: string;
+  updated_at: string;
   merged_at?: string | null;
 }
 

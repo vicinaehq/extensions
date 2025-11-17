@@ -360,7 +360,7 @@ export function PullRequestListItem({
       title={pr.title}
       subtitle={`#${pr.number} • ${pr.username}`}
       icon={statusIcon}
-      accessories={[{ text: new Date(pr.created_at).toLocaleDateString() }]}
+      accessories={[{ text: `Updated ${moment(pr.updated_at).fromNow()}` }]}
       actions={
         <ActionPanel>
           <Action title="View Details" icon={Icon.Sidebar} onAction={onSelect} />

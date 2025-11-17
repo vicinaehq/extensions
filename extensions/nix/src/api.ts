@@ -526,7 +526,7 @@ export async function searchNixpkgsPRs(query: string): Promise<PullRequest[]> {
       pr_url: i.html_url,
       state: i.state,
       username: i.user?.login ?? "unknown",
-      created_at: i.created_at,
+      updated_at: i.updated_at,
       merged_at: i.pull_request?.merged_at ?? i.merged_at ?? null,
     }));
 }
