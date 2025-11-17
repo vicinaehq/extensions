@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Color, Icon, List, showToast, useNavigation } from "@vicinae/api";
+import { Action, ActionPanel, Color, Icon, List, showToast, useNavigation, Form } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import {
   loadSavedNetworks,
@@ -81,7 +81,6 @@ export default function ScanWifiIwctl() {
         error: error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
-    console.log("no Errors in scan")
   };
 
   const getSignalIcon = (rssi: number) => {
@@ -109,7 +108,6 @@ export default function ScanWifiIwctl() {
 
 
   const handleConnect = async (ssid: string, security: string) => {
-    console.log("called connect")
     // Check if this network is already saved
     const isSaved = savedNetworks.some((network) => network.name === ssid);
 
@@ -158,8 +156,8 @@ export default function ScanWifiIwctl() {
   };
 
   const handleHiddenConnect = async () => {
-    console.log("called handleHiddenConnect")
-    return
+    push(<ConnectHiddenForm deviceName={wifiDevice.name} />);
+    
   }
 
 
@@ -200,7 +198,6 @@ export default function ScanWifiIwctl() {
     scanWifi();
   }, []);
 
-  console.log("About to render final return");
   if (scanResult.isLoading) {
     return (
       <List searchBarPlaceholder="Scanning wifi networks...">
@@ -310,7 +307,7 @@ export default function ScanWifiIwctl() {
 
                 )}
                 <Action
-                    title="Connect"
+                    title="Connect Hidden Network3"
                     icon={Icon.Wifi}
                     onAction={() => handleHiddenConnect()}
                     shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
