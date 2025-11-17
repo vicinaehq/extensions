@@ -536,7 +536,7 @@ export async function getNixpkgsPR(number: number): Promise<FullPullRequest> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`https://api.github.com/repos/NixOS/nixpkgs/pulls/${number}`, {
     headers,
