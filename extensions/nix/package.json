@@ -43,7 +43,7 @@
     },
     {
       "name": "nixpkgs-pr",
-      "title": "Search Nixpkgs PRs",
+      "title": "Nixpkgs PRs",
       "subtitle": "Browse and inspect Nixpkgs pull requests easily",
       "description": "Quickly search Nixpkgs GitHub pull requests, authors, statuses...",
       "mode": "view",

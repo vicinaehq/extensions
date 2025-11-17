@@ -29,6 +29,12 @@ Search and browse Nix packages, options, flakes, and Home-Manager options from t
 - View source code for options
 - Copy option name, description, or default value to clipboard
 
+### Nixpkgs Pull Requests
+- Search Nixpkgs pull requests by title or number
+- View PR details including title, author, status, branches, created/updated dates, and description
+- Open PR on GitHub
+- Copy PR number to clipboard
+
 ## Usage
 
 The extension provides four separate commands:
@@ -37,9 +43,10 @@ The extension provides four separate commands:
 - **NixOS Options**: Search NixOS configuration options
 - **NixOS Flake Packages**: Search packages from Nix flakes
 - **Home-Manager Options**: Search Home-Manager configuration options
+- **Nixpkgs PRs**: Search Nixpkgs Pull Requests
 
 Type in the search bar to find items. Use the action panel to access various actions like opening links, viewing source code, or copying information to clipboard.
 
 ## API
 
-This extension uses the official NixOS search API at https://search.nixos.org/ and Home-Manager options data from https://home-manager-options.extranix.com/
+This extension uses the official NixOS search API at https://search.nixos.org/ and Home-Manager options data from https://home-manager-options.extranix.com/ and github APIs
