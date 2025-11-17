@@ -300,3 +300,29 @@ export interface HomeManagerOptionItem {
   sourceUrl?: string;
   score: number;
 }
+
+// Nixpkgs PR types
+export interface Label {
+  id: number;
+  name: string;
+  color?: string;
+}
+
+export interface PullRequest {
+  number: number;
+  title: string;
+  pr_url: string;
+  state: "open" | "closed";
+  username: string;
+  created_at: string;
+  merged_at?: string | null;
+}
+
+export interface FullPullRequest extends PullRequest {
+  updated_at: string;
+  body: string;
+  labels?: Label[];
+  reviewers?: string[];
+  from_branch: string;
+  to_branch: string;
+}
