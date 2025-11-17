@@ -8,7 +8,7 @@ interface ConnectFormProps {
   security: string;
 }
 
-export default function ConnectForm({ ssid, security, deviceName }: ConnectFormProps) {
+export function ConnectForm({ ssid, security, deviceName }: ConnectFormProps) {
   const { pop } = useNavigation();
 
   const isEnterprise = security.toLowerCase().startsWith("8021x");
@@ -93,4 +93,10 @@ export default function ConnectForm({ ssid, security, deviceName }: ConnectFormP
       )}
     </Form>
   );
+}
+
+
+export function ConnectHiddenForm() {
+  console.log("hidden form")
+  return
 }

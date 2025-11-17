@@ -10,7 +10,7 @@ import {
   type WifiNetwork,
 } from "../utils/wifi-helpers-iwctl";
 import { executeIwctlCommandSilent, executeIwctlCommand } from "../utils/execute-iwctl";
-import ConnectForm from "../components/ConnectFormIwctl";
+import { ConnectHiddenForm, ConnectForm} from "../components/ConnectFormIwctl";
 
 interface ScanResult {
   networks: WifiNetwork[];
@@ -51,8 +51,9 @@ export default function ScanWifiIwctl() {
       }
 
       const executeScan = await executeIwctlCommandSilent("station", [device.name, "scan"])
+
       if (!executeScan.success){
-        throw new Error(executeScan.error || "station scan failed")
+        console.info(executeScan.error || "station scan failed.");
       }
 
       const result = await executeIwctlCommandSilent("station", [device.name, "get-networks", "rssi-dbms"])
@@ -157,6 +158,7 @@ export default function ScanWifiIwctl() {
   };
 
   const handleHiddenConnect = async () => {
+    console.log("called handleHiddenConnect")
     return
   }
 
@@ -307,15 +309,17 @@ export default function ScanWifiIwctl() {
                   />
 
                 )}
-                <Action.CopyToClipboard
-                  title="Connect Hidden SSID"
-                  content={handleHiddenConnect}
-                  shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
+                <Action
+                    title="Connect"
+                    icon={Icon.Wifi}
+                    onAction={() => handleHiddenConnect()}
+                    shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
                   />
                 <Action.CopyToClipboard
                   title="Copy SSID"
                   content={network.ssid}
-                  shortcut={{ modifiers: ["cmd"], key: "c" }}
+                  // since cmd/mod + c is my standard copy: cmd/mod + ctrl + c
+                  shortcut={{ modifiers: ["cmd", "ctrl"], key: "c" }}
                 />
                 <Action.CopyToClipboard
                   title="Copy BSSID"
