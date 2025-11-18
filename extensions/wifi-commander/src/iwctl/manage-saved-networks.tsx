@@ -20,11 +20,7 @@ interface SavedNetworksResult {
   error: string | null;
 }
 
-export default async function ManageSavedNetworksIwctl() {
-    await showToast({
-        title: "TODO",
-        message: "TODO: implement Manage saved networks for iwctl",
-      });
+export default function ManageSavedNetworksIwctl() {
 
   const [savedNetworks, setSavedNetworks] = useState<SavedNetworksResult>({
     networks: [],
@@ -42,12 +38,23 @@ export default async function ManageSavedNetworksIwctl() {
 
   const loadCurrentConnectionData = async () => {
     // if it doesnt work call loadWifiDevice here aswell
-    const connection = await loadCurrentConnection(wifiDevice?.name);
+    // Always load device fresh, don't rely on state
+    const device = await loadWifiDevice();
+    if (!device) {
+      throw new Error("No WiFi device found");
+    }
+    const connection = await loadCurrentConnection(device?.name);
     setCurrentConnection(connection);
   };
 
   const loadAvailableNetworks = async () => {
     try {
+      // Always load device fresh, don't rely on state
+      const device = await loadWifiDevice();
+      if (!device) {
+        throw new Error("No WiFi device found");
+      }
+
       const executeScan = await executeIwctlCommandSilent("station", [device.name, "scan"])
 
       if (!executeScan.success){
@@ -58,7 +65,7 @@ export default async function ManageSavedNetworksIwctl() {
       const result = await executeIwctlCommandSilent("station", [device.name, "get-networks", "rssi-dbms"])
 
       if (result.success) {
-        const networks = await parseWifiList(result.stdout, wifiDevice?.name);
+        const networks = await parseWifiList(result.stdout, device.name);
         const ssids = networks.map((network) => network.ssid).filter((ssid) => ssid);
         setAvailableNetworks(ssids);
       }
@@ -71,15 +78,15 @@ export default async function ManageSavedNetworksIwctl() {
     try {
       setSavedNetworks((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      const preNetworks = await loadSavedNetworks()
-      const networks = await addAutoconnect(preNetworks)
-      if(networks.length === 0){
-        setSavedNetworks({
-          networks,
-          isLoading: false,
-          error: null,
-        });
-      }
+      const preNetworks = await loadSavedNetworks();
+      const networks = await addAutoconnect(preNetworks);
+
+      setSavedNetworks({
+        networks,
+        isLoading: false,
+        error: null,
+      });
+      
 
     } catch (error) {
       setSavedNetworks({
@@ -256,7 +263,7 @@ export default async function ManageSavedNetworksIwctl() {
           icon={Icon.ExclamationMark}
           actions={
             <ActionPanel>
-              <Action title="Retry" icon={Icon.ArrowClockwise} onAction={loadSavedNetworks} />
+              <Action title="Retry" icon={Icon.ArrowClockwise} onAction={loadSavedNetworksData} />
             </ActionPanel>
           }
         />
@@ -342,7 +349,7 @@ export default async function ManageSavedNetworksIwctl() {
                   />
                 )}
                 <Action
-                    title="Toggle Autoconnect"
+                    title="Toggle AutoConnect"
                     icon={Icon.Repeat}
                     onAction={() => handleAutoConnect(network.name, network.autoconnect)}
                     shortcut={{ modifiers: ["cmd"], key: "a" }}

@@ -91,6 +91,7 @@ export function parseSavedConnections(output: string): SavedNetwork[] {
           name: parts[0],
           security: parts[1],
           last_used: parts[2],
+          hidden: "no",
         };
       }
 
@@ -218,10 +219,9 @@ export async function getBssid(
  */
 export function parseCurrentConnection(output: string, deviceName: string): CurrentConnection | null {
   const lines = output.split("\n").filter((line) => line.trim());
-
   if (lines.length > 5) {
     return {
-      name: lines[6]?.split(/\s{2,}/)[1] ?? "",
+      name: lines[6]?.split(/\s{2,}/)[2] ?? "",
       device: deviceName,
     }
   }
@@ -247,16 +247,15 @@ export async function loadCurrentConnection(deviceName: string): Promise<Current
 function parseAutoconnectFromResult(output: string): string{
   const lines = output
     .split("\n")
-    .slice(4)
     .filter((line) => line.trim());
-
-    if(lines.length < 6){
-      return "Unkown"
-    }
-    return lines[6]?.split(/\s{2,}/)[1] ?? "Unkown";
-
-
-  return ""
+  const result = lines[6].includes("yes")
+  if(lines.length < 6){
+    return "Unkown"
+  }
+  if(result){
+    return "yes"
+   }
+  return "no"
 }
 
 /**
@@ -266,8 +265,10 @@ export async function addAutoconnect(networks: SavedNetwork[]): Promise<SavedNet
   const updatedNetworks = await Promise.all(
     networks.map(async (net) => {
       try {
-        const result = await executeIwctlCommandSilent("know-networks", [net.name, "show"]);
+        const result = await executeIwctlCommandSilent("known-networks", [`"${net.name}"`, "show"]);
+
         if(!result.success){
+          console.info(result)
           return {...net}
         }
 
@@ -282,6 +283,6 @@ export async function addAutoconnect(networks: SavedNetwork[]): Promise<SavedNet
         // Return network with original autoconnect value if command fails
         return net;
       }
-    });
-  return []
+    }));
+  return updatedNetworks
 }
