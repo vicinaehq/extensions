@@ -14,6 +14,7 @@ export interface SavedNetwork {
   security: string;
   hidden: string;
   last_used: string;
+  autoconnect: string;
 }
 
 export interface WifiDevice {
@@ -65,7 +66,7 @@ export async function getDevice(): Promise<WifiDevice | null> {
 }
 
 /**
- * Parse iwctl connection show output into structured data
+ * Parse iwctl known-networks list output into structured data
  */
 export function parseSavedConnections(output: string): SavedNetwork[] {
   const lines = output
@@ -98,6 +99,7 @@ export function parseSavedConnections(output: string): SavedNetwork[] {
         security: parts[1],
         hidden: parts[2],
         last_used: parts[3],
+        autoconnect: "Unkown",
       };
     })
     .filter(Boolean) as SavedNetwork[];
@@ -136,7 +138,7 @@ export async function loadWifiDevice(): Promise<WifiDevice | null> {
 }
 
 /**
- * Parse iwctl device wifi list output into structured data
+ * Parse iwctl station DEVICE get-networks rssi-dbms output into structured data
  */
 export async function parseWifiList(
   output: string,
@@ -207,5 +209,79 @@ export async function getBssid(
   return result.stdout
     .split("\n")
     .slice(5)
-    .filter((line) => line.trim())[0].split(/\s{2,}/)[2];
+    .filter((line) => line.trim())[0]?.split(/\s{2,}/)[2] ?? "";
+}
+
+
+/**
+ * Parse iwctl station DEVICE show output to get current connection
+ */
+export function parseCurrentConnection(output: string, deviceName: string): CurrentConnection | null {
+  const lines = output.split("\n").filter((line) => line.trim());
+
+  if (lines.length > 5) {
+    return {
+      name: lines[6]?.split(/\s{2,}/)[1] ?? "",
+      device: deviceName,
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Load current connection from iwctl
+ */
+export async function loadCurrentConnection(deviceName: string): Promise<CurrentConnection | null> {
+  try {
+    const result = await executeIwctlCommandSilent("station", [deviceName, "show"]);
+    if (result.success) {
+      return parseCurrentConnection(result.stdout, deviceName);
+    }
+  } catch (error) {
+    console.error("Failed to load current connection:", error);
+  }
+  return null;
+}
+
+function parseAutoconnectFromResult(output: string): string{
+  const lines = output
+    .split("\n")
+    .slice(4)
+    .filter((line) => line.trim());
+
+    if(lines.length < 6){
+      return "Unkown"
+    }
+    return lines[6]?.split(/\s{2,}/)[1] ?? "Unkown";
+
+
+  return ""
+}
+
+/**
+ * Add autoconnect to savedNetwork from iwctl
+ */
+export async function addAutoconnect(networks: SavedNetwork[]): Promise<SavedNetwork[]>{
+  const updatedNetworks = await Promise.all(
+    networks.map(async (net) => {
+      try {
+        const result = await executeIwctlCommandSilent("know-networks", [net.name, "show"]);
+        if(!result.success){
+          return {...net}
+        }
+
+        const autoconnectValue = parseAutoconnectFromResult(result.stdout);
+
+        return {
+          ...net,
+          autoconnect: autoconnectValue
+        };
+      } catch (error) {
+        console.error(`Failed to get info for network ${net.name}:`, error);
+        // Return network with original autoconnect value if command fails
+        return net;
+      }
+    });
+  return []
 }

@@ -53,6 +53,7 @@ export default function ScanWifiIwctl() {
       const executeScan = await executeIwctlCommandSilent("station", [device.name, "scan"])
 
       if (!executeScan.success){
+        // only info since scanning gives error if still scanning
         console.info(executeScan.error || "station scan failed.");
       }
 
@@ -117,7 +118,7 @@ export default function ScanWifiIwctl() {
         title: "Connecting...",
         message: `Attempting to connect to open network ${ssid}`,
       });
-      const result = await executeIwctlCommand("station", [ wifiDevice?.name,"connect",  `"${ssid}"`]);
+      const result = await executeIwctlCommand("station", [ wifiDevice?.name, "connect",  `"${ssid}"`]);
       if (result.success) {
         await showToast({
           title: "Connection Successful",
@@ -153,11 +154,14 @@ export default function ScanWifiIwctl() {
       // If the network is secure and not saved, push the password form
       push(<ConnectForm ssid={ ssid } security={ security } deviceName={ wifiDevice.name } />);
     }
+    loadSavedNetworks(); // Refresh the list
+    scanWifi();
   };
 
   const handleHiddenConnect = async () => {
     push(<ConnectHiddenForm deviceName={wifiDevice.name} />);
-    
+    loadSavedNetworks(); // Refresh the list
+    scanWifi();
   }
 
 
