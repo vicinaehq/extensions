@@ -1,5 +1,5 @@
 
-import { Action, ActionPanel, Form, Icon, showToast, useNavigation, Toast } from "@vicinae/api";
+import { Action, ActionPanel, Form, Icon, showToast, useNavigation } from "@vicinae/api";
 import { executeIwctlCommand } from "../utils/execute-iwctl";
 import { useState } from "react";
 

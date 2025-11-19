@@ -8,7 +8,6 @@ import {
   loadWifiDevice,
   parseWifiList,
   addAutoconnect,
-  parseSavedConnections,
   type SavedNetwork,
   type WifiDevice,
 } from "../utils/wifi-helpers-iwctl";

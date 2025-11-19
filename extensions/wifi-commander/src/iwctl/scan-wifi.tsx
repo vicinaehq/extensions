@@ -4,7 +4,6 @@ import {
   loadSavedNetworks,
   loadWifiDevice,
   parseWifiList,
-  getBssid,
   type SavedNetwork,
   type WifiDevice,
   type WifiNetwork,

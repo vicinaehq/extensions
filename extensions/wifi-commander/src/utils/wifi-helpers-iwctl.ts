@@ -1,5 +1,4 @@
 import { executeIwctlCommandSilent } from "./execute-iwctl";
-import { showToast } from "@vicinae/api";
 
 export interface WifiNetwork {
   inUse: boolean;
