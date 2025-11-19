@@ -154,14 +154,10 @@ export default function ScanWifiIwctl() {
       // If the network is secure and not saved, push the password form
       push(<ConnectForm ssid={ ssid } security={ security } deviceName={ wifiDevice.name } />);
     }
-    loadSavedNetworks(); // Refresh the list
-    scanWifi();
   };
 
   const handleHiddenConnect = async () => {
     push(<ConnectHiddenForm deviceName={wifiDevice.name} />);
-    loadSavedNetworks(); // Refresh the list
-    scanWifi();
   }
 
 
