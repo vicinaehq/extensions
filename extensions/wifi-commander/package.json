@@ -8,7 +8,7 @@
   ],
   "license": "MIT",
   "author": "dagimg-dot",
-  "contributors": [],
+  "contributors": ["Gareck-OG"],
   "pastContributors": [],
   "icon": "wifi_commander.png",
   "commands": [
@@ -57,11 +57,11 @@
       "data": [
         {
           "title": "nmcli",
-          "value": "nmcli" 
+          "value": "nmcli"
         },
         {
           "title": "iwctl",
-          "value": "iwctl" 
+          "value": "iwctl"
         }
       ]
 

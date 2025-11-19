@@ -12,6 +12,7 @@ A comprehensive Wi‑Fi management extension for Vicinae that provides complete 
 ### Network Scanning
 - **Scan Available Networks**: Discover all nearby Wi‑Fi networks
 - **Smart Connection**: Automatically detects saved networks and connects without password prompt
+- **Hidden Connection**: Gives to option to connect to hidden Networks [just `iwclt`]
 - **Password Protection**: Secure password form for new networks
 - **Signal Strength**: Visual indicators for network quality
 - **Security Info**: Display security type (WPA2, WEP, etc.)
@@ -19,8 +20,10 @@ A comprehensive Wi‑Fi management extension for Vicinae that provides complete 
 ### Saved Network Management
 - **View Saved Networks**: List all previously connected networks
 - **Smart Actions**: Primary action adapts based on network availability
+  - **Disconnect**: When network is currently available
   - **Connect**: When network is currently available
   - **Forget**: When network is not available
+  - **Toggel Auto Connection**: For every Network
 - **Connection Status**: Visual indicators for connected networks
 - **Quick Access**: Connect to saved networks without scanning
 
@@ -93,11 +96,12 @@ pnpm dev
 - `Cmd+C`: Copy network name
 - `Cmd+Shift+C`: Copy UUID
 - `Cmd+R`: Refresh network list
+- `Cmd+A`: Toggle Auto Connect [just `iwclt`]
 
 ## Technical Details
 
 - Built with TypeScript and React
-- Uses `nmcli` for all network operations
+- Uses `nmcli` or `iwctl` for all network operations
 - Real-time network scanning with `--rescan yes`
 - Smart network detection and management
 - Robust error handling and user feedback
