@@ -2,7 +2,7 @@ import { getPreferenceValues } from "@vicinae/api";
 import ManageSavedNetworksNmcli from "./nmcli/manage-saved-networks";
 import  ManageSavedNetworksIwctl from "./iwctl/manage-saved-networks";
 
-export default async function scanWifi() {
+export default function manageSavedNetworks() {
   const networkCliTool = getPreferenceValues<{ "network-cli-tool": string }>();
   
   switch (networkCliTool["network-cli-tool"]) {
