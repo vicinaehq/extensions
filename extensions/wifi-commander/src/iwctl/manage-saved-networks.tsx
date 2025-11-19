@@ -366,7 +366,7 @@ export default function ManageSavedNetworksIwctl() {
                     loadWifiDeviceData();
                     loadCurrentConnectionData();
                     loadAvailableNetworks();
-                    loadSavedNetworks();
+                    loadSavedNetworksData();
                   }}
                   shortcut={{ modifiers: ["cmd"], key: "r" }}
                 />
