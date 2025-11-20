@@ -6,7 +6,7 @@ import { ProfileSelector } from "./components/profile-selector";
 export default function Extension() {
 	return (
 		<IfCliCommandSucceeds
-			command="powerprofilesctl123"
+			command="powerprofilesctl"
 			onSuccess={<ProfileSelector />}
 			onFail={
 				<Detail
