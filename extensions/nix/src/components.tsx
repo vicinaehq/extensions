@@ -1,8 +1,9 @@
 import { exec } from "child_process";
-import { Action, ActionPanel, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Color, Detail, Icon, List } from "@vicinae/api";
 import { cleanText } from "./api";
 import { copyToClipboard } from "./utils";
-import { PackageItem, OptionItem, FlakeItem, HomeManagerOptionItem } from "./types";
+import { PackageItem, OptionItem, FlakeItem, HomeManagerOptionItem, PullRequest, FullPullRequest } from "./types";
+import moment from "moment";
 
 function OptionActions({
   name,
@@ -334,6 +335,100 @@ export function HomeManagerOptionListItem({ option }: { option: HomeManagerOptio
           defaultValue={option.default}
           sourceUrl={option.sourceUrl}
         />
+      }
+    />
+  );
+}
+
+export function PullRequestListItem({
+  pr,
+  onSelect,
+}: {
+  pr: PullRequest;
+  onSelect: () => void;
+}) {
+  const statusIcon =
+    pr.state === "open"
+      ? { source: "../assets/PROpen.svg", tintColor: Color.Green }
+      : pr.merged_at
+        ? { source: "../assets/PRMerge.svg", tintColor: Color.Purple }
+        : { source: "../assets/PRClosed.svg", tintColor: Color.Red };
+
+  return (
+    <List.Item
+      key={pr.number}
+      title={pr.title}
+      subtitle={`#${pr.number} • ${pr.username}`}
+      icon={statusIcon}
+      accessories={[{ text: `Updated ${moment(pr.updated_at).fromNow()}` }]}
+      actions={
+        <ActionPanel>
+          <Action title="View Details" icon={Icon.Sidebar} onAction={onSelect} />
+          <Action.OpenInBrowser icon={Icon.Globe} title="Open PR" url={pr.pr_url} />
+          <Action.CopyToClipboard
+            title="Copy PR Number"
+            content={pr.number.toString()}
+            onCopy={() => copyToClipboard(pr.number.toString(), "PR number")}
+            shortcut={{ modifiers: ["ctrl"], key: "c" }}
+          />
+        </ActionPanel>
+      }
+    />
+  );
+}
+
+export function PullRequestDetail({ pr }: { pr: FullPullRequest }) {
+  const statusIcon =
+    pr.state === "open"
+      ? { source: "../assets/PROpen.svg", tintColor: Color.Green }
+      : pr.merged_at
+        ? { source: "../assets/PRMerge.svg", tintColor: Color.Purple }
+        : { source: "../assets/PRClosed.svg", tintColor: Color.Red };
+
+  return (
+    <Detail
+      navigationTitle={`PR #${pr.number}`}
+      markdown={`\`NixOS:${pr.to_branch}\` ← \`${pr.username}:${pr.from_branch}\`\n\n*Created at: ${new Date(pr.created_at).toLocaleString()}, Updated ${moment(pr.updated_at).fromNow()}*\n\n# ${pr.title}\n\n${pr.body || "_No description provided._"}`}
+      metadata={
+        <Detail.Metadata>
+          <Detail.Metadata.Link
+            title="Author"
+            target={`https://github.com/${pr.username}`}
+            text={pr.username}
+          />
+          <Detail.Metadata.Label
+            title="Status"
+            text={pr.state === "open" ? "Open" : pr.merged_at ? "Merged" : "Closed"}
+            icon={statusIcon}
+          />
+          {pr.labels?.length ? (
+            <Detail.Metadata.TagList title="Labels">
+              {pr.labels.map((l) => (
+                <Detail.Metadata.TagList.Item key={l.id} text={l.name} color={l.color} />
+              ))}
+            </Detail.Metadata.TagList>
+          ) : null}
+          {pr.reviewers?.length ? (
+            <Detail.Metadata.TagList title="Reviewers">
+              {pr.reviewers.map((r) => (
+                <Detail.Metadata.TagList.Item key={r} text={r} color={Color.PrimaryText} />
+              ))}
+            </Detail.Metadata.TagList>
+          ) : (
+            <Detail.Metadata.Label title="Reviewers" text="No reviewers" />
+          )}
+          <Detail.Metadata.Link title="GitHub URL" target={pr.pr_url} text="View on GitHub" />
+        </Detail.Metadata>
+      }
+      actions={
+        <ActionPanel>
+          <Action.OpenInBrowser icon={Icon.Globe} title="Open PR" url={pr.pr_url} />
+          <Action.CopyToClipboard
+            title="Copy PR Number"
+            content={pr.number.toString()}
+            onCopy={() => copyToClipboard(pr.number.toString(), "PR number")}
+          />
+        </ActionPanel>
       }
     />
   );

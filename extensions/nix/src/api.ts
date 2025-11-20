@@ -11,12 +11,15 @@ import {
   NixFlake,
   HomeManagerOptionItem,
   HomeManagerOptionResponse,
+  PullRequest,
+  FullPullRequest,
 } from "./types";
 
 interface Preferences {
   searchUrl: string;
   authToken: string;
   homeManagerOptionsUrl: string;
+  githubToken: string;
 }
 
 const preferences = getPreferenceValues<Preferences>();
@@ -499,4 +502,61 @@ export async function searchHomeManagerOptions(query: string): Promise<HomeManag
     console.error("Failed to search Home-Manager options:", error);
     throw error;
   }
+}
+
+export async function searchNixpkgsPRs(query: string): Promise<PullRequest[]> {
+  const token = preferences.githubToken;
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const url = `https://api.github.com/search/issues?q=${query}+repo:NixOS/nixpkgs+type:pr`;
+
+  const res = await fetch(url, { headers });
+  if (!res.ok) throw new Error(`GitHub ${res.status}`);
+
+  const json = await res.json();
+
+  return json.items
+    .filter((i: any) => i.pull_request || !query.trim())
+    .map((i: any) => ({
+      number: i.number,
+      title: i.title,
+      pr_url: i.html_url,
+      state: i.state,
+      username: i.user?.login ?? "unknown",
+      updated_at: i.updated_at,
+      merged_at: i.pull_request?.merged_at ?? i.merged_at ?? null,
+    }));
+}
+
+export async function getNixpkgsPR(number: number): Promise<FullPullRequest> {
+  const token = preferences.githubToken;
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+  };
+  headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`https://api.github.com/repos/NixOS/nixpkgs/pulls/${number}`, {
+    headers,
+  });
+  if (!res.ok) throw new Error(`GitHub ${res.status}`);
+  const data = await res.json();
+
+  return {
+    number: data.number,
+    title: data.title,
+    pr_url: data.html_url,
+    state: data.state,
+    username: data.user?.login ?? "unknown",
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    body: data.body ?? "",
+    merged_at: data.merged_at ?? null,
+    labels: data.labels?.map((l: any) => ({ id: l.id, name: l.name, color: l.color })),
+    reviewers: data.requested_reviewers?.map((r: any) => r.login) ?? [],
+    from_branch: data.head?.ref ?? "unknown",
+    to_branch: data.base?.ref ?? "unknown",
+  };
 }

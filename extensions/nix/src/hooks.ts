@@ -18,11 +18,10 @@ export function useSearch<T>(searchFunction: (query: string) => Promise<T[]>, er
       try {
         const results = await searchFunction(query);
         setItems(results);
-      } catch (error) {
-        console.error("Search failed:", error);
+      } catch (err) {
         showToast({
           style: Toast.Style.Failure,
-          title: "Search failed",
+          title: `Search failed: ${err}`,
           message: errorMessage,
         });
         setItems([]);
