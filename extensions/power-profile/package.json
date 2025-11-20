@@ -1,0 +1,37 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "power-profile",
+  "title": "Power profile",
+  "description": "Change you system power profile in the easy way (wrapper around power=profiles-daemon)",
+  "categories": [
+    "System"
+  ],
+  "license": "MIT",
+  "author": "botkooper",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "power-profile",
+      "title": "Select power profile",
+      "subtitle": "Selects power profile",
+      "description": "Selects power profile",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
