@@ -1,0 +1,74 @@
+<img src="assets/extension_icon.png" alt="omarchy-menu" width="96" />
+
+# Omarchy Menu
+
+Omarchy menu but in vicinae.
+
+- Learn
+  - Keybindings
+  - Omarchy
+  - Hyprland
+  - Arch
+  - Neovim
+  - Bash
+- Trigger
+  - Capture (Screenshot, Screenrecord, Color)
+  - Share (Clipboard, File, Folder)
+  - Toggle (Screensaver, Nightlight, Idle Lock, Top Bar)
+- Style
+  - Theme (dynamic list)
+  - Font (dynamic list)
+  - Background
+  - Hyperland
+  - Screensaver
+  - About
+- Setup
+  - Audio
+  - Wifi
+  - Bluetooth
+  - Power
+  - Monitors
+  - Keybindings
+  - Input
+  - Defaults
+  - DNS
+  - Security (Fingerprint, Fido2)
+  - Config (Hyprland, Hypridle, Hyprlock, etc.)
+- Install
+  - Package
+  - AUR
+  - Web
+  - TUI
+  - Service (Dropbox, Tailscale, Bitwarden, etc.)
+  - Style (Theme, Background, Font)
+  - Development (Ruby on Rails, Docker DB, JavaScript, etc.)
+  - Editor (VSCode, Cursor, Zed, etc.)
+  - Terminal (Alacritty, Ghostty, Kitty)
+  - AI (Claude Code, Cursor CLI, Gemini, etc.)
+  - Windows
+  - Gaming (Steam, RetroArch, Minecraft)
+- Remove
+  - Package
+  - Web
+  - TUI
+  - Theme
+  - Windows
+  - Fingerprint
+  - Fido2
+- Update
+  - Omarchy
+  - Config (Hyprland, Hypridle, etc.)
+  - Themes
+  - Process (Hypridle, Hyprsunset, etc.)
+  - Hardware (Audio, Wi-Fi, Bluetooth)
+  - Firmware
+  - Timezone
+  - Time
+  - Password (Drive Encryption, User)
+- About
+- System
+  - Lock
+  - Screensaver
+  - Suspend
+  - Restart
+  - Shutdown System
