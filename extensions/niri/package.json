@@ -1,0 +1,81 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "niri",
+  "title": "Niri",
+  "description": "Control the Niri Wayland compositor with common window management and system actions",
+  "categories": [
+    "System",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.svg",
+  "commands": [
+    {
+      "name": "power-off-monitors",
+      "title": "Power Off Monitors",
+      "subtitle": "Turn off all monitors",
+      "description": "Power off all connected monitors via DPMS",
+      "mode": "no-view"
+    },
+    {
+      "name": "windows",
+      "title": "Windows",
+      "subtitle": "Show windows list",
+      "description": "Display the list of windows",
+      "mode": "view"
+    },
+    {
+      "name": "layers",
+      "title": "Layers",
+      "subtitle": "Show layer surfaces",
+      "description": "Display the list of layer-shell surfaces",
+      "mode": "view"
+    },
+    {
+      "name": "outputs",
+      "title": "Outputs",
+      "subtitle": "Show connected displays",
+      "description": "Display information about connected output devices",
+      "mode": "view"
+    },
+    {
+      "name": "workspaces",
+      "title": "Workspaces",
+      "subtitle": "Show workspaces list",
+      "description": "Display the list of workspaces",
+      "mode": "view"
+    },
+    {
+      "name": "pick-color",
+      "title": "Pick Color",
+      "subtitle": "Pick a color from screen",
+      "description": "Pick a color from the screen with the mouse",
+      "mode": "no-view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write src/**/*.{ts,tsx}",
+    "format:check": "prettier --check src/**/*.{ts,tsx}"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.16.6"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.47.0"
+  }
+}
