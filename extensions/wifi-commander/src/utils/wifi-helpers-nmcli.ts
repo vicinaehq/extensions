@@ -1,4 +1,4 @@
-import { executeNmcliCommandSilent } from "./execute";
+import { executeNmcliCommandSilent } from "./execute-nmcli";
 
 export interface WifiNetwork {
   inUse: boolean;
@@ -204,3 +204,4 @@ export async function loadCurrentConnection(): Promise<CurrentConnection | null>
   }
   return null;
 }
+

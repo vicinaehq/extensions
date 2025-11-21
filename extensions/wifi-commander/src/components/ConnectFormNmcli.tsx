@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Form, Icon, showToast, useNavigation } from "@vicinae/api";
-import { executeNmcliCommand } from "../utils/execute";
+import { executeNmcliCommand } from "../utils/execute-nmcli";
 
 interface ConnectFormProps {
   ssid: string;

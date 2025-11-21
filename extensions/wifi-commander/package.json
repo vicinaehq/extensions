@@ -8,7 +8,7 @@
   ],
   "license": "MIT",
   "author": "dagimg-dot",
-  "contributors": [],
+  "contributors": ["Gareck-OG"],
   "pastContributors": [],
   "icon": "wifi_commander.png",
   "commands": [
@@ -48,7 +48,25 @@
       "mode": "view"
     }
   ],
-  "preferences": [],
+  "preferences": [
+    {
+      "name": "network-cli-tool",
+      "title": "Network CLI Tool",
+      "required": true,
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "nmcli",
+          "value": "nmcli"
+        },
+        {
+          "title": "iwctl",
+          "value": "iwctl"
+        }
+      ]
+
+    }
+  ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop"
