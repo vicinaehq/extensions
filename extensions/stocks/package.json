@@ -28,7 +28,6 @@
       "description": "Comma-separated list of stock symbols to track (e.g., AAPL,MSFT,GOOGL,TSLA)",
       "default": "AAPL,MSFT,GOOGL,TSLA",
       "placeholder": "AAPL,MSFT,GOOGL,TSLA",
-      "label": "Stock Symbols",
       "required": true
     },
     {
