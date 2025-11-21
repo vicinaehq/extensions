@@ -51,6 +51,11 @@
               src = ./extensions/${name};
             }
           ))
+          (lib.flip builtins.removeAttrs [
+            # TODO: fails to build due to node-gyp
+            "dbus"
+            "systemd"
+          ])
         ]
       );
 
