@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "gnome-dnd",
+  "title": "Do Not Disturb",
+  "description": "Toggle Do Not Disturb mode on Gnome-based Linux systems",
+  "categories": [
+    "System"
+  ],
+  "license": "MIT",
+  "author": "brpaz",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "toggle",
+      "title": "Toggle Do Not Disturb",
+      "description": "Toggle Do Not Disturb mode",
+      "mode": "no-view"
+    },
+    {
+      "name": "status",
+      "title": "Do Not Disturb Status",
+      "description": "Show whether Do Not Disturb mode is enabled or disabled",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "eslint src/ && vici lint",
+    "format": "prettier --write .",
+    "format-check": "prettier --check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.8",
+    "execa": "^9.6.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.4",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.46.4"
+  }
+}
