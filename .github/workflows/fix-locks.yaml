@@ -1,0 +1,27 @@
+name: Fix package-lock.json
+
+on:
+  push:
+    # branches:
+    #   - master
+  pull_request_target:
+
+jobs:
+  postprocessing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.head_ref }}
+      - name: Run npm-package-lock-add-resolved in all extensions
+        run: |
+          for dir in ./extensions/*/; do
+            if [ -d "$dir" ]; then
+              (cd "$dir" && npx --yes npm-package-lock-add-resolved)
+            fi
+          done
+          cd "$GITHUB_WORKSPACE"
+      - uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "Fix package-lock.json"

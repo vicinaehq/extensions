@@ -1,0 +1,49 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "dbus",
+	"title": "DBus",
+	"description": "Explore objects exposed by DBus using a pleasant and search-focused interface",
+	"categories": [],
+	"license": "MIT",
+	"author": "aurelleb",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension_icon.png",
+	"commands": [
+		{
+			"name": "explore-bus",
+			"title": "Explore The Bus",
+			"subtitle": "Explore The Bus",
+			"description": "Explore The Bus",
+			"mode": "view",
+			"preferences": [
+				{
+					"name": "ignore-standard-interfaces",
+					"type": "checkbox",
+					"title": "Ignore standard interfaces",
+					"label": "Ignore standard interfaces",
+					"description": "Ignore standard org.freedesktop.DBus interfaces. These interfaces are present on every introspectable node and can generate a lot of noise and nesting. Turning this on will compact the navigation, making it meaningfully easier to discover noteworthy objects.",
+					"default": true,
+					"required": true
+				}
+			]
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"format": "biome format --write src",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.16.5",
+		"dbus-next": "^0.10.2",
+		"fast-xml-parser": "^5.3.2",
+		"x11": "^2.3.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.2",
+		"typescript": "^5.9.2"
+	}
+}

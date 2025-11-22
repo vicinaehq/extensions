@@ -28,7 +28,6 @@
       "description": "Comma-separated list of stock symbols to track (e.g., AAPL,MSFT,GOOGL,TSLA)",
       "default": "AAPL,MSFT,GOOGL,TSLA",
       "placeholder": "AAPL,MSFT,GOOGL,TSLA",
-      "label": "Stock Symbols",
       "required": true
     },
     {
@@ -65,13 +64,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vicinae/api": "^0.15.5"
+    "@vicinae/api": "^0.16.6"
   },
   "devDependencies": {
-    "@eslint/js": "^9.37.0",
-    "eslint": "^9.37.0",
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.45.0"
+    "typescript-eslint": "^8.47.0"
   }
 }

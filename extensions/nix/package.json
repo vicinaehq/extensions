@@ -1,0 +1,113 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "nix",
+  "title": "Nix",
+  "description": "Search and browse Nix packages, options, flakes, and Home-Manager options",
+  "categories": [
+    "System",
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.svg",
+  "commands": [
+    {
+      "name": "packages",
+      "title": "NixOS Packages",
+      "subtitle": "Search Nix packages",
+      "description": "Search and browse Nix packages from NixOS",
+      "mode": "view"
+    },
+    {
+      "name": "options",
+      "title": "NixOS Options",
+      "subtitle": "Search Nix options",
+      "description": "Search and browse Nix options from NixOS",
+      "mode": "view"
+    },
+    {
+      "name": "flake-packages",
+      "title": "NixOS Flake Packages",
+      "subtitle": "Search Nix flake packages",
+      "description": "Search and browse Nix flake packages from NixOS",
+      "mode": "view"
+    },
+    {
+      "name": "home-manager-options",
+      "title": "Home-Manager Options",
+      "subtitle": "Search Home-Manager options",
+      "description": "Search and browse Home-Manager options from Home-Manager",
+      "mode": "view"
+    },
+    {
+      "name": "nixpkgs-pr",
+      "title": "Nixpkgs PRs",
+      "subtitle": "Browse and inspect Nixpkgs pull requests easily",
+      "description": "Quickly search Nixpkgs GitHub pull requests, authors, statuses...",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "pr",
+          "placeholder": "PR number",
+          "type": "text",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "searchUrl",
+      "title": "Search URL",
+      "description": "The Elasticsearch endpoint URL for Nix search",
+      "type": "textfield",
+      "default": "https://search.nixos.org/backend/latest-44-nixos-unstable/_search",
+      "required": true
+    },
+    {
+      "name": "authToken",
+      "title": "Auth Token",
+      "description": "The authorization token for Nix search API",
+      "type": "password",
+      "default": "YVdWU0FMWHBadjpYOGdQSG56TDUyd0ZFZWt1eHNmUTljU2g=",
+      "required": true
+    },
+    {
+      "name": "homeManagerOptionsUrl",
+      "title": "Home-Manager Options URL",
+      "description": "The URL for Home-Manager options data",
+      "type": "textfield",
+      "default": "https://home-manager-options.extranix.com/data/options-master.json",
+      "required": true
+    },
+    {
+      "name": "githubToken",
+      "description": "your github token for nixpkgs PR search",
+      "type": "textfield",
+      "required": false,
+      "title": "Github Token"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.16.5",
+    "moment": "^2.30.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.4",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.4"
+  }
+}

@@ -1,18 +1,21 @@
-import { showToast } from "@vicinae/api";
-import { executeNmcliCommand } from "./utils/execute";
+import { getPreferenceValues } from "@vicinae/api";
+import ToggleWifiOnNmcli from "./nmcli/toggle-wifi-on";
+import ToggleWifiOnIwctl from "./iwctl/toggle-wifi-on";
 
 export default async function ToggleWifiOn() {
-  const result = await executeNmcliCommand("radio wifi on");
+  const networkCliTool = getPreferenceValues<{ "network-cli-tool": string }>();
+  
+  switch (networkCliTool["network-cli-tool"]) {
+    case "nmcli":
+      await ToggleWifiOnNmcli()
+      break;
 
-  if (result.success) {
-    await showToast({
-      title: "Wi-Fi Enabled",
-      message: "Wi-Fi has been turned on successfully",
-    });
-  } else {
-    await showToast({
-      title: "Failed to Enable Wi-Fi",
-      message: result.error || "Could not turn on Wi-Fi",
-    });
+    case "iwctl": {
+      await ToggleWifiOnIwctl()
+      break;
+    }
+    default:
+      throw new Error("Invalid network CLI tool: " + networkCliTool["network-cli-tool"]);
   }
+  
 }

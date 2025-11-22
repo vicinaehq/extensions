@@ -28,7 +28,7 @@ export default function Command() {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [showingDetail, setShowingDetail] = useState(false);
   const [selectedRange, setSelectedRangeState] = useState<string>(
-    preferences.range || "1d"
+    preferences.range || "1d",
   );
   const [rangeLoaded, setRangeLoaded] = useState(false);
 
@@ -41,11 +41,11 @@ export default function Command() {
     setLoading(true);
     try {
       const stockPromises = symbols.map((symbol) =>
-        fetchStockData(symbol, selectedRange)
+        fetchStockData(symbol, selectedRange),
       );
       const results = await Promise.all(stockPromises);
       const validStocks = results.filter(
-        (stock): stock is StockData => stock !== null
+        (stock): stock is StockData => stock !== null,
       );
       // Sort stocks: winners (positive change) first, then by change percentage descending
       const sortedStocks = validStocks.sort((a, b) => {
@@ -64,7 +64,8 @@ export default function Command() {
 
       if (validStocks.length !== symbols.length) {
         const failedSymbols = symbols.filter(
-          (symbol) => !validStocks.some((stock) => stock.meta.symbol === symbol)
+          (symbol) =>
+            !validStocks.some((stock) => stock.meta.symbol === symbol),
         );
         showToast({
           style: Toast.Style.Failure,
@@ -151,7 +152,7 @@ export default function Command() {
                       text: {
                         value: formatPrice(
                           stock.currentPrice,
-                          stock.meta.currency
+                          stock.meta.currency,
                         ).padStart(10),
                         color: getColorForChange(stock.change),
                       },
@@ -171,7 +172,7 @@ export default function Command() {
                             tag: {
                               value: generateSparkline(
                                 stock.sparklineData,
-                                SPARKLINE_WIDTH
+                                SPARKLINE_WIDTH,
                               ),
                               color: Color.SecondaryText,
                             },

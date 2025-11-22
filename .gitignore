@@ -4,6 +4,8 @@ node_modules
 # output
 out
 dist
+result
+result-*
 *.tgz
 
 # code coverage
@@ -37,3 +39,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 bun.lock
 pnpm-lock.*
 yarn.lock
+
+vicinae-env.d.ts

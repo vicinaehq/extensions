@@ -16,7 +16,7 @@ interface StockDetailProps {
 export function StockDetail({ stock }: StockDetailProps) {
   const getColorForPriceVsReference = (
     current: number,
-    reference: number,
+    reference: number
   ): Color => {
     if (current > reference) return Color.Green;
     if (current < reference) return Color.Red;
@@ -26,7 +26,7 @@ export function StockDetail({ stock }: StockDetailProps) {
   const getColorForPriceInRange = (
     current: number,
     low?: number,
-    high?: number,
+    high?: number
   ): Color => {
     if (low === undefined || high === undefined) return Color.SecondaryText;
     const range = high - low;
@@ -56,47 +56,47 @@ export function StockDetail({ stock }: StockDetailProps) {
         icon={Icon.BarChart}
       />
 
-      <List.Item.Detail.Metadata.TagList title="Exchange">
-        <List.Item.Detail.Metadata.TagList.Item
-          text={`${stock.meta.fullExchangeName || stock.meta.exchangeName}${
+      <List.Item.Detail.Metadata.Label
+        title="Exchange"
+        text={{
+          value: `${stock.meta.fullExchangeName || stock.meta.exchangeName}${
             stock.meta.currentTradingPeriod
               ? ` • ${getMarketStatus(stock).status}`
               : ""
-          }`}
-          icon={Icon.Building}
-          color={
-            stock.meta.currentTradingPeriod
-              ? getMarketStatus(stock).status === "Market Open"
-                ? Color.Green
-                : Color.Red
-              : Color.SecondaryText
-          }
-        />
-      </List.Item.Detail.Metadata.TagList>
+          }`,
+          color: getMarketStatus(stock).color,
+        }}
+        icon={{
+          source: Icon.Building,
+          tintColor: getMarketStatus(stock).color,
+        }}
+      />
 
       <List.Item.Detail.Metadata.Separator />
 
-      <List.Item.Detail.Metadata.TagList title="Current Price">
-        <List.Item.Detail.Metadata.TagList.Item
-          text={formatPrice(stock.currentPrice, stock.meta.currency)}
-          color={getColorForChange(stock.change)}
-          icon={Icon.Coins}
-        />
-      </List.Item.Detail.Metadata.TagList>
+      <List.Item.Detail.Metadata.Label
+        title="Current Price"
+        text={{
+          value: formatPrice(stock.currentPrice, stock.meta.currency),
+          color: getColorForChange(stock.change),
+        }}
+        icon={{
+          source: Icon.Coins,
+          tintColor: getColorForChange(stock.change),
+        }}
+      />
 
-      <List.Item.Detail.Metadata.TagList title="Change">
-        <List.Item.Detail.Metadata.TagList.Item
-          text={`${formatPrice(stock.change, stock.meta.currency)} (${stock.changePercent.toFixed(2)}%)`}
-          color={
-            stock.change > 0
-              ? Color.Green
-              : stock.change < 0
-                ? Color.Red
-                : Color.SecondaryText
-          }
-          icon={getChangeIcon(stock.change)}
-        />
-      </List.Item.Detail.Metadata.TagList>
+      <List.Item.Detail.Metadata.Label
+        title="Change"
+        text={{
+          value: `${formatPrice(stock.change, stock.meta.currency)} (${stock.changePercent.toFixed(2)}%)`,
+          color: getColorForChange(stock.change),
+        }}
+        icon={{
+          source: getChangeIcon(stock.change),
+          tintColor: getColorForChange(stock.change),
+        }}
+      />
 
       <List.Item.Detail.Metadata.Separator />
 
@@ -111,38 +111,40 @@ export function StockDetail({ stock }: StockDetailProps) {
 
       <List.Item.Detail.Metadata.Separator />
 
-      <List.Item.Detail.Metadata.TagList title="Close / Open">
-        <List.Item.Detail.Metadata.TagList.Item
-          text={`${formatPrice(stock.previousClose, stock.meta.currency)} / ${formatPrice(stock.open, stock.meta.currency)}`}
-          color={
+      <List.Item.Detail.Metadata.Label
+        title="Close / Open"
+        text={{
+          value: `${formatPrice(stock.previousClose, stock.meta.currency)} / ${formatPrice(stock.open, stock.meta.currency)}`,
+          color:
             stock.open !== undefined
               ? getColorForPriceVsReference(stock.open, stock.previousClose)
-              : Color.SecondaryText
-          }
-        />
-      </List.Item.Detail.Metadata.TagList>
+              : Color.SecondaryText,
+        }}
+      />
 
-      <List.Item.Detail.Metadata.TagList title="Day Range">
-        <List.Item.Detail.Metadata.TagList.Item
-          text={`${formatPrice(stock.low, stock.meta.currency)} - ${formatPrice(stock.high, stock.meta.currency)}`}
-          color={getColorForPriceInRange(
+      <List.Item.Detail.Metadata.Label
+        title="Day Range"
+        text={{
+          value: `${formatPrice(stock.low, stock.meta.currency)} - ${formatPrice(stock.high, stock.meta.currency)}`,
+          color: getColorForPriceInRange(
             stock.currentPrice,
             stock.low,
-            stock.high,
-          )}
-        />
-      </List.Item.Detail.Metadata.TagList>
+            stock.high
+          ),
+        }}
+      />
 
-      <List.Item.Detail.Metadata.TagList title="52W Range">
-        <List.Item.Detail.Metadata.TagList.Item
-          text={`${formatPrice(stock.meta.fiftyTwoWeekLow, stock.meta.currency)} - ${formatPrice(stock.meta.fiftyTwoWeekHigh, stock.meta.currency)}`}
-          color={getColorForPriceInRange(
+      <List.Item.Detail.Metadata.Label
+        title="52W Range"
+        text={{
+          value: `${formatPrice(stock.meta.fiftyTwoWeekLow, stock.meta.currency)} - ${formatPrice(stock.meta.fiftyTwoWeekHigh, stock.meta.currency)}`,
+          color: getColorForPriceInRange(
             stock.currentPrice,
             stock.meta.fiftyTwoWeekLow,
-            stock.meta.fiftyTwoWeekHigh,
-          )}
-        />
-      </List.Item.Detail.Metadata.TagList>
+            stock.meta.fiftyTwoWeekHigh
+          ),
+        }}
+      />
     </List.Item.Detail.Metadata>
   );
 }
