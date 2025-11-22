@@ -18,27 +18,25 @@
 Before using the extension, make sure to configure the following preferences:
 - **Projects Root Directory**: The root directory where your local Git projects are located. The extension will scan this directory recursively to find Git repositories
 - **Editor**: The command used to open your preferred code editor from the terminal.
-- **Terminal**: The command used to open your preferred terminal emulator from the terminal (e.g., `gnome-terminal`, `kitty`, etc.).
+- **Terminal**: The command used to open your preferred terminal emulator from the terminal (e.g., `gnome-terminal`, `ghostty`, etc.).
 - **Projects Scan Depth**: The maximum depth to scan for Git repositories under the root directory. (3 by default)
 
 ## Development
 
-This extension uses [PNPM](https://pnpm.io/) as package manager. To install the required dependencies and run your extension in development mode, run:
-
 ```bash
-pnpm install
+npm install
 ```
 
 To run the extension in development mode, use:
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 To build the extension for production, use:
 
 ```bash
-pnpm build
+npm run build
 ```
 
 ## Acknowledgements
