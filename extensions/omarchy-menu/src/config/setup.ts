@@ -23,13 +23,32 @@ export const setup: MenuItem = {
       id: "bluetooth",
       name: "Bluetooth",
       icon: "󰂯",
-      command: "rfkill unblock bluetooth && blueberry",
+      command: "omarchy-launch-bluetooth",
     },
     {
       id: "power",
       name: "Power",
       icon: "󱐋",
-      command: "show_setup_power_menu",
+      items: [
+        {
+          id: "performance",
+          name: "Performance",
+          icon: "󰒓",
+          command: "powerprofilesctl set performance",
+        },
+        {
+          id: "balanced",
+          name: "Balanced",
+          icon: "󰒔",
+          command: "powerprofilesctl set balanced",
+        },
+        {
+          id: "power-saver",
+          name: "Power Saver",
+          icon: "󰒕",
+          command: "powerprofilesctl set power-saver",
+        },
+      ],
     },
     {
       id: "monitors",
