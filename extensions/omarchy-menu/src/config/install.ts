@@ -202,7 +202,26 @@ export const installMenu: MenuItem = {
           id: "php",
           name: "PHP",
           icon: "",
-          command: "",
+          items: [
+            {
+              id: "php",
+              name: "PHP",
+              icon: "",
+              command: present_terminal("omarchy-install-dev-env php"),
+            },
+            {
+              id: "laravel",
+              name: "Laravel",
+              icon: "",
+              command: present_terminal("omarchy-install-dev-env laravel"),
+            },
+            {
+              id: "symfony",
+              name: "Symfony",
+              icon: "",
+              command: present_terminal("omarchy-install-dev-env symfony"),
+            },
+          ],
         },
         {
           id: "python",
