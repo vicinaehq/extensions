@@ -222,12 +222,11 @@ export default function ScanWifiNmcli() {
           <List.Item
             key={`${network.bssid}-${network.ssid || "hidden"}`}
             title={network.ssid || "Hidden Network"}
-            subtitle={`${network.signal}% signal • ${network.security}`}
-            icon={network.inUse ? Icon.CheckCircle : getSignalIcon(network.signal)}
+            icon={{
+              source: network.inUse ? Icon.CheckCircle : getSignalIcon(network.signal),
+              tintColor: network.inUse ? Color.Green : "white",
+            }}
             accessories={[
-              {
-                text: network.inUse ? "Connected" : `${network.rate}`,
-              },
               {
                 icon: getSecurityIcon(network.security),
                 tooltip: network.security,

@@ -266,7 +266,6 @@ export default function ManageSavedNetworksNmcli() {
           <List.Item
             key={network.uuid}
             title={network.name}
-            subtitle={`${network.type} • ${network.device || "No device"}`}
             icon={{
               source: getStateIcon(network),
               tintColor: getStateColor(network),

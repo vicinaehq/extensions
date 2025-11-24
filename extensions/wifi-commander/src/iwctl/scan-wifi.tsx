@@ -250,12 +250,11 @@ export default function ScanWifiIwctl() {
           <List.Item
             key={`${network.bssid}-${network.ssid || "hidden"}`}
             title={network.ssid || "Hidden Network"}
-            subtitle={`${getSignalPercent(network.signal)}% signal • ${network.security}`}
-            icon={network.inUse ? Icon.CheckCircle : getSignalIcon(network.signal)}
+            icon={{
+              source: network.inUse ? Icon.CheckCircle : getSignalIcon(network.signal),
+              tintColor: network.inUse ? Color.Green : "white",
+            }}
             accessories={[
-              {
-                text: network.inUse ? "Connected" : "",
-              },
               {
                 icon: getSecurityIcon(network.security),
                 tooltip: network.security,

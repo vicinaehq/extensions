@@ -290,7 +290,6 @@ export default function ManageSavedNetworksIwctl() {
           <List.Item
             key={network.name}
             title={network.name}
-            subtitle={`"Wifi" • ${wifiDevice?.name || "No device"}`}
             icon={{
               source: getStateIcon(currentConnection?.name === network.name ? "Activated" : "Disconnected"),
               tintColor: getStateColor(currentConnection?.name === network.name ? "Activated" : "Disconnected"),
