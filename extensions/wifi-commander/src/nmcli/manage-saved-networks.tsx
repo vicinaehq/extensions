@@ -270,11 +270,6 @@ export default function ManageSavedNetworksNmcli() {
               source: getStateIcon(network),
               tintColor: getStateColor(network),
             }}
-            accessories={[
-              {
-                text: currentConnection?.name === network.name ? "Connected" : network.state,
-              },
-            ]}
             detail={
               <List.Item.Detail
                 markdown={`# ${network.name}`}

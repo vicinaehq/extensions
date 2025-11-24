@@ -294,11 +294,6 @@ export default function ManageSavedNetworksIwctl() {
               source: getStateIcon(currentConnection?.name === network.name ? "Activated" : "Disconnected"),
               tintColor: getStateColor(currentConnection?.name === network.name ? "Activated" : "Disconnected"),
             }}
-            accessories={[
-              {
-                text: currentConnection?.name === network.name ? "Connected" : "Disconnected",
-              },
-            ]}
             detail={
               <List.Item.Detail
                 markdown={`# ${network.name}`}
