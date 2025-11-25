@@ -80,7 +80,7 @@ export default function ScanWifiNmcli() {
         title: "Connecting...",
         message: `Attempting to connect to open network ${ssid}`,
       });
-      const result = await executeNmcliCommand("device wifi connect", [ssid]);
+      const result = await executeNmcliCommand("device wifi connect", [`"${ssid}"`]);
       if (result.success) {
         await showToast({
           title: "Connection Successful",
@@ -99,7 +99,7 @@ export default function ScanWifiNmcli() {
         title: "Connecting...",
         message: `Connecting to saved network ${ssid}`,
       });
-      const result = await executeNmcliCommand("connection up", [ssid]);
+      const result = await executeNmcliCommand("connection up", [`"${ssid}"`]);
       if (result.success) {
         await showToast({
           title: "Connection Successful",

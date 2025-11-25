@@ -110,7 +110,7 @@ export default function ManageSavedNetworksNmcli() {
       message: `Connecting to ${networkName}`,
     });
 
-    const result = await executeNmcliCommand("connection up", [networkName]);
+    const result = await executeNmcliCommand("connection up", [`"${networkName}"`]);
 
     if (result.success) {
       await showToast({
