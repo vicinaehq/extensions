@@ -19,7 +19,6 @@ export const DeviceSelection = ({
 }: DeviceSelectionProps) => {
 	const title =
 		deviceType === "audio" ? "Select Audio Source" : "Select Camera";
-	const icon = deviceType === "audio" ? Icon.SpeakerOn : Icon.Camera;
 
 	// For audio devices, separate desktop audio (monitors) from microphones (inputs)
 	if (deviceType === "audio") {
@@ -165,7 +164,7 @@ export const DeviceSelection = ({
 						key={device.id}
 						title={device.name}
 						subtitle={device.id}
-						icon={icon}
+						icon={Icon.Camera}
 						accessories={
 							selectedDeviceId === device.id ? [{ icon: Icon.Checkmark }] : []
 						}
@@ -173,7 +172,7 @@ export const DeviceSelection = ({
 							<ActionPanel>
 								<Action
 									title={`Select ${device.name}`}
-									icon={icon}
+									icon={Icon.Camera}
 									onAction={() => onSelect(device.id)}
 								/>
 								<Action

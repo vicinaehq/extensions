@@ -12,16 +12,6 @@ export const isRecording = async (): Promise<boolean> => {
 		);
 		if (webcamOverlay.trim()) return true;
 
-		// Check for OBS processes
-		const { stdout: obs } = await execPromise("pgrep -f obs");
-		if (obs.trim()) return true;
-
-		// Check for other common screen recording tools
-		const { stdout: other } = await execPromise(
-			"pgrep -f 'ffmpeg.*-f x11grab'",
-		);
-		if (other.trim()) return true;
-
 		return false;
 	} catch {
 		return false;
@@ -39,7 +29,8 @@ export const startRecording = async (
 	} = {},
 ): Promise<string> => {
 	const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-	const defaultOutput = `~/Videos/recording-${timestamp}.mp4`;
+	const videosDir = process.env.XDG_VIDEOS_DIR || "~/Videos";
+	const defaultOutput = `${videosDir}/recording-${timestamp}.mp4`;
 	const outputFile = options.output || defaultOutput;
 
 	// If webcam is requested, start webcam overlay first
@@ -137,23 +128,29 @@ const startWebcamOverlay = async (cameraDevice?: string): Promise<void> => {
 };
 
 export const stopRecording = async (): Promise<void> => {
+	// Try to stop wf-recorder gracefully first
 	try {
-		// Try to stop wf-recorder gracefully first
 		await execPromise("pkill -SIGINT wf-recorder");
-
-		// Stop webcam overlay (ffplay)
-		await execPromise("pkill -f 'WebcamOverlay'").catch(() => {
-			// Ignore if no webcam overlay is running
-		});
-
 		// Wait a moment for graceful shutdown
 		await new Promise((resolve) => setTimeout(resolve, 1000));
+	} catch {
+		// Process might not exist, that's fine
+	}
 
-		// Force kill if still running
-		await execPromise("pkill wf-recorder");
+	// Force kill wf-recorder if still running
+	try {
+		await execPromise("pgrep wf-recorder");
+		// Still running, force kill
+		await execPromise("pkill -9 wf-recorder");
+	} catch {
+		// Already stopped
+	}
+
+	// Stop webcam overlay (ffplay)
+	try {
 		await execPromise("pkill -f 'WebcamOverlay'");
 	} catch {
-		// If process doesn't exist, that's fine
+		// No webcam overlay running
 	}
 };
 

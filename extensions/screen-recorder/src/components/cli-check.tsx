@@ -26,7 +26,7 @@ export const IfCliCommandSucceeds = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, []);
+	}, [command]);
 
 	if (isLoading) {
 		return <List isLoading={true} />;

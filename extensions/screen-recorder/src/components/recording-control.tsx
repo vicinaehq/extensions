@@ -6,7 +6,6 @@ import {
 	Icon,
 	Toast,
 	showToast,
-	LocalStorage,
 } from "@vicinae/api";
 import {
 	isRecording,
@@ -18,57 +17,38 @@ import {
 	type CameraDevice,
 } from "../utils/screen-recorder-cli";
 import { DeviceSelection } from "./device-selection";
+import { usePersistedDeviceSelection } from "../hooks/use-persisted-device-selection";
 
 export const RecordingControl = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isCurrentlyRecording, setIsCurrentlyRecording] = useState(false);
 	const [audioSources, setAudioSources] = useState<AudioDevice[]>([]);
 	const [cameras, setCameras] = useState<CameraDevice[]>([]);
-	const [selectedAudioDeviceId, setSelectedAudioDeviceId] = useState<
-		string | null
-	>(null);
-	const [selectedCameraDeviceId, setSelectedCameraDeviceId] = useState<
-		string | null
-	>(null);
 	const [showAudioSelection, setShowAudioSelection] = useState(false);
 	const [showCameraSelection, setShowCameraSelection] = useState(false);
+
+	const {
+		selectedDeviceId: selectedAudioDeviceId,
+		setSelectedDeviceId: setSelectedAudioDeviceId,
+	} = usePersistedDeviceSelection("selected-audio-device", audioSources);
+
+	const {
+		selectedDeviceId: selectedCameraDeviceId,
+		setSelectedDeviceId: setSelectedCameraDeviceId,
+	} = usePersistedDeviceSelection("selected-camera-device", cameras);
 
 	useEffect(() => {
 		const loadState = async () => {
 			try {
-				const [recording, audio, cams, savedAudioDevice, savedCameraDevice] =
-					await Promise.all([
-						isRecording(),
-						getAvailableAudioSources(),
-						getAvailableCameras(),
-						LocalStorage.getItem<string>("selected-audio-device"),
-						LocalStorage.getItem<string>("selected-camera-device"),
-					]);
+				const [recording, audio, cams] = await Promise.all([
+					isRecording(),
+					getAvailableAudioSources(),
+					getAvailableCameras(),
+				]);
 
 				setIsCurrentlyRecording(recording);
 				setAudioSources(audio);
 				setCameras(cams);
-
-				// Restore saved device selections if they still exist
-				if (savedAudioDevice) {
-					const deviceExists = audio.some((d) => d.id === savedAudioDevice);
-					if (deviceExists) {
-						setSelectedAudioDeviceId(savedAudioDevice);
-					} else {
-						// Device no longer exists, remove from storage
-						await LocalStorage.removeItem("selected-audio-device");
-					}
-				}
-
-				if (savedCameraDevice) {
-					const deviceExists = cams.some((d) => d.id === savedCameraDevice);
-					if (deviceExists) {
-						setSelectedCameraDeviceId(savedCameraDevice);
-					} else {
-						// Device no longer exists, remove from storage
-						await LocalStorage.removeItem("selected-camera-device");
-					}
-				}
 			} catch (error) {
 				console.error("Failed to load recording state:", error);
 			} finally {
@@ -147,17 +127,7 @@ export const RecordingControl = () => {
 				devices={audioSources}
 				deviceType="audio"
 				onSelect={async (deviceId) => {
-					setSelectedAudioDeviceId(deviceId);
-					// Save to LocalStorage
-					try {
-						if (deviceId) {
-							await LocalStorage.setItem("selected-audio-device", deviceId);
-						} else {
-							await LocalStorage.removeItem("selected-audio-device");
-						}
-					} catch (error) {
-						console.warn("Failed to save audio device preference:", error);
-					}
+					await setSelectedAudioDeviceId(deviceId);
 					setShowAudioSelection(false);
 				}}
 				onCancel={() => setShowAudioSelection(false)}
@@ -172,17 +142,7 @@ export const RecordingControl = () => {
 				devices={cameras}
 				deviceType="camera"
 				onSelect={async (deviceId) => {
-					setSelectedCameraDeviceId(deviceId);
-					// Save to LocalStorage
-					try {
-						if (deviceId) {
-							await LocalStorage.setItem("selected-camera-device", deviceId);
-						} else {
-							await LocalStorage.removeItem("selected-camera-device");
-						}
-					} catch (error) {
-						console.warn("Failed to save camera device preference:", error);
-					}
+					await setSelectedCameraDeviceId(deviceId);
 					setShowCameraSelection(false);
 				}}
 				onCancel={() => setShowCameraSelection(false)}
@@ -323,7 +283,7 @@ export const RecordingControl = () => {
 									<Action
 										title="Clear Selection"
 										icon={Icon.XMarkCircle}
-										onAction={() => setSelectedAudioDeviceId(null)}
+										onAction={() => void setSelectedAudioDeviceId(null)}
 										shortcut={{ modifiers: ["cmd"], key: "backspace" }}
 									/>
 								)}
@@ -354,7 +314,7 @@ export const RecordingControl = () => {
 									<Action
 										title="Clear Selection"
 										icon={Icon.XMarkCircle}
-										onAction={() => setSelectedCameraDeviceId(null)}
+										onAction={() => void setSelectedCameraDeviceId(null)}
 										shortcut={{ modifiers: ["cmd"], key: "backspace" }}
 									/>
 								)}
