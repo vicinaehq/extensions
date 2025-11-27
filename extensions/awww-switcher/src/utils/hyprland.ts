@@ -3,6 +3,27 @@ import { showToast, Toast } from "@vicinae/api";
 import { runConvertSplit, runPostProduction } from "./imagemagik";
 import { callColorGen } from "./colorgen";
 
+const commandExists = (commandName: string): boolean => {
+  try {
+    execSync(`command -v ${commandName}`, { stdio: "pipe" });
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+const getWallpaperTool = (): "awww" | "swww" | null => {
+  if (commandExists("awww")) {
+    return "awww";
+  }
+
+  if (commandExists("swww")) {
+    return "swww";
+  }
+
+  return null;
+};
+
 export async function omniCommand(
   path: string,
   monitor: string,
@@ -97,11 +118,12 @@ export const setWallpaper = async (
   fps: number,
 ): Promise<boolean> => {
   try {
-    execSync("awww query", { stdio: "pipe" });
+    const tool = getWallpaperTool();
+    execSync(`${tool} query`, { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
-        `awww img "${path}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds} --transition-fps ${fps}`,
+        `${tool} img "${path}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds} --transition-fps ${fps}`,
         (error) => {
           if (error) {
             resolve(false);
@@ -125,11 +147,12 @@ export const setWallpaperOnMonitor = async (
   fps: number,
 ): Promise<boolean> => {
   try {
-    execSync("awww query", { stdio: "pipe" });
+    const tool = getWallpaperTool();
+    execSync(`${tool} query`, { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
-        `awww img "${path}" --outputs "${monitorName}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds} --transition-fps ${fps}`,
+        `${tool} img "${path}" --outputs "${monitorName}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds} --transition-fps ${fps}`,
         (error) => {
           if (error) {
             resolve(false);
@@ -149,7 +172,6 @@ export const toggleVicinae = (): void => {
 };
 
 export const execPostCommand = async (postCommand: string, imagePath: string): Promise<boolean> => {
-  // Execute the command and check for errors
   console.log(postCommand);
   console.log(imagePath);
   return await new Promise<boolean>((resolve) => {
