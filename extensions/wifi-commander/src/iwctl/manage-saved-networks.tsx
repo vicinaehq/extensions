@@ -85,7 +85,7 @@ export default function ManageSavedNetworksIwctl() {
         isLoading: false,
         error: null,
       });
-      
+
 
     } catch (error) {
       setSavedNetworks({
@@ -282,8 +282,6 @@ export default function ManageSavedNetworksIwctl() {
     );
   }
 
-// TODO: query autoconnect via looping through savednetworks and doing `iwctl know-networks <ssid> show` add to savedNetworks, display, add action to change autoconnect
-  return (
     <List searchBarPlaceholder="Search saved networks..." isShowingDetail={true}>
       <List.Section title={`Saved Networks (${savedNetworks.networks.length})`}>
         {savedNetworks.networks.map((network) => (
@@ -322,21 +320,18 @@ export default function ManageSavedNetworksIwctl() {
                     shortcut={{ modifiers: ["cmd"], key: "d" }}
                   />
                 ) }
-                  <Action
-                    title="Connect"
-                    icon={Icon.Wifi}
-                    onAction={() => handleConnect(network.name)}
-                    shortcut={{ modifiers: ["cmd"], key: "enter" }}
-                  />
-                
-                  <Action
-                    title="Forget Network"
-                    icon={Icon.Trash}
-                    onAction={() => handleForget(network.name)}
-                    shortcut={{ modifiers: ["cmd"], key: "delete" }}
-                  />
-                
-
+                <Action
+                  title="Connect"
+                  icon={Icon.Wifi}
+                  onAction={() => handleConnect(network.name)}
+                  shortcut={{ modifiers: ["cmd"], key: "enter" }}
+                />
+                <Action
+                  title="Forget Network"
+                  icon={Icon.Trash}
+                  onAction={() => handleForget(network.name)}
+                  shortcut={{ modifiers: ["cmd"], key: "delete" }}
+                />
                 <Action
                     title="Toggle AutoConnect"
                     icon={Icon.Repeat}
