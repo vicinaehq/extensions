@@ -296,7 +296,7 @@ export default function ManageSavedNetworksNmcli() {
                     onAction={handleDisconnect}
                     shortcut={{ modifiers: ["cmd"], key: "d" }}
                   />
-                ) }
+                )}
                 <Action
                   title="Connect"
                   icon={Icon.Wifi}

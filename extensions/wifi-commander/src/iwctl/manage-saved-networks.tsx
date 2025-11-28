@@ -281,7 +281,7 @@ export default function ManageSavedNetworksIwctl() {
       </List>
     );
   }
-
+  return (
     <List searchBarPlaceholder="Search saved networks..." isShowingDetail={true}>
       <List.Section title={`Saved Networks (${savedNetworks.networks.length})`}>
         {savedNetworks.networks.map((network) => (
