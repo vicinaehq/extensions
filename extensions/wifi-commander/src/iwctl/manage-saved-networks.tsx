@@ -314,7 +314,6 @@ export default function ManageSavedNetworksIwctl() {
             }
             actions={
               <ActionPanel>
-                {/* Disconnect if currently connected */}
                 {currentConnection?.name === network.name && (
                   <Action
                     title="Disconnect"
@@ -322,25 +321,22 @@ export default function ManageSavedNetworksIwctl() {
                     onAction={handleDisconnect}
                     shortcut={{ modifiers: ["cmd"], key: "d" }}
                   />
-                )}
-                {/* Connect if available and not connected */}
-                {availableNetworks.includes(network.name) && currentConnection?.name !== network.name && (
+                ) }
                   <Action
                     title="Connect"
                     icon={Icon.Wifi}
                     onAction={() => handleConnect(network.name)}
                     shortcut={{ modifiers: ["cmd"], key: "enter" }}
                   />
-                )}
-                {/* Forget Network only if not currently connected */}
-                {currentConnection?.name !== network.name && (
+                
                   <Action
                     title="Forget Network"
                     icon={Icon.Trash}
                     onAction={() => handleForget(network.name)}
                     shortcut={{ modifiers: ["cmd"], key: "delete" }}
                   />
-                )}
+                
+
                 <Action
                     title="Toggle AutoConnect"
                     icon={Icon.Repeat}
