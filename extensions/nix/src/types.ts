@@ -1,4 +1,14 @@
-// Common response types
+export interface AggregationBucket {
+  key: string;
+  doc_count: number;
+}
+
+export interface Aggregation {
+  doc_count_error_upper_bound: number;
+  sum_other_doc_count: number;
+  buckets: AggregationBucket[];
+}
+
 export interface NixHit<T = unknown> {
   _index: string;
   _type: string;
@@ -27,93 +37,22 @@ export interface NixResponse<T = unknown> {
     hits: NixHit<T>[];
   };
   aggregations: {
-    package_attr_set: {
-      doc_count_error_upper_bound: number;
-      sum_other_doc_count: number;
-      buckets: Array<{
-        key: string;
-        doc_count: number;
-      }>;
-    };
-    package_license_set: {
-      doc_count_error_upper_bound: number;
-      sum_other_doc_count: number;
-      buckets: Array<{
-        key: string;
-        doc_count: number;
-      }>;
-    };
-    package_maintainers_set: {
-      doc_count_error_upper_bound: number;
-      sum_other_doc_count: number;
-      buckets: Array<{
-        key: string;
-        doc_count: number;
-      }>;
-    };
-    package_teams_set: {
-      doc_count_error_upper_bound: number;
-      sum_other_doc_count: number;
-      buckets: Array<{
-        key: string;
-        doc_count: number;
-      }>;
-    };
-    package_platforms: {
-      doc_count_error_upper_bound: number;
-      sum_other_doc_count: number;
-      buckets: Array<{
-        key: string;
-        doc_count: number;
-      }>;
-    };
+    package_attr_set: Aggregation;
+    package_license_set: Aggregation;
+    package_maintainers_set: Aggregation;
+    package_teams_set: Aggregation;
+    package_platforms: Aggregation;
     all: {
       doc_count: number;
-      package_attr_set: {
-        doc_count_error_upper_bound: number;
-        sum_other_doc_count: number;
-        buckets: Array<{
-          key: string;
-          doc_count: number;
-        }>;
-      };
-      package_license_set: {
-        doc_count_error_upper_bound: number;
-        sum_other_doc_count: number;
-        buckets: Array<{
-          key: string;
-          doc_count: number;
-        }>;
-      };
-      package_maintainers_set: {
-        doc_count_error_upper_bound: number;
-        sum_other_doc_count: number;
-        buckets: Array<{
-          key: string;
-          doc_count: number;
-        }>;
-      };
-      package_teams_set: {
-        doc_count_error_upper_bound: number;
-        sum_other_doc_count: number;
-        buckets: Array<{
-          key: string;
-          doc_count: number;
-        }>;
-      };
-      package_platforms: {
-        doc_count_error_upper_bound: number;
-        sum_other_doc_count: number;
-        buckets: Array<{
-          key: string;
-          doc_count: number;
-        }>;
-      };
+      package_attr_set: Aggregation;
+      package_license_set: Aggregation;
+      package_maintainers_set: Aggregation;
+      package_teams_set: Aggregation;
+      package_platforms: Aggregation;
     };
   };
 }
 
-// Package types
 export interface NixPackage {
   type: string;
   package_attr_name: string;
@@ -157,21 +96,6 @@ export interface NixPackage {
 
 export type NixPackageResponse = NixResponse<NixPackage>;
 
-export interface PackageItem {
-  name: string;
-  version: string;
-  description: string;
-  homepage: string;
-  licenses: string;
-  sourceUrl: string;
-  score: number;
-  pname: string;
-  platforms: string[];
-  maintainers: string;
-  longDescription: string | null;
-}
-
-// Option types
 export interface NixOption {
   type: string;
   option_name: string;
@@ -185,35 +109,18 @@ export interface NixOption {
 
 export type NixOptionResponse = NixResponse<NixOption>;
 
-export interface OptionItem {
-  name: string;
-  description: string;
-  flake: string | null;
-  type: string;
-  default?: string;
-  example?: string;
-  option_source?: string;
-  sourceUrl?: string;
-  score: number;
-}
-
-// Flake types
 export interface NixFlake {
   type: string;
   flake_description: string;
   flake_resolved: {
     type: string;
-    owner: string;
-    repo: string;
+    url: string;
   };
   flake_name: string;
   revision: string;
   flake_source: {
     type: string;
-    owner: string;
-    repo: string;
-    description: string | null;
-    git_ref: string | null;
+    url: string;
   };
   package_attr_name: string;
   package_attr_set: string;
@@ -256,22 +163,6 @@ export interface NixFlake {
 
 export type NixFlakeResponse = NixResponse<NixFlake>;
 
-export interface FlakeItem {
-  name: string;
-  description: string;
-  flakeName: string;
-  revision: string;
-  owner: string;
-  repo: string;
-  sourceUrl: string;
-  score: number;
-  pname: string;
-  platforms: string[];
-  maintainers: string;
-  licenses: string;
-}
-
-// Home-Manager Option types
 export interface HomeManagerOption {
   title: string;
   description: string;
@@ -291,38 +182,46 @@ export interface HomeManagerOptionResponse {
   options: HomeManagerOption[];
 }
 
-export interface HomeManagerOptionItem {
-  name: string;
-  description: string;
-  type: string;
-  default?: string;
-  example?: string;
-  sourceUrl?: string;
-  score: number;
+export interface GitHubUser {
+  login: string;
+  name?: string | null;
+  email?: string | null;
 }
 
-// Nixpkgs PR types
-export interface Label {
+export interface GitHubLabel {
   id: number;
   name: string;
-  color?: string;
+  color: string;
 }
 
-export interface PullRequest {
+export interface GitHubIssue {
   number: number;
   title: string;
-  pr_url: string;
+  html_url: string;
   state: "open" | "closed";
-  username: string;
+  user: GitHubUser | null;
   updated_at: string;
-  merged_at?: string | null;
+  pull_request?: {
+    merged_at: string | null;
+  };
 }
 
-export interface FullPullRequest extends PullRequest {
+export interface GitHubPullRequest {
+  number: number;
+  title: string;
+  html_url: string;
+  state: "open" | "closed";
+  user: GitHubUser | null;
+  created_at: string;
   updated_at: string;
-  body: string;
-  labels?: Label[];
-  reviewers?: string[];
-  from_branch: string;
-  to_branch: string;
+  body: string | null;
+  merged_at: string | null;
+  labels: GitHubLabel[];
+  requested_reviewers: GitHubUser[];
+  head: {
+    ref: string;
+  } | null;
+  base: {
+    ref: string;
+  } | null;
 }

@@ -12,7 +12,7 @@ export default function Command() {
       emptyIcon={Icon.Gear}
       emptyTitle="Search Nix Options"
       emptyDescription="Type in the search bar to find Nix options"
-      renderItems={(options) => options.map((option) => <OptionListItem key={option.name} option={option} />)}
+      renderItems={(options) => options.map((option) => <OptionListItem key={option.option_name} option={option} />)}
     />
   );
 }

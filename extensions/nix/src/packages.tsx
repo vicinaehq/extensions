@@ -13,7 +13,7 @@ export default function Command() {
       emptyTitle="Search Nix Packages"
       emptyDescription="Type in the search bar to find Nix packages"
       renderItems={(packages) =>
-        packages.map((pkg) => <PackageListItem key={`${pkg.name}-${pkg.version}`} pkg={pkg} />)
+        packages.map((pkg) => <PackageListItem key={`${pkg.package_attr_name}-${pkg.package_pversion}`} pkg={pkg} />)
       }
     />
   );

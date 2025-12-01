@@ -13,7 +13,7 @@ export default function Command() {
       emptyTitle="Search Nix Flake Packages"
       emptyDescription="Type in the search bar to find Nix flake packages"
       renderItems={(flakes) =>
-        flakes.map((flake) => <FlakeListItem key={`${flake.name}-${flake.revision}`} flake={flake} />)
+        flakes.map((flake) => <FlakeListItem key={`${flake.package_attr_name}-${flake.revision}`} flake={flake} />)
       }
     />
   );

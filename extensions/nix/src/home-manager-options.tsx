@@ -13,7 +13,7 @@ export default function Command() {
       emptyTitle="Search Home-Manager Options"
       emptyDescription="Type in the search bar to find Home-Manager options"
       renderItems={(options) =>
-        options.map((option) => <HomeManagerOptionListItem key={option.name} option={option} />)
+        options.map((option) => <HomeManagerOptionListItem key={option.title} option={option} />)
       }
     />
   );

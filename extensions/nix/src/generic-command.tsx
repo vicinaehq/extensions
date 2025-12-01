@@ -9,7 +9,7 @@ interface GenericCommandProps<T> {
   emptyTitle: string;
   emptyDescription: string;
   isShowingDetail?: boolean;
-  renderItems: (items: T[]) => JSX.Element[];
+  renderItems: (items: T[]) => React.JSX.Element[];
 }
 
 export default function GenericCommand<T>({
@@ -20,7 +20,7 @@ export default function GenericCommand<T>({
   emptyTitle,
   emptyDescription,
   renderItems,
-  isShowingDetail = true
+  isShowingDetail = true,
 }: GenericCommandProps<T>) {
   const { items, isLoading, searchText, handleSearchTextChange } = useSearch(searchFunction, errorMessage);
 
