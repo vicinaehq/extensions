@@ -1,0 +1,79 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "pass",
+  "title": "Pass",
+  "description": "Browse, decrypt, and copy secrets from your GNU pass vault",
+  "categories": [
+    "Security"
+  ],
+  "license": "MIT",
+  "author": "tinkerbells",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "pass",
+      "title": "Pass",
+      "subtitle": "Search GNU pass entries",
+      "description": "List stored credentials and view their fields",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "passwordStorePath",
+      "type": "textfield",
+      "title": "Pass Store Location",
+      "description": "Absolute path to your ~/.password-store directory",
+      "default": "~/.password-store",
+      "required": true
+    },
+    {
+      "name": "gpgPassphrase",
+      "type": "password",
+      "title": "GPG Passphrase (optional)",
+      "description": "Used with loopback mode if your key requires a passphrase",
+      "default": "",
+      "required": false
+    },
+    {
+      "name": "additionalPath",
+      "type": "textfield",
+      "title": "Additional PATH Entries",
+      "description": "Colon separated paths appended to PATH before invoking gpg/oathtool",
+      "default": "",
+      "required": false
+    },
+    {
+      "name": "otpAfterPassword",
+      "type": "checkbox",
+      "title": "Prioritize OTP After Password",
+      "description": "When you just copied a password, show OTP entries at the top next time",
+      "default": true
+    },
+    {
+      "name": "lastUsedTtl",
+      "type": "textfield",
+      "title": "Last Used TTL (seconds)",
+      "description": "How long to pin the last-used entry to the top of the list",
+      "default": "120",
+      "required": true
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.8.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.11",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.9.2"
+  }
+}
