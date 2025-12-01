@@ -85,7 +85,7 @@ export default function ManageSavedNetworksIwctl() {
         isLoading: false,
         error: null,
       });
-      
+
 
     } catch (error) {
       setSavedNetworks({
@@ -281,8 +281,6 @@ export default function ManageSavedNetworksIwctl() {
       </List>
     );
   }
-
-// TODO: query autoconnect via looping through savednetworks and doing `iwctl know-networks <ssid> show` add to savedNetworks, display, add action to change autoconnect
   return (
     <List searchBarPlaceholder="Search saved networks..." isShowingDetail={true}>
       <List.Section title={`Saved Networks (${savedNetworks.networks.length})`}>
@@ -290,16 +288,10 @@ export default function ManageSavedNetworksIwctl() {
           <List.Item
             key={network.name}
             title={network.name}
-            subtitle={`"Wifi" • ${wifiDevice?.name || "No device"}`}
             icon={{
               source: getStateIcon(currentConnection?.name === network.name ? "Activated" : "Disconnected"),
               tintColor: getStateColor(currentConnection?.name === network.name ? "Activated" : "Disconnected"),
             }}
-            accessories={[
-              {
-                text: currentConnection?.name === network.name ? "Connected" : "Disconnected",
-              },
-            ]}
             detail={
               <List.Item.Detail
                 markdown={`# ${network.name}`}
@@ -320,7 +312,6 @@ export default function ManageSavedNetworksIwctl() {
             }
             actions={
               <ActionPanel>
-                {/* Disconnect if currently connected */}
                 {currentConnection?.name === network.name && (
                   <Action
                     title="Disconnect"
@@ -328,25 +319,19 @@ export default function ManageSavedNetworksIwctl() {
                     onAction={handleDisconnect}
                     shortcut={{ modifiers: ["cmd"], key: "d" }}
                   />
-                )}
-                {/* Connect if available and not connected */}
-                {availableNetworks.includes(network.name) && currentConnection?.name !== network.name && (
-                  <Action
-                    title="Connect"
-                    icon={Icon.Wifi}
-                    onAction={() => handleConnect(network.name)}
-                    shortcut={{ modifiers: ["cmd"], key: "enter" }}
-                  />
-                )}
-                {/* Forget Network only if not currently connected */}
-                {currentConnection?.name !== network.name && (
-                  <Action
-                    title="Forget Network"
-                    icon={Icon.Trash}
-                    onAction={() => handleForget(network.name)}
-                    shortcut={{ modifiers: ["cmd"], key: "delete" }}
-                  />
-                )}
+                ) }
+                <Action
+                  title="Connect"
+                  icon={Icon.Wifi}
+                  onAction={() => handleConnect(network.name)}
+                  shortcut={{ modifiers: ["cmd"], key: "enter" }}
+                />
+                <Action
+                  title="Forget Network"
+                  icon={Icon.Trash}
+                  onAction={() => handleForget(network.name)}
+                  shortcut={{ modifiers: ["cmd"], key: "delete" }}
+                />
                 <Action
                     title="Toggle AutoConnect"
                     icon={Icon.Repeat}
