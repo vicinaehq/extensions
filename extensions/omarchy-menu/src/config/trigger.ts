@@ -46,35 +46,24 @@ export const trigger: MenuItem = {
           icon: "",
           items: [
             {
-              id: "region-audio",
-              name: "Region + Audio",
+              id: "wit-desktop-audio",
+              name: "With desktop audio",
               icon: "",
-              command: "omarchy-cmd-screenrecord region --with-audio",
+              command: "omarchy-cmd-screenrecord --with-desktop-audio",
             },
             {
-              id: "region",
-              name: "Region",
-              icon: "",
-              command: "omarchy-cmd-screenrecord",
-            },
-            {
-              id: "display-audio",
-              name: "Display + Audio",
-              icon: "",
-              command: "omarchy-cmd-screenrecord output --with-audio",
-            },
-            {
-              id: "display-webcam",
-              name: "Display + Webcam",
+              id: "with-desktop-mic-audio",
+              name: "With desktop + microphone audio",
               icon: "",
               command:
-                "omarchy-cmd-screenrecord output --with-audio --with-webcam",
+                "omarchy-cmd-screenrecord --with-desktop-audio --with-microphone-audio",
             },
             {
-              id: "display",
-              name: "Display",
+              id: "with-desktop-mic-webcam-audio",
+              name: "With desktop + microphone audio + webcam",
               icon: "",
-              command: "omarchy-cmd-screenrecord output",
+              command:
+                "omarchy-cmd-screenrecord --with-desktop-audio --with-microphone-audio --with-webcam",
             },
           ],
         },

@@ -92,7 +92,7 @@ export const installMenu: MenuItem = {
           command: "nautilus ~/.config/omarchy/current/theme/backgrounds",
         },
         {
-          id: "font",
+          id: "install-font",
           name: "Font",
           icon: "",
           items: [
@@ -134,6 +134,16 @@ export const installMenu: MenuItem = {
                 "Bistream Vera Code",
                 "ttf-bitstream-vera-mono-nerd",
                 "BitstromWera Nerd Font",
+              ),
+            },
+            {
+              id: "commit-mono",
+              name: "Commit Monot",
+              icon: "",
+              command: install_font(
+                "Commit Mono",
+                "otf-commit-mono-nerd",
+                "CommitMono Nerd Font",
               ),
             },
           ],
@@ -192,7 +202,26 @@ export const installMenu: MenuItem = {
           id: "php",
           name: "PHP",
           icon: "",
-          command: "",
+          items: [
+            {
+              id: "php",
+              name: "PHP",
+              icon: "",
+              command: present_terminal("omarchy-install-dev-env php"),
+            },
+            {
+              id: "laravel",
+              name: "Laravel",
+              icon: "",
+              command: present_terminal("omarchy-install-dev-env laravel"),
+            },
+            {
+              id: "symfony",
+              name: "Symfony",
+              icon: "",
+              command: present_terminal("omarchy-install-dev-env symfony"),
+            },
+          ],
         },
         {
           id: "python",
@@ -420,6 +449,12 @@ export const installMenu: MenuItem = {
             "minecraft-launcher",
             "minecraft-launcher",
           ),
+        },
+        {
+          id: "xbox",
+          name: "Xbox",
+          icon: "",
+          command: present_terminal("omarchy-install-xbox-controllers"),
         },
       ],
     },
