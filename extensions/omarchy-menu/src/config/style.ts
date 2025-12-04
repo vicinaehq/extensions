@@ -1,5 +1,5 @@
 import { Icon } from "@vicinae/api";
-import { open_in_editor, present_terminal } from "~/helpers/actions";
+import { open_in_editor } from "~/helpers/actions";
 import { themes_list, fonts_list } from "~/helpers/menu-generators";
 import { MenuItem } from "./types";
 
