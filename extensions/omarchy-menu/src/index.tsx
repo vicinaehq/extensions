@@ -84,11 +84,13 @@ export default Command;
 const DynamicList = ({ menu }: { menu: string }) => {
   const { push } = useNavigation();
   const ITEMS = findMenuItems(MENU_ITEMS, menu);
+  const hasPreview = ITEMS?.some((i) => i.preview);
 
   return (
     <List
       navigationTitle={menu}
       searchBarPlaceholder={`${capitalize(menu)}...`}
+      isShowingDetail={hasPreview}
     >
       {ITEMS?.map((item) => {
         if (item.command)
@@ -97,6 +99,7 @@ const DynamicList = ({ menu }: { menu: string }) => {
               key={item.name}
               title={item.name}
               accessories={[{ tag: item.icon }]}
+              detail={item.preview}
               actions={
                 <ActionPanel title="Omarchy">
                   <Action

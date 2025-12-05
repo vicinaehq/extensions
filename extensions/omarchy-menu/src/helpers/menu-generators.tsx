@@ -1,4 +1,7 @@
 import { execSync } from "node:child_process";
+import { readdirSync, readFileSync } from "node:fs";
+
+import { List } from "@vicinae/api";
 import { MenuItem } from "../config/types";
 
 export const themes_list = (): MenuItem[] => {
@@ -6,15 +9,31 @@ export const themes_list = (): MenuItem[] => {
     .toString()
     .split(/\r\n|\r|\n/)
     .filter(Boolean);
-  // TODO: indicate current theme
-  // const currentTheme = execSync("omarchy-theme-current").toString();
+
+  const currentTheme = execSync("omarchy-theme-current").toString();
 
   return themes.map((theme) => {
+    const themes = `${process.env.HOME}/.config/omarchy/themes`;
+    const themeId = theme.replace(/\s/g, "-").toLowerCase();
+    let imagePath = `${themes}/${themeId}/preview.png`;
+
+    try {
+      readFileSync(imagePath);
+    } catch {
+      const files = readdirSync(`${themes}/${themeId}/backgrounds/`);
+      imagePath = `${themes}/${themeId}/backgrounds/${files[0]}`;
+    }
+
     return {
-      id: theme.replace(/\s/g, "-").toLowerCase(),
+      id: themeId,
       name: theme,
-      icon: "󰸌",
+      icon: theme === currentTheme.trim() ? "" : "󰸌",
       command: `omarchy-theme-set "${theme}"`,
+      preview: (
+        <List.Item.Detail
+          markdown={`<img height="320" src="${imagePath}" />`}
+        />
+      ),
     };
   });
 };
