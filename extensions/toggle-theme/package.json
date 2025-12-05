@@ -1,0 +1,32 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "toggle-theme",
+	"title": "Toggle Theme",
+	"description": "Toggle system color scheme between light and dark",
+	"categories": ["System"],
+	"license": "MIT",
+	"author": "bdsqqq",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "icon.png",
+	"commands": [
+		{
+			"name": "toggle-theme",
+			"title": "Toggle Theme",
+			"description": "Switch between light and dark color scheme",
+			"mode": "no-view"
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.16.1"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.2"
+	}
+}
