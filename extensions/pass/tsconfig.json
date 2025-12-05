@@ -3,8 +3,7 @@
   "display": "Node 16",
   "include": ["src/**/*"],
   "compilerOptions": {
-    "types": ["@types/react", "@types/node"],
-    "lib": ["dom", "es6"],
+    //"lib": ["es2020"],
     "paths": {
       "@/*": ["./src/*"]
     },
@@ -16,7 +15,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "jsx": "react-jsx",
-    "noEmit": true
+    "jsx": "react-jsx"
   }
 }
+

@@ -24,7 +24,7 @@ export default function ConnectForm({ ssid }: ConnectFormProps) {
       message: `Attempting to connect to ${ssid}`,
     });
 
-    const result = await executeNmcliCommand("device wifi connect", [ssid, "password", password]);
+    const result = await executeNmcliCommand("device wifi connect", [`"${ssid}"`, "password", password]);
 
     if (result.success) {
       await showToast({

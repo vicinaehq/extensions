@@ -110,7 +110,7 @@ export default function ManageSavedNetworksNmcli() {
       message: `Connecting to ${networkName}`,
     });
 
-    const result = await executeNmcliCommand("connection up", [networkName]);
+    const result = await executeNmcliCommand("connection up", [`"${networkName}"`]);
 
     if (result.success) {
       await showToast({
@@ -266,16 +266,10 @@ export default function ManageSavedNetworksNmcli() {
           <List.Item
             key={network.uuid}
             title={network.name}
-            subtitle={`${network.type} • ${network.device || "No device"}`}
             icon={{
               source: getStateIcon(network),
               tintColor: getStateColor(network),
             }}
-            accessories={[
-              {
-                text: currentConnection?.name === network.name ? "Connected" : network.state,
-              },
-            ]}
             detail={
               <List.Item.Detail
                 markdown={`# ${network.name}`}
@@ -295,43 +289,26 @@ export default function ManageSavedNetworksNmcli() {
             }
             actions={
               <ActionPanel>
-                {currentConnection?.name === network.name ? (
+                {currentConnection?.name === network.name && (
                   <Action
                     title="Disconnect"
                     icon={Icon.XMarkCircle}
                     onAction={handleDisconnect}
                     shortcut={{ modifiers: ["cmd"], key: "d" }}
                   />
-                ) : availableNetworks.includes(network.name) ? (
-                  <Action
-                    title="Connect"
-                    icon={Icon.Wifi}
-                    onAction={() => handleConnect(network.name)}
-                    shortcut={{ modifiers: ["cmd"], key: "enter" }}
-                  />
-                ) : (
-                  <Action
-                    title="Forget Network"
-                    icon={Icon.Trash}
-                    onAction={() => handleForget(network.name, network.uuid)}
-                    shortcut={{ modifiers: ["cmd"], key: "delete" }}
-                  />
                 )}
-                {availableNetworks.includes(network.name) ? (
-                  <Action
-                    title="Forget Network"
-                    icon={Icon.Trash}
-                    onAction={() => handleForget(network.name, network.uuid)}
-                    shortcut={{ modifiers: ["cmd"], key: "delete" }}
-                  />
-                ) : (
-                  <Action
-                    title="Connect"
-                    icon={Icon.Wifi}
-                    onAction={() => handleConnect(network.name)}
-                    shortcut={{ modifiers: ["cmd"], key: "enter" }}
-                  />
-                )}
+                <Action
+                  title="Connect"
+                  icon={Icon.Wifi}
+                  onAction={() => handleConnect(network.name)}
+                  shortcut={{ modifiers: ["cmd"], key: "enter" }}
+                />
+                <Action
+                  title="Forget Network"
+                  icon={Icon.Trash}
+                  onAction={() => handleForget(network.name, network.uuid)}
+                  shortcut={{ modifiers: ["cmd"], key: "delete" }}
+                />
                 <Action.CopyToClipboard
                   title="Copy Network Name"
                   content={network.name}

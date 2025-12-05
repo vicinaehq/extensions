@@ -1,13 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Node 16",
   "include": ["src/**/*"],
   "compilerOptions": {
-    "types": ["@types/react", "@types/node"],
-    "lib": ["dom", "es6"],
-    "paths": {
-      "@/*": ["./src/*"]
-    },
     "module": "commonjs",
     "target": "es2020",
     "strict": true,
@@ -16,7 +10,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "jsx": "react-jsx",
-    "noEmit": true
+    "jsx": "react-jsx"
   }
 }
