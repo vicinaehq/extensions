@@ -1,0 +1,169 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "project-launcher",
+  "title": "Project Launcher",
+  "description": "Open existing or new projects in your preferred editor.",
+  "categories": ["Productivity"],
+  "license": "MIT",
+  "author": "benzipperer",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "code-in-new-folder",
+      "title": "Code in New Folder",
+      "subtitle": "Create and open a project folder",
+      "description": "Creates a folder in your configured base directory and opens it in your preferred code editor",
+      "mode": "view"
+    },
+    {
+      "name": "search-recent-projects",
+      "title": "Search Recent Projects",
+      "subtitle": "Find and open recent projects",
+      "description": "Search and open recently accessed projects from your preferred editor's workspace history",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "type": "dropdown",
+      "name": "programName",
+      "title": "Preferred Editor",
+      "description": "Select the editor to open projects with",
+      "default": "positron",
+      "required": true,
+      "data": [
+        {
+          "title": "Positron",
+          "value": "positron"
+        },
+        {
+          "title": "VS Code",
+          "value": "code"
+        },
+        {
+          "title": "Cursor",
+          "value": "cursor"
+        }
+      ]
+    },
+    {
+      "type": "dropdown",
+      "name": "terminalPreset",
+      "title": "Terminal Emulator",
+      "description": "Select your preferred terminal emulator. Choose 'Custom' to specify a custom command with arguments.",
+      "default": "auto-detect",
+      "required": true,
+      "data": [
+        {
+          "title": "Auto-detect",
+          "value": "auto-detect"
+        },
+        {
+          "title": "GNOME Terminal",
+          "value": "gnome-terminal"
+        },
+        {
+          "title": "Konsole (KDE)",
+          "value": "konsole"
+        },
+        {
+          "title": "Alacritty",
+          "value": "alacritty"
+        },
+        {
+          "title": "Kitty",
+          "value": "kitty"
+        },
+        {
+          "title": "Ghostty",
+          "value": "ghostty"
+        },
+        {
+          "title": "Tilix",
+          "value": "tilix"
+        },
+        {
+          "title": "WezTerm",
+          "value": "wezterm"
+        },
+        {
+          "title": "xterm",
+          "value": "xterm"
+        },
+        {
+          "title": "Custom",
+          "value": "custom"
+        }
+      ]
+    },
+    {
+      "type": "textfield",
+      "name": "customTerminalCommand",
+      "title": "Custom Terminal Command",
+      "description": "Custom terminal command template. Use {path} as placeholder for the folder path. Example: ghostty --working-directory={path}",
+      "placeholder": "ghostty --working-directory={path}",
+      "default": "",
+      "required": false
+    },
+    {
+      "type": "textfield",
+      "name": "basePath",
+      "title": "Base Directory Path",
+      "description": "The base directory where folders will be created. Leave empty to use home directory. Supports ~ for home, relative paths, or absolute paths like / or /projects",
+      "placeholder": "~",
+      "default": "",
+      "required": false
+    },
+    {
+      "type": "checkbox",
+      "name": "addYearToPath",
+      "title": "Add Year to Path",
+      "label": "Add year subdirectory to base path",
+      "description": "When enabled, creates folders in YEAR/MM-DD/TITLE structure. When disabled, uses MM-DD/TITLE or just TITLE structure.",
+      "default": true,
+      "required": false
+    },
+    {
+      "type": "checkbox",
+      "name": "addMonthDayToPath",
+      "title": "Add Month-Day to Path",
+      "label": "Add month-day subdirectory to base path",
+      "description": "When enabled, creates folders with MM-DD subdirectory. When disabled with year enabled, uses YEAR/TITLE structure.",
+      "default": true,
+      "required": false
+    },
+    {
+      "type": "checkbox",
+      "name": "sanitizePathName",
+      "title": "Sanitize Path Name",
+      "label": "Convert title to snake_case",
+      "description": "When enabled, converts the title to lowercase snake_case and removes special characters. When disabled, uses the title as-is.",
+      "default": true,
+      "required": false
+    },
+    {
+      "type": "checkbox",
+      "name": "truncatePathName",
+      "title": "Truncate Path Name",
+      "label": "Limit title length",
+      "description": "When enabled, limits the title to 50 characters or 10 words. When disabled, uses the full title.",
+      "default": true,
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.11"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
