@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 import { List } from "@vicinae/api";
 import { MenuItem } from "../config/types";
@@ -15,13 +15,25 @@ export const themes_list = (): MenuItem[] => {
   return themes.map((theme) => {
     const themes = `${process.env.HOME}/.config/omarchy/themes`;
     const themeId = theme.replace(/\s/g, "-").toLowerCase();
-    let imagePath = `${themes}/${themeId}/preview.png`;
+    const previewLocation = {
+      png: `${themes}/${themeId}/preview.png`,
+      jpg: `${themes}/${themeId}/preview.jpg`,
+      backgrounds: `${themes}/${themeId}/backgrounds`,
+    };
 
-    try {
-      readFileSync(imagePath);
-    } catch {
-      const files = readdirSync(`${themes}/${themeId}/backgrounds/`);
-      imagePath = `${themes}/${themeId}/backgrounds/${files[0]}`;
+    let imagePath = "";
+
+    if (existsSync(previewLocation.png)) {
+      imagePath = previewLocation.png;
+    }
+
+    if (existsSync(previewLocation.jpg)) {
+      imagePath = previewLocation.jpg;
+    }
+
+    if (!imagePath) {
+      const files = readdirSync(previewLocation.backgrounds);
+      imagePath = `${previewLocation.backgrounds}/${files[0]}`;
     }
 
     return {
@@ -30,9 +42,7 @@ export const themes_list = (): MenuItem[] => {
       icon: theme === currentTheme.trim() ? "" : "󰸌",
       command: `omarchy-theme-set "${theme}"`,
       preview: (
-        <List.Item.Detail
-          markdown={`<img height="320" src="${imagePath}" />`}
-        />
+        <List.Item.Detail markdown={`![${theme} preview](${imagePath})`} />
       ),
     };
   });
