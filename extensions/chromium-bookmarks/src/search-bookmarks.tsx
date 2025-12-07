@@ -184,10 +184,15 @@ const BookmarkList = () => {
 								<ActionPanel>
 									<Action
 										title={"Open in browser"}
+										icon={Icon.Globe}
 										onAction={async () => {
 											await closeMainWindow();
 											await open(bookmark.url);
 										}}
+									/>
+									<Action.CopyToClipboard
+										title="Copy URL"
+										content={bookmark.url}
 									/>
 									<Action
 										title="Toggle bookmark details"
