@@ -1,6 +1,6 @@
 import { Cache } from "@vicinae/api";
 import * as fsp from "node:fs/promises";
-import { safeAccess } from "./utils";
+import { configHome, safeAccess } from "./utils";
 import { homedir } from "node:os";
 import * as path from "node:path";
 import { useEffect, useState } from "react";
@@ -171,8 +171,7 @@ export const useChromiumBrowsers = () => {
 
 	useEffect(() => {
 		setLoading(true);
-		const configDir = path.join(homedir(), ".config");
-		findChromiumBrowsers(configDir)
+		findChromiumBrowsers(configHome())
 			.then(setBrowsers)
 			.catch(setError)
 			.finally(() => setLoading(false));
