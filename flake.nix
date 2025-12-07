@@ -21,7 +21,6 @@
             pkgs = import inputs.nixpkgs {
               inherit system;
               overlays = [
-                inputs.self.overlays.default
                 inputs.vicinae.overlays.default
               ];
             };
@@ -29,20 +28,13 @@
         );
     in
     {
-      overlays.default = final: prev: rec {
-        nodejs = prev.nodejs;
-        yarn = (prev.yarn.override { inherit nodejs; });
-      };
-
       devShells = forEachSupportedSystem (
         { pkgs }:
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
-              node2nix
               nodejs
               vicinae
-              bitwarden-cli
 
               typescript-language-server
               nixd

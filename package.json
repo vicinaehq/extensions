@@ -10,6 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@vicinae/api": "^0.16.10",
     "jszip": "^3.10.1",
     "zod": "^4.1.12"
   }

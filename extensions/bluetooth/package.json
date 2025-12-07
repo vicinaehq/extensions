@@ -5,7 +5,7 @@
   "description": "Vicinae bluetooth extension for managing bluetooth devices using bluetoothctl",
   "categories": [],
   "license": "MIT",
-  "author": "Gelei",
+  "author": "Damnjelly",
   "contributors": [],
   "pastContributors": [],
   "icon": "extension_icon.png",
@@ -25,8 +25,8 @@
       "mode": "view"
     },
     {
-      "name": "discoverable",
-      "title": "Discoverable",
+      "name": "discover",
+      "title": "Discover",
       "subtitle": "Make device discoverable for pairing",
       "description": "Make device discoverable for pairing",
       "mode": "view"
@@ -34,11 +34,13 @@
   ],
   "preferences": [
     {
+      "label": "Connection Toggleable",
       "name": "connectionToggleable",
       "type": "checkbox",
       "title": "Connection Toggleable",
       "description": "Use a single toggle action for connect/disconnect instead of separate actions",
-      "default": false
+      "default": false,
+      "required": false
     }
   ],
   "scripts": {
@@ -46,7 +48,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "0.8.4"
+    "@vicinae/api": "^0.16.10"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

@@ -10,11 +10,21 @@ import {
 	connectToDevice,
 	Device,
 	Bluetoothctl,
+	BluetoothState,
 	BluetoothctlLine,
-	BluetoothctlLineType
+	LineType
 } from "@/bluetoothctl";
+import {
+	getIconFromInfo,
+	sortDevices,
+	removeFromDeviceList
+} from "@/utils";
+import {
+	BluetoothPoweredOffView,
+	TogglePowerAction,
+	showErrorToast
+} from "./defaultComponents";
 import { BLUETOOTH_REGEX } from "@/patterns";
-import { getIconFromInfo, sortDevices, removeFromDeviceList } from "@/utils";
 
 // Simplified processing function using the new parsing system
 async function processBluetoothLine(
@@ -23,15 +33,15 @@ async function processBluetoothLine(
 	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
 ): Promise<void> {
 	switch (line.type) {
-		case BluetoothctlLineType.DeviceDeleted:
+		case LineType.DeviceDeleted:
 			await handleDeletedDevice(line, discovered, setDevices);
 			break;
 
-		case BluetoothctlLineType.DeviceChanged:
+		case LineType.DeviceChanged:
 			await handleChangedDevice(line, discovered, setDevices);
 			break;
 
-		case BluetoothctlLineType.DeviceNew:
+		case LineType.DeviceNew:
 			await handleNewDevice(line, discovered, setDevices);
 			break;
 
@@ -41,7 +51,7 @@ async function processBluetoothLine(
 }
 
 async function handleDeletedDevice(
-	line: Extract<BluetoothctlLine, { type: BluetoothctlLineType.DeviceDeleted }>,
+	line: Extract<BluetoothctlLine, { type: LineType.DeviceDeleted }>,
 	discovered: Map<string, string>,
 	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
 ): Promise<void> {
@@ -51,20 +61,16 @@ async function handleDeletedDevice(
 }
 
 async function handleChangedDevice(
-	line: Extract<BluetoothctlLine, { type: BluetoothctlLineType.DeviceChanged }>,
+	line: Extract<BluetoothctlLine, { type: LineType.DeviceChanged }>,
 	discovered: Map<string, string>,
 	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
 ): Promise<void> {
 	const mac = line.device.mac;
-	const info = await Bluetoothctl.getInfo(mac);
-	const icon = getIconFromInfo(info);
-	const nameMatch = info.match(BLUETOOTH_REGEX.deviceName);
-	const name = nameMatch ? nameMatch[1].trim() : discovered.get(mac) || line.device.name || mac;
+	const device = await Bluetoothctl.getDeviceInfo(mac);
 
-	discovered.set(mac, name);
+	if (!device) return;
 
-	// Check if device is connected - if so, we might want to exclude it from the scan results
-	const isConnected = BLUETOOTH_REGEX.connectedStatus.test(info);
+	discovered.set(mac, device.name);
 
 	setDevices((prev) =>
 		sortDevices(
@@ -83,7 +89,7 @@ async function handleChangedDevice(
 }
 
 async function handleNewDevice(
-	line: Extract<BluetoothctlLine, { type: BluetoothctlLineType.DeviceNew }>,
+	line: Extract<BluetoothctlLine, { type: LineType.DeviceNew }>,
 	discovered: Map<string, string>,
 	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
 ): Promise<void> {
@@ -95,7 +101,7 @@ async function handleNewDevice(
 	discovered.set(mac, name);
 
 	try {
-		const info = await Bluetoothctl.getInfo(mac);
+		const info = await Bluetoothctl.getDeviceInfo(mac);
 		const icon = getIconFromInfo(info);
 
 		// Only add if not already connected
@@ -114,7 +120,85 @@ async function handleNewDevice(
 	}
 }
 
-function useBluetoothScanner() {
+function useConnectingMonitor() {
+	const [connectingDevice, setConnectingDevice] = useState<Device | null>(null);
+	const btRef = useRef<Bluetoothctl | null>(null);
+
+	const pairingDeviceRef = useRef<Device | null>(null);
+	pairingDeviceRef.current = connectingDevice;
+
+	const handlePairingLine = useCallback(async (line: BluetoothctlLine) => {
+		try {
+			switch (line.type) {
+			}
+		} catch (err) {
+			console.error("Pairing line error:", err);
+			showErrorToast("Failed to handle pairing event", err);
+		}
+	}, []);
+
+	useEffect(() => {
+		const bt = new Bluetoothctl();
+		btRef.current = bt;
+
+		bt.onLine(handlePairingLine);
+
+		return () => {
+			bt.kill();
+		};
+	}, [handlePairingLine]);
+}
+
+function useScanMonitor() {
+	const [bluetoothState, setBluetoothState] = useState<BluetoothState | null>(null);
+	const [loading, setLoading] = useState(false);
+
+	const makeScannable = useCallback(async () => {
+		setLoading(true);
+		try {
+			await Bluetoothctl.setDiscoverable("on");
+			setBluetoothState(await Bluetoothctl.getControllerInfo());
+		} catch (err) {
+			console.error("Scanability error:", err);
+			showErrorToast("Failed to make device discoverable", err);
+		}
+		setLoading(false);
+	}, []);
+
+	useEffect(() => {
+		let cancelled = false;
+
+		const init = async () => {
+			try {
+				const info = await Bluetoothctl.getControllerInfo();
+				if (!cancelled) setBluetoothState(info);
+			} catch (err) {
+				console.error("Failed to get Bluetooth status:", err);
+				showErrorToast("Failed to get Bluetooth status", err);
+			}
+
+			if (!cancelled) await makeScannable();
+		};
+
+		init();
+
+		return () => {
+			console.log("Cancelling scanability");
+			cancelled = true;
+			Bluetoothctl.setDiscoverable("off");
+		};
+	}, [makeScannable]);
+
+	return {
+		bluetoothState,
+		setBluetoothState,
+		loading,
+		makeScannable,
+	};
+}
+
+export default function Scan() {
+	const [bluetoothState, setBluetoothState] = useState<BluetoothState | null>(null);
 	const [devices, setDevices] = useState<Device[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -131,6 +215,8 @@ function useBluetoothScanner() {
 		(async () => {
 			const bt = new Bluetoothctl();
 
+			setBluetoothState(await Bluetoothctl.getControllerInfo());
+
 			try {
 				// Load initial devices (already paired/known devices)
 				const initialDevices = await Bluetoothctl.listDevices();
@@ -142,7 +228,7 @@ function useBluetoothScanner() {
 				const devicesToAdd = await Promise.all(
 					Array.from(discovered.entries()).map(async ([mac, name]) => {
 						try {
-							const info = await Bluetoothctl.getInfo(mac);
+							const info = await Bluetoothctl.getDeviceInfo(mac);
 							// Skip if already connected
 							if (BLUETOOTH_REGEX.connectedStatus.test(info)) {
 								return null;
@@ -194,13 +280,11 @@ function useBluetoothScanner() {
 			}
 			setIsLoading(false);
 		};
-	}, []); // Remove the 30000 dependency since it's a constant
+	}, []);
 
-	return { devices, isLoading, removeDevice };
-}
-
-export default function Command() {
-	const { devices, isLoading, removeDevice } = useBluetoothScanner();
+	if (!bluetoothState?.powered) {
+		return <BluetoothPoweredOffView setBluetoothState={setBluetoothState} />;
+	}
 
 	return (
 		<List isLoading={isLoading} searchBarPlaceholder="Scanning for Bluetooth devices...">
@@ -226,6 +310,7 @@ export default function Command() {
 								shortcut={{ modifiers: ["ctrl"], key: "c" }}
 								onAction={connect(device, removeDevice)}
 							/>
+							{TogglePowerAction(bluetoothState, setBluetoothState)}
 						</ActionPanel>
 					}
 				/>

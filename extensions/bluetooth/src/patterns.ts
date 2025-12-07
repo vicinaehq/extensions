@@ -8,6 +8,7 @@ interface BluetoothRegexPatterns {
 	// Device details parsing
 	deviceName: RegExp;
 	connectedStatus: RegExp;
+	trustedStatus: RegExp;
 
 	// Bluetoothctl output parsing
 	deviceLine: RegExp;
@@ -19,6 +20,8 @@ interface BluetoothRegexPatterns {
 
 	// Pairing flow patterns
 	passkeyConfirmation: RegExp;
+	requestCancelled: RegExp;
+	authorizeService: RegExp;
 	pinCodeRequest: RegExp;
 	pairingSuccess: RegExp;
 	pairingFailure: RegExp;
@@ -55,6 +58,7 @@ export const BLUETOOTH_REGEX: BluetoothRegexPatterns = {
 	// Device details parsing - extracts info from bluetoothctl info output
 	deviceName: /Name:\s(.+)/,
 	connectedStatus: /Connected:\s*yes/i,
+	trustedStatus: /Trusted:\s*yes/i,
 
 	// Bluetoothctl output parsing - parses scan output lines
 	deviceLine: /Device ([0-9A-Fa-f:]+) (.+)/,
@@ -66,6 +70,8 @@ export const BLUETOOTH_REGEX: BluetoothRegexPatterns = {
 
 	// Pairing flow patterns - handles different pairing scenarios
 	passkeyConfirmation: /Confirm passkey (\d+)/,
+	requestCancelled: /\rRequest canceled/,
+	authorizeService: /Authorize service (.+)/,
 	pinCodeRequest: /Enter PIN code:/,
 	pairingSuccess: /Pairing successful|Device paired|already paired/,
 	pairingFailure: /Failed to pair|AuthenticationFailed|org.bluez.Error/,

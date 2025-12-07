@@ -37,3 +37,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 bun.lock
 pnpm-lock.*
 yarn.lock
+
+# nix
+.direnv/
