@@ -1,5 +1,6 @@
 import { Cache } from "@vicinae/api";
 import * as fsp from "node:fs/promises";
+import { safeAccess } from "./utils";
 import { homedir } from "node:os";
 import * as path from "node:path";
 import { useEffect, useState } from "react";
@@ -36,15 +37,6 @@ export type FolderBookmark = BookmarkBase & {
 };
 
 export type Bookmark = UrlBookmark | FolderBookmark;
-
-const safeAccess = async (path: string, mode?: number) => {
-	try {
-		await fsp.access(path, mode);
-		return true;
-	} catch (_) {
-		return false;
-	}
-};
 
 const findBrowserProfiles = async (browser: string) => {
 	const localState = JSON.parse(
