@@ -76,7 +76,7 @@ const BookmarkList = () => {
 
 	useEffect(() => {
 		LocalStorage.getItem(BROWSER_FILTER_KEY).then((v) =>
-			setBrowserFilter(`${v}`),
+			setBrowserFilter(v ? `${v}` : "all"),
 		);
 	}, []);
 
