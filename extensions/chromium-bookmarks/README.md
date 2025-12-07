@@ -1,15 +1,7 @@
-# Vicinae Extension
+# Chromium bookmarks
 
-Congratulations on generating your new Vicinae extension!
+An extension to browse bookmarks saved by chromium-based web browsers.
 
-You can install the required dependencies and run your extension in development mode like so:
+Browsers are automatically detected by scanning the user config directory.
 
-```bash
-npm install
-npm run dev
-```
-If you want to build the production bundle, simply run:
-
-```bash
-npm run build
-```
+Due to the fact chromium-based browsers and firefox browsers store their bookmarks in completely different ways, this extension is specifically targeting chromium bases.

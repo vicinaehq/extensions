@@ -18,21 +18,24 @@ export type ChromiumBrowser = {
 	icon: string;
 };
 
-export type Bookmark = {
+type BookmarkBase = {
 	id: string;
 	name: string;
 	dateAdded: Date;
 	dateLastUsed?: Date;
-} & (
-		| {
-			type: "url";
-			url: string;
-		}
-		| {
-			type: "folder";
-			children: Bookmark[];
-		}
-	);
+};
+
+export type UrlBookmark = BookmarkBase & {
+	type: "url";
+	url: string;
+};
+
+export type FolderBookmark = BookmarkBase & {
+	type: "folder";
+	children: Bookmark[];
+};
+
+export type Bookmark = UrlBookmark | FolderBookmark;
 
 const safeAccess = async (path: string, mode?: number) => {
 	try {
@@ -172,41 +175,52 @@ const getBookmarks = async (browsers: ChromiumBrowser[]) => {
 export const useChromiumBrowsers = () => {
 	const [browsers, setBrowsers] = useState<ChromiumBrowser[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<Error | null>(null);
 
 	useEffect(() => {
 		setLoading(true);
 		const configDir = path.join(homedir(), ".config");
 		findChromiumBrowsers(configDir)
 			.then(setBrowsers)
-			.catch((e) => {
-				console.error(e);
-			})
+			.catch(setError)
 			.finally(() => setLoading(false));
 	}, []);
 
-	return { browsers, loading };
+	return { browsers, loading, error };
 };
 
 export const useBookmarks = () => {
-	const { browsers, loading: browsersLoading } = useChromiumBrowsers();
+	const {
+		browsers,
+		loading: browsersLoading,
+		error: browserError,
+	} = useChromiumBrowsers();
 	const [roots, setRoots] = useState<BrowserBookmarks[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<Error | null>(null);
 
 	useEffect(() => {
 		if (browsersLoading) return;
 		setLoading(true);
 		getBookmarks(browsers)
 			.then(setRoots)
+			.catch(setError)
 			.finally(() => setLoading(false));
 	}, [browsers]);
 
-	return { roots, browsers, loading: loading || browsersLoading };
+	return {
+		roots,
+		browsers,
+		error: browserError ?? error ?? null,
+		loading: loading || browsersLoading,
+	};
 };
 
 export type FlattenedBrowserBookmark = {
 	id: string;
 	browser: ChromiumBrowser;
-	bookmark: Bookmark;
+	bookmark: UrlBookmark;
+	folder?: string; // for now, only one level of nesting is supported.
 };
 
 export const flattenBookmarks = (
@@ -216,12 +230,18 @@ export const flattenBookmarks = (
 		bookmark: Bookmark,
 		arr: FlattenedBrowserBookmark[],
 		browser: ChromiumBrowser,
+		folder?: string,
 	) => {
 		if (bookmark.type === "url") {
-			arr.push({ id: `${browser.name}-${bookmark.id}`, browser, bookmark });
+			arr.push({
+				id: `${browser.name}-${bookmark.id}`,
+				browser,
+				bookmark,
+				folder,
+			});
 		} else if (bookmark.type === "folder") {
 			for (const b of bookmark.children) {
-				flatBookmark(b, arr, browser);
+				flatBookmark(b, arr, browser, bookmark.name);
 			}
 		}
 	};

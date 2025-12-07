@@ -7,6 +7,7 @@ import {
 	List,
 	open,
 	LocalStorage,
+	Detail,
 } from "@vicinae/api";
 import { useEffect, useMemo, useState } from "react";
 import { BrowserSelector } from "./browser-selector";
@@ -31,16 +32,22 @@ const BookmarkDetail = ({ data }: { data: FlattenedBrowserBookmark }) => {
 						title="Name"
 						text={data.bookmark.name}
 					/>
-					{data.bookmark.type === "url" && (
-						<List.Item.Detail.Metadata.Label
-							title="URL"
-							text={{ value: data.bookmark.url }}
-						/>
-					)}
+					<List.Item.Detail.Metadata.Label
+						title="URL"
+						text={{ value: data.bookmark.url }}
+					/>
 					<List.Item.Detail.Metadata.Label
 						title="Added at"
 						text={{ value: data.bookmark.dateAdded.toJSON() }}
 					/>
+
+					{data.folder && (
+						<List.Item.Detail.Metadata.Label
+							title="Folder"
+							icon={Icon.Folder}
+							text={{ value: data.folder }}
+						/>
+					)}
 					<List.Item.Detail.Metadata.Label
 						title="Browser"
 						icon={data.browser.icon}
@@ -52,25 +59,25 @@ const BookmarkDetail = ({ data }: { data: FlattenedBrowserBookmark }) => {
 	);
 };
 
+const BROWSER_FILTER_KEY = "browser-filter";
+
 const BookmarkList = () => {
-	const { roots, browsers, loading } = useBookmarks();
+	const { roots, browsers, error, loading } = useBookmarks();
 	const [browserFilter, setBrowserFilter] = useState<string>("all");
 	const [showingDetail, setShowingDetail] = useState(false);
 
 	useEffect(() => {
-		LocalStorage.getItem("browser-filter").then((v) =>
+		LocalStorage.getItem(BROWSER_FILTER_KEY).then((v) =>
 			setBrowserFilter(`${v}`),
 		);
 	}, []);
 
 	const urlBookmarks = useMemo(
 		() =>
-			flattenBookmarks(roots)
-				.filter((b) => b.bookmark.type === "url")
-				.sort(
-					(a, b) =>
-						b.bookmark.dateAdded.getTime() - a.bookmark.dateAdded.getTime(),
-				),
+			flattenBookmarks(roots).sort(
+				(a, b) =>
+					b.bookmark.dateAdded.getTime() - a.bookmark.dateAdded.getTime(),
+			),
 		[roots],
 	);
 	const filteredUrlBookmarks = useMemo(
@@ -84,8 +91,16 @@ const BookmarkList = () => {
 	const handleBrowserFilterChange = async (s: string) => {
 		await clearSearchBar();
 		setBrowserFilter(s);
-		await LocalStorage.setItem("browser-filter", s);
+		await LocalStorage.setItem(BROWSER_FILTER_KEY, s);
 	};
+
+	if (error) {
+		return (
+			<Detail
+				markdown={`# Failed to load bookmarks\n\`\`\`\n${error}\n\`\`\``}
+			/>
+		);
+	}
 
 	return (
 		<List
@@ -108,29 +123,23 @@ const BookmarkList = () => {
 				/>
 			)}
 			<List.Section title={`${filteredUrlBookmarks.length} bookmarks`}>
-				{filteredUrlBookmarks.map(({ id, browser, bookmark }) => (
+				{filteredUrlBookmarks.map(({ id, browser, bookmark, folder }) => (
 					<List.Item
 						key={id}
-						subtitle={
-							!showingDetail && bookmark.type === "url"
-								? (extractHost(bookmark.url) ?? "")
-								: ""
-						}
+						subtitle={extractHost(bookmark.url) ?? undefined}
 						title={bookmark.name}
-						detail={<BookmarkDetail data={{ id, browser, bookmark }} />}
+						detail={<BookmarkDetail data={{ id, browser, bookmark, folder }} />}
 						icon={Icon.Bookmark}
 						accessories={!showingDetail ? [{ icon: browser.icon }] : []}
 						actions={
 							<ActionPanel>
-								{bookmark.type === "url" && (
-									<Action
-										title={"Open in browser"}
-										onAction={async () => {
-											await closeMainWindow();
-											await open(bookmark.url);
-										}}
-									/>
-								)}
+								<Action
+									title={"Open in browser"}
+									onAction={async () => {
+										await closeMainWindow();
+										await open(bookmark.url);
+									}}
+								/>
 								<Action
 									title="Toggle bookmark details"
 									icon={Icon.Bookmark}
