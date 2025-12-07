@@ -221,12 +221,48 @@ export type FlattenedBrowserBookmark = {
 	browser: ChromiumBrowser;
 	bookmark: UrlBookmark;
 	folder?: string; // for now, only one level of nesting is supported.
+	favorite: boolean; // implemented on the vicinae layer, not browser
+};
+
+let favorites: Set<string> | null = null;
+
+const FAVORITES_CACHE_KEY = "favorites";
+
+const getFavorites = () => {
+	if (!favorites) {
+		const set = new Set<string>(
+			JSON.parse(cache.get(FAVORITES_CACHE_KEY) ?? "[]"),
+		);
+		favorites = set;
+		return set;
+	}
+	return favorites;
+};
+
+const saveFavorites = async (favorites: Set<string>) => {
+	cache.set(FAVORITES_CACHE_KEY, JSON.stringify(Array.from(favorites)));
+};
+
+export const addFavorite = async (guid: string) => {
+	const f = getFavorites();
+	f.add(guid);
+	await saveFavorites(f);
+};
+
+export const removeFavorite = async (guid: string) => {
+	const f = getFavorites();
+	f.delete(guid);
+	saveFavorites(f);
+};
+
+export const isFavoriteBookmark = (guid: string) => {
+	return getFavorites().has(guid);
 };
 
 export const flattenBookmarks = (
 	roots: BrowserBookmarks[],
 ): FlattenedBrowserBookmark[] => {
-	const flatBookmark = (
+	const flattenBookmark = (
 		bookmark: Bookmark,
 		arr: FlattenedBrowserBookmark[],
 		browser: ChromiumBrowser,
@@ -238,10 +274,11 @@ export const flattenBookmarks = (
 				browser,
 				bookmark,
 				folder,
+				favorite: isFavoriteBookmark(bookmark.id),
 			});
 		} else if (bookmark.type === "folder") {
 			for (const b of bookmark.children) {
-				flatBookmark(b, arr, browser, bookmark.name);
+				flattenBookmark(b, arr, browser, bookmark.name);
 			}
 		}
 	};
@@ -250,7 +287,7 @@ export const flattenBookmarks = (
 		root.profiles.flatMap((p) => {
 			const bks = [] as FlattenedBrowserBookmark[];
 			for (const b of p.bookmarks) {
-				flatBookmark(b, bks, root.browser);
+				flattenBookmark(b, bks, root.browser);
 			}
 			return bks;
 		}),

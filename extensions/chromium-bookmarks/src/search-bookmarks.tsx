@@ -8,12 +8,17 @@ import {
 	open,
 	LocalStorage,
 	Detail,
+	Color,
+	showToast,
+	Toast,
 } from "@vicinae/api";
 import { useEffect, useMemo, useState } from "react";
 import { BrowserSelector } from "./browser-selector";
 import {
+	addFavorite,
 	flattenBookmarks,
 	FlattenedBrowserBookmark,
+	removeFavorite,
 	useBookmarks,
 } from "./bookmarks";
 import { extractHost } from "./utils";
@@ -65,6 +70,9 @@ const BookmarkList = () => {
 	const { roots, browsers, error, loading } = useBookmarks();
 	const [browserFilter, setBrowserFilter] = useState<string>("all");
 	const [showingDetail, setShowingDetail] = useState(false);
+	const [flattenedBookmarks, setFlattenedBoomarks] = useState<
+		FlattenedBrowserBookmark[]
+	>([]);
 
 	useEffect(() => {
 		LocalStorage.getItem(BROWSER_FILTER_KEY).then((v) =>
@@ -72,21 +80,54 @@ const BookmarkList = () => {
 		);
 	}, []);
 
-	const urlBookmarks = useMemo(
+	useEffect(() => {
+		setFlattenedBoomarks(flattenBookmarks(roots));
+	}, [roots]);
+
+	const sortedBookmarks = useMemo(
 		() =>
-			flattenBookmarks(roots).sort(
-				(a, b) =>
-					b.bookmark.dateAdded.getTime() - a.bookmark.dateAdded.getTime(),
-			),
-		[roots],
+			flattenedBookmarks
+				.sort(
+					(a, b) =>
+						b.bookmark.dateAdded.getTime() - a.bookmark.dateAdded.getTime(),
+				)
+				.sort((a, b) => +b.favorite - +a.favorite),
+		[flattenedBookmarks],
 	);
+
 	const filteredUrlBookmarks = useMemo(
 		() =>
 			browserFilter === "all"
-				? urlBookmarks
-				: urlBookmarks.filter((b) => b.browser.name === browserFilter),
-		[urlBookmarks, browserFilter],
+				? sortedBookmarks
+				: sortedBookmarks.filter((b) => b.browser.name === browserFilter),
+		[sortedBookmarks, browserFilter],
 	);
+
+	const addToFavorites = async (id: string) => {
+		addFavorite(id);
+		setFlattenedBoomarks(
+			flattenedBookmarks.map((b) =>
+				b.bookmark.id === id ? { ...b, favorite: true } : b,
+			),
+		);
+		await showToast({
+			title: "Added to favorites",
+			style: Toast.Style.Success,
+		});
+	};
+
+	const removeFromFavorites = async (id: string) => {
+		removeFavorite(id);
+		setFlattenedBoomarks(
+			flattenedBookmarks.map((b) =>
+				b.bookmark.id === id ? { ...b, favorite: false } : b,
+			),
+		);
+		await showToast({
+			title: "Removed from favorites",
+			style: Toast.Style.Success,
+		});
+	};
 
 	const handleBrowserFilterChange = async (s: string) => {
 		await clearSearchBar();
@@ -123,32 +164,55 @@ const BookmarkList = () => {
 				/>
 			)}
 			<List.Section title={`${filteredUrlBookmarks.length} bookmarks`}>
-				{filteredUrlBookmarks.map(({ id, browser, bookmark, folder }) => (
-					<List.Item
-						key={id}
-						subtitle={extractHost(bookmark.url) ?? undefined}
-						title={bookmark.name}
-						detail={<BookmarkDetail data={{ id, browser, bookmark, folder }} />}
-						icon={Icon.Bookmark}
-						accessories={!showingDetail ? [{ icon: browser.icon }] : []}
-						actions={
-							<ActionPanel>
-								<Action
-									title={"Open in browser"}
-									onAction={async () => {
-										await closeMainWindow();
-										await open(bookmark.url);
-									}}
+				{filteredUrlBookmarks.map(
+					({ id, browser, bookmark, folder, favorite }) => (
+						<List.Item
+							key={id}
+							subtitle={extractHost(bookmark.url) ?? undefined}
+							title={bookmark.name}
+							detail={
+								<BookmarkDetail
+									data={{ id, browser, bookmark, folder, favorite }}
 								/>
-								<Action
-									title="Toggle bookmark details"
-									icon={Icon.Bookmark}
-									onAction={() => setShowingDetail((v) => !v)}
-								/>
-							</ActionPanel>
-						}
-					/>
-				))}
+							}
+							icon={{
+								source: Icon.Bookmark,
+								tintColor: favorite ? Color.Yellow : undefined,
+							}}
+							accessories={!showingDetail ? [{ icon: browser.icon }] : []}
+							actions={
+								<ActionPanel>
+									<Action
+										title={"Open in browser"}
+										onAction={async () => {
+											await closeMainWindow();
+											await open(bookmark.url);
+										}}
+									/>
+									<Action
+										title="Toggle bookmark details"
+										icon={Icon.Bookmark}
+										onAction={() => setShowingDetail((v) => !v)}
+									/>
+									{!favorite && (
+										<Action
+											title="Add to favorites"
+											icon={{ source: Icon.Bookmark, tintColor: Color.Yellow }}
+											onAction={() => addToFavorites(bookmark.id)}
+										/>
+									)}
+									{favorite && (
+										<Action
+											title="Remove from favorites"
+											icon={{ source: Icon.Bookmark, tintColor: Color.Red }}
+											onAction={() => removeFromFavorites(bookmark.id)}
+										/>
+									)}
+								</ActionPanel>
+							}
+						/>
+					),
+				)}
 			</List.Section>
 		</List>
 	);
