@@ -218,6 +218,7 @@ export interface GitHubPullRequest {
   merged_at: string | null;
   labels: GitHubLabel[];
   requested_reviewers: GitHubUser[];
+  availableOn: string[];
   head: {
     ref: string;
   } | null;

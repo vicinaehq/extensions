@@ -458,6 +458,13 @@ export function PullRequestDetail({ pr }: { pr: GitHubPullRequest }) {
             text={pr.state === "open" ? "Open" : pr.merged_at ? "Merged" : "Closed"}
             icon={statusIcon}
           />
+          {pr.availableOn.length > 0 ? (
+            <Detail.Metadata.TagList title="Available on">
+              {pr.availableOn.map((l: string) => (
+                <Detail.Metadata.TagList.Item text={l} color={Color.PrimaryText} />
+              ))}
+            </Detail.Metadata.TagList>
+          ) : null}
           {pr.labels.length > 0 ? (
             <Detail.Metadata.TagList title="Labels">
               {pr.labels.map((l: GitHubLabel) => (

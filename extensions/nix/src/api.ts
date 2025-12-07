@@ -379,5 +379,12 @@ export async function getNixpkgsPullRequest(number: number): Promise<GitHubPullR
   if (!res.ok) throw new Error(`GitHub ${res.status}`);
   const data: GitHubPullRequest = await res.json();
 
+  const res_status = await fetch(`https://nixpkgs.molybdenum.software/api/v2/landings/${number}`);
+  if (!res_status.ok) throw new Error(`PR Status ${res_status.status}`);
+
+  const statusData = await res_status.json();
+  data.availableOn = statusData.branches;
+
   return data;
 }
+
