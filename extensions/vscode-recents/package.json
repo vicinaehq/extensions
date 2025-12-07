@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "vscode-recents",
   "title": "Visual Studio Code Recent Projects",
-  "description": "Quickly open your recent VSCode projects",
+  "description": "Open VSCode and compatible editors recent projects",
   "license": "MIT",
   "contributors": [],
   "pastContributors": [],
@@ -18,7 +18,22 @@
       "description": "View and open recent vscode projects"
     }
   ],
-  "preferences": [],
+  "preferences": [
+    {
+      "required": true,
+      "default": "Code",
+      "type": "dropdown",
+      "name": "vscodeFlavour",
+      "title": "VSCode Flavour",
+      "description": "The flavour of VSCode to use",
+      "data": [
+        { "title": "Cursor", "value": "Cursor" },
+        { "title": "VSCodium", "value": "VSCodium" },
+        { "title": "Visual Studio Code", "value": "Code" },
+        { "title": "Visual Studio Code (Insiders)", "value": "Code - Insiders" }
+      ]
+    }
+  ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",
