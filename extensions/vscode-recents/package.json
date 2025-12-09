@@ -1,0 +1,52 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "vscode-recents",
+  "title": "Visual Studio Code Recent Projects",
+  "description": "Open VSCode and compatible editors recent projects",
+  "license": "MIT",
+  "contributors": [],
+  "pastContributors": [],
+  "author": "ShyAssassin",
+  "icon": "extension_icon.png",
+  "categories": [ "Productivity" ],
+  "commands": [
+    {
+      "mode": "view",
+      "name": "open-recents",
+      "title": "Open Recents",
+      "subtitle": "Open a recent VSCode project",
+      "description": "View and open recent vscode projects"
+    }
+  ],
+  "preferences": [
+    {
+      "required": true,
+      "default": "Code",
+      "type": "dropdown",
+      "name": "vscodeFlavour",
+      "title": "VSCode Flavour",
+      "description": "The flavour of VSCode to use",
+      "data": [
+        { "title": "Cursor", "value": "Cursor" },
+        { "title": "VSCodium", "value": "VSCodium" },
+        { "title": "Visual Studio Code", "value": "Code" },
+        { "title": "Visual Studio Code (Insiders)", "value": "Code - Insiders" }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "sql.js": "^1.13.0",
+    "@vicinae/api": "^0.16.10"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/sql.js": "^1.4.9",
+    "typescript": "^5.9.2"
+  }
+}
