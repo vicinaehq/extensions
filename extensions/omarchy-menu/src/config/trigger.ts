@@ -1,14 +1,5 @@
 import { Icon } from "@vicinae/api";
-import {
-  terminal,
-  open_in_editor,
-  present_terminal,
-  install,
-  install_and_launch,
-  install_font,
-  install_terminal,
-  aur_install_and_launch,
-} from "~/helpers/actions";
+import { terminal } from "~/helpers/actions";
 import { MenuItem } from "./types";
 
 export const trigger: MenuItem = {
