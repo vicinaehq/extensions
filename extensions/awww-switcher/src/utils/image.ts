@@ -16,12 +16,22 @@ export interface Image {
 
 const parseImagesFromPath = async (path: string): Promise<string[]> => {
   try {
-    const wallpapers = await readdir(path);
-    return wallpapers.filter((w) =>
-      hyprpaperSupportedFormats.includes(
-        _path.extname(w).toLowerCase().replace(".", ""),
-      ),
-    );
+    // Recursively read all files in the directory and subdirectories
+    const entries = await readdir(path, { recursive: true, withFileTypes: true });
+    
+    const imagePaths: string[] = [];
+    for (const entry of entries) {
+      if (entry.isFile()) {
+        const ext = _path.extname(entry.name).toLowerCase().replace(".", "");
+        if (hyprpaperSupportedFormats.includes(ext)) {
+          // Build the relative path from the entry's parent path and name
+          const relativePath = _path.join(entry.parentPath.replace(path, ""), entry.name);
+          imagePaths.push(relativePath.startsWith("/") ? relativePath.slice(1) : relativePath);
+        }
+      }
+    }
+    
+    return imagePaths;
   } catch (e) {
     console.error(e);
     throw new Error("Failed to get images from provided path");
@@ -53,7 +63,8 @@ const processImage = async (path: string): Promise<Image> => {
       name: _path.basename(path),
     };
   } catch (e) {
-    console.error(`⚠️ Skipping ${path}:`, e.message);
+    const message = e instanceof Error ? e.message : String(e);
+    console.error(`⚠️ Skipping ${path}:`, message);
     const stats = await stat(path).catch(() => ({
       size: 0,
       birthtime: new Date(),
