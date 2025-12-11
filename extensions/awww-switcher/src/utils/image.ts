@@ -18,20 +18,17 @@ const parseImagesFromPath = async (path: string): Promise<string[]> => {
   try {
     // Recursively read all files in the directory and subdirectories
     const entries = await readdir(path, { recursive: true, withFileTypes: true });
-    
-    const imagePaths: string[] = [];
-    for (const entry of entries) {
-      if (entry.isFile()) {
+
+    return entries
+      .filter((entry) => {
+        if (!entry.isFile()) return false;
         const ext = _path.extname(entry.name).toLowerCase().replace(".", "");
-        if (hyprpaperSupportedFormats.includes(ext)) {
-          // Build the relative path from the entry's parent path and name
-          const relativePath = _path.join(entry.parentPath.replace(path, ""), entry.name);
-          imagePaths.push(relativePath.startsWith("/") ? relativePath.slice(1) : relativePath);
-        }
-      }
-    }
-    
-    return imagePaths;
+        return hyprpaperSupportedFormats.includes(ext);
+      })
+      .map((entry) => {
+        const relativePath = _path.join(entry.parentPath.replace(path, ""), entry.name);
+        return relativePath.startsWith("/") ? relativePath.slice(1) : relativePath;
+      });
   } catch (e) {
     console.error(e);
     throw new Error("Failed to get images from provided path");
