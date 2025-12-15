@@ -1,0 +1,96 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "claude",
+  "title": "Claude",
+  "description": "Chat with Claude AI directly from Vicinae. Ask questions, get help with coding, writing, analysis, and more. Note: This is an early example of a chat integration built with Vicinae extensions.",
+  "categories": [
+    "Productivity",
+    "Communication",
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "author": "dfseifert",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "claude-extension-icon.png",
+  "commands": [
+    {
+      "name": "new-chat",
+      "title": "New Chat with Claude",
+      "subtitle": "Start a fresh conversation",
+      "description": "Start a new conversation with Claude AI for help with coding, writing, analysis, and more",
+      "mode": "view"
+    },
+    {
+      "name": "chat-list",
+      "title": "Claude Chat History",
+      "subtitle": "View saved conversations",
+      "description": "Browse and continue your previous conversations with Claude AI",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "apiKey",
+      "type": "password",
+      "required": true,
+      "title": "API Key",
+      "description": "Your Anthropic API key. Get one at https://console.anthropic.com/",
+      "placeholder": "sk-ant-..."
+    },
+    {
+      "name": "model",
+      "type": "dropdown",
+      "required": false,
+      "title": "Claude Model",
+      "description": "Which Claude model to use for conversations",
+      "default": "claude-haiku-4-5",
+      "data": [
+        {
+          "title": "Claude 4.5 Sonnet (Latest)",
+          "value": "claude-sonnet-4-5"
+        },
+        {
+          "title": "Claude 4.5 Haiku",
+          "value": "claude-haiku-4-5"
+        },
+        {
+          "title": "Claude 4.5 Opus",
+          "value": "claude-opus-4-5"
+        }
+      ]
+    },
+    {
+      "name": "maxTokens",
+      "type": "textfield",
+      "required": false,
+      "title": "Max Tokens",
+      "description": "Maximum number of tokens to generate in responses",
+      "default": "4096",
+      "placeholder": "4096"
+    },
+    {
+      "name": "enableStreaming",
+      "type": "checkbox",
+      "required": false,
+      "title": "Enable Streaming",
+      "description": "Stream responses in real-time as they arrive.",
+      "default": true,
+      "label": "Enable real-time streaming"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@vicinae/api": "^0.16.14"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "typescript": "^5.9.2"
+  }
+}
