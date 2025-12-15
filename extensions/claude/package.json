@@ -12,7 +12,7 @@
   "author": "dfseifert",
   "contributors": [],
   "pastContributors": [],
-  "icon": "claude-extension-icon.png",
+  "icon": "extension_icon.png",
   "commands": [
     {
       "name": "new-chat",
