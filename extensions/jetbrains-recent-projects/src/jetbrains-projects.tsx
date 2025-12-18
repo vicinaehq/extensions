@@ -65,12 +65,12 @@ export default function JetBrainsProjects() {
 	});
 	const [reloadToken, setReloadToken] = useState(0);
 
-	const prefs = useMemo(() => getResolvedPreferences(), []);
-
 	useEffect(() => {
 		let cancelled = false;
 
 		const loadData = async () => {
+			const prefs = getResolvedPreferences();
+
 			setData((prev) => ({
 				...prev,
 				isLoading: true,
@@ -144,7 +144,7 @@ export default function JetBrainsProjects() {
 		return () => {
 			cancelled = true;
 		};
-	}, [reloadToken, prefs]);
+	}, [reloadToken]);
 
 	const handleReload = useCallback(() => {
 		setReloadToken((x) => x + 1);
