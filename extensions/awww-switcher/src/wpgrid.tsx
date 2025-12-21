@@ -39,7 +39,7 @@ export default function DisplayGrid() {
   };
 
   useEffect(() => {
-    wm.getScreens().then(setMonitors, (err) => {
+    wm.getScreens().then(setMonitors, (err: unknown) => {
       setIsWMSupported(false);
 
       showToast({
