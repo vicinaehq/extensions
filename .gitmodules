@@ -1,0 +1,3 @@
+[submodule "extensions/hyprpaper-switcher"]
+	path = extensions/hyprpaper-switcher
+	url = git@github.com:z0xca/hyprpaper-switcher.git
