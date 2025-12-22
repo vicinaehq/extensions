@@ -13,7 +13,7 @@ If you want to install extensions manually though, here is what you need to do:
 Clone the repository. you might want to use [git sparse checkout](https://git-scm.com/docs/git-sparse-checkout) as the repository is growing big:
 
 ```bash
-git clone https://github.com/vicinaehq/extensions
+git clone https://github.com/vicinaehq/extensions --recurse-submodules
 ```
 
 Then move to the directory of the extension you are interested in:
