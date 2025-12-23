@@ -16,8 +16,6 @@ export interface Message {
 	timestamp: Date;
 }
 
-export type MessageRole = Message["role"];
-
 export interface Chat {
 	id: string;
 	title: string;

@@ -7,6 +7,42 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { Message } from "../types";
 import { DEFAULTS } from "../constants";
 
+/**
+ * Produce a detailed, user-friendly error string from Anthropic SDK/network errors
+ */
+export function describeError(err: unknown): string {
+	const e = err as any;
+	const parts: string[] = [];
+	if (e?.name) parts.push(String(e.name));
+	if (e?.status) parts.push(`status ${e.status}`);
+	if (e?.code) parts.push(`code ${e.code}`);
+	const header = parts.length ? parts.join(" / ") : "Request failed";
+
+	// Anthropic API errors often nest message under error.message
+	const detail = e?.error?.message ?? e?.message ?? "Unknown error";
+
+	// Provide concise hinting for common cases
+	const type = e?.error?.type ?? e?.type;
+
+	let hint = "";
+	switch (type) {
+		case "authentication_error":
+			hint = " (check API key)";
+			break;
+		case "invalid_request_error":
+			hint = " (invalid request parameters)";
+			break;
+		case "rate_limit_error":
+			hint = " (rate limited; try again later)";
+			break;
+		case "api_error":
+			hint = " (server error)";
+			break;
+	}
+
+	return `${header}: ${detail}${hint}`;
+}
+
 interface SendMessageParams {
 	apiKey: string;
 	messages: Message[];
@@ -50,7 +86,7 @@ export async function streamMessageToClaude(
 
 		let fullText = "";
 
-		const stream = await anthropic.messages.stream({
+		const stream = anthropic.messages.stream({
 			model,
 			max_tokens: maxTokens,
 			messages: apiMessages,
@@ -83,12 +119,10 @@ export async function streamMessageToClaude(
 			success: true,
 		};
 	} catch (error) {
-		const errorMessage =
-			error instanceof Error ? error.message : "Unknown error occurred";
 		return {
 			content: "",
 			success: false,
-			error: errorMessage,
+			error: describeError(error),
 		};
 	}
 }
@@ -137,12 +171,10 @@ export async function sendMessageToClaude(
 			success: true,
 		};
 	} catch (error) {
-		const errorMessage =
-			error instanceof Error ? error.message : "Unknown error occurred";
 		return {
 			content: "",
 			success: false,
-			error: errorMessage,
+			error: describeError(error),
 		};
 	}
 }

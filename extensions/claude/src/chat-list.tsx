@@ -18,6 +18,7 @@ import {
 	loadAllChats,
 	deleteChat,
 	loadChat,
+	subscribeChats,
 } from "./services/chatStorage";
 import { ChatView } from "./components/ChatView";
 import { COLORS, EMOJIS } from "./constants";
@@ -31,11 +32,17 @@ export default function ChatListCommand() {
 	const [isLoading, setIsLoading] = useState(true);
 	const { push } = useNavigation();
 
-	// Load chats on mount
+	// Load chats on mount and refresh on storage changes
 	React.useEffect(() => {
-		const loadedChats = loadAllChats();
-		setChats(loadedChats);
-		setIsLoading(false);
+		const load = () => {
+			const loadedChats = loadAllChats();
+			setChats(loadedChats);
+			setIsLoading(false);
+		};
+
+		load();
+		const unsubscribe = subscribeChats(load);
+		return () => unsubscribe();
 	}, []);
 
 	const handleOpenChat = (chatId: string) => {

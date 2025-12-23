@@ -12,6 +12,19 @@ const CHAT_KEY_PREFIX = "chat_";
 // Initialize cache instance for chat storage
 const cache = new Cache({ namespace: "chats" });
 
+// Lightweight subscription to notify listeners when chats change
+type ChatsListener = () => void;
+const chatsListeners = new Set<ChatsListener>();
+
+function notifyChatsChanged() {
+	for (const listener of chatsListeners) listener();
+}
+
+export function subscribeChats(listener: ChatsListener): () => void {
+	chatsListeners.add(listener);
+	return () => chatsListeners.delete(listener);
+}
+
 /**
  * Generate a unique chat ID
  */
@@ -98,6 +111,9 @@ export function saveChat(chat: Chat): void {
 		index.unshift(chat.id); // Add to beginning (most recent first)
 		updateChatIndex(index);
 	}
+
+	// Notify listeners that chats have changed
+	notifyChatsChanged();
 }
 
 /**
@@ -144,6 +160,9 @@ export function deleteChat(chatId: string): boolean {
 		const index = getChatIndex();
 		const newIndex = index.filter((id) => id !== chatId);
 		updateChatIndex(newIndex);
+
+		// Notify listeners that chats have changed
+		notifyChatsChanged();
 	}
 
 	return removed;
@@ -167,4 +186,5 @@ export function createNewChat(): Chat {
  */
 export function clearAllChats(): void {
 	cache.clear();
+	notifyChatsChanged();
 }

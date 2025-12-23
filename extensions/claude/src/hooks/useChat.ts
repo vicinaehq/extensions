@@ -2,15 +2,16 @@
  * Custom hook for managing a chat session with persistence and streaming
  */
 
-import { useState, useCallback, useEffect } from "react";
-import { showToast, Toast, getPreferenceValues } from "@vicinae/api";
+import { useCallback, useEffect, useState } from "react";
+import { getPreferenceValues, showToast, Toast } from "@vicinae/api";
 import type { Chat, Message, Preferences } from "../types";
 import {
-	streamMessageToClaude,
+	describeError,
 	sendMessageToClaude,
+	streamMessageToClaude,
 } from "../services/claudeService";
 import { saveChat } from "../services/chatStorage";
-import { TOAST_MESSAGES, EMOJIS } from "../constants";
+import { EMOJIS, TOAST_MESSAGES } from "../constants";
 import { formatCharacterCount } from "../utils/formatting";
 
 interface UseChatReturn {
@@ -23,9 +24,9 @@ interface UseChatReturn {
 /**
  * Generate a unique message ID
  */
-function generateMessageId(): string {
-	return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-}
+const generateMessageId = () =>
+	(globalThis.crypto?.randomUUID?.() as string | undefined) ??
+	`msg_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
 /**
  * Hook for managing a chat session with auto-save and streaming support
@@ -46,7 +47,7 @@ export function useChat(initialChat: Chat): UseChatReturn {
 		async (userMessage: string): Promise<void> => {
 			// Validate message
 			if (!userMessage.trim()) {
-				showToast({
+				await showToast({
 					style: Toast.Style.Failure,
 					title: TOAST_MESSAGES.EMPTY_MESSAGE.title,
 					message: TOAST_MESSAGES.EMPTY_MESSAGE.message,
@@ -57,7 +58,7 @@ export function useChat(initialChat: Chat): UseChatReturn {
 			// Get preferences
 			const preferences = getPreferenceValues<Preferences>();
 			if (!preferences.apiKey) {
-				showToast({
+				await showToast({
 					style: Toast.Style.Failure,
 					title: TOAST_MESSAGES.API_KEY_MISSING.title,
 					message: TOAST_MESSAGES.API_KEY_MISSING.message,
@@ -85,37 +86,22 @@ export function useChat(initialChat: Chat): UseChatReturn {
 			setIsLoading(true);
 
 			// Initialize placeholder message for both streaming and non-streaming
-			if (preferences.enableStreaming) {
-				setStreamingMessage(""); // Will be updated in real-time during streaming
-			} else {
-				setStreamingMessage("Thinking..."); // Static placeholder for non-streaming
-			}
+			setStreamingMessage(preferences.enableStreaming ? "" : "Thinking...");
 
 			try {
-				let response;
+				const common = {
+					apiKey: preferences.apiKey,
+					messages: updatedMessages,
+					model: preferences.model,
+					maxTokens: parseInt(preferences.maxTokens, 10),
+				} as const;
 
-				// Use streaming or non-streaming API based on preference
-				if (preferences.enableStreaming) {
-					// Send to Claude API with streaming (experimental)
-					response = await streamMessageToClaude({
-						apiKey: preferences.apiKey,
-						messages: updatedMessages,
-						model: preferences.model,
-						maxTokens: parseInt(preferences.maxTokens, 10),
-						onUpdate: (text: string) => {
-							// Update streaming message in real-time
-							setStreamingMessage(text);
-						},
-					});
-				} else {
-					// Send to Claude API without streaming (default, stable)
-					response = await sendMessageToClaude({
-						apiKey: preferences.apiKey,
-						messages: updatedMessages,
-						model: preferences.model,
-						maxTokens: parseInt(preferences.maxTokens, 10),
-					});
-				}
+				const response = preferences.enableStreaming
+					? await streamMessageToClaude({
+							...common,
+							onUpdate: setStreamingMessage,
+						})
+					: await sendMessageToClaude(common);
 
 				if (!response.success) {
 					throw new Error(
@@ -138,20 +124,32 @@ export function useChat(initialChat: Chat): UseChatReturn {
 					updatedAt: new Date(),
 				}));
 
-				showToast({
+				await showToast({
 					style: Toast.Style.Success,
 					title: `${EMOJIS.CHECK} ${TOAST_MESSAGES.RESPONSE_RECEIVED.title}`,
 					message: formatCharacterCount(response.content.length),
 				});
 			} catch (error) {
-				showToast({
+				const msg = describeError(error);
+				await showToast({
 					style: Toast.Style.Failure,
 					title: `${EMOJIS.CROSS} ${TOAST_MESSAGES.ERROR.title}`,
-					message:
-						error instanceof Error
-							? error.message
-							: "Failed to get response from Claude",
+					message: msg,
 				});
+
+				setChat((prev) => ({
+					...prev,
+					messages: [
+						...updatedMessages,
+						{
+							id: generateMessageId(),
+							role: "assistant",
+							content: `### ${EMOJIS.CROSS} Error\n\n${msg}\n`,
+							timestamp: new Date(),
+						},
+					],
+					updatedAt: new Date(),
+				}));
 			} finally {
 				setIsLoading(false);
 				setStreamingMessage(null);
