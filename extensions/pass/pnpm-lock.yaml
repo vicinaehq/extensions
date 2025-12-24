@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@vicinae/api':
-        specifier: 0.8.4
-        version: 0.8.4(@types/node@20.19.24)(@types/react@18.3.26)(typescript@5.9.3)
+        specifier: 0.17.2
+        version: 0.17.2(@types/node@20.19.24)(@types/react@18.3.26)(typescript@5.9.3)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -225,12 +225,12 @@ packages:
   '@types/react@18.3.26':
     resolution: {integrity: sha512-RFA/bURkcKzx/X9oumPG9Vp3D3JUgus/d0b67KB0t5S/raciymilkOa66olh78MUI92QLbEJevO7rvqU/kjwKA==}
 
-  '@vicinae/api@0.8.4':
-    resolution: {integrity: sha512-TXKWGPzQ4/xDp3Z6DMNHnrt7CD1dump5Z9qLnowUXjt7S4a5qYzIHsyDcOH9bVOyQLawkRkJp4Co4Dh6NBMdUw==}
+  '@vicinae/api@0.17.2':
+    resolution: {integrity: sha512-dCGEu9pXcwly1g1dmuUY2XU5VBWmtpoNrahvMiwB8zNpfspy+rKv4sl7UfKJQ+TxzW58ajcUQ8d4H4ntl21T6w==}
     hasBin: true
     peerDependencies:
       '@types/node': '>=18'
-      '@types/react': ^18.1.0
+      '@types/react': 19.0.10
 
   ansi-escapes@4.3.2:
     resolution: {integrity: sha512-gKXj5ALrKWQLsYG9jlTRmR/xKluxHV+Z9QEwNIgCfM1/uwPMCuzVVnh5mwTd+OuBZcwSIMbqssNWRm1lE51QaQ==}
@@ -256,10 +256,6 @@ packages:
 
   brace-expansion@2.0.2:
     resolution: {integrity: sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ==}
-
-  chalk@5.6.2:
-    resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
-    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
@@ -490,12 +486,12 @@ packages:
     peerDependencies:
       react: ^18.3.1
 
-  react@18.1.0:
-    resolution: {integrity: sha512-4oL8ivCz5ZEPyclFQXaNksK3adutVS8l2xzZU0cqEFrE9Sb7fC0EFK5uEk74wIreL1DERyjvsU915j1pcT2uEQ==}
-    engines: {node: '>=0.10.0'}
-
   react@18.3.1:
     resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
+    engines: {node: '>=0.10.0'}
+
+  react@19.0.0:
+    resolution: {integrity: sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==}
     engines: {node: '>=0.10.0'}
 
   readdirp@4.1.2:
@@ -707,7 +703,7 @@ snapshots:
       '@types/prop-types': 15.7.15
       csstype: 3.1.3
 
-  '@vicinae/api@0.8.4(@types/node@20.19.24)(@types/react@18.3.26)(typescript@5.9.3)':
+  '@vicinae/api@0.17.2(@types/node@20.19.24)(@types/react@18.3.26)(typescript@5.9.3)':
     dependencies:
       '@jgoz/esbuild-plugin-typecheck': 4.0.4(esbuild@0.25.12)(typescript@5.9.3)
       '@oclif/core': 4.8.0
@@ -715,10 +711,9 @@ snapshots:
       '@oclif/plugin-plugins': 5.4.53
       '@types/node': 20.19.24
       '@types/react': 18.3.26
-      chalk: 5.6.2
       chokidar: 4.0.3
       esbuild: 0.25.12
-      react: 18.1.0
+      react: 19.0.0
       zod: 4.1.12
     transitivePeerDependencies:
       - '@jgoz/esbuild-plugin-livereload'
@@ -744,8 +739,6 @@ snapshots:
   brace-expansion@2.0.2:
     dependencies:
       balanced-match: 1.0.2
-
-  chalk@5.6.2: {}
 
   chokidar@4.0.3:
     dependencies:
@@ -891,13 +884,11 @@ snapshots:
       react: 18.3.1
       scheduler: 0.23.2
 
-  react@18.1.0:
-    dependencies:
-      loose-envify: 1.4.0
-
   react@18.3.1:
     dependencies:
       loose-envify: 1.4.0
+
+  react@19.0.0: {}
 
   readdirp@4.1.2: {}
 
