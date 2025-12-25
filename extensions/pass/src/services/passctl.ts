@@ -3,7 +3,9 @@ import path from "path";
 import { Preferences } from "@/preferences";
 import { runCommand } from "@/services/command";
 
-export async function listPasswordEntries(storePath: string): Promise<string[]> {
+export async function listPasswordEntries(
+  storePath: string
+): Promise<string[]> {
   const stats = await safeStat(storePath);
   if (!stats?.isDirectory()) {
     throw new Error(`Password store path "${storePath}" is not a directory`);
@@ -13,7 +15,10 @@ export async function listPasswordEntries(storePath: string): Promise<string[]> 
   return entries.sort((a, b) => a.localeCompare(b));
 }
 
-export async function decryptPasswordEntry(entry: string, preferences: Preferences): Promise<string> {
+export async function decryptPasswordEntry(
+  entry: string,
+  preferences: Preferences
+): Promise<string> {
   const filePath = path.join(preferences.passwordStorePath, `${entry}.gpg`);
   const stats = await safeStat(filePath);
   if (!stats?.isFile()) {
@@ -22,7 +27,11 @@ export async function decryptPasswordEntry(entry: string, preferences: Preferenc
 
   const args = ["--batch", "--yes"];
   if (preferences.gpgPassphrase) {
-    args.push("--pinentry-mode=loopback", "--passphrase", preferences.gpgPassphrase);
+    args.push(
+      "--pinentry-mode=loopback",
+      "--passphrase",
+      preferences.gpgPassphrase
+    );
   }
   args.push("-d", filePath);
 
@@ -39,15 +48,28 @@ async function walkStore(root: string, relative = ""): Promise<string[]> {
   for (const dirent of dirEntries) {
     if (dirent.isDirectory()) {
       if (shouldSkipDirectory(dirent.name)) continue;
-      const childRelative = relative ? path.join(relative, dirent.name) : dirent.name;
+      const childRelative = relative
+        ? path.join(relative, dirent.name)
+        : dirent.name;
       const nested = await walkStore(root, childRelative);
       entries.push(...nested);
-    } else if (dirent.isFile() && dirent.name.endsWith(".gpg")) {
-      const fileRelative = relative ? path.join(relative, dirent.name) : dirent.name;
+      continue;
+    }
+    if (!dirent.name.endsWith(".gpg")) continue;
+    if (dirent.isFile()) {
+      const fileRelative = relative
+        ? path.join(relative, dirent.name)
+        : dirent.name;
       entries.push(normalizeEntryName(fileRelative.slice(0, -4)));
     }
+    if (dirent.isSymbolicLink()) {
+      const fullPath = path.join(dir, dirent.name);
+      const linkStats = await fs.stat(fullPath);
+      if (!linkStats.isFile()) continue;
+      entries.push(normalizeEntryName(dirent.name.slice(0, -4)));
+    }
   }
-
+  console.log(entries);
   return entries;
 }
 
