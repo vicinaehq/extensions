@@ -14,9 +14,34 @@ export const update: MenuItem = {
       command: present_terminal("omarchy-update"),
     },
     {
+      id: "channel",
+      name: "Channel",
+      icon: "󰔫",
+      items: [
+        {
+          id: "stable",
+          name: "Stable",
+          icon: "",
+          command: present_terminal("omarchy-channel-set stable"),
+        },
+        {
+          id: "edge",
+          name: "Edge",
+          icon: "",
+          command: present_terminal("omarchy-channel-set edge"),
+        },
+        {
+          id: "dev",
+          name: "Dev",
+          icon: "",
+          command: present_terminal("omarchy-channel-set dev"),
+        },
+      ],
+    },
+    {
       id: "config",
       name: "Config",
-      icon: "󰣇",
+      icon: "",
       items: [
         {
           id: "hyprland",
@@ -70,14 +95,14 @@ export const update: MenuItem = {
     },
     {
       id: "themes",
-      name: "Themes",
-      icon: "󰣇",
+      name: "Extra Themes",
+      icon: "󰸌",
       command: present_terminal("omarchy-theme-update"),
     },
     {
       id: "process",
       name: "Process",
-      icon: "󰣇",
+      icon: "",
       items: [
         {
           id: "hypridle",
@@ -114,7 +139,7 @@ export const update: MenuItem = {
     {
       id: "hardware",
       name: "Hardware",
-      icon: "󰣇",
+      icon: "󰇅",
       items: [
         {
           id: "audio",
@@ -139,25 +164,25 @@ export const update: MenuItem = {
     {
       id: "firmware",
       name: "Firmware",
-      icon: "󰣇",
+      icon: "",
       command: present_terminal("omarchy-update-firmware"),
     },
     {
       id: "timezone",
       name: "Timezone",
-      icon: "󰣇",
+      icon: "",
       command: present_terminal("omarchy-tz-select"),
     },
     {
       id: "time",
       name: "Time",
-      icon: "󰣇",
+      icon: "",
       command: present_terminal("omarchy-update-time"),
     },
     {
       id: "password",
       name: "Password",
-      icon: "󰣇",
+      icon: "",
       items: [
         {
           id: "drive-encryption",
