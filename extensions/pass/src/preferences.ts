@@ -7,6 +7,7 @@ type RawPreferences = {
   additionalPath?: string;
   otpAfterPassword?: boolean;
   lastUsedTtl?: string;
+  action?: "paste" | "copy";
 };
 
 export type Preferences = {
@@ -15,6 +16,7 @@ export type Preferences = {
   additionalPath?: string;
   otpAfterPassword: boolean;
   lastUsedTtlSeconds: number;
+  action: "paste" | "copy";
 };
 
 export function getPreferences(): Preferences {
@@ -26,6 +28,7 @@ export function getPreferences(): Preferences {
     additionalPath: sanitizeString(raw.additionalPath),
     otpAfterPassword: raw.otpAfterPassword ?? true,
     lastUsedTtlSeconds: parsePositiveInt(raw.lastUsedTtl, 120),
+    action: raw.action || "paste",
   };
 }
 

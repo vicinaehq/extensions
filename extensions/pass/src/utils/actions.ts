@@ -7,13 +7,14 @@ export type PasswordActionType = "copy" | "paste";
 export async function performPasswordAction(
   passwordName: string,
   option: PasswordOption,
-  action: PasswordActionType,
+  action: PasswordActionType
 ): Promise<void> {
   const concealed = option.type === "password" || option.type === "otp";
 
   try {
     if (action === "copy") {
       await Clipboard.copy(option.value, { concealed });
+      await closeMainWindow();
     } else {
       await closeMainWindow();
       await Clipboard.paste(option.value);
