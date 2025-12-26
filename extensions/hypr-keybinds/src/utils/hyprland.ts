@@ -1,47 +1,86 @@
-import { promises as fs } from "fs";
-import os from "os";
-import path from "path";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+import { readFileSync, existsSync } from "node:fs";
+
+const execAsync = promisify(exec);
+const HEADER_PATH = "/usr/include/linux/input-event-codes.h";
+
+function loadEvdevKeycodes(): Record<number, string> {
+  const keycodes: Record<number, string> = {};
+
+  if (!existsSync(HEADER_PATH)) {
+    console.warn(`Linux input headers not found at ${HEADER_PATH}`);
+    return keycodes;
+  }
+
+  try {
+    const header = readFileSync(HEADER_PATH, "utf8");
+
+    for (const line of header.split("\n")) {
+      const match = line.match(/^#define\s+KEY_([A-Z0-9_]+)\s+(\d+)/);
+      if (match) {
+        const [, name, code] = match;
+        keycodes[Number(code)] = name;
+      }
+    }
+  } catch (err) {
+    console.warn(`Failed to read ${HEADER_PATH}:`, err);
+  }
+
+  return keycodes;
+}
+
+const XKB_EVDEV_OFFSET = 8;
+function keycodeToKey(keycode: number): string {
+  const keycodes = loadEvdevKeycodes();
+  const evdevCode = keycode - XKB_EVDEV_OFFSET;
+  return keycodes[evdevCode] || `code:${keycode}`;
+}
 
 export type HyprBind = {
-  directive: string;
-  modifiers: string;
   key: string;
-  action: string;
-  command: string;
-  comment: string;
-  lineNumber: number;
-  configPath: string;
+  modifiers: string;
+  dispatcher: string;
+  arg: string;
+  description: string;
+  locked: boolean;
+  mouse: boolean;
+  release: boolean;
+  repeat: boolean;
+  longPress: boolean;
+  nonConsuming: boolean;
+  submap: string;
 };
 
-function expandTilde(p: string): string {
-  if (!p) return p;
-  if (p.startsWith("~")) {
-    return path.join(os.homedir(), p.slice(1));
-  }
-  return p.replace("${HOME}", os.homedir()).replace("$HOME", os.homedir());
+interface HyprctlBind {
+  locked: boolean;
+  mouse: boolean;
+  release: boolean;
+  repeat: boolean;
+  longPress: boolean;
+  non_consuming: boolean;
+  has_description: boolean;
+  modmask: number;
+  submap: string;
+  key: string;
+  keycode: number;
+  catch_all: boolean;
+  description: string;
+  dispatcher: string;
+  arg: string;
 }
 
-function trim(s: string): string {
-  return s.replace(/^\s+|\s+$/g, "");
+function modmaskToString(modmask: number): string {
+  const mods: string[] = [];
+  if (modmask & 1) mods.push("SHIFT");
+  if (modmask & 4) mods.push("CTRL");
+  if (modmask & 8) mods.push("ALT");
+  if (modmask & 64) mods.push("SUPER");
+  return mods.join(" + ");
 }
 
-function joinWithCommas(parts: string[], startIdx: number): string {
-  const slice = parts.slice(startIdx - 1);
-  return trim(slice.join(","));
-}
-
-function jsonEscape(s: string): string {
-  return s
-    .trim()
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\t/g, "\\t")
-    .replace(/\r/g, "\\r")
-    .replace(/\n/g, "\\n");
-}
-
-function mapMouseKey(k: string): string {
-  const low = k.replace(/\s+/g, "").toLowerCase();
+function mapMouseKey(key: string): string {
+  const low = key.replace(/\s+/g, "").toLowerCase();
   if (low === "mouse:272") return "left click";
   if (low === "mouse:273") return "right click";
   if (low === "mouse:274") return "middle click";
@@ -49,97 +88,35 @@ function mapMouseKey(k: string): string {
   if (low === "mouse:wheeldown") return "wheeldown";
   if (low === "mouse:wheelleft") return "wheelleft";
   if (low === "mouse:wheelright") return "wheelright";
-  return k;
+  return key;
 }
 
-function parseDirectiveLine(
-  raw: string,
-  lineNumber: number,
-  configPath: string,
-): HyprBind | null {
-  raw = raw.replace(/\r$/, "");
+export async function getHyprlandKeybinds(): Promise<HyprBind[]> {
+  const { stdout } = await execAsync("hyprctl -j binds", {
+    timeout: 10000,
+  });
 
-  // Match: optional spaces, directive starting with bind*, optional (flags), =, rhs
-  const m = raw.match(/^\s*(bind[\w]*)\s*(\([^)]*\))?\s*=\s*(.*)$/);
-  if (!m) return null;
+  const rawBinds: HyprctlBind[] = JSON.parse(stdout);
 
-  const directive = m[1];
-  let rhs = m[3];
+  return rawBinds.map((bind) => {
+    let key = bind.key;
+    if (!key && bind.keycode) key = keycodeToKey(bind.keycode);
+    if (bind.mouse) key = mapMouseKey(key);
+    const modifiers = modmaskToString(bind.modmask);
 
-  // Inline comment extraction
-  let comment = "";
-  const hashPos = rhs.indexOf("#");
-  if (hashPos > -1) {
-    comment = trim(rhs.slice(hashPos + 1));
-    rhs = trim(rhs.slice(0, hashPos));
-  }
-
-  // Split those Commas
-  let parts = rhs.split(",").map((p) => trim(p));
-  if (parts.length === 0) parts = [""];
-
-  const mods = parts[0] ?? "";
-  const key = parts[1] ?? "";
-
-  let action = "";
-  let command = "";
-
-  if (directive === "bindd" || /^bindd[\w]*$/.test(directive)) {
-    comment = parts[2] ?? "";
-    action = parts[3] ?? "";
-    if (parts.length >= 5) command = parts.slice(4).join(",").trim();
-  } else {
-    action = parts[2] ?? "";
-    if (parts.length >= 4) command = parts.slice(3).join(",").trim();
-  }
-
-  // Swap out modifiers, future update maybe
-  let normMods = mods.replace(/\$mainMod/g, "SUPER");
-  //let normMods = mods;
-
-  // Mouse key mapping if bindm or key contains mouse:
-  let normKey = key;
-  if (/^bindm(\W|$)|^bindm$/.test(directive) || /^mouse:/i.test(key)) {
-    normKey = mapMouseKey(key);
-  }
-
-  return {
-    directive: jsonEscape(directive),
-    modifiers: jsonEscape(normMods),
-    key: jsonEscape(normKey),
-    action: jsonEscape(action),
-    command: jsonEscape(command),
-    comment: jsonEscape(comment),
-    lineNumber: lineNumber,
-    configPath: configPath,
-  };
-}
-
-export async function readHyprlandConfig(configPath: string): Promise<string> {
-  const full = expandTilde(configPath);
-  return await fs.readFile(full, "utf8");
-}
-
-export function parseHyprlandKeybinds(
-  contents: string,
-  configPath: string,
-): HyprBind[] {
-  const lines = contents.split("\n");
-  const results: HyprBind[] = [];
-  for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i];
-    const lineNumber = i + 1;
-    // Ignore blank lines and comment lines
-    if (/^\s*$/.test(raw) || /^\s*#/.test(raw)) continue;
-    const parsed = parseDirectiveLine(raw, lineNumber, configPath);
-    if (parsed) results.push(parsed);
-  }
-  return results;
-}
-
-export async function getHyprlandKeybinds(
-  configPath: string,
-): Promise<HyprBind[]> {
-  const text = await readHyprlandConfig(configPath);
-  return parseHyprlandKeybinds(text, configPath);
+    return {
+      key: key,
+      modifiers,
+      dispatcher: bind.dispatcher,
+      arg: bind.arg,
+      description: bind.description || "",
+      locked: bind.locked,
+      mouse: bind.mouse,
+      release: bind.release,
+      repeat: bind.repeat,
+      longPress: bind.longPress,
+      nonConsuming: bind.non_consuming,
+      submap: bind.submap,
+    };
+  });
 }

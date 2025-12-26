@@ -18,21 +18,12 @@
       "mode": "view"
     }
   ],
-  "preferences": [
-    {
-      "name": "keybindsConfigPath",
-      "title": "Keybinds Config Path",
-      "description": "The path to your hyprland keybinds config file",
-      "required": true,
-      "type": "textfield"
-    }
-  ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.13.4"
+    "@vicinae/api": "^0.17.3"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
