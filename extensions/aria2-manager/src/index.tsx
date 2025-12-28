@@ -17,28 +17,6 @@ const RPC_SECRET: string | null = null;
 const DOWNLOAD_DIR = process.env.HOME ? `${process.env.HOME}/Downloads` : '/tmp';
 
 /**
- * Get status icon for download
- */
-function getDownloadIcon(status: DownloadInfo['status']): { source: Icon; tintColor?: Color } {
-    switch (status) {
-        case 'active':
-            return { source: Icon.ArrowDown, tintColor: Color.Blue };
-        case 'waiting':
-            return { source: Icon.Clock, tintColor: Color.Orange };
-        case 'paused':
-            return { source: Icon.Pause, tintColor: Color.Yellow };
-        case 'complete':
-            return { source: Icon.Checkmark, tintColor: Color.Green };
-        case 'error':
-            return { source: Icon.XMarkCircle, tintColor: Color.Red };
-        case 'removed':
-            return { source: Icon.Trash, tintColor: Color.SecondaryText };
-        default:
-            return { source: Icon.Document };
-    }
-}
-
-/**
  * Main Download Manager Command
  * Entry point for the Vicinae extension
  */
@@ -121,6 +99,7 @@ export default function Command() {
             const downloadInfos = allTasks.map(taskToDownloadInfo);
 
             setDownloads(downloadInfos);
+            setLastUpdate(Date.now());
             setError(null);
         } catch (err) {
             console.error('[aria2] Fetch error:', err);
@@ -129,11 +108,19 @@ export default function Command() {
         }
     };
 
-    // Fetch downloads on connect (no continuous polling - Vicinae doesn't support live updates)
-    // Use Cmd+R to manually refresh
+
+    // Fetch downloads on connect and poll every 5 seconds for status updates
     useEffect(() => {
         if (!isConnected) return;
+
         loadDownloads();
+
+        // Poll every 5 seconds to update status (Active → Complete transitions)
+        const interval = setInterval(() => {
+            loadDownloads();
+        }, 5000);
+
+        return () => clearInterval(interval);
     }, [isConnected]);
 
     // Smart add download handler
@@ -186,8 +173,11 @@ export default function Command() {
             const gid = await clientRef.current.addUri([downloadUrl], options);
             await showToast({ style: Toast.Style.Success, title: 'Download started!', message: `GID: ${gid.slice(-6)}` });
 
-            // Refresh list
+            // Refresh list immediately
             await loadDownloads();
+
+            // Refresh again after 1.5s to get metadata (file size, etc.)
+            setTimeout(() => loadDownloads(), 1500);
         } catch (err) {
             await showToast({ style: Toast.Style.Failure, title: 'Failed to add download', message: err instanceof Error ? err.message : 'Unknown error' });
         } finally {
@@ -233,6 +223,19 @@ export default function Command() {
         console.log('[aria2] handleRemove:', { gid, status, filePath, dir, name, deleteFile });
 
         try {
+            // For active downloads, pause first to release file lock on .aria2 control file
+            if (deleteFile && status === 'active') {
+                try {
+                    console.log('[aria2] Pausing active download before file deletion...');
+                    await clientRef.current.pause(gid);
+                    // Wait a bit for aria2 to release file lock
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    console.log('[aria2] Download paused, proceeding with file deletion');
+                } catch (err) {
+                    console.log('[aria2] Pause failed, attempting deletion anyway:', err);
+                }
+            }
+
             // Delete file from disk FIRST if requested (before removing from aria2)
             if (deleteFile) {
                 // Construct full path - prefer filePath, fallback to dir + name
@@ -340,36 +343,26 @@ export default function Command() {
     const completedDownloads = downloads.filter(d => d.status === 'complete');
     const errorDownloads = downloads.filter(d => d.status === 'error' || d.status === 'removed');
 
-    // Build subtitle for a download
+    // Build subtitle - minimal, only show errors if present
     const getSubtitle = (download: DownloadInfo): string => {
-        const { status, completedSize, totalSize, downloadSpeed, eta, errorMessage } = download;
-        const sizeText = `${formatBytes(completedSize)} / ${formatBytes(totalSize)}`;
+        const { status, errorMessage } = download;
 
-        if (status === 'active') {
-            let result = `${sizeText} • ${formatSpeed(downloadSpeed)}`;
-            if (eta !== null) {
-                result += ` • ETA: ${formatTimeRemaining(eta)}`;
-            }
-            return result;
-        } else if (status === 'error' && errorMessage) {
-            return errorMessage;
+        if (status === 'error' && errorMessage) {
+            return `Error: ${errorMessage}`;
         }
-        return sizeText;
+
+        // No subtitle for normal downloads - keep it clean
+        return '';
     };
 
-    // Build accessories for a download
+    // Build accessories - minimal, static only
     const getAccessories = (download: DownloadInfo): List.Item.Accessory[] => {
         const accessories: List.Item.Accessory[] = [];
 
+        // Only show Torrent tag (static metadata)
         if (download.isTorrent) {
             accessories.push({ tag: { value: 'Torrent', color: Color.Purple } });
         }
-
-        if (download.status === 'active' || download.status === 'paused') {
-            accessories.push({ text: `${download.progress.toFixed(1)}%` });
-        }
-
-        accessories.push({ icon: getDownloadIcon(download.status) });
 
         return accessories;
     };
@@ -422,41 +415,26 @@ export default function Command() {
                         />
                     )}
                 </ActionPanel.Section>
-                <ActionPanel.Section title="Remove">
-                    <Action
-                        title="Remove (Keep File)"
-                        icon={Icon.Trash}
-                        onAction={() => handleRemove(download.gid, download.status, download.filePath, download.dir, download.name, false)}
-                        shortcut={{ modifiers: ["cmd"], key: "backspace" }}
-                    />
-                    <Action
-                        title="Remove & Delete File"
-                        icon={Icon.Trash}
-                        style={Action.Style.Destructive}
-                        onAction={() => handleRemove(download.gid, download.status, download.filePath, download.dir, download.name, true)}
-                        shortcut={{ modifiers: ["cmd", "shift"], key: "backspace" }}
-                    />
-                </ActionPanel.Section>
                 <ActionPanel.Section>
                     <Action
-                        title="Refresh"
-                        icon={Icon.ArrowClockwise}
-                        onAction={loadDownloads}
-                        shortcut={{ modifiers: ["ctrl"], key: "r" }}
+                        title="Remove Download"
+                        icon={Icon.Trash}
+                        style={Action.Style.Destructive}
+                        onAction={() => handleRemoveWithConfirm(download)}
+                        shortcut={{ modifiers: ["cmd"], key: "backspace" }}
                     />
                 </ActionPanel.Section>
             </ActionPanel>
         );
     };
 
-    // Render download item - key includes progress and timestamp to force re-renders
+    // Render download item - text-only status display
     const renderDownloadItem = (download: DownloadInfo) => (
         <List.Item
             key={`${download.gid}-${download.progress.toFixed(0)}-${lastUpdate}`}
             id={download.gid}
             title={download.name}
             subtitle={getSubtitle(download)}
-            icon={getDownloadIcon(download.status)}
             accessories={getAccessories(download)}
             actions={renderItemActions(download)}
         />
@@ -494,12 +472,6 @@ export default function Command() {
                         title="Add Download"
                         icon={Icon.Plus}
                         onAction={handleSearchSubmit}
-                    />
-                    <Action
-                        title="Refresh"
-                        icon={Icon.ArrowClockwise}
-                        onAction={loadDownloads}
-                        shortcut={{ modifiers: ["ctrl"], key: "r" }}
                     />
                 </ActionPanel>
             }
