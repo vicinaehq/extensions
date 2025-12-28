@@ -30,11 +30,11 @@ export default async function RandomWallpaper() {
     let monitors: wm.Screen[] = [];
 
     wm.getScreens().then(
-      (screens) => {
+      (screens: wm.Screen[]) => {
         monitors = screens;
         isWMSupported = true;
       },
-      (err) => {
+      (err: unknown) => {
         isWMSupported = true;
 
         showToast({

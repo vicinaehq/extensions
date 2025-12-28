@@ -47,10 +47,12 @@
     },
     {
       "name": "otpAfterPassword",
+      "label": "otpAfterPassword",
       "type": "checkbox",
       "title": "Prioritize OTP After Password",
       "description": "When you just copied a password, show OTP entries at the top next time",
-      "default": true
+      "default": true,
+      "required": false
     },
     {
       "name": "lastUsedTtl",
@@ -66,7 +68,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "0.8.4",
+    "@vicinae/api": "0.17.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
