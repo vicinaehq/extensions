@@ -1,7 +1,12 @@
-import { existsSync } from "fs";
 import { queryRecentProjects } from "./database";
-import { RecentProject, ProjectType, VSCodeRecentData, VSCodeDatabaseEntry } from "../types";
-import { decodeFileUri, getProjectLabel, sortProjectsByLastOpened } from "../helpers";
+import { type RecentProject, ProjectType, type VSCodeRecentData, type VSCodeDatabaseEntry } from "../types";
+import {
+    decodeFileUri,
+    getProjectLabel,
+    sortProjectsByLastOpenedOrIndex as sortProjectsByLastOpened,
+    parseRemoteAuthority,
+    validateProjectPath,
+} from "../helpers";
 
 function parseProjectEntry(entry: VSCodeDatabaseEntry): RecentProject | null {
     let projectPath = "";
@@ -18,19 +23,22 @@ function parseProjectEntry(entry: VSCodeDatabaseEntry): RecentProject | null {
         projectPath = decodeFileUri(entry.fileUri);
     }
 
-    // Skip if path is invalid or doesn't exist
-    if (!projectPath || !existsSync(projectPath)) {
+    const { environment } = parseRemoteAuthority(entry.remoteAuthority);
+
+    // Validate path based on environment (only check local paths exist)
+    if (!validateProjectPath(projectPath, environment)) {
         return null;
     }
 
-    const label = getProjectLabel(projectPath, type === ProjectType.Workspace);
-    const lastOpened = entry.lastAccessTime || Date.now();
+    const label = getProjectLabel(type, projectPath, entry.label);
+    const lastOpened = entry.lastAccessTime;
 
     return {
         type: type,
         label: label,
         path: projectPath,
         lastOpened: lastOpened,
+        environment: environment,
     };
 }
 
