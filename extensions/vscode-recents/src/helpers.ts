@@ -33,9 +33,7 @@ export function decodeFileUri(uri: string): string {
 }
 
 export function getProjectLabel(projectType: ProjectType, projectPath: string, projectLabel: string | undefined = undefined): string {
-    const usedPath = projectLabel ?? projectPath;
-
-    return path.basename(usedPath) + (projectType === ProjectType.Workspace ? ".code-workspace" : "");
+    return path.basename(projectLabel ?? projectPath) + (projectType === ProjectType.Workspace ? ".code-workspace" : "");
 }
 
 export function sortProjectsByLastOpenedOrIndex(projects: RecentProject[]): RecentProject[] {
