@@ -8,17 +8,11 @@ import {
   Toast,
   Icon,
   Color,
-  getPreferenceValues,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import { getHyprlandKeybinds, HyprBind } from "./utils/hyprland";
 
-type Preferences = {
-  keybindsConfigPath: string;
-};
-
 export default function Command() {
-  const { keybindsConfigPath } = getPreferenceValues<Preferences>();
   const [isLoading, setIsLoading] = useState(true);
   const [keybinds, setKeybinds] = useState<HyprBind[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +23,7 @@ export default function Command() {
       setIsLoading(true);
       setError(null);
       try {
-        const binds = await getHyprlandKeybinds(keybindsConfigPath);
+        const binds = await getHyprlandKeybinds();
         setKeybinds(binds);
       } catch (e: any) {
         console.error(e);
@@ -44,38 +38,41 @@ export default function Command() {
       }
     }
     load();
-  }, [keybindsConfigPath]);
+  }, []);
 
   if (error) {
     return (
       <Detail
-        markdown={`Failed to load keybinds from ${keybindsConfigPath}\n\nError: ${error}`}
+        markdown={`Failed to load keybinds from hyprctl\n\nError: ${error}\n\nMake sure Hyprland is running and hyprctl is available.`}
       />
     );
   }
-
+  console.log(keybinds);
   return (
     <List
       isLoading={isLoading}
       isShowingDetail={isShowingDetail}
-      searchBarPlaceholder="Search key, action, modifiers, comments..."
+      searchBarPlaceholder="Search key, dispatcher, modifiers, description..."
     >
       <List.Section title="Hyprland Keybinds" subtitle={`${keybinds.length}`}>
         {keybinds.map((kb, idx) => {
           const title = kb.modifiers
-            ? `${kb.modifiers} ${kb.key}`
+            ? `${kb.modifiers} + ${kb.key}`
             : `${kb.key}`;
-          const command = kb.command ? `${kb.command}` : `${kb.comment}`;
-          const comment = kb.comment; //? `${kb.comment}` : `${kb.command}`;
           const accessories = [];
-          if (comment)
-            accessories.push({ tag: { value: comment, color: Color.Blue } });
+          if (kb.description)
+            accessories.push({
+              tag: { value: kb.description, color: Color.Blue },
+            });
+          if (kb.submap)
+            accessories.push({
+              tag: { value: `submap: ${kb.submap}`, color: Color.Orange },
+            });
 
           return (
             <List.Item
-              key={`${kb.key}-${kb.action}-${idx}`}
+              key={`${kb.key}-${kb.dispatcher}-${idx}`}
               title={title}
-              subtitle={command}
               accessories={accessories}
               icon={Icon.Keyboard}
               actions={
@@ -92,15 +89,6 @@ export default function Command() {
                   metadata={
                     <List.Item.Detail.Metadata>
                       <List.Item.Detail.Metadata.Label
-                        title="Config Path"
-                        text={`${kb.configPath}`}
-                      />
-                      <List.Item.Detail.Metadata.Label
-                        title="Line Number"
-                        text={`${kb.lineNumber}`}
-                      />
-                      <List.Item.Detail.Metadata.Separator />
-                      <List.Item.Detail.Metadata.Label
                         title="Modifier(s)"
                         text={kb.modifiers || "-"}
                       />
@@ -109,30 +97,67 @@ export default function Command() {
                         text={kb.key || "-"}
                       />
                       <List.Item.Detail.Metadata.Separator />
-                      <List.Item.Detail.Metadata.TagList title="Directive">
+                      <List.Item.Detail.Metadata.TagList title="Dispatcher">
                         <List.Item.Detail.Metadata.TagList.Item
-                          text={kb.directive || "-"}
+                          text={kb.dispatcher || "-"}
                         />
                       </List.Item.Detail.Metadata.TagList>
                       <List.Item.Detail.Metadata.Label
-                        title="Action"
-                        text={kb.action || "-"}
+                        title="Argument"
+                        text={kb.arg || "-"}
                       />
                       <List.Item.Detail.Metadata.Separator />
-
-                      <List.Item.Detail.Metadata.Label
-                        title="Command"
-                        text={kb.command || "-"}
-                      />
-                      {kb.comment ? (
-                        <>
-                          <List.Item.Detail.Metadata.Separator />
-                          <List.Item.Detail.Metadata.Label
-                            title="Comment"
-                            text={kb.comment}
-                          />
-                        </>
+                      {kb.description ? (
+                        <List.Item.Detail.Metadata.Label
+                          title="Description"
+                          text={kb.description}
+                        />
                       ) : null}
+                      {kb.submap ? (
+                        <List.Item.Detail.Metadata.Label
+                          title="Submap"
+                          text={kb.submap}
+                        />
+                      ) : null}
+                      <List.Item.Detail.Metadata.Separator />
+                      <List.Item.Detail.Metadata.TagList title="Flags">
+                        {kb.locked && (
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text="locked"
+                            color={Color.Green}
+                          />
+                        )}
+                        {kb.mouse && (
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text="mouse"
+                            color={Color.Purple}
+                          />
+                        )}
+                        {kb.release && (
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text="release"
+                            color={Color.Yellow}
+                          />
+                        )}
+                        {kb.repeat && (
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text="repeat"
+                            color={Color.Blue}
+                          />
+                        )}
+                        {kb.longPress && (
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text="longPress"
+                            color={Color.Orange}
+                          />
+                        )}
+                        {kb.nonConsuming && (
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text="nonConsuming"
+                            color={Color.Magenta}
+                          />
+                        )}
+                      </List.Item.Detail.Metadata.TagList>
                     </List.Item.Detail.Metadata>
                   }
                 />
