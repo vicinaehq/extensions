@@ -14,7 +14,7 @@ Control your downloads directly from Vicinae using Aria2 and yt-dlp. This extens
 
 ## Features
 
-* **Quick Download:** Add downloads directly from your system clipboard.
+* **Quick Download:** Fast way to add a download. You can pass a URL as an argument, or if left empty, it will automatically read from your clipboard.
 * **Smart Input:** Paste URLs into the search bar to immediately start downloads. Supports standard URLs and Magnet links.
 * **Task Control:** Pause, Resume, and Remove download tasks.
 * **File Management:** Option to delete the actual file from the disk when removing a task.

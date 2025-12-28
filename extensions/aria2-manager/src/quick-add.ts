@@ -11,31 +11,38 @@ const DOWNLOAD_DIR = process.env.HOME ? `${process.env.HOME}/Downloads` : '/tmp'
 
 /**
  * Quick Add Command (No-View)
- * Reads clipboard, detects URL type, and adds to aria2 queue
+ * Accepts optional URL argument, falls back to clipboard if not provided
  * Does NOT close Vicinae after completion
  */
-export default async function Command(): Promise<void> {
+export default async function Command(props: { arguments: { url?: string } }): Promise<void> {
     try {
-        // Read clipboard using Vicinae API
-        const clipboardContent = await Clipboard.readText();
+        let url: string | undefined;
 
-        if (!clipboardContent || !clipboardContent.trim()) {
-            await showToast({
-                style: Toast.Style.Failure,
-                title: 'Clipboard Empty',
-                message: 'No URL found in clipboard',
-            });
-            return;
+        // Try to get URL from argument first
+        if (props.arguments.url && props.arguments.url.trim()) {
+            url = props.arguments.url.trim();
+        } else {
+            // Fallback to clipboard if no argument provided
+            const clipboardContent = await Clipboard.readText();
+
+            if (!clipboardContent || !clipboardContent.trim()) {
+                await showToast({
+                    style: Toast.Style.Failure,
+                    title: 'No URL Provided',
+                    message: 'Copy a URL or provide an argument',
+                });
+                return;
+            }
+
+            url = clipboardContent.trim();
         }
-
-        const url = clipboardContent.trim();
 
         // Validate URL
         if (!isValidUrl(url)) {
             await showToast({
                 style: Toast.Style.Failure,
                 title: 'Invalid URL',
-                message: 'Clipboard does not contain a valid URL',
+                message: 'The provided text is not a valid URL',
             });
             return;
         }
@@ -53,7 +60,7 @@ export default async function Command(): Promise<void> {
 
         if (!daemonResult.success) {
             toast.style = Toast.Style.Failure;
-            toast.title = 'Failed to start aria2';
+            toast.title = 'Daemon Error';
             toast.message = daemonResult.message;
             return;
         }
@@ -70,7 +77,7 @@ export default async function Command(): Promise<void> {
             const ytdlpInstalled = await isYtDlpInstalled();
 
             if (ytdlpInstalled) {
-                toast.title = 'Extracting video URL...';
+                toast.title = 'Extracting video...';
                 try {
                     const result = await extractVideoUrl(url);
                     downloadUrl = result.url;
@@ -97,10 +104,10 @@ export default async function Command(): Promise<void> {
         await client.addUri([downloadUrl], options);
 
         // Truncate title for display
-        const displayTitle = title.length > 40 ? title.slice(0, 37) + '...' : title;
+        const displayTitle = title.length > 30 ? title.slice(0, 27) + '...' : title;
 
         toast.style = Toast.Style.Success;
-        toast.title = 'Download Started!';
+        toast.title = 'Download Started';
         toast.message = displayTitle;
 
         // Don't close Vicinae - just hide the toast after a delay
@@ -110,7 +117,7 @@ export default async function Command(): Promise<void> {
         const message = err instanceof Error ? err.message : 'Unknown error';
         await showToast({
             style: Toast.Style.Failure,
-            title: 'Quick Add Failed',
+            title: 'Failed',
             message: message,
         });
     }

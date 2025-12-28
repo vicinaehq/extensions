@@ -20,9 +20,17 @@
     {
       "name": "quick-add",
       "title": "Quick Download",
-      "subtitle": "From Clipboard",
-      "description": "Add download link directly from clipboard",
-      "mode": "no-view"
+      "subtitle": "URL or Clipboard",
+      "description": "Add download from URL or clipboard",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "url",
+          "placeholder": "URL or magnet link (optional)",
+          "type": "text",
+          "required": false
+        }
+      ]
     }
   ],
   "preferences": [],
