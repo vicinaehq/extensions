@@ -125,14 +125,14 @@ export default function ChatListCommand() {
 											title="New Chat"
 											icon={Icon.Plus}
 											onAction={handleNewChat}
-											shortcut={{ modifiers: ["cmd"], key: "n" }}
+											shortcut="new"
 										/>
 										<Action
 											title="Delete Chat"
 											icon={Icon.Trash}
-											style={Action.Style.Destructive}
+											style="destructive"
 											onAction={() => handleDeleteChat(chat.id)}
-											shortcut={{ modifiers: ["cmd"], key: "delete" }}
+											shortcut="remove"
 										/>
 									</ActionPanel>
 								}
