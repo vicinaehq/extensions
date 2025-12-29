@@ -5,14 +5,14 @@
 
 import React, { useState, useCallback, useMemo } from "react";
 import { Action, ActionPanel, List, Icon, useNavigation } from "@vicinae/api";
-import type { Chat } from "../types";
+import type { Chat, Message } from "../types";
 import { useChat } from "../hooks/useChat";
 import { COLORS, EMOJIS } from "../constants";
 import { formatTimestamp } from "../utils/formatting";
+import { getMessageRoleInfo } from "../utils/messages";
 
 /**
  * Chat view - List-based conversation interface with searchBar as input
- * Optimized to prevent flickering when typing by memoizing message rendering
  */
 export function ChatView({ chat: initialChat }: { chat: Chat }) {
 	const { chat, isLoading, streamingMessage, sendMessage } =
@@ -20,7 +20,6 @@ export function ChatView({ chat: initialChat }: { chat: Chat }) {
 	const { pop } = useNavigation();
 	const [inputMessage, setInputMessage] = useState("");
 
-	// Memoize handleSendMessage to prevent ActionPanel re-renders
 	const handleSendMessage = useCallback(async () => {
 		if (!inputMessage.trim() || isLoading) return;
 		const message = inputMessage;
@@ -31,13 +30,16 @@ export function ChatView({ chat: initialChat }: { chat: Chat }) {
 	const copyAllText = useMemo(
 		() =>
 			chat.messages
-				.map((m) => `${m.role === "user" ? "You" : "Claude"}: ${m.content}`)
+				.map((m) => {
+					const { name } = getMessageRoleInfo(m.role);
+					return `${name}: ${m.content}`;
+				})
 				.join("\n\n"),
 		[chat.messages],
 	);
 
-	const Actions = (
-		<ActionPanel>
+	const GlobalActions = (
+		<>
 			<Action
 				title={`${EMOJIS.SEND} Send Message`}
 				icon={Icon.Message}
@@ -56,35 +58,28 @@ export function ChatView({ chat: initialChat }: { chat: Chat }) {
 				onAction={pop}
 				shortcut={{ modifiers: ["cmd"], key: "b" }}
 			/>
-		</ActionPanel>
+		</>
 	);
 
-	// Memoize message items to prevent re-rendering when typing
-	const messageItems = useMemo(() => {
-		return chat.messages.map((msg) => {
-			const roleIcon = msg.role === "user" ? EMOJIS.YOU : EMOJIS.CLAUDE;
-			const roleName = msg.role === "user" ? "You" : "Claude";
-			const isUser = msg.role === "user";
+	const MessageItem = useCallback(
+		({ msg }: { msg: Message }) => {
+			const { icon, name, tintColor, listIcon } = getMessageRoleInfo(msg.role);
 			const preview =
 				msg.content.length > 100
 					? `${msg.content.substring(0, 100)}...`
 					: msg.content;
+			const formattedTime = formatTimestamp(msg.timestamp);
 
 			return (
 				<List.Item
 					key={msg.id}
-					title={`${roleIcon} ${roleName}`}
+					title={`${icon} ${name}`}
 					subtitle={preview}
-					icon={{
-						source: isUser ? Icon.Person : Icon.SpeechBubble,
-						tintColor: isUser ? COLORS.USER : COLORS.CLAUDE,
-					}}
-					accessories={[
-						{ text: formatTimestamp(msg.timestamp), icon: Icon.Clock },
-					]}
+					icon={{ source: listIcon, tintColor }}
+					accessories={[{ text: formattedTime, icon: Icon.Clock }]}
 					detail={
 						<List.Item.Detail
-							markdown={`# ${roleIcon} ${roleName}\n\n${msg.content}\n\n---\n*${formatTimestamp(msg.timestamp)}*`}
+							markdown={`# ${icon} ${name}\n\n${msg.content}\n\n---\n*${formattedTime}*`}
 						/>
 					}
 					actions={
@@ -101,13 +96,14 @@ export function ChatView({ chat: initialChat }: { chat: Chat }) {
 								shortcut={{ modifiers: ["cmd"], key: "c" }}
 								icon={Icon.CopyClipboard}
 							/>
-							{Actions}
+							{GlobalActions}
 						</ActionPanel>
 					}
 				/>
 			);
-		});
-	}, [chat.messages, handleSendMessage, pop]);
+		},
+		[handleSendMessage, pop, copyAllText],
+	);
 
 	return (
 		<List
@@ -119,7 +115,6 @@ export function ChatView({ chat: initialChat }: { chat: Chat }) {
 			filtering={false}
 			isShowingDetail={true}
 		>
-			{/* Messages Section */}
 			<List.Section
 				title={`${EMOJIS.CHAT} Conversation (${chat.messages.length} messages)`}
 			>
@@ -128,14 +123,14 @@ export function ChatView({ chat: initialChat }: { chat: Chat }) {
 						title="No messages yet"
 						subtitle="Type your message in the search bar above and press Enter to send"
 						icon={{ source: Icon.Bubble, tintColor: COLORS.MUTED }}
-						actions={Actions}
+						actions={<ActionPanel>{GlobalActions}</ActionPanel>}
 					/>
 				)}
 
-				{/* Render memoized message items */}
-				{messageItems}
+				{chat.messages.map((msg) => (
+					<MessageItem key={msg.id} msg={msg} />
+				))}
 
-				{/* Display streaming message if in progress */}
 				{streamingMessage !== null && (
 					<List.Item
 						id="streaming-message"

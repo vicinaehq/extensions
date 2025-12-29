@@ -2,7 +2,7 @@
  * Chat List Command - Browse and manage saved conversations
  */
 
-import React, { useState } from "react";
+import React from "react";
 import {
 	Action,
 	ActionPanel,
@@ -12,14 +12,7 @@ import {
 	showToast,
 	Toast,
 } from "@vicinae/api";
-import type { Chat } from "./types";
-import {
-	createNewChat,
-	loadAllChats,
-	deleteChat,
-	loadChat,
-	subscribeChats,
-} from "./services/chatStorage";
+import { useChatHistory } from "./hooks/useChatHistory";
 import { ChatView } from "./components/ChatView";
 import { COLORS, EMOJIS } from "./constants";
 import { formatTimestamp } from "./utils/formatting";
@@ -28,22 +21,8 @@ import { formatTimestamp } from "./utils/formatting";
  * CHAT LIST COMMAND - Browse saved conversations
  */
 export default function ChatListCommand() {
-	const [chats, setChats] = useState<Chat[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
+	const { chats, isLoading, deleteChat, createNewChat, loadChat } = useChatHistory();
 	const { push } = useNavigation();
-
-	// Load chats on mount and refresh on storage changes
-	React.useEffect(() => {
-		const load = () => {
-			const loadedChats = loadAllChats();
-			setChats(loadedChats);
-			setIsLoading(false);
-		};
-
-		load();
-		const unsubscribe = subscribeChats(load);
-		return () => unsubscribe();
-	}, []);
 
 	const handleOpenChat = (chatId: string) => {
 		const chat = loadChat(chatId);
@@ -53,9 +32,7 @@ export default function ChatListCommand() {
 	};
 
 	const handleDeleteChat = (chatId: string) => {
-		const success = deleteChat(chatId);
-		if (success) {
-			setChats(chats.filter((c) => c.id !== chatId));
+		if (deleteChat(chatId)) {
 			showToast({
 				style: Toast.Style.Success,
 				title: `${EMOJIS.TRASH} Chat Deleted`,
@@ -65,15 +42,11 @@ export default function ChatListCommand() {
 	};
 
 	const handleNewChat = () => {
-		const newChat = createNewChat();
-		push(<ChatView chat={newChat} />);
+		push(<ChatView chat={createNewChat()} />);
 	};
 
 	return (
-		<List
-			isLoading={isLoading}
-			searchBarPlaceholder="Search conversations..."
-		>
+		<List isLoading={isLoading} searchBarPlaceholder="Search conversations...">
 			{chats.length === 0 ? (
 				<List.Section title={`${EMOJIS.SCROLL} Chat History`}>
 					<List.Item

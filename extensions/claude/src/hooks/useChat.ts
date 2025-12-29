@@ -11,9 +11,10 @@ import {
 	streamMessageToClaude,
 	generateChatTitleAI,
 } from "../services/claudeService";
-import { saveChat } from "../services/chatStorage";
+import { ChatStorage } from "../services/chatStorage";
 import { EMOJIS, TOAST_MESSAGES } from "../constants";
 import { formatCharacterCount } from "../utils/formatting";
+import { createMessage } from "../utils/messages";
 
 interface UseChatReturn {
 	chat: Chat;
@@ -23,13 +24,6 @@ interface UseChatReturn {
 }
 
 /**
- * Generate a unique message ID
- */
-const generateMessageId = () =>
-	(globalThis.crypto?.randomUUID?.() as string | undefined) ??
-	`msg_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-
-/**
  * Hook for managing a chat session with auto-save and streaming support
  */
 export function useChat(initialChat: Chat): UseChatReturn {
@@ -37,16 +31,89 @@ export function useChat(initialChat: Chat): UseChatReturn {
 	const [isLoading, setIsLoading] = useState(false);
 	const [streamingMessage, setStreamingMessage] = useState<string | null>(null);
 
-	// Auto-save chat whenever it changes (but not during streaming)
+	// Auto-save chat whenever it changes
 	useEffect(() => {
-		if (chat.messages.length > 0 && !isLoading) {
-			saveChat(chat);
+		if (chat.messages.length > 0) {
+			ChatStorage.saveChat(chat);
 		}
-	}, [chat, isLoading]);
+	}, [chat]);
+
+	const validateAndGetPreferences = async (): Promise<Preferences | null> => {
+		const preferences = getPreferenceValues<Preferences>();
+		if (!preferences.apiKey) {
+			await showToast({
+				style: Toast.Style.Failure,
+				title: TOAST_MESSAGES.API_KEY_MISSING.title,
+				message: TOAST_MESSAGES.API_KEY_MISSING.message,
+			});
+			return null;
+		}
+		return preferences;
+	};
+
+	const handleAiResponse = async (
+		preferences: Preferences,
+		currentMessages: Message[],
+	) => {
+		const common = {
+			apiKey: preferences.apiKey,
+			messages: currentMessages,
+			model: preferences.model,
+			maxTokens: parseInt(preferences.maxTokens, 10),
+		} as const;
+
+		const response = preferences.enableStreaming
+			? await streamMessageToClaude({
+					...common,
+					onUpdate: setStreamingMessage,
+				})
+			: await sendMessageToClaude(common);
+
+		if (!response.success) {
+			throw new Error(response.error || "Failed to get response from Claude");
+		}
+
+		return response;
+	};
+
+	const updateChatWithAssistantMessage = (
+		currentMessages: Message[],
+		content: string,
+	) => {
+		const assistantMessage = createMessage("assistant", content);
+		const updatedMessages = [...currentMessages, assistantMessage];
+
+		setChat((prev) => ({
+			...prev,
+			messages: updatedMessages,
+			updatedAt: new Date(),
+		}));
+
+		return updatedMessages;
+	};
+
+	const generateTitleIfNeeded = async (
+		preferences: Preferences,
+		messages: Message[],
+	) => {
+		if (chat.title === "New Chat") {
+			const newTitle = await generateChatTitleAI(
+				preferences.apiKey,
+				messages,
+				preferences.model,
+			);
+			if (newTitle) {
+				setChat((current) => ({
+					...current,
+					title: newTitle,
+					updatedAt: new Date(),
+				}));
+			}
+		}
+	};
 
 	const sendMessage = useCallback(
 		async (userMessage: string): Promise<void> => {
-			// Validate message
 			if (!userMessage.trim()) {
 				await showToast({
 					style: Toast.Style.Failure,
@@ -56,90 +123,29 @@ export function useChat(initialChat: Chat): UseChatReturn {
 				return;
 			}
 
-			// Get preferences
-			const preferences = getPreferenceValues<Preferences>();
-			if (!preferences.apiKey) {
-				await showToast({
-					style: Toast.Style.Failure,
-					title: TOAST_MESSAGES.API_KEY_MISSING.title,
-					message: TOAST_MESSAGES.API_KEY_MISSING.message,
-				});
-				return;
-			}
+			const preferences = await validateAndGetPreferences();
+			if (!preferences) return;
 
-			// Add user message
-			const newUserMessage: Message = {
-				id: generateMessageId(),
-				role: "user",
-				content: userMessage,
-				timestamp: new Date(),
-			};
+			const newUserMessage = createMessage("user", userMessage);
+			const currentMessages = [...chat.messages, newUserMessage];
 
-			const updatedMessages = [...chat.messages, newUserMessage];
-
-			// Update chat with user message
 			setChat((prev) => ({
 				...prev,
-				messages: updatedMessages,
+				messages: currentMessages,
 				updatedAt: new Date(),
 			}));
 
 			setIsLoading(true);
-
-			// Initialize placeholder message for both streaming and non-streaming
 			setStreamingMessage(preferences.enableStreaming ? "" : "Thinking...");
 
 			try {
-				const common = {
-					apiKey: preferences.apiKey,
-					messages: updatedMessages,
-					model: preferences.model,
-					maxTokens: parseInt(preferences.maxTokens, 10),
-				} as const;
+				const response = await handleAiResponse(preferences, currentMessages);
+				const updatedMessages = updateChatWithAssistantMessage(
+					currentMessages,
+					response.content,
+				);
 
-				const response = preferences.enableStreaming
-					? await streamMessageToClaude({
-							...common,
-							onUpdate: setStreamingMessage,
-						})
-					: await sendMessageToClaude(common);
-
-				if (!response.success) {
-					throw new Error(
-						response.error || "Failed to get response from Claude",
-					);
-				}
-
-				// Add assistant message with final content
-				const assistantMessage: Message = {
-					id: generateMessageId(),
-					role: "assistant",
-					content: response.content,
-					timestamp: new Date(),
-				};
-
-				// Update chat with final assistant message
-				setChat((prev) => ({
-					...prev,
-					messages: [...updatedMessages, assistantMessage],
-					updatedAt: new Date(),
-				}));
-
-				// Automatically generate title if it's the first exchange
-				if (chat.title === "New Chat") {
-					generateChatTitleAI(
-						preferences.apiKey,
-						[...updatedMessages, assistantMessage],
-						preferences.model,
-					).then((newTitle) => {
-						if (newTitle) {
-							setChat((prev) => ({
-								...prev,
-								title: newTitle,
-							}));
-						}
-					});
-				}
+				await generateTitleIfNeeded(preferences, updatedMessages);
 
 				await showToast({
 					style: Toast.Style.Success,
@@ -154,25 +160,16 @@ export function useChat(initialChat: Chat): UseChatReturn {
 					message: msg,
 				});
 
-				setChat((prev) => ({
-					...prev,
-					messages: [
-						...updatedMessages,
-						{
-							id: generateMessageId(),
-							role: "assistant",
-							content: `### ${EMOJIS.CROSS} Error\n\n${msg}\n`,
-							timestamp: new Date(),
-						},
-					],
-					updatedAt: new Date(),
-				}));
+				updateChatWithAssistantMessage(
+					currentMessages,
+					`### ${EMOJIS.CROSS} Error\n\n${msg}\n`,
+				);
 			} finally {
 				setIsLoading(false);
 				setStreamingMessage(null);
 			}
 		},
-		[chat.messages],
+		[chat.messages, chat.title],
 	);
 
 	return {
