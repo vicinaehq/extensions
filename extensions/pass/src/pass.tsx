@@ -74,7 +74,7 @@ export default function Command() {
                 <Action.Push
                   title="View Secrets"
                   icon={Icon.Key}
-                  target={<PasswordOptionsView password={entry.value} showOtpFirst={entry.showOtpFirst} />}
+                  target={<PasswordOptionsView password={entry.value} showOtpFirst={entry.showOtpFirst} action={preferences.action} />}
                 />
                 <Action title="Reload" icon={Icon.RotateAntiClockwise} onAction={refresh} />
               </ActionPanel>
@@ -85,7 +85,15 @@ export default function Command() {
     </List>
   );
 
-  function PasswordOptionsView({ password, showOtpFirst }: { password: string; showOtpFirst?: boolean }) {
+  function PasswordOptionsView({
+    password,
+    showOtpFirst,
+    action,
+  }: {
+    password: string;
+    showOtpFirst?: boolean;
+    action: "paste" | "copy";
+  }) {
     const [isLoading, setIsLoading] = useState(true);
     const [options, setOptions] = useState<PasswordOption[]>([]);
     const [error, setError] = useState<string | undefined>();
@@ -139,27 +147,35 @@ export default function Command() {
         ) : options.length === 0 ? (
           <List.EmptyView title="No fields found" description="The decrypted file is empty." />
         ) : (
-          options.map((option, index) => (
-            <List.Item
-              key={`${option.title}-${index}`}
-              title={option.title}
-              icon={getOptionIcon(option.title)}
-              actions={
-                <ActionPanel>
-                  <Action
-                    title="Paste"
-                    icon={Icon.Keyboard}
-                    onAction={() => performPasswordAction(password, option, "paste")}
-                  />
-                  <Action
-                    title="Copy to Clipboard"
-                    icon={Icon.CopyClipboard}
-                    onAction={() => performPasswordAction(password, option, "copy")}
-                  />
-                </ActionPanel>
-              }
-            />
-          ))
+          options.map((option, index) => {
+            const handleAction = () =>
+              performPasswordAction(password, option, action);
+            return (
+              <List.Item
+                key={`${option.title}-${index}`}
+                title={option.title}
+                icon={getOptionIcon(option.title)}
+                actions={
+                  <ActionPanel>
+                    <Action
+                      title={action === "paste" ? "Paste" : "Copy to Clipboard"}
+                      icon={
+                        action === "paste" ? Icon.Keyboard : Icon.CopyClipboard
+                      }
+                      onAction={handleAction}
+                    />
+                    <Action
+                      title={action === "copy" ? "Copy to Clipboard" : "Paste"}
+                      icon={
+                        action === "copy" ? Icon.CopyClipboard : Icon.Keyboard
+                      }
+                      onAction={handleAction}
+                    />
+                  </ActionPanel>
+                }
+              />
+            );
+          })
         )}
       </List>
     );

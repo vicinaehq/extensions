@@ -1,5 +1,5 @@
 export const terminal = (command: string) =>
-  `xdg-terminal-exec --app-id=com.omarchy.terminal ${command}`;
+  `xdg-terminal-exec --app-id=org.omarchy.terminal ${command}`;
 
 export const open_in_editor = (file: string) =>
   `notify-send "Editing config file" "${file}" && omarchy-launch-editor ${file}`;
