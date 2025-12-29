@@ -59,7 +59,7 @@ export default function ChatListCommand() {
 									title="New Chat"
 									icon={Icon.Plus}
 									onAction={handleNewChat}
-									shortcut={{ modifiers: ["cmd"], key: "n" }}
+									shortcut="new"
 								/>
 							</ActionPanel>
 						}

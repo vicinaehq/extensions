@@ -72,15 +72,7 @@ The extension provides two commands:
 1. Open Vicinae and search for "Claude Chat History"
 2. Browse all your saved conversations
 3. Click on any chat to open and continue it
-4. Delete old conversations using `Cmd+Delete`
-
-### Keyboard Shortcuts
-
-- **Send Message**: `Enter` or `Shift+Enter`
-- **Copy This Message**: `Cmd+C` (when a message is selected)
-- **Copy All Messages**: `Cmd+Shift+C`
-- **Back to Chat List**: `Cmd+B`
-- **Delete Chat**: `Cmd+Delete` (in chat history)
+4. Delete old conversations using `Cmd+X`
 
 ## Configuration
 
