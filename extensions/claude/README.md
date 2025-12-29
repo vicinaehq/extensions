@@ -14,7 +14,7 @@ Chat with Claude AI directly from Vicinae launcher. Ask questions, get help with
 - 🔒 **Secure**: Your API key is stored securely in Vicinae preferences
 - 📝 **Auto-Generated Titles**: Chat titles automatically created from first message
 - 🎯 **Two Commands**: Separate commands for starting new chats and browsing history
-- 🌊 **Streaming Support** (Optional): Real-time response streaming for experimental users
+- 🌊 **Streaming Support**: Real-time response streaming
 - 🗑️ **Chat Management**: Delete old conversations to keep your history organized
 
 ## Prerequisites

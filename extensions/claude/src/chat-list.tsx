@@ -70,30 +70,26 @@ export default function ChatListCommand() {
 	};
 
 	return (
-		<List isLoading={isLoading} searchBarPlaceholder="Search conversations...">
-			<List.Section title={`${EMOJIS.ROCKET} Actions`}>
-				<List.Item
-					title="Start New Chat"
-					subtitle="Begin a fresh conversation with Claude"
-					icon={{ source: Icon.Message, tintColor: COLORS.ACTION }}
-					actions={
-						<ActionPanel>
-							<Action
-								title="New Chat"
-								icon={Icon.Message}
-								onAction={handleNewChat}
-							/>
-						</ActionPanel>
-					}
-				/>
-			</List.Section>
-
+		<List
+			isLoading={isLoading}
+			searchBarPlaceholder="Search conversations..."
+		>
 			{chats.length === 0 ? (
 				<List.Section title={`${EMOJIS.SCROLL} Chat History`}>
 					<List.Item
 						title="No conversations yet"
 						subtitle="Start a new chat to begin"
 						icon={{ source: Icon.Bubble, tintColor: COLORS.MUTED }}
+						actions={
+							<ActionPanel>
+								<Action
+									title="New Chat"
+									icon={Icon.Plus}
+									onAction={handleNewChat}
+									shortcut={{ modifiers: ["cmd"], key: "n" }}
+								/>
+							</ActionPanel>
+						}
 					/>
 				</List.Section>
 			) : (
@@ -124,6 +120,12 @@ export default function ChatListCommand() {
 											title="Open Chat"
 											icon={Icon.Message}
 											onAction={() => handleOpenChat(chat.id)}
+										/>
+										<Action
+											title="New Chat"
+											icon={Icon.Plus}
+											onAction={handleNewChat}
+											shortcut={{ modifiers: ["cmd"], key: "n" }}
 										/>
 										<Action
 											title="Delete Chat"
