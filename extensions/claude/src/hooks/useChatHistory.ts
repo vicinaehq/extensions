@@ -1,32 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Chat } from "../types";
 import { ChatStorage } from "../services/chatStorage";
 
 /**
- * Hook for managing the list of all chats with auto-refresh
+ * Simple hook for managing the list of all chats
  */
 export function useChatHistory() {
 	const [chats, setChats] = useState<Chat[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 
-	useEffect(() => {
-		const load = () => {
-			const loadedChats = ChatStorage.loadAllChats();
-			setChats(loadedChats);
-			setIsLoading(false);
-		};
-
-		load();
-		return ChatStorage.subscribe(load);
+	const loadChats = useCallback(() => {
+		const loadedChats = ChatStorage.loadAllChats();
+		setChats(loadedChats);
+		setIsLoading(false);
 	}, []);
 
-	const sortedChats = [...chats].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+	useEffect(() => {
+		loadChats();
+		// Subscribe to storage changes for reactivity
+		return ChatStorage.subscribe(() => {
+			loadChats();
+		});
+	}, [loadChats]);
+
+	const deleteChat = useCallback((chatId: string) => {
+		return ChatStorage.deleteChat(chatId);
+	}, []);
+
+	const createNewChat = useCallback(() => {
+		return ChatStorage.createNewChat();
+	}, []);
 
 	return {
-		chats: sortedChats,
+		chats,
 		isLoading,
-		deleteChat: ChatStorage.deleteChat.bind(ChatStorage),
-		createNewChat: ChatStorage.createNewChat.bind(ChatStorage),
+		deleteChat,
+		createNewChat,
+		loadChats,
 		loadChat: ChatStorage.loadChat.bind(ChatStorage),
 	};
 }

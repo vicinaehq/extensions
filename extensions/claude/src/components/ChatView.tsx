@@ -14,9 +14,12 @@ import { getMessageRoleInfo } from "../utils/messages";
 /**
  * Chat view - List-based conversation interface with searchBar as input
  */
-export function ChatView({ chat: initialChat }: { chat: Chat }) {
-	const { chat, isLoading, streamingMessage, sendMessage } =
-		useChat(initialChat);
+export function ChatView({
+	chat: initialChat,
+}: { chat: Chat }) {
+	const { chat, isLoading, streamingMessage, sendMessage } = useChat(
+		initialChat,
+	);
 	const { pop } = useNavigation();
 	const [inputMessage, setInputMessage] = useState("");
 
@@ -41,22 +44,16 @@ export function ChatView({ chat: initialChat }: { chat: Chat }) {
 	const GlobalActions = (
 		<>
 			<Action
-				title={`${EMOJIS.SEND} Send Message`}
+				title="Send Message"
 				icon={Icon.Message}
 				onAction={handleSendMessage}
-				shortcut={{ modifiers: ["shift"], key: "enter" }}
+				shortcut={{ modifiers: [], key: "enter" }}
 			/>
 			<Action.CopyToClipboard
 				title="Copy All Messages"
 				content={copyAllText}
-				shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+				shortcut={{ modifiers: ["ctrl", "shift"], key: "c" }}
 				icon={Icon.CopyClipboard}
-			/>
-			<Action
-				title="Back to Chat List"
-				icon={Icon.ArrowLeft}
-				onAction={pop}
-				shortcut={{ modifiers: ["cmd"], key: "b" }}
 			/>
 		</>
 	);
@@ -84,19 +81,13 @@ export function ChatView({ chat: initialChat }: { chat: Chat }) {
 					}
 					actions={
 						<ActionPanel>
-							<Action
-								title={`${EMOJIS.SEND} Send Message`}
-								icon={Icon.Message}
-								onAction={handleSendMessage}
-								shortcut={{ modifiers: ["shift"], key: "enter" }}
-							/>
+							{GlobalActions}
 							<Action.CopyToClipboard
 								title="Copy This Message"
 								content={msg.content}
-								shortcut={{ modifiers: ["cmd"], key: "c" }}
+								shortcut={{ modifiers: ["ctrl"], key: "c" }}
 								icon={Icon.CopyClipboard}
 							/>
-							{GlobalActions}
 						</ActionPanel>
 					}
 				/>
