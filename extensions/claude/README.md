@@ -12,7 +12,7 @@ Chat with Claude AI directly from Vicinae launcher. Ask questions, get help with
 - 📋 **Copy Messages**: Easily copy individual messages or entire conversations
 - ⚡ **Fast & Native**: Built with Vicinae's native architecture - no browser or Electron overhead
 - 🔒 **Secure**: Your API key is stored securely in Vicinae preferences
-- 📝 **Auto-Generated Titles**: Chat titles automatically created from first message
+- 📝 **AI-Generated Titles**: Chat titles automatically created by Claude based on conversation context
 - 🎯 **Two Commands**: Separate commands for starting new chats and browsing history
 - 🌊 **Streaming Support**: Real-time response streaming
 - 🗑️ **Chat Management**: Delete old conversations to keep your history organized

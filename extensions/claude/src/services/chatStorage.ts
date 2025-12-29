@@ -33,20 +33,6 @@ function generateChatId(): string {
 }
 
 /**
- * Generate a chat title from the first user message
- */
-function generateChatTitle(messages: Message[]): string {
-	const firstUserMessage = messages.find((msg) => msg.role === "user");
-	if (!firstUserMessage) {
-		return "New Chat";
-	}
-
-	// Truncate to first 50 characters
-	const title = firstUserMessage.content.trim();
-	return title.length > 50 ? `${title.substring(0, 50)}...` : title;
-}
-
-/**
  * Serialize chat to JSON string (handling Date objects)
  */
 function serializeChat(chat: Chat): string {
@@ -96,11 +82,6 @@ export function saveChat(chat: Chat): void {
 
 	// Update timestamp
 	chat.updatedAt = new Date();
-
-	// Auto-generate title if it's still "New Chat" and messages exist
-	if (chat.title === "New Chat" && chat.messages.length > 0) {
-		chat.title = generateChatTitle(chat.messages);
-	}
 
 	// Save chat data
 	cache.set(chatKey, serializeChat(chat));

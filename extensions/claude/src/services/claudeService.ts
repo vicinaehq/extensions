@@ -12,35 +12,24 @@ import { DEFAULTS } from "../constants";
  */
 export function describeError(err: unknown): string {
 	const e = err as any;
-	const parts: string[] = [];
-	if (e?.name) parts.push(String(e.name));
-	if (e?.status) parts.push(`status ${e.status}`);
-	if (e?.code) parts.push(`code ${e.code}`);
-	const header = parts.length ? parts.join(" / ") : "Request failed";
-
-	// Anthropic API errors often nest message under error.message
 	const detail = e?.error?.message ?? e?.message ?? "Unknown error";
-
-	// Provide concise hinting for common cases
 	const type = e?.error?.type ?? e?.type;
 
-	let hint = "";
-	switch (type) {
-		case "authentication_error":
-			hint = " (check API key)";
-			break;
-		case "invalid_request_error":
-			hint = " (invalid request parameters)";
-			break;
-		case "rate_limit_error":
-			hint = " (rate limited; try again later)";
-			break;
-		case "api_error":
-			hint = " (server error)";
-			break;
-	}
+	const hints: Record<string, string> = {
+		authentication_error: " (check API key)",
+		invalid_request_error: " (invalid request parameters)",
+		rate_limit_error: " (rate limited; try again later)",
+		api_error: " (server error)",
+	};
 
-	return `${header}: ${detail}${hint}`;
+	const parts = [
+		e?.name,
+		e?.status && `status ${e.status}`,
+		e?.code && `code ${e.code}`,
+	].filter(Boolean);
+
+	const header = parts.length ? parts.join(" / ") : "Request failed";
+	return `${header}: ${detail}${hints[type] ?? ""}`;
 }
 
 interface SendMessageParams {
@@ -61,69 +50,57 @@ interface StreamMessageParams extends SendMessageParams {
 }
 
 /**
+ * Helper to initialize Anthropic client and map messages
+ */
+function getClientAndMessages(params: SendMessageParams) {
+	const { apiKey, messages } = params;
+	const anthropic = new Anthropic({ apiKey });
+	const apiMessages = messages.map((msg) => ({
+		role: msg.role as "user" | "assistant",
+		content: msg.content,
+	}));
+	return { anthropic, apiMessages };
+}
+
+/**
+ * Extract text from Anthropic response content blocks
+ */
+function extractText(content: Anthropic.Message["content"]): string {
+	const block = content.find((b) => b.type === "text");
+	return block?.type === "text" ? block.text : "";
+}
+
+/**
  * Send a message to Claude with streaming support
- * Calls onUpdate callback with accumulated text as it arrives
  */
 export async function streamMessageToClaude(
 	params: StreamMessageParams,
 ): Promise<SendMessageResponse> {
-	const {
-		apiKey,
-		messages,
-		model = DEFAULTS.MODEL,
-		maxTokens = DEFAULTS.MAX_TOKENS,
-		onUpdate,
-	} = params;
-
 	try {
-		const anthropic = new Anthropic({ apiKey });
-
-		// Convert our Message format to Anthropic's expected format
-		const apiMessages = messages.map((msg) => ({
-			role: msg.role,
-			content: msg.content,
-		}));
-
+		const { anthropic, apiMessages } = getClientAndMessages(params);
 		let fullText = "";
 
 		const stream = anthropic.messages.stream({
-			model,
-			max_tokens: maxTokens,
+			model: params.model || DEFAULTS.MODEL,
+			max_tokens: params.maxTokens || DEFAULTS.MAX_TOKENS,
 			messages: apiMessages,
 		});
 
-		// Handle streaming events
 		stream.on("text", (text: string) => {
 			fullText += text;
-			onUpdate(fullText);
+			params.onUpdate(fullText);
 		});
 
-		// Wait for stream to complete
 		const finalMessage = await stream.finalMessage();
-
-		// Extract final text content
-		const textContent = finalMessage.content.find(
-			(block) => block.type === "text",
-		);
-
-		if (!textContent || textContent.type !== "text") {
-			return {
-				content: fullText || "",
-				success: fullText.length > 0,
-				error: fullText.length > 0 ? undefined : "No text content in response",
-			};
-		}
+		const content = extractText(finalMessage.content);
 
 		return {
-			content: textContent.text,
-			success: true,
+			content: content || fullText,
+			success: !!(content || fullText),
+			error: content || fullText ? undefined : "No text content in response",
 		};
 	} catch (error) {
-		return {
-			content: "",
-			success: false,
-			error: describeError(error),
-		};
+		return { content: "", success: false, error: describeError(error) };
 	}
 }
 
@@ -133,48 +110,51 @@ export async function streamMessageToClaude(
 export async function sendMessageToClaude(
 	params: SendMessageParams,
 ): Promise<SendMessageResponse> {
-	const {
-		apiKey,
-		messages,
-		model = DEFAULTS.MODEL,
-		maxTokens = DEFAULTS.MAX_TOKENS,
-	} = params;
-
 	try {
-		const anthropic = new Anthropic({ apiKey });
-
-		// Convert our Message format to Anthropic's expected format
-		const apiMessages = messages.map((msg) => ({
-			role: msg.role,
-			content: msg.content,
-		}));
-
+		const { anthropic, apiMessages } = getClientAndMessages(params);
 		const response = await anthropic.messages.create({
-			model,
-			max_tokens: maxTokens,
+			model: params.model || DEFAULTS.MODEL,
+			max_tokens: params.maxTokens || DEFAULTS.MAX_TOKENS,
 			messages: apiMessages,
 		});
 
-		// Extract text content from the response
-		const textContent = response.content.find((block) => block.type === "text");
-
-		if (!textContent || textContent.type !== "text") {
-			return {
-				content: "",
-				success: false,
-				error: "No text content in response",
-			};
-		}
-
-		return {
-			content: textContent.text,
-			success: true,
-		};
+		const content = extractText(response.content);
+		return content
+			? { content, success: true }
+			: { content: "", success: false, error: "No text content in response" };
 	} catch (error) {
-		return {
-			content: "",
-			success: false,
-			error: describeError(error),
-		};
+		return { content: "", success: false, error: describeError(error) };
+	}
+}
+
+/**
+ * Generate a concise title for a conversation
+ */
+export async function generateChatTitleAI(
+	apiKey: string,
+	messages: Message[],
+	model: string = DEFAULTS.MODEL,
+): Promise<string | null> {
+	try {
+		const { content, success } = await sendMessageToClaude({
+			apiKey,
+			model,
+			maxTokens: 50,
+			messages: [
+				...messages,
+				{
+					id: "title-gen",
+					role: "user",
+					content:
+						"Generate a very short, concise title (max 5-6 words) for this conversation based on the messages above. Respond ONLY with the title text, no quotes or additional explanation.",
+					timestamp: new Date(),
+				},
+			],
+		});
+
+		return success ? content.trim().replace(/^["']|["']$/g, "") : null;
+	} catch (error) {
+		console.error("Failed to generate AI title:", error);
+		return null;
 	}
 }

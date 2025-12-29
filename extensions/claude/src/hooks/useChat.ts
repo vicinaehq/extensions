@@ -9,6 +9,7 @@ import {
 	describeError,
 	sendMessageToClaude,
 	streamMessageToClaude,
+	generateChatTitleAI,
 } from "../services/claudeService";
 import { saveChat } from "../services/chatStorage";
 import { EMOJIS, TOAST_MESSAGES } from "../constants";
@@ -123,6 +124,22 @@ export function useChat(initialChat: Chat): UseChatReturn {
 					messages: [...updatedMessages, assistantMessage],
 					updatedAt: new Date(),
 				}));
+
+				// Automatically generate title if it's the first exchange
+				if (chat.title === "New Chat") {
+					generateChatTitleAI(
+						preferences.apiKey,
+						[...updatedMessages, assistantMessage],
+						preferences.model,
+					).then((newTitle) => {
+						if (newTitle) {
+							setChat((prev) => ({
+								...prev,
+								title: newTitle,
+							}));
+						}
+					});
+				}
 
 				await showToast({
 					style: Toast.Style.Success,
