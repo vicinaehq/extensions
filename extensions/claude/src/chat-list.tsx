@@ -16,6 +16,7 @@ import { useChatHistory } from "./hooks/useChatHistory";
 import { ChatView } from "./components/ChatView";
 import { COLORS, EMOJIS } from "./constants";
 import { formatTimestamp } from "./utils/formatting";
+import { Chat } from "./types";
 
 /**
  * CHAT LIST COMMAND - Browse saved conversations
@@ -44,6 +45,10 @@ export default function ChatListCommand() {
 
 	const handleNewChat = () => {
 		push(<ChatView chat={createNewChat()} />);
+	};
+
+	const makeChatKey = (chat: Chat): string => {
+		return chat.id + chat.title + chat.updatedAt.getTime();
 	};
 
 	return (
@@ -75,7 +80,7 @@ export default function ChatListCommand() {
 
 						return (
 							<List.Item
-								key={chat.id + chat.title + chat.updatedAt.getTime()}
+								key={makeChatKey(chat)}
 								title={chat.title}
 								icon={{
 									source: Icon.Bubble,
