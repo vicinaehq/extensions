@@ -84,7 +84,7 @@ The extension supports the following preferences:
   - Claude 4.5 Haiku - Fastest responses (default)
   - Claude 4.5 Opus - Most powerful, highest capability
 - **Max Tokens** (optional): Maximum response length (default: 4096)
-- **Enable Streaming** (optional, experimental): Stream responses in real-time as they arrive. Warning: This is experimental and may cause UI flickering. Disabled by default for a stable experience.
+- **Enable Streaming** (optional): Stream responses in real-time as they arrive. (default)
 
 ## Features in Detail
 
