@@ -13,7 +13,7 @@ import {formatTimestamp} from "./utils/formatting";
  * CHAT LIST COMMAND - Browse saved conversations
  */
 export default function ChatListCommand() {
-    const {chats, isLoading, deleteChat, createNewChat, loadChat, loadChats} =
+    const {chats, isLoading, deleteChat, createNewChat, loadChat} =
         useChatHistory();
     const {push} = useNavigation();
 
@@ -67,7 +67,7 @@ export default function ChatListCommand() {
 
                         return (
                             <List.Item
-                                key={chat.id}
+                                key={chat.id + chat.title + chat.updatedAt.getTime()}
                                 title={chat.title}
                                 icon={{
                                     source: Icon.Bubble,

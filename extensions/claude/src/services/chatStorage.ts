@@ -9,13 +9,12 @@ import type {Chat} from "../types";
 const CHATS_INDEX_KEY = "chats_index";
 const CHAT_KEY_PREFIX = "chat_";
 
-const cache = new Cache({namespace: "chats"});
+const cache = new Cache({namespace: "claude"});
 
-type ChatChangeListener = () => void;
 
 export const ChatStorage = {
-    subscribe(listener: ChatChangeListener): () => void {
-        return cache.subscribe(() => listener());
+    subscribe(listener: Cache.Subscriber): Cache.Subscription {
+        return cache.subscribe(listener);
     },
 
     getChatIndex(): string[] {
@@ -62,8 +61,8 @@ export const ChatStorage = {
     },
 
     loadAllChats(): Chat[] {
-        const index = this.getChatIndex();
-        return index
+        const indexes = this.getChatIndex();
+        return indexes
             .map((id) => this.loadChat(id))
             .filter((chat): chat is Chat => chat !== null)
             .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
