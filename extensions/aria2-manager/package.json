@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "aria2-manager",
+  "title": "Aria2 Manager",
+  "description": "All-in-one download manager powered by Aria2 and yt-dlp.",
+  "categories": [],
+  "license": "MIT",
+  "author": "ozer-01",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "index",
+      "title": "Downloads",
+      "subtitle": "Aria2 Manager",
+      "description": "Monitor active downloads",
+      "mode": "view"
+    },
+    {
+      "name": "quick-add",
+      "title": "Quick Download",
+      "subtitle": "URL or Clipboard",
+      "description": "Add download from URL or clipboard",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "url",
+          "placeholder": "URL or magnet link (optional)",
+          "type": "text",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.17.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
