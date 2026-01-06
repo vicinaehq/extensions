@@ -47,7 +47,6 @@ export default function Command() {
       />
     );
   }
-  console.log(keybinds);
   return (
     <List
       isLoading={isLoading}
@@ -74,6 +73,7 @@ export default function Command() {
               key={`${kb.key}-${kb.dispatcher}-${idx}`}
               title={title}
               accessories={accessories}
+              keywords={[title, kb.description, kb.arg]}
               icon={Icon.Keyboard}
               actions={
                 <ActionPanel>
