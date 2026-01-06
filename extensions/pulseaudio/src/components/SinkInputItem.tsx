@@ -11,14 +11,16 @@ import { speakerIconForPercentAndMute } from "../ui/audioIcons";
 import { deviceAccessories } from "../ui/deviceAccessories";
 import { clamp } from "../ui/format";
 import { showErrorToast } from "../ui/toasts";
+import { detailsShortcut } from "../shortcuts";
 
 export function SinkInputItem(props: {
+  toggleDetail: () => void;
   sinkInput: PactlSinkInput;
   refresh: () => Promise<void>;
   refreshShortcut: Keyboard.Shortcut | Keyboard.Shortcut.Common;
   sinkName?: string;
 }) {
-  const { sinkInput, refresh, refreshShortcut, sinkName } = props;
+  const { sinkInput, refresh, refreshShortcut, sinkName, toggleDetail } = props;
 
   const vol = percentFromVolume(sinkInput.volume);
   const icon = speakerIconForPercentAndMute(vol, sinkInput.mute);
@@ -52,6 +54,12 @@ export function SinkInputItem(props: {
           onAction={toggleMute}
         />
         <Action.CopyToClipboard title="Copy Stream Name" content={title} />
+        <Action
+          shortcut={detailsShortcut}
+          title="Toggle Details"
+          icon={Icon.Eye}
+          onAction={toggleDetail}
+        />
       </ActionPanel.Section>
       <ActionPanel.Section title="Volume">
         <Action

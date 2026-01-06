@@ -16,9 +16,12 @@ type ViewFilter = "all" | "outputs" | "inputs" | "playback";
 
 export default function SoundManagerCommand() {
   const { audio, isLoading, refresh } = useAudioState();
+  const [showDetail, setShowDetail] = useState(false);
   const [viewFilter, setViewFilter] = useState<ViewFilter>("all");
   const refreshShortcut = Keyboard.Shortcut.Common.Refresh as Keyboard.Shortcut.Common;
 
+  const handleToggleDetail = () => setShowDetail((prev) => !prev);
+  
   const searchAccessory = useMemo(
     () => (
       <List.Dropdown
@@ -84,7 +87,7 @@ export default function SoundManagerCommand() {
   return (
     <List
       isLoading={isLoading}
-      isShowingDetail
+      isShowingDetail={showDetail}
       navigationTitle="Sound Settings"
       searchBarPlaceholder="Search audio devices…"
       searchBarAccessory={searchAccessory}
@@ -118,6 +121,7 @@ export default function SoundManagerCommand() {
           {audio.sinkInputs.map((sinkInput) => {
             const sinkName = audio.sinks.find((s) => s.index === sinkInput.sink)?.description;
             return <SinkInputItem
+              toggleDetail={handleToggleDetail}
               key={sinkInput.index}
               sinkInput={sinkInput}
               refresh={refresh}
@@ -141,6 +145,7 @@ export default function SoundManagerCommand() {
           {sinksSorted.map((sink) => (
             <AudioDeviceItem
               key={sink.name}
+              toggleDetail={handleToggleDetail}
               kind="sink"
               device={sink}
               defaultName={audio?.info.default_sink_name}
@@ -164,6 +169,7 @@ export default function SoundManagerCommand() {
         >
           {sourcesSorted.map((source) => (
             <AudioDeviceItem
+              toggleDetail={handleToggleDetail}
               key={source.name}
               kind="source"
               device={source}

@@ -6,15 +6,17 @@ import { micIconForMute, speakerIconForPercentAndMute } from "../ui/audioIcons";
 import { deviceAccessories } from "../ui/deviceAccessories";
 import { clamp } from "../ui/format";
 import { showErrorToast } from "../ui/toasts";
+import { detailsShortcut } from "../shortcuts";
 
 export function AudioDeviceItem(props: {
   kind: "sink" | "source";
   device: PactlDevice;
   defaultName?: string;
   refresh: () => Promise<void>;
+  toggleDetail: () => void;
   refreshShortcut: Keyboard.Shortcut | Keyboard.Shortcut.Common;
 }) {
-  const { kind, device, defaultName, refresh, refreshShortcut } = props;
+  const { kind, device, defaultName, refresh, refreshShortcut, toggleDetail } = props;
 
   const isDefault = !!defaultName && device.name === defaultName;
   const vol = percentFromVolume(device.volume);
@@ -95,6 +97,12 @@ export function AudioDeviceItem(props: {
           onAction={toggleMute}
         />
         <Action.CopyToClipboard title="Copy Device Name" content={device.name} />
+        <Action
+          shortcut={detailsShortcut}
+          title="Toggle Details"
+          icon={Icon.Eye}
+          onAction={toggleDetail}
+        />
       </ActionPanel.Section>
       <ActionPanel.Section title="Volume">
         <Action title="Increase Volume (+5%)" icon={Icon.SpeakerUp} onAction={() => setVolume((vol ?? 0) + 5)} />
