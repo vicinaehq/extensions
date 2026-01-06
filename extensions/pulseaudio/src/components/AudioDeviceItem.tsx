@@ -121,8 +121,6 @@ export function AudioDeviceItem(props: {
 
   return (
     <List.Item
-      key={device.name}
-      id={`${kind}:${device.name}`}
       title={title}
       subtitle={subtitle}
       icon={icon}
