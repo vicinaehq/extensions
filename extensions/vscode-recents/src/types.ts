@@ -1,10 +1,10 @@
 export enum ProjectEnvironment {
     Local = "",
-    Codespaces = "vsonline",
     RemoteWSL = "wsl",
+    Codespace = "vsonline",
+    RemoteTunnel = "tunnel",
     RemoteSSH = "ssh-remote",
     DevContainer = "dev-container",
-    RemoteTunnel = "tunnel",
 }
 
 export enum ProjectType {
@@ -16,9 +16,10 @@ export enum ProjectType {
 export interface RecentProject {
     path: string;
     label: string;
-    environment: ProjectEnvironment;
     type: ProjectType;
+    machineName?: string;
     lastOpened: number | undefined;
+    environment: ProjectEnvironment;
 }
 
 export interface VSCodeDatabaseEntry {
