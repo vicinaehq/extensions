@@ -1,0 +1,180 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "code-in-folder",
+  "title": "Code in New Folder",
+  "description": "Open new projects in your preferred editor",
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "benzipperer",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "code-in-new-folder",
+      "title": "Code in New Folder",
+      "subtitle": "Create and open a project folder",
+      "description": "Creates a folder in your configured base directory and opens it in your preferred code editor",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "type": "dropdown",
+      "name": "programName",
+      "title": "Preferred Editor",
+      "description": "Select the editor to open projects with",
+      "default": "code",
+      "required": true,
+      "data": [
+        {
+          "title": "Cursor",
+          "value": "cursor"
+        },
+        {
+          "title": "Positron",
+          "value": "positron"
+        },
+        {
+          "title": "VS Code",
+          "value": "code"
+        },
+        {
+          "title": "VS Codium",
+          "value": "codium"
+        },
+        {
+          "title": "Other (Custom)",
+          "value": "other"
+        }
+      ]
+    },
+    {
+      "type": "textfield",
+      "name": "customEditorCommand",
+      "title": "Custom Editor Command",
+      "description": "The command to run when 'Other' is selected (e.g., vim, emacs, nano, or any editor command)",
+      "placeholder": "vim",
+      "default": "",
+      "required": false
+    },
+    {
+      "type": "checkbox",
+      "name": "runCustomEditorInTerminal",
+      "title": "Run Custom Editor in Terminal",
+      "label": "Open custom editor inside a terminal window",
+      "description": "When enabled, the custom editor command will be run inside a terminal. Useful for terminal-based editors like vim, emacs, or nano.",
+      "default": false,
+      "required": false
+    },
+    {
+      "type": "textfield",
+      "name": "basePath",
+      "title": "Base Directory Path",
+      "description": "The base directory where folders will be created. Leave empty to use home directory. Supports ~ for home, relative paths, or absolute paths like / or /projects",
+      "placeholder": "~",
+      "default": "",
+      "required": false
+    },
+    {
+      "type": "checkbox",
+      "name": "addYearToPath",
+      "title": "Add Year to Path",
+      "label": "Add year subdirectory to base path",
+      "description": "When enabled, creates folders in YEAR/MM-DD/TITLE structure. When disabled, uses MM-DD/TITLE or just TITLE structure.",
+      "default": true,
+      "required": false
+    },
+    {
+      "type": "checkbox",
+      "name": "addMonthDayToPath",
+      "title": "Add Month-Day to Path",
+      "label": "Add month-day subdirectory to base path",
+      "description": "When enabled, creates folders with MM-DD subdirectory. When disabled with year enabled, uses YEAR/TITLE structure.",
+      "default": true,
+      "required": false
+    },
+    {
+      "type": "dropdown",
+      "name": "pathNameCase",
+      "title": "Path Name Case Conversion",
+      "description": "Choose how to format the folder name. 'none' uses the title as-is, other options convert case and remove special characters.",
+      "default": "none",
+      "required": true,
+      "data": [
+        {
+          "title": "None (leave as is)",
+          "value": "none"
+        },
+        {
+          "title": "camelCase",
+          "value": "camelCase"
+        },
+        {
+          "title": "kebab-case",
+          "value": "kebab-case"
+        },
+        {
+          "title": "lowercase",
+          "value": "lowercase"
+        },
+        {
+          "title": "snake_case",
+          "value": "snake_case"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "name": "truncatePathName",
+      "title": "Truncate Path Name",
+      "label": "Limit title length",
+      "description": "When enabled, limits the title to 50 characters or 10 words. When disabled, uses the full title.",
+      "default": true,
+      "required": false
+    },
+    {
+      "type": "checkbox",
+      "name": "openExistingFolder",
+      "title": "Open Existing Folders",
+      "label": "Open folder if it already exists",
+      "description": "When enabled, opens existing folders instead of showing an error. When disabled, shows an error if the folder already exists.",
+      "default": true,
+      "required": false
+    },
+    {
+      "type": "checkbox",
+      "name": "openSpecificFile",
+      "title": "Open Specific File",
+      "label": "Open a specific file in the folder",
+      "description": "When enabled, opens a specific file within the newly created folder instead of just the folder.",
+      "default": false,
+      "required": false
+    },
+    {
+      "type": "textfield",
+      "name": "specificFileName",
+      "title": "Specific File Name",
+      "description": "The name of the file to open within the folder (e.g., main.py, index.html, README.md)",
+      "placeholder": "main.py",
+      "default": "",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.11",
+    "js-convert-case": "^4.2.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "typescript": "^5.9.2"
+  }
+}
