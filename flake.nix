@@ -41,21 +41,22 @@
     in
     {
       packages = forEachSystem (
-        { system, ... }:
+        { pkgs, system }:
         lib.pipe (builtins.readDir ./extensions) [
           (lib.filterAttrs (_name: type: type == "directory"))
           (lib.mapAttrs (
             name: _type:
-            vicinae.packages.${system}.mkVicinaeExtension {
-              pname = name;
-              src = ./extensions/${name};
-            }
+            let
+              inherit (vicinae.packages.${system}) mkVicinaeExtension;
+            in
+            if builtins.readDir ./extensions/${name} ? "package.nix" then
+              pkgs.callPackage ./extensions/${name}/package.nix { inherit mkVicinaeExtension; }
+            else
+              mkVicinaeExtension {
+                pname = name;
+                src = ./extensions/${name};
+              }
           ))
-          (lib.flip builtins.removeAttrs [
-            # TODO: fails to build due to node-gyp
-            "dbus"
-            "systemd"
-          ])
         ]
       );
 
