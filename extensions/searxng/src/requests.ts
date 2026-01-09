@@ -34,7 +34,7 @@ export async function issueRequest(
         return {
             type: "error",
             status_code: FORBIDDEN_CODE,
-            error_message: "Request **forbidden**. Please validate that your instance can read from JSON."
+            error_message: "Request **forbidden**. Please verify that your SearXNG instance has JSON format support enabled."
         }
     }
     
@@ -46,32 +46,32 @@ export async function issueRequest(
         }
     }
     
-    const data = <RawSearxngRequest>(await response.json());
+    const data = (await response.json()) as RawSearxngRequest;
     return convertResult(data);
 }
 
 function convertResult(data: RawSearxngRequest): SearxngRequest {
-    return <SearxngRequest>({
+    return ({
         ...data,
         type: "response",
         results: deduplicateResults(data.results.map(convertSearchResult)),
         infoboxes: data.infoboxes.map(convertInfobox)
-    })
+    }) as SearxngRequest
 }
 
 function convertSearchResult(result: RawSearxngRequestResult): SearxngRequestResult {
-    return <SearxngRequestResult>({
+    return ({
         ...result,
         type: "result",
         thumbnail: convertUrl(result.thumbnail),
         img_src: convertUrl(result.img_src),
         url: convertUrl(result.url),
         publishedDate: result.publishedDate ? new Date(result.publishedDate) : null
-    })
+    }) as SearxngRequestResult;
 }
 
 function convertInfobox(infobox: RawSearxngRequestInfobox): SearxngRequestInfobox {
-    return <SearxngRequestInfobox>({
+    return ({
         ...infobox,
         type: "infobox",
         thumbnail: convertUrl(infobox.thumbnail),
@@ -79,7 +79,7 @@ function convertInfobox(infobox: RawSearxngRequestInfobox): SearxngRequestInfobo
         url: convertUrl(infobox.url),
         publishedDate: infobox.publishedDate ? new Date(infobox.publishedDate) : null,
         id: convertUrl(infobox.id)
-    })
+    }) as SearxngRequestInfobox
 }
 
 function deduplicateResults(results: SearxngRequestResult[]) {

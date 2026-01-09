@@ -1,16 +1,16 @@
 type ISO8601Date = string;
 
-type Engine = "brave"|"startpage"|"wikipedia";
-type Category = "general";
+type Engine = string;
+type Category = string;
 
 type BaseSearxngRequest = {
     type: "response",
     query: string,
-    number_of_results: 0,
-    answers: [],
-    corrections: [],
-    suggestions: [],
-    unresponsive_engines: []
+    number_of_results: number,
+    answers: unknown[],
+    corrections: unknown[],
+    suggestions: unknown[],
+    unresponsive_engines: unknown[]
 }
 
 type RawSearxngRequest = BaseSearxngRequest & {
@@ -31,7 +31,7 @@ type BaseSearxngRequestResult = {
     score: number,
     positions: string,
     engines: Engine[],
-    priority: string|"",
+    priority: string,
     content: string,
 }
 
@@ -39,7 +39,7 @@ type RawSearxngRequestResult = BaseSearxngRequestResult & {
     thumbnail: string,
     url: string,
     publishedDate: ISO8601Date|null,
-    img_src: string|"",
+    img_src: string,
 }
 
 type SearxngRequestResult = BaseSearxngRequestResult & {

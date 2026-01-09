@@ -2,20 +2,7 @@ import {Detail, List} from "@vicinae/api";
 import {issueRequest} from "./requests";
 import { useState } from "react";
 import ResultItem from "./components/ResultItem";
-
-function throttle(callback: () => void, delay = 1000) {
-	let shouldWait = false;
-
-	return () => {
-		if (shouldWait) return;
-
-		callback();
-		shouldWait = true;
-		setTimeout(() => {
-			shouldWait = false;
-		}, delay);
-	};
-}
+import _ from "lodash";
 
 export default function SimpleList() {
 
@@ -26,7 +13,7 @@ export default function SimpleList() {
 	const [showDetails, setShowDetails] = useState<boolean>(false);
 	const [pageNumber, setPageNumber] = useState<number>(1);
 	
-	const throttleSearchUpdate = throttle(async () => {
+	const throttleSearchUpdate = _.throttle(async () => {
 		if (!currentResponse) {
 			return;
 		}
@@ -41,8 +28,13 @@ export default function SimpleList() {
 			return;
 		}
 
-		currentResponse.results.push(...response.results);
-		setCurrentResponse(currentResponse);
+		setCurrentResponse({
+			...currentResponse,
+			results: [
+				...currentResponse.results,
+				...response.results
+			]
+		});
 
 		setIsLoading(false);
 	})
@@ -73,7 +65,7 @@ export default function SimpleList() {
 		return resultB.score - resultA.score;
 	}
 	
-	async function infinteScrollCheck(id: string) {
+	async function infiniteScrollCheck(id: string) {
 		if (!id.startsWith('result')) {
 			return;
 		}
@@ -115,10 +107,10 @@ ${errorState.error_message}`}
 			  isShowingDetail={showDetails}
 			  throttle
 			  onSearchTextChange={updateRequest}
-			  onSelectionChange={infinteScrollCheck}
+			  onSelectionChange={infiniteScrollCheck}
 			  isLoading={isLoading}
 		>
-			{currentResponse?.type == "response" ? (
+			{currentResponse?.type === "response" ? (
 				<>
 					<List.Section title="Info" key="section-info">
 						{currentResponse?.infoboxes.map((result: SearxngRequestInfobox, index: number) => (
@@ -133,7 +125,7 @@ ${errorState.error_message}`}
 							))}
 					</List.Section>
 				</>
-			): <></>}
+			): null}
 		</List>
 	);
 }

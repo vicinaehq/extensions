@@ -1,11 +1,11 @@
-# Searxng Intergration
+# Searxng Integration
 
 A [Vicinae](https://github.com/vicinaehq/vicinae) extension for searching with a searxng instance.
 
 ## Features
 - **Search** with your custom Searxng Instance
 - **Automatic** pagination
-- **Details** about search results, such as previews or thumbnails if avaliable.
+- **Details** about search results, such as previews or thumbnails if available.
 
 ## Setup
 
