@@ -8,7 +8,7 @@ Look at what your binds are in a hyprland config file.
 
 ## Features
 
-- Display your keybinds from a single config file in a list with sweet detail!
+- Display all of your keybinds in a list with sweet detail!
 
 ## Requirements
 
@@ -19,11 +19,6 @@ Look at what your binds are in a hyprland config file.
 
 - `Show Hyprland Keybinds` — List your hyprland keybinds.
 
-## Extension Preferences
-
-<img src="assets/settings.png" alt="Settings" width="500" />
-
-- `Keybinds Config Path` — The path to your hyprland keybinds config file.
 
 ## Commments
 

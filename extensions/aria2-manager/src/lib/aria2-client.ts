@@ -40,7 +40,10 @@ export class Aria2Client {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(request),
+<<<<<<< HEAD
             signal: AbortSignal.timeout(5000), // Add 5s timeout
+=======
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
         });
 
         if (!response.ok) {
@@ -53,6 +56,7 @@ export class Aria2Client {
             throw new Error(`Aria2 RPC error: ${data.error.message} (code: ${data.error.code})`);
         }
 
+<<<<<<< HEAD
         if (data.result === undefined) {
             // It's possible for result to be null/undefined for some void methods, 
             // but we shouldn't blindly cast.
@@ -65,6 +69,9 @@ export class Aria2Client {
         }
 
         return data.result;
+=======
+        return data.result as T;
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
     }
 
     /**
@@ -241,6 +248,7 @@ export class Aria2Client {
 /**
  * Create a singleton client instance
  */
+<<<<<<< HEAD
 // Basic map to store clients by key to support multiple configs if needed, 
 // though typically we only use one.
 const clientCache = new Map<string, Aria2Client>();
@@ -254,6 +262,15 @@ export const getAria2Client = (rpcUrl = 'http://localhost:6800/jsonrpc', secret:
     }
 
     return clientCache.get(key)!;
+=======
+let defaultClient: Aria2Client | null = null;
+
+export const getAria2Client = (rpcUrl?: string, secret?: string | null): Aria2Client => {
+    if (!defaultClient || rpcUrl) {
+        defaultClient = new Aria2Client(rpcUrl, secret);
+    }
+    return defaultClient;
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 };
 
 export default Aria2Client;

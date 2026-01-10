@@ -8,10 +8,11 @@ import {
 import { useMemo, useState } from "react";
 import { displayNameForDevice } from "./pactl";
 import { AudioDeviceItem } from "./components/AudioDeviceItem";
+import { SinkInputItem } from "./components/SinkInputItem";
 import { useAudioState } from "./hooks/useAudioState";
 import { sortDevicesWithDefaultFirst } from "./ui/sortDevices";
 
-type ViewFilter = "all" | "outputs" | "inputs";
+type ViewFilter = "all" | "outputs" | "inputs" | "playback";
 
 export default function SoundManagerCommand() {
   const { audio, isLoading, refresh } = useAudioState();
@@ -30,6 +31,7 @@ export default function SoundManagerCommand() {
         <List.Dropdown.Item title="All Devices" value="all" icon={Icon.AppWindowList} />
         <List.Dropdown.Item title="Outputs Only" value="outputs" icon={Icon.SpeakerHigh} />
         <List.Dropdown.Item title="Inputs Only" value="inputs" icon={Icon.Microphone} />
+        <List.Dropdown.Item title="Playback Streams" value="playback" icon={Icon.Play} />
       </List.Dropdown>
     ),
     [],
@@ -64,6 +66,21 @@ export default function SoundManagerCommand() {
     [audio],
   );
 
+  const shouldShowInputs =
+    (viewFilter === "all" || viewFilter === "inputs") &&
+    audio?.sources &&
+    audio.sources.length > 0;
+
+  const shouldShowOutputs =
+    (viewFilter === "all" || viewFilter === "outputs") &&
+    audio?.sinks &&
+    audio.sinks.length > 0;
+
+  const showPlaybackStreams =
+    (viewFilter === "all" || viewFilter === "playback") &&
+    audio?.sinkInputs &&
+    audio.sinkInputs.length > 0;
+
   return (
     <List
       isLoading={isLoading}
@@ -91,7 +108,26 @@ export default function SoundManagerCommand() {
           icon={Icon.Warning}
         />
       ) : null}
-      {viewFilter !== "inputs" ? (
+      {showPlaybackStreams ? (
+        <List.Section
+          title="Playback"
+          subtitle={`${audio.sinkInputs.length} stream${
+            audio.sinkInputs.length === 1 ? "" : "s"
+          }`}
+        >
+          {audio.sinkInputs.map((sinkInput) => {
+            const sinkName = audio.sinks.find((s) => s.index === sinkInput.sink)?.description;
+            return <SinkInputItem
+              key={sinkInput.index}
+              sinkInput={sinkInput}
+              refresh={refresh}
+              refreshShortcut={refreshShortcut}
+              sinkName={sinkName}
+            />;
+          })}
+        </List.Section>
+      ) : null}
+      {shouldShowOutputs ? (
         <List.Section
           title="Output Devices"
           subtitle={
@@ -115,7 +151,7 @@ export default function SoundManagerCommand() {
         </List.Section>
       ) : null}
 
-      {viewFilter !== "outputs" ? (
+      {shouldShowInputs ? (
         <List.Section
           title="Input Devices"
           subtitle={

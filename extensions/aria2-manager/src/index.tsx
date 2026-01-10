@@ -1,15 +1,25 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+<<<<<<< HEAD
 import { List, ActionPanel, Action, showToast, Toast, Icon, Color, confirmAlert, Alert, open } from '@vicinae/api';
 import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+=======
+import { List, ActionPanel, Action, showToast, Toast, Icon, Color, confirmAlert, Alert } from '@vicinae/api';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import * as fs from 'fs';
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 import type { Aria2Task, DownloadInfo } from './types';
 import { Aria2Client, getAria2Client } from './lib/aria2-client';
 import { ensureDaemonRunning, getDaemonStatus } from './lib/aria2-daemon';
 import { extractVideoUrl, isYtDlpInstalled, YtDlpError } from './lib/yt-dlp-handler';
+<<<<<<< HEAD
 import { isFfmpegInstalled, mergeMedia } from './lib/ffmpeg-utils';
+=======
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 import { detectUrlType, isValidUrl, taskToDownloadInfo, formatBytes, formatSpeed, formatTimeRemaining, getStatusIcon } from './lib/utils';
 
 const execAsync = promisify(exec);
@@ -17,8 +27,12 @@ const execAsync = promisify(exec);
 // Config
 const RPC_URL = 'http://localhost:6800/jsonrpc';
 const RPC_SECRET: string | null = null;
+<<<<<<< HEAD
 // Use user's Downloads directory, fallback to home/Downloads, or error if no home
 const DOWNLOAD_DIR = process.env.HOME ? path.join(process.env.HOME, 'Downloads') : '/tmp';
+=======
+const DOWNLOAD_DIR = process.env.HOME ? `${process.env.HOME}/Downloads` : '/tmp';
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 
 /**
  * Main Download Manager Command
@@ -33,8 +47,11 @@ export default function Command() {
     const [searchText, setSearchText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [ytDlpAvailable, setYtDlpAvailable] = useState<boolean | null>(null);
+<<<<<<< HEAD
     const [ffmpegAvailable, setFfmpegAvailable] = useState<boolean | null>(null);
     const [quality, setQuality] = useState<'best' | '1080p' | '720p' | 'audio'>('best');
+=======
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
     const [lastUpdate, setLastUpdate] = useState<number>(Date.now()); // For forcing re-renders
 
     // Aria2 client ref
@@ -55,10 +72,13 @@ export default function Command() {
             const ytdlp = await isYtDlpInstalled();
             setYtDlpAvailable(ytdlp);
 
+<<<<<<< HEAD
             // Check ffmpeg availability
             const ffmpeg = await isFfmpegInstalled();
             setFfmpegAvailable(ffmpeg);
 
+=======
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
             // Check daemon status
             const status = await getDaemonStatus(RPC_URL);
 
@@ -97,7 +117,11 @@ export default function Command() {
     }, [initializeDaemon]);
 
     // Fetch all downloads
+<<<<<<< HEAD
     const loadDownloads = useCallback(async () => {
+=======
+    const loadDownloads = async () => {
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
         if (!clientRef.current) return;
 
         setIsLoading(true);
@@ -116,7 +140,11 @@ export default function Command() {
         } finally {
             setIsLoading(false);
         }
+<<<<<<< HEAD
     }, []);
+=======
+    };
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 
 
     // Fetch downloads on connect and poll every 5 seconds for status updates
@@ -157,6 +185,7 @@ export default function Command() {
                 await showToast({ style: Toast.Style.Animated, title: 'Extracting video URL...' });
 
                 try {
+<<<<<<< HEAD
                     // Start extraction with selected quality
                     let result = await extractVideoUrl(trimmedInput, { quality });
 
@@ -198,6 +227,9 @@ export default function Command() {
                     }
 
                     // Standard single file download
+=======
+                    const result = await extractVideoUrl(trimmedInput);
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
                     downloadUrl = result.url;
                     filename = result.filename;
                     await showToast({ style: Toast.Style.Success, title: 'Found video', message: result.title });
@@ -233,6 +265,7 @@ export default function Command() {
         } finally {
             setIsProcessing(false);
         }
+<<<<<<< HEAD
     }, [ytDlpAvailable, ffmpegAvailable, loadDownloads, quality]);
 
     // Lazy Merge Watcher
@@ -286,6 +319,9 @@ export default function Command() {
         const interval = setInterval(scanAndMerge, 5000);
         return () => clearInterval(interval);
     }, [ffmpegAvailable, isConnected]);
+=======
+    }, [ytDlpAvailable, loadDownloads]);
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 
     // Handle search submit (Enter key)
     const handleSearchSubmit = useCallback(() => {
@@ -330,6 +366,7 @@ export default function Command() {
                 try {
                     console.log('[aria2] Pausing active download before file deletion...');
                     await clientRef.current.pause(gid);
+<<<<<<< HEAD
                     // Wait for aria2 to release control file lock - polling instead of fixed wait
                     let attempts = 0;
                     const maxAttempts = 20; // 2 seconds max
@@ -354,6 +391,10 @@ export default function Command() {
                             attempts++;
                         }
                     }
+=======
+                    // Wait a bit for aria2 to release file lock
+                    await new Promise(resolve => setTimeout(resolve, 500));
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
                     console.log('[aria2] Download paused, proceeding with file deletion');
                 } catch (err) {
                     console.log('[aria2] Pause failed, attempting deletion anyway:', err);
@@ -375,7 +416,11 @@ export default function Command() {
                             const stat = fs.statSync(actualPath);
                             if (stat.isDirectory()) {
                                 console.log('[aria2] Deleting directory...');
+<<<<<<< HEAD
                                 fs.rmSync(actualPath, { recursive: true, force: true });
+=======
+                                await execAsync(`rm -rf "${actualPath}"`);
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
                             } else {
                                 console.log('[aria2] Deleting file...');
                                 fs.unlinkSync(actualPath);
@@ -453,6 +498,7 @@ export default function Command() {
     }, [handleRemove]);
 
     // Open file location
+<<<<<<< HEAD
     // Open file location - Safe spawn
     const handleOpenLocation = useCallback(async (dir?: string) => {
         if (!dir) return; // Guard against undefined
@@ -470,10 +516,17 @@ export default function Command() {
             });
         } catch (err) {
             console.error('Failed to open location:', err);
+=======
+    const handleOpenLocation = useCallback(async (dir: string) => {
+        try {
+            await execAsync(`xdg-open "${dir}"`);
+        } catch (err) {
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
             await showToast({ style: Toast.Style.Failure, title: 'Failed to open folder' });
         }
     }, []);
 
+<<<<<<< HEAD
     // Group downloads by status (filtering out hidden audio helper files)
     const shouldShow = (d: DownloadInfo) => !d.name.endsWith('.audio.m4a');
 
@@ -481,6 +534,13 @@ export default function Command() {
     const waitingDownloads = downloads.filter(d => (d.status === 'waiting' || d.status === 'paused') && shouldShow(d));
     const completedDownloads = downloads.filter(d => d.status === 'complete' && shouldShow(d));
     const errorDownloads = downloads.filter(d => (d.status === 'error' || d.status === 'removed') && shouldShow(d));
+=======
+    // Group downloads by status
+    const activeDownloads = downloads.filter(d => d.status === 'active');
+    const waitingDownloads = downloads.filter(d => d.status === 'waiting' || d.status === 'paused');
+    const completedDownloads = downloads.filter(d => d.status === 'complete');
+    const errorDownloads = downloads.filter(d => d.status === 'error' || d.status === 'removed');
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 
     // Build subtitle - minimal, only show errors if present
     const getSubtitle = (download: DownloadInfo): string => {
@@ -546,6 +606,7 @@ export default function Command() {
                         />
                     )}
                     {isComplete && (
+<<<<<<< HEAD
                         <>
                             {filePath && (
                                 <Action
@@ -562,6 +623,14 @@ export default function Command() {
                                 shortcut={{ modifiers: ["cmd", "shift"], key: "o" }}
                             />
                         </>
+=======
+                        <Action
+                            title="Open Location"
+                            icon={Icon.Folder}
+                            onAction={() => handleOpenLocation(dir)}
+                            shortcut={{ modifiers: ["cmd"], key: "o" }}
+                        />
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
                     )}
                 </ActionPanel.Section>
                 <ActionPanel.Section>
@@ -614,6 +683,7 @@ export default function Command() {
             searchText={searchText}
             onSearchTextChange={setSearchText}
             navigationTitle={`Downloads ${activeDownloads.length > 0 ? `(${activeDownloads.length} active)` : ''}`}
+<<<<<<< HEAD
             searchBarPlaceholder="Enter URL, magnet link, or YouTube video link..."
             searchBarAccessory={
                 <List.Dropdown
@@ -627,6 +697,9 @@ export default function Command() {
                     <List.Dropdown.Item title="Audio" value="audio" icon={Icon.Music} />
                 </List.Dropdown>
             }
+=======
+            searchBarPlaceholder="Enter URL, magnet link, or YouTube video to download..."
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
             actions={
                 <ActionPanel>
                     <Action

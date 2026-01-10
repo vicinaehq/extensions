@@ -131,11 +131,25 @@ function toDevice(v: unknown): PactlDevice | undefined {
 }
 
 function toSinkInput(v: unknown): PactlSinkInput | undefined {
-  const base = toDevice(v);
-  if (!base || !isObject(v)) return undefined;
+  if (!isObject(v)) return undefined;
+  const index = typeof v.index === "number" ? v.index : undefined;
+  const props = toStringRecord(v.properties);
+  const name = props?.["application.name"];
+  const mute = typeof v.mute === "boolean" ? v.mute : undefined;
   const sink = typeof v.sink === "number" ? v.sink : undefined;
   const driver = typeof v.driver === "string" ? v.driver : undefined;
-  return { ...base, sink, driver };
+  if (index === undefined || name === undefined || mute === undefined)
+    return undefined;
+  return {
+    index,
+    name,
+    mute,
+    description: typeof v.description === "string" ? v.description : undefined,
+    volume: toVolumeRecord(v.volume),
+    properties: props,
+    sink,
+    driver,
+  };
 }
 
 function toSourceOutput(v: unknown): PactlSourceOutput | undefined {
@@ -412,10 +426,6 @@ export function appNameForStream(d: PactlDevice): string {
 
 export function isAudioSource(d: PactlDevice): boolean {
   return d.properties?.["media.class"] === "Audio/Source";
-}
-
-export function isAudioSink(d: PactlDevice): boolean {
-  return d.properties?.["media.class"] === "Audio/Sink";
 }
 
 // Backwards-compatible function exports (internal calls go through the singleton client).

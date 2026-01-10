@@ -113,9 +113,12 @@ export interface YtDlpResult {
   url: string;
   filename: string;
   title: string;
+<<<<<<< HEAD
   videoUrl?: string; // High quality video stream
   audioUrl?: string; // Separate audio stream
   isSplit?: boolean; // Whether it requires merging
+=======
+>>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 }
 
 /** URL type detection result */

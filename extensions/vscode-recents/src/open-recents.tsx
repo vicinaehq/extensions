@@ -1,4 +1,4 @@
-import { RecentProject } from "./types";
+import type { RecentProject } from "./types";
 import { Icon, List } from "@vicinae/api";
 import { useEffect, useState, useCallback } from "react";
 import { ErrorView } from "./components/ErrorView";

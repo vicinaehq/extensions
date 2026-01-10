@@ -32,7 +32,21 @@
         { "title": "Visual Studio Code", "value": "Code" },
         { "title": "Visual Studio Code (Insiders)", "value": "Code - Insiders" }
       ]
+    },
+    {
+      "required": true,
+      "default": "Default",
+      "type": "dropdown",
+      "name": "windowPreference",
+      "title": "Window Preference",
+      "description": "Whether to open projects in a new window or reuse existing window",
+      "data": [
+        { "title": "New Window", "value": "NewWindow" },
+        { "title": "Reuse Window", "value": "ReuseWindow" },
+        { "title": "Default (files in existing, folders in new window)", "value": "Default" }
+      ]
     }
+    
   ],
   "scripts": {
     "build": "vici build",

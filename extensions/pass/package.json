@@ -61,6 +61,24 @@
       "description": "How long to pin the last-used entry to the top of the list",
       "default": "120",
       "required": true
+    },
+    {
+      "name": "action",
+      "type": "dropdown",
+      "title": "Default Action",
+      "description": "Action to perform when pressing Enter on an entry",
+      "required": true,
+      "default": "paste",
+      "data": [
+        {
+          "title": "paste",
+          "value": "paste"
+        },
+        {
+          "title": "copy",
+          "value": "copy"
+        }
+      ]
     }
   ],
   "scripts": {
