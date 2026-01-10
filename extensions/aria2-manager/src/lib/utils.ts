@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import type { Aria2Task, DownloadInfo, UrlType } from '../types';
 
 /**
@@ -98,13 +99,26 @@ export const taskToDownloadInfo = (task: Aria2Task): DownloadInfo => {
 
     // Get full file path if available
     let filePath: string | null = null;
+    let name = getTaskFilename(task);
+
     if (task.files && task.files.length > 0 && task.files[0].path) {
         filePath = task.files[0].path;
+
+        // Check if this is a split video file and if the merged version exists
+        if (filePath.endsWith('.video.mp4')) {
+            const mergedPath = filePath.replace('.video.mp4', '.mp4');
+            if (fs.existsSync(mergedPath)) {
+                // Point to the merged file instead
+                filePath = mergedPath;
+                // Update name to remove .video suffix
+                name = name.replace('.video.mp4', '.mp4');
+            }
+        }
     }
 
     return {
         gid: task.gid,
-        name: getTaskFilename(task),
+        name,
         status: task.status,
         progress: calculateProgress(completedSize, totalSize),
         totalSize,

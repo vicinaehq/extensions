@@ -40,6 +40,7 @@ export class Aria2Client {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(request),
+            signal: AbortSignal.timeout(5000), // Add 5s timeout
         });
 
         if (!response.ok) {
@@ -52,7 +53,18 @@ export class Aria2Client {
             throw new Error(`Aria2 RPC error: ${data.error.message} (code: ${data.error.code})`);
         }
 
-        return data.result as T;
+        if (data.result === undefined) {
+            // It's possible for result to be null/undefined for some void methods, 
+            // but we shouldn't blindly cast.
+            // If T is void or unknown, this might be fine.
+            // If T is expected to be an object, this is bad.
+            // For now, let's allow it but maybe warn? 
+            // Or better: construct assumes T handles it.
+            // But strict null check:
+            return data.result as T;
+        }
+
+        return data.result;
     }
 
     /**
@@ -229,13 +241,19 @@ export class Aria2Client {
 /**
  * Create a singleton client instance
  */
-let defaultClient: Aria2Client | null = null;
+// Basic map to store clients by key to support multiple configs if needed, 
+// though typically we only use one.
+const clientCache = new Map<string, Aria2Client>();
 
-export const getAria2Client = (rpcUrl?: string, secret?: string | null): Aria2Client => {
-    if (!defaultClient || rpcUrl) {
-        defaultClient = new Aria2Client(rpcUrl, secret);
+export const getAria2Client = (rpcUrl = 'http://localhost:6800/jsonrpc', secret: string | null = null): Aria2Client => {
+    // Create a unique key for the config
+    const key = `${rpcUrl}|${secret || ''}`;
+
+    if (!clientCache.has(key)) {
+        clientCache.set(key, new Aria2Client(rpcUrl, secret));
     }
-    return defaultClient;
+
+    return clientCache.get(key)!;
 };
 
 export default Aria2Client;
