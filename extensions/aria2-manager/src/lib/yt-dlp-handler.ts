@@ -4,7 +4,6 @@ import type { YtDlpResult } from '../types';
 
 const execAsync = promisify(exec);
 
-<<<<<<< HEAD
 /**
  * Sanitize filename to be safe for all filesystems
  */
@@ -12,8 +11,6 @@ const sanitizeFilename = (name: string): string => {
     return name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
 };
 
-=======
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 /** Error thrown when yt-dlp operations fail */
 export class YtDlpError extends Error {
     constructor(message: string, public readonly url: string) {
@@ -50,7 +47,6 @@ export const getYtDlpVersion = async (): Promise<string | null> => {
  * Extract direct download URL and metadata from a video URL
  * Works with YouTube, Vimeo, Twitter, TikTok, and 1000+ other sites
  */
-<<<<<<< HEAD
 /**
  * Extract direct download URL(s) and metadata from a video URL
  * Supports split video/audio streams for high quality
@@ -67,54 +63,17 @@ export const extractVideoUrl = async (
     if (!(await isYtDlpInstalled())) {
         throw new YtDlpError(
             'yt-dlp is not installed. Please install "yt-dlp" using your package manager.',
-=======
-export const extractVideoUrl = async (
-    url: string,
-    options: {
-        format?: string;
-        preferAudioOnly?: boolean;
-        timeout?: number;
-    } = {}
-): Promise<YtDlpResult> => {
-    const { format, preferAudioOnly = false, timeout = 30000 } = options;
-
-    // Check if yt-dlp is installed
-    if (!(await isYtDlpInstalled())) {
-        throw new YtDlpError(
-            'yt-dlp is not installed. Install with: pip install yt-dlp',
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
             url
         );
     }
 
-<<<<<<< HEAD
     // args for dumping JSON
     const args: string[] = [
         '--dump-json',
-=======
-    // Build arguments
-    const args: string[] = [
-        '--get-url',
-        '--get-filename',
-        '-o', '%(title)s.%(ext)s',
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
         '--no-warnings',
         '--no-playlist',
     ];
 
-<<<<<<< HEAD
-=======
-    // Format selection
-    if (format) {
-        args.push('-f', format);
-    } else if (preferAudioOnly) {
-        args.push('-f', 'bestaudio');
-    } else {
-        // Best quality with audio+video merged if possible
-        args.push('-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best');
-    }
-
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
     args.push(url);
 
     return new Promise((resolve, reject) => {
@@ -123,10 +82,6 @@ export const extractVideoUrl = async (
 
         const process = spawn('yt-dlp', args);
 
-<<<<<<< HEAD
-=======
-        // Set timeout
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
         const timer = setTimeout(() => {
             process.kill('SIGTERM');
             reject(new YtDlpError(`Extraction timed out after ${timeout}ms`, url));
@@ -151,7 +106,6 @@ export const extractVideoUrl = async (
                 return;
             }
 
-<<<<<<< HEAD
             try {
                 const info = JSON.parse(stdout);
                 const title = info.title;
@@ -280,31 +234,6 @@ export const extractVideoUrl = async (
                     url
                 ));
             }
-=======
-            const lines = stdout.trim().split('\n').filter(line => line.length > 0);
-
-            if (lines.length < 2) {
-                reject(new YtDlpError(
-                    `Unexpected yt-dlp output: ${stdout}`,
-                    url
-                ));
-                return;
-            }
-
-            // Last line is filename, previous lines are URLs (may be multiple for audio+video)
-            const filename = lines[lines.length - 1];
-            // Use the first URL (video), or combine them
-            const extractedUrl = lines[0];
-
-            // Extract title from filename (remove extension)
-            const title = filename.replace(/\.[^.]+$/, '');
-
-            resolve({
-                url: extractedUrl,
-                filename,
-                title,
-            });
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
         });
 
         process.on('error', (error) => {
@@ -322,7 +251,6 @@ export const listFormats = async (url: string): Promise<string> => {
         throw new YtDlpError('yt-dlp is not installed', url);
     }
 
-<<<<<<< HEAD
     return new Promise((resolve, reject) => {
         const process = spawn('yt-dlp', ['-F', '--no-warnings', url]);
         let stdout = '';
@@ -342,19 +270,6 @@ export const listFormats = async (url: string): Promise<string> => {
             // Promise doesn't reject here automatically unless we handle it, but for brevity keeping similar to before
         }, 30000);
     });
-=======
-    try {
-        const { stdout } = await execAsync(`yt-dlp -F --no-warnings "${url}"`, {
-            timeout: 30000,
-        });
-        return stdout;
-    } catch (error) {
-        throw new YtDlpError(
-            `Failed to list formats: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            url
-        );
-    }
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 };
 
 /**
@@ -365,7 +280,6 @@ export const getVideoTitle = async (url: string): Promise<string> => {
         throw new YtDlpError('yt-dlp is not installed', url);
     }
 
-<<<<<<< HEAD
     return new Promise((resolve, reject) => {
         const process = spawn('yt-dlp', ['--get-title', '--no-warnings', '--no-playlist', url]);
         let stdout = '';
@@ -379,20 +293,6 @@ export const getVideoTitle = async (url: string): Promise<string> => {
 
         setTimeout(() => process.kill(), 15000);
     });
-=======
-    try {
-        const { stdout } = await execAsync(
-            `yt-dlp --get-title --no-warnings --no-playlist "${url}"`,
-            { timeout: 15000 }
-        );
-        return stdout.trim();
-    } catch (error) {
-        throw new YtDlpError(
-            `Failed to get title: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            url
-        );
-    }
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 };
 
 /**
@@ -403,7 +303,6 @@ export const isUrlSupported = async (url: string): Promise<boolean> => {
         return false;
     }
 
-<<<<<<< HEAD
     return new Promise((resolve) => {
         // use --simulate
         const process = spawn('yt-dlp', ['--simulate', '--no-warnings', '--no-playlist', url]);
@@ -423,16 +322,4 @@ export const isUrlSupported = async (url: string): Promise<boolean> => {
             resolve(false);
         }, 10000);
     });
-=======
-    try {
-        const { stdout } = await execAsync(
-            `yt-dlp --simulate --no-warnings --no-playlist "${url}" 2>&1`,
-            { timeout: 10000 }
-        );
-        // If no error output, it's likely supported
-        return !stdout.includes('ERROR');
-    } catch {
-        return false;
-    }
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 };

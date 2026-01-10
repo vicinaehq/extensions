@@ -1,12 +1,8 @@
 import { Clipboard, showToast, Toast, popToRoot } from '@vicinae/api';
 import { getAria2Client } from './lib/aria2-client';
 import { ensureDaemonRunning } from './lib/aria2-daemon';
-<<<<<<< HEAD
 import { extractVideoUrl, isYtDlpInstalled, YtDlpError } from './lib/yt-dlp-handler';
 import { isFfmpegInstalled } from './lib/ffmpeg-utils';
-=======
-import { extractVideoUrl, isYtDlpInstalled } from './lib/yt-dlp-handler';
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 import { detectUrlType, isValidUrl } from './lib/utils';
 
 // Config
@@ -78,17 +74,13 @@ export default async function Command(props: { arguments: { url?: string } }): P
         let title = 'Download';
 
         // Handle YouTube/video URLs
-<<<<<<< HEAD
         // Handle YouTube/video URLs
-=======
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
         if (urlType === 'youtube' || urlType === 'video') {
             const ytdlpInstalled = await isYtDlpInstalled();
 
             if (ytdlpInstalled) {
                 toast.title = 'Extracting video...';
                 try {
-<<<<<<< HEAD
                     // Default to 'best' quality for quick add
                     const result = await extractVideoUrl(url, { quality: 'best' });
 
@@ -146,15 +138,6 @@ export default async function Command(props: { arguments: { url?: string } }): P
                     }
                     // Fall back to direct URL
                     console.error('Extraction failed:', err);
-=======
-                    const result = await extractVideoUrl(url);
-                    downloadUrl = result.url;
-                    filename = result.filename;
-                    title = result.title;
-                } catch (err) {
-                    // Fall back to direct URL
-                    console.error('yt-dlp extraction failed:', err);
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
                 }
             }
         } else if (urlType === 'magnet' || urlType === 'torrent') {

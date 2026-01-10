@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 import * as fs from 'fs';
-=======
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 import type { Aria2Task, DownloadInfo, UrlType } from '../types';
 
 /**
@@ -102,7 +99,6 @@ export const taskToDownloadInfo = (task: Aria2Task): DownloadInfo => {
 
     // Get full file path if available
     let filePath: string | null = null;
-<<<<<<< HEAD
     let name = getTaskFilename(task);
 
     if (task.files && task.files.length > 0 && task.files[0].path) {
@@ -118,19 +114,11 @@ export const taskToDownloadInfo = (task: Aria2Task): DownloadInfo => {
                 name = name.replace('.video.mp4', '.mp4');
             }
         }
-=======
-    if (task.files && task.files.length > 0 && task.files[0].path) {
-        filePath = task.files[0].path;
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
     }
 
     return {
         gid: task.gid,
-<<<<<<< HEAD
         name,
-=======
-        name: getTaskFilename(task),
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
         status: task.status,
         progress: calculateProgress(completedSize, totalSize),
         totalSize,

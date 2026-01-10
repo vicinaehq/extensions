@@ -1,6 +1,5 @@
 # Aria2 Manager
 
-<<<<<<< HEAD
 Control your downloads directly from Vicinae using Aria2 and yt-dlp. This extension acts as a powerful GUI wrapper, allowing you to manage downloads without opening a terminal.
 
 ## Features (v1.1)
@@ -50,32 +49,6 @@ The extension uses sensible defaults but respects the standard Aria2 environment
 
 *   **"Video downloaded as two files (.video.mp4 / .audio.m4a)":** This happens if FFmpeg is missing or the merge process was interrupted. Ensure FFmpeg is installed. The extension periodically scans to attempt re-merging valid pairs.
 *   **"Download Failed":** Check if the URL is accessible. For YouTube, ensure `yt-dlp` is up to date (`sudo yt-dlp -U`).
-=======
-Control your downloads directly from Vicinae using Aria2 and yt-dlp. This extension allows you to manage tasks without opening a terminal.
-
-## Requirements
-
-1. **Aria2** (Required):
-   You must have aria2 installed on your system.
-   `sudo pacman -S aria2` (or your distribution's equivalent)
-
-2. **yt-dlp** (Optional):
-   Required for downloading videos from YouTube and other streaming sites.
-   `sudo pacman -S yt-dlp`
-
-## Features
-
-* **Quick Download:** Fast way to add a download. You can pass a URL as an argument, or if left empty, it will automatically read from your clipboard.
-* **Smart Input:** Paste URLs into the search bar to immediately start downloads. Supports standard URLs and Magnet links.
-* **Task Control:** Pause, Resume, and Remove download tasks.
-* **File Management:** Option to delete the actual file from the disk when removing a task.
-* **Manual Refresh:** Refresh the download list manually using **Cmd+R** or **Ctrl+R**.
-
-## Known Limitations
-
-* **Minimal UI:** The interface displays task names and status categories. Download speeds and progress percentages are not shown to avoid misleading static indicators.
-* **Status Polling:** Task statuses update automatically every 5 seconds. There may be a brief delay before seeing status changes (e.g., Active → Complete).
->>>>>>> e01fe274f037e4d2b7436718258fa898f80dc4b2
 
 ## Development
 
