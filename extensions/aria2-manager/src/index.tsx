@@ -94,7 +94,7 @@ export default function Command() {
     }, [initializeDaemon]);
 
     // Fetch all downloads
-    const loadDownloads = async () => {
+    const loadDownloads = useCallback(async () => {
         if (!clientRef.current) return;
 
         setIsLoading(true);
@@ -113,7 +113,7 @@ export default function Command() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
 
     // Fetch downloads on connect and poll every 5 seconds for status updates
