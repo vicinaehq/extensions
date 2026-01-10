@@ -21,13 +21,11 @@ The core download engine.
 
 *   **Ubuntu/Debian:** `sudo apt install aria2`
 *   **Arch Linux:** `sudo pacman -S aria2`
-*   **macOS:** `brew install aria2`
 
 ### 2. yt-dlp (Recommended)
 Required for downloading videos from YouTube, Vimeo, Twitch, and 1000+ other sites.
 
 *   **Linux:** `sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && sudo chmod a+rx /usr/local/bin/yt-dlp`
-*   **macOS:** `brew install yt-dlp`
 
 ### 3. FFmpeg (Recommended)
 Required for **High Quality** (1080p+) downloads. High-quality streams are often split into separate video/audio files; FFmpeg is used to merge them.
@@ -35,7 +33,6 @@ Without FFmpeg, downloads will fallback to 720p (single file) to ensure playabil
 
 *   **Ubuntu/Debian:** `sudo apt install ffmpeg`
 *   **Arch Linux:** `sudo pacman -S ffmpeg`
-*   **macOS:** `brew install ffmpeg`
 
 ## Configuration
 

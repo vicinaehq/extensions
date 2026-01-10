@@ -4,7 +4,6 @@ import { getAria2Client } from './aria2-client';
 
 const execAsync = promisify(exec);
 
-/** Aria2 daemon configuration */
 export interface DaemonConfig {
     rpcPort?: number;
     rpcSecret?: string;
@@ -13,24 +12,18 @@ export interface DaemonConfig {
     enableDht?: boolean;
     enablePeerExchange?: boolean;
     seedRatio?: number;
-    // Security options
     checkCertificate?: boolean;
     rpcAllowOriginAll?: boolean;
 }
 
-/** Daemon spawn result */
 export interface DaemonSpawnResult {
     success: boolean;
     message: string;
     pid?: number;
 }
 
-// Track spawned process
 let daemonProcess: ChildProcess | null = null;
 
-/**
- * Check if aria2c binary is installed
- */
 export const isAria2Installed = async (): Promise<boolean> => {
     try {
         await execAsync('which aria2c');
@@ -40,20 +33,11 @@ export const isAria2Installed = async (): Promise<boolean> => {
     }
 };
 
-/**
- * Check if aria2c daemon is running and reachable
- */
 export const isDaemonRunning = async (rpcUrl?: string): Promise<boolean> => {
-    // If rpcUrl is not provided, we might default to 6800.
-    // If user passed custom port in spawning but checks here without url.....
-    // This function expects rpcUrl if custom port used.
     const client = getAria2Client(rpcUrl);
     return client.isConnected();
 };
 
-/**
- * Find existing aria2c process PID
- */
 export const findExistingDaemon = async (): Promise<number | null> => {
     try {
         const { stdout } = await execAsync('pgrep -x aria2c');
@@ -64,11 +48,7 @@ export const findExistingDaemon = async (): Promise<number | null> => {
     }
 };
 
-/**
- * Spawn aria2c daemon with RPC enabled
- */
 export const spawnDaemon = async (config: DaemonConfig = {}): Promise<DaemonSpawnResult> => {
-    // Check if aria2c is installed
     if (!(await isAria2Installed())) {
         return {
             success: false,
@@ -76,7 +56,6 @@ export const spawnDaemon = async (config: DaemonConfig = {}): Promise<DaemonSpaw
         };
     }
 
-    // Check if already running
     if (await isDaemonRunning()) {
         const pid = await findExistingDaemon();
         return {
@@ -86,13 +65,12 @@ export const spawnDaemon = async (config: DaemonConfig = {}): Promise<DaemonSpaw
         };
     }
 
-    // Build command arguments
+    // Build command arguments - REMOVED DUPLICATE FLAG HERE
     const args: string[] = [
         '--enable-rpc',
         '--rpc-listen-all=false',
-        '--rpc-allow-origin-all',
         `--rpc-listen-port=${config.rpcPort || 6800}`,
-        '--daemon=false', // We manage the process ourselves
+        '--daemon=false',
         '--continue=true',
         '--auto-file-renaming=true',
         '--allow-overwrite=false',
@@ -101,22 +79,18 @@ export const spawnDaemon = async (config: DaemonConfig = {}): Promise<DaemonSpaw
         '--split=16',
         '--max-concurrent-downloads=' + (config.maxConcurrentDownloads || 5),
         '--file-allocation=none',
-        // Secure defaults unless overridden/configured
         config.checkCertificate === true ? '--check-certificate=true' : '--check-certificate=false',
-        config.rpcAllowOriginAll === false ? '--rpc-allow-origin-all=false' : '--rpc-allow-origin-all=true', // Default to true for local extensions usually, but let's allow config
+        config.rpcAllowOriginAll === false ? '--rpc-allow-origin-all=false' : '--rpc-allow-origin-all=true',
     ];
 
-    // Add secret if provided
     if (config.rpcSecret) {
         args.push(`--rpc-secret=${config.rpcSecret}`);
     }
 
-    // Add download directory
     if (config.downloadDir) {
         args.push(`--dir=${config.downloadDir}`);
     }
 
-    // BitTorrent settings
     if (config.enableDht !== false) {
         args.push('--enable-dht=true');
     }
@@ -133,15 +107,11 @@ export const spawnDaemon = async (config: DaemonConfig = {}): Promise<DaemonSpaw
         try {
             daemonProcess = spawn('aria2c', args, {
                 detached: true,
-                stdio: 'ignore', // Use 'ignore' to prevent deadlock if we aren't reading stdout/err
+                stdio: ['ignore', 'pipe', 'pipe'],
             });
 
-            // Give it a moment to start
             setTimeout(async () => {
-                // Check using the specific port we started with
-                const port = config.rpcPort || 6800;
-                const url = `http://localhost:${port}/jsonrpc`;
-                if (await isDaemonRunning(url)) {
+                if (await isDaemonRunning()) {
                     resolve({
                         success: true,
                         message: 'aria2c daemon started successfully',
@@ -150,12 +120,11 @@ export const spawnDaemon = async (config: DaemonConfig = {}): Promise<DaemonSpaw
                 } else {
                     resolve({
                         success: false,
-                        message: 'Failed to connect to aria2c after starting. Port ' + port + ' might be busy.',
+                        message: 'Failed to connect to aria2c after starting',
                     });
                 }
             }, 1500);
 
-            // Handle process errors
             daemonProcess.on('error', (error) => {
                 resolve({
                     success: false,
@@ -163,7 +132,6 @@ export const spawnDaemon = async (config: DaemonConfig = {}): Promise<DaemonSpaw
                 });
             });
 
-            // Unref to allow parent to exit independently
             daemonProcess.unref();
         } catch (error) {
             resolve({
@@ -174,31 +142,23 @@ export const spawnDaemon = async (config: DaemonConfig = {}): Promise<DaemonSpaw
     });
 };
 
-/**
- * Stop the daemon gracefully
- */
 export const stopDaemon = async (rpcUrl?: string): Promise<boolean> => {
     try {
         const client = getAria2Client(rpcUrl);
-
-        // Try graceful shutdown first
         try {
             await client.shutdown();
             return true;
         } catch {
-            // If graceful fails, try force shutdown
             await client.shutdown(true);
             return true;
         }
     } catch {
-        // If RPC fails, try to kill by PID
         const pid = await findExistingDaemon();
         if (pid) {
             try {
-                await execAsync(`kill ${pid}`);
+                process.kill(pid, 'SIGTERM');
                 return true;
             } catch {
-                // Try SIGKILL
                 try {
                     process.kill(pid, 'SIGKILL');
                     return true;
@@ -213,14 +173,8 @@ export const stopDaemon = async (rpcUrl?: string): Promise<boolean> => {
     }
 };
 
-/**
- * Ensure daemon is running, starting it if necessary
- */
 export const ensureDaemonRunning = async (config: DaemonConfig = {}): Promise<DaemonSpawnResult> => {
-    const port = config.rpcPort || 6800;
-    const url = `http://localhost:${port}/jsonrpc`;
-    const running = await isDaemonRunning(url);
-
+    const running = await isDaemonRunning();
     if (running) {
         const pid = await findExistingDaemon();
         return {
@@ -229,13 +183,9 @@ export const ensureDaemonRunning = async (config: DaemonConfig = {}): Promise<Da
             pid: pid || undefined,
         };
     }
-
     return spawnDaemon(config);
 };
 
-/**
- * Get daemon status info
- */
 export const getDaemonStatus = async (rpcUrl?: string): Promise<{
     installed: boolean;
     running: boolean;
@@ -253,9 +203,8 @@ export const getDaemonStatus = async (rpcUrl?: string): Promise<{
             const info = await client.getVersion();
             version = info.version;
         } catch {
-            // Ignore version fetch errors
+            // Ignore errors
         }
     }
-
     return { installed, running, pid, version };
 };
