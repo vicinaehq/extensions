@@ -318,113 +318,94 @@ export default function Command() {
         }
     }, [loadDownloads]);
 
-    // Remove download - handles both active and completed downloads
+    // Remove download - handles both active, completed AND split (audio/video) downloads
     const handleRemove = useCallback(async (gid: string, status: DownloadInfo['status'], filePath: string | null, dir: string, name: string, deleteFile: boolean = false) => {
         if (!clientRef.current) return;
 
-        console.log('[aria2] handleRemove:', { gid, status, filePath, dir, name, deleteFile });
-
         try {
-            // For active downloads, pause first to release file lock on .aria2 control file
-            if (deleteFile && status === 'active') {
-                try {
-                    console.log('[aria2] Pausing active download before file deletion...');
-                    await clientRef.current.pause(gid);
-                    // Wait for aria2 to release control file lock - polling instead of fixed wait
-                    let attempts = 0;
-                    const maxAttempts = 20; // 2 seconds max
-                    const checkInterval = 100;
+            // Step 1: Identify Sibling File (Split Download Cleanup)
+            // If deleting a .video.mp4, check for a corresponding .audio.m4a
+            let siblingGid: string | null = null;
+            let siblingPath: string | null = null;
 
-                    while (attempts < maxAttempts) {
-                        try {
-                            // Try to open the file in 'r+' mode to check if it's locked? 
-                            // Or just wait for .aria2 file logic?
-                            // Simple approach: aria2 updates status quickly. We just need a small buffer.
-                            // Actually, let's check if we can access the file.
-                            const testPath = filePath || (dir && name ? `${dir}/${name}` : null);
-                            if (testPath && fs.existsSync(testPath)) {
-                                fs.accessSync(testPath, fs.constants.W_OK); // Check if writable
-                                break; // Writable, likely released
-                            } else {
-                                break; // Doesn't exist, proceed
-                            }
-                        } catch {
-                            // Locked or permission error
-                            await new Promise(r => setTimeout(r, checkInterval));
-                            attempts++;
-                        }
-                    }
-                    console.log('[aria2] Download paused, proceeding with file deletion');
-                } catch (err) {
-                    console.log('[aria2] Pause failed, attempting deletion anyway:', err);
-                }
+            if (name.endsWith('.video.mp4')) {
+                const audioName = name.replace('.video.mp4', '.audio.m4a');
+                const siblingTask = downloads.find(d => d.name === audioName);
+                if (siblingTask) siblingGid = siblingTask.gid;
+                if (dir) siblingPath = `${dir}/${audioName}`;
             }
 
-            // Delete file from disk FIRST if requested (before removing from aria2)
-            if (deleteFile) {
-                // Construct full path - prefer filePath, fallback to dir + name
-                const actualPath = filePath || (dir && name ? `${dir}/${name}` : null);
-                console.log('[aria2] actualPath:', actualPath);
-
-                if (actualPath) {
-                    try {
-                        // Delete main file
-                        console.log('[aria2] Checking if file exists...');
-                        if (fs.existsSync(actualPath)) {
-                            console.log('[aria2] File exists, getting stats...');
-                            const stat = fs.statSync(actualPath);
-                            if (stat.isDirectory()) {
-                                console.log('[aria2] Deleting directory...');
-                                fs.rmSync(actualPath, { recursive: true, force: true });
-                            } else {
-                                console.log('[aria2] Deleting file...');
-                                fs.unlinkSync(actualPath);
-                            }
-                            console.log('[aria2] File deleted successfully');
-                        } else {
-                            console.log('[aria2] File does not exist');
-                        }
-                        // Also delete .aria2 control file if exists
-                        const aria2ControlFile = `${actualPath}.aria2`;
-                        if (fs.existsSync(aria2ControlFile)) {
-                            console.log('[aria2] Deleting .aria2 control file...');
-                            fs.unlinkSync(aria2ControlFile);
-                        }
-                    } catch (err) {
-                        console.error('[aria2] Failed to delete file:', err);
-                        await showToast({ style: Toast.Style.Failure, title: 'File deletion failed', message: err instanceof Error ? err.message : 'Unknown error' });
-                    }
-                }
-            }
-
-            // For active/waiting/paused downloads, use forceRemove first
+            // Step 2: Stop/Remove Tasks
+            // Force remove active tasks to release file locks
             if (status === 'active' || status === 'waiting' || status === 'paused') {
                 try {
-                    console.log('[aria2] Calling remove(gid, true)...');
                     await clientRef.current.remove(gid, true);
-                    console.log('[aria2] remove() succeeded');
-                } catch (err) {
-                    console.log('[aria2] remove() failed, continuing:', err);
-                }
+                } catch { /* Ignore if task is already gone */ }
             }
 
-            // Remove from result list
+            if (siblingGid) {
+                try {
+                    await clientRef.current.remove(siblingGid, true);
+                } catch { /* Ignore sibling errors */ }
+            }
+
+            // Step 3: Wait for File Lock Release & Status Update
+            // Critical: Wait for OS to release file handle and Aria2 to update internal state
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 4: Clean Session Memory
+            // Remove the "Stopped/Error" result from Aria2 memory so it doesn't reappear in the UI
             try {
-                console.log('[aria2] Calling removeDownloadResult...');
                 await clientRef.current.removeDownloadResult(gid);
-                console.log('[aria2] removeDownloadResult succeeded');
-            } catch (err) {
-                console.log('[aria2] removeDownloadResult failed:', err);
-                // This is expected if the download was never completed
+            } catch { /* Ignore if already cleared */ }
+
+            if (siblingGid) {
+                try {
+                    await clientRef.current.removeDownloadResult(siblingGid);
+                } catch { /* Ignore */ }
             }
 
-            await showToast({ style: Toast.Style.Success, title: deleteFile ? 'Download and file removed' : 'Download removed' });
+            // Step 5: Delete Files from Disk
+            if (deleteFile) {
+                const deletePath = async (pathToDelete: string) => {
+                    if (!pathToDelete) return;
+                    try {
+                        if (fs.existsSync(pathToDelete)) {
+                            const stat = fs.statSync(pathToDelete);
+                            if (stat.isDirectory()) {
+                                fs.rmSync(pathToDelete, { recursive: true, force: true });
+                            } else {
+                                fs.unlinkSync(pathToDelete);
+                            }
+                        }
+                        // Clean up control file
+                        const ariaControl = `${pathToDelete}.aria2`;
+                        if (fs.existsSync(ariaControl)) {
+                            fs.unlinkSync(ariaControl);
+                        }
+                    } catch (err) {
+                        console.error('File deletion error:', pathToDelete, err);
+                    }
+                };
+
+                const mainPath = filePath || (dir && name ? `${dir}/${name}` : null);
+                if (mainPath) await deletePath(mainPath);
+
+                if (siblingPath) await deletePath(siblingPath);
+
+                await showToast({ style: Toast.Style.Success, title: 'Download and files removed' });
+            } else {
+                await showToast({ style: Toast.Style.Success, title: 'Download removed' });
+            }
+
+            // Step 6: Refresh List
             await loadDownloads();
+
         } catch (err) {
-            console.error('[aria2] handleRemove error:', err);
-            await showToast({ style: Toast.Style.Failure, title: 'Failed to remove download', message: err instanceof Error ? err.message : 'Unknown error' });
+            console.error('[aria2] handleRemove fatal:', err);
+            await showToast({ style: Toast.Style.Failure, title: 'Error removing download', message: String(err) });
         }
-    }, [loadDownloads]);
+    }, [downloads, loadDownloads]);
 
     // Remove with confirmation for deleting file
     const handleRemoveWithConfirm = useCallback(async (download: DownloadInfo) => {
