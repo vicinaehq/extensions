@@ -9,7 +9,7 @@ A [Vicinae](https://github.com/vicinaehq/vicinae) extension for searching with a
 
 ## Setup
 
-When initially starting the extensions, you will be asked, what instance you want to use. That instance **needs** to have
+When initially starting the extension, you will be asked, what instance you want to use. That instance **needs** to have
 enabled JSON as search format. See the [searxng documentation](https://docs.searxng.org/admin/settings/settings_search.html#settings-search) 
 for how to do it.
 
