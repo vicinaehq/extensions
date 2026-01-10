@@ -40,42 +40,32 @@ export const getYtDlpVersion = async (): Promise<string | null> => {
  * Extract direct download URL and metadata from a video URL
  * Works with YouTube, Vimeo, Twitter, TikTok, and 1000+ other sites
  */
+/**
+ * Extract direct download URL(s) and metadata from a video URL
+ * Supports split video/audio streams for high quality
+ */
 export const extractVideoUrl = async (
     url: string,
     options: {
-        format?: string;
-        preferAudioOnly?: boolean;
+        quality?: 'best' | '1080p' | '720p' | 'audio';
         timeout?: number;
     } = {}
 ): Promise<YtDlpResult> => {
-    const { format, preferAudioOnly = false, timeout = 30000 } = options;
+    const { quality = 'best', timeout = 30000 } = options;
 
-    // Check if yt-dlp is installed
     if (!(await isYtDlpInstalled())) {
         throw new YtDlpError(
-            'yt-dlp is not installed. Install with: pip install yt-dlp',
+            'yt-dlp is not installed. Please install "yt-dlp" using your package manager.',
             url
         );
     }
 
-    // Build arguments
+    // args for dumping JSON
     const args: string[] = [
-        '--get-url',
-        '--get-filename',
-        '-o', '%(title)s.%(ext)s',
+        '--dump-json',
         '--no-warnings',
         '--no-playlist',
     ];
-
-    // Format selection
-    if (format) {
-        args.push('-f', format);
-    } else if (preferAudioOnly) {
-        args.push('-f', 'bestaudio');
-    } else {
-        // Best quality with audio+video merged if possible
-        args.push('-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best');
-    }
 
     args.push(url);
 
@@ -85,7 +75,6 @@ export const extractVideoUrl = async (
 
         const process = spawn('yt-dlp', args);
 
-        // Set timeout
         const timer = setTimeout(() => {
             process.kill('SIGTERM');
             reject(new YtDlpError(`Extraction timed out after ${timeout}ms`, url));
@@ -110,29 +99,110 @@ export const extractVideoUrl = async (
                 return;
             }
 
-            const lines = stdout.trim().split('\n').filter(line => line.length > 0);
+            try {
+                const info = JSON.parse(stdout);
+                const title = info.title;
+                const baseFilename = info._filename || `${title}.${info.ext}`;
+                const formats = info.formats || [];
 
-            if (lines.length < 2) {
+                let result: YtDlpResult = {
+                    url: '',
+                    filename: baseFilename,
+                    title,
+                    isSplit: false
+                };
+
+                if (quality === 'audio') {
+                    // Audio only
+                    // Find best audio (m4a preferred)
+                    // We can rely on yt-dlp to give us the url if we filter correctly, 
+                    // but since we dumped json, we have to find it in 'formats'.
+                    // Or easier: actually standard 'bestaudio' usually works fine with -f but since we want the URL..
+                    // Parsing formats manually is hard. 
+                    // Better strategy: Use -f argument WITH -g (get-url) like before? 
+                    // No, the prompt specifically asked to use --dump-json.
+                    // "Logic: Instead of asking for a single URL, fetch JSON (--dump-json)."
+
+                    // Actually, getting URLs from JSON is safer.
+                    // Find format with vcodec='none' and acodec!='none'
+                    const audioFormats = formats.filter((f: any) => f.vcodec === 'none' && f.acodec !== 'none');
+                    // Sort by preference: m4a > webm
+                    const bestAudio = audioFormats.filter((f: any) => f.ext === 'm4a').pop() || audioFormats.pop();
+
+                    if (bestAudio) {
+                        result.url = bestAudio.url;
+                        result.filename = `${title}.${bestAudio.ext}`;
+                    } else {
+                        throw new Error('No audio format found');
+                    }
+
+                } else if (quality === '720p') {
+                    // Best muxed mp4 (usually up to 1080p if available, or 720p)
+                    // "return the single best muxed format (best[ext=mp4])"
+
+                    // Filter for muxed (both codecs present) and mp4
+                    const muxedFormats = formats.filter((f: any) => f.vcodec !== 'none' && f.acodec !== 'none' && f.ext === 'mp4');
+                    // Sort by height/resolution? Usually the formats are already sorted? 
+                    // yt-dlp sorts worst to best.
+                    const bestMuxed = muxedFormats.pop();
+
+                    if (bestMuxed) {
+                        result.url = bestMuxed.url;
+                        result.filename = `${title}.mp4`;
+                    } else {
+                        // Fallback to any muxed
+                        const anyMuxed = formats.filter((f: any) => f.vcodec !== 'none' && f.acodec !== 'none').pop();
+                        if (anyMuxed) {
+                            result.url = anyMuxed.url;
+                            result.filename = `${title}.${anyMuxed.ext}`;
+                        } else {
+                            throw new Error('No muxed format found');
+                        }
+                    }
+
+                } else {
+                    // 'best' / '1080p' -> Attempt split
+                    // Look for best video (mp4) and best audio (m4a)
+
+                    // Video only formats
+                    const videoFormats = formats.filter((f: any) => f.vcodec !== 'none' && f.acodec === 'none' && f.ext === 'mp4');
+                    // Audio only formats
+                    const audioFormats = formats.filter((f: any) => f.vcodec === 'none' && f.acodec !== 'none' && f.ext === 'm4a');
+
+                    const bestVideo = videoFormats.pop();
+                    const bestAudio = audioFormats.pop();
+
+                    if (bestVideo && bestAudio) {
+                        // Split streams available
+                        result.videoUrl = bestVideo.url;
+                        result.audioUrl = bestAudio.url;
+                        result.isSplit = true;
+                        // Use special filenames for lazy merging
+                        // Naming Convention: Filename.video.mp4 / Filename.audio.m4a
+                        // We return the base filename here, index.tsx will append extensions
+                        result.filename = title; // Base title
+                        result.url = bestVideo.url; // Primary url? 
+                    } else {
+                        // Fallback to best muxed
+                        const muxed = formats.filter((f: any) => f.vcodec !== 'none' && f.acodec !== 'none').pop();
+                        if (muxed) {
+                            result.url = muxed.url;
+                            result.filename = `${title}.${muxed.ext}`;
+                            result.isSplit = false;
+                        } else {
+                            throw new Error('No suitable formats found');
+                        }
+                    }
+                }
+
+                resolve(result);
+
+            } catch (err) {
                 reject(new YtDlpError(
-                    `Unexpected yt-dlp output: ${stdout}`,
+                    `Failed to parse yt-dlp output: ${err instanceof Error ? err.message : 'Unknown error'}`,
                     url
                 ));
-                return;
             }
-
-            // Last line is filename, previous lines are URLs (may be multiple for audio+video)
-            const filename = lines[lines.length - 1];
-            // Use the first URL (video), or combine them
-            const extractedUrl = lines[0];
-
-            // Extract title from filename (remove extension)
-            const title = filename.replace(/\.[^.]+$/, '');
-
-            resolve({
-                url: extractedUrl,
-                filename,
-                title,
-            });
         });
 
         process.on('error', (error) => {

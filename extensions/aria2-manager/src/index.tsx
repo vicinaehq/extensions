@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { List, ActionPanel, Action, showToast, Toast, Icon, Color, confirmAlert, Alert } from '@vicinae/api';
+import { List, ActionPanel, Action, showToast, Toast, Icon, Color, confirmAlert, Alert, open } from '@vicinae/api';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
@@ -7,6 +7,7 @@ import type { Aria2Task, DownloadInfo } from './types';
 import { Aria2Client, getAria2Client } from './lib/aria2-client';
 import { ensureDaemonRunning, getDaemonStatus } from './lib/aria2-daemon';
 import { extractVideoUrl, isYtDlpInstalled, YtDlpError } from './lib/yt-dlp-handler';
+import { isFfmpegInstalled, mergeMedia } from './lib/ffmpeg-utils';
 import { detectUrlType, isValidUrl, taskToDownloadInfo, formatBytes, formatSpeed, formatTimeRemaining, getStatusIcon } from './lib/utils';
 
 const execAsync = promisify(exec);
@@ -29,6 +30,8 @@ export default function Command() {
     const [searchText, setSearchText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [ytDlpAvailable, setYtDlpAvailable] = useState<boolean | null>(null);
+    const [ffmpegAvailable, setFfmpegAvailable] = useState<boolean | null>(null);
+    const [quality, setQuality] = useState<'best' | '1080p' | '720p' | 'audio'>('best');
     const [lastUpdate, setLastUpdate] = useState<number>(Date.now()); // For forcing re-renders
 
     // Aria2 client ref
@@ -48,6 +51,10 @@ export default function Command() {
             // Check yt-dlp availability
             const ytdlp = await isYtDlpInstalled();
             setYtDlpAvailable(ytdlp);
+
+            // Check ffmpeg availability
+            const ffmpeg = await isFfmpegInstalled();
+            setFfmpegAvailable(ffmpeg);
 
             // Check daemon status
             const status = await getDaemonStatus(RPC_URL);
@@ -147,7 +154,47 @@ export default function Command() {
                 await showToast({ style: Toast.Style.Animated, title: 'Extracting video URL...' });
 
                 try {
-                    const result = await extractVideoUrl(trimmedInput);
+                    // Start extraction with selected quality
+                    let result = await extractVideoUrl(trimmedInput, { quality });
+
+                    if (result.isSplit && result.videoUrl && result.audioUrl) {
+                        // Split download mode (High Quality) requires FFmpeg
+                        if (!ffmpegAvailable) {
+                            await showToast({
+                                style: Toast.Style.Failure,
+                                title: 'FFmpeg missing',
+                                message: 'Cannot handle HQ download. Falling back to 720p...'
+                            });
+
+                            // Fallback to 720p (Single File)
+                            try {
+                                result = await extractVideoUrl(trimmedInput, { quality: '720p' });
+                                // Proceed to standard single file download logic below
+                            } catch (fallbackErr) {
+                                throw new Error('FFmpeg missing and 720p fallback failed');
+                            }
+                        } else {
+                            // FFmpeg available: Proceed with Split Download
+                            const options: Record<string, string> = { dir: DOWNLOAD_DIR };
+
+                            // Add Video
+                            const videoName = `${result.filename}.video.mp4`;
+                            await clientRef.current.addUri([result.videoUrl], { ...options, out: videoName });
+
+                            // Add Audio
+                            const audioName = `${result.filename}.audio.m4a`;
+                            await clientRef.current.addUri([result.audioUrl], { ...options, out: audioName });
+
+                            await showToast({ style: Toast.Style.Success, title: 'High Quality Download Started', message: 'Downloading video and audio content separately' });
+
+                            // Refresh and return
+                            await loadDownloads();
+                            setTimeout(() => loadDownloads(), 1500);
+                            return; // Exit here as we handled adding
+                        }
+                    }
+
+                    // Standard single file download
                     downloadUrl = result.url;
                     filename = result.filename;
                     await showToast({ style: Toast.Style.Success, title: 'Found video', message: result.title });
@@ -183,7 +230,59 @@ export default function Command() {
         } finally {
             setIsProcessing(false);
         }
-    }, [ytDlpAvailable, loadDownloads]);
+    }, [ytDlpAvailable, ffmpegAvailable, loadDownloads, quality]);
+
+    // Lazy Merge Watcher
+    useEffect(() => {
+        if (!ffmpegAvailable || !isConnected) return;
+
+        const scanAndMerge = async () => {
+            try {
+                // Read download dir
+                if (!fs.existsSync(DOWNLOAD_DIR)) return;
+                const files = await fs.promises.readdir(DOWNLOAD_DIR);
+
+                // Find candidate video files (.video.mp4)
+                const videoFiles = files.filter(f => f.endsWith('.video.mp4'));
+
+                for (const videoFile of videoFiles) {
+                    const baseName = videoFile.replace('.video.mp4', '');
+                    const audioFile = `${baseName}.audio.m4a`;
+
+                    // Check if matching audio exists
+                    if (files.includes(audioFile)) {
+                        const videoPath = `${DOWNLOAD_DIR}/${videoFile}`;
+                        const audioPath = `${DOWNLOAD_DIR}/${audioFile}`;
+                        const outputPath = `${DOWNLOAD_DIR}/${baseName}.mp4`;
+
+                        // Check for .aria2 control files (this implies download is still active)
+                        const videoAria = `${videoPath}.aria2`;
+                        const audioAria = `${audioPath}.aria2`;
+
+                        if (!fs.existsSync(videoAria) && !fs.existsSync(audioAria)) {
+                            // Both downloads finished!
+                            // Check if not already merging (simple lock via temp file or just check output?)
+                            // If output exists, maybe we already merged? Or it's a re-download.
+                            // To be safe, let's merge. mergeMedia overwrites (-y).
+                            // But we don't want to loop merge. mergeMedia deletes sources on success.
+
+                            await showToast({ style: Toast.Style.Animated, title: 'Merging streams...', message: baseName });
+
+                            await mergeMedia(videoPath, audioPath, outputPath);
+
+                            await showToast({ style: Toast.Style.Success, title: 'Merge Complete', message: `${baseName}.mp4` });
+                            loadDownloads(); // Refresh list to show new file (if we were tracking it) or remove old entries
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Lazy merge scan error:', err);
+            }
+        };
+
+        const interval = setInterval(scanAndMerge, 5000);
+        return () => clearInterval(interval);
+    }, [ffmpegAvailable, isConnected]);
 
     // Handle search submit (Enter key)
     const handleSearchSubmit = useCallback(() => {
@@ -337,11 +436,13 @@ export default function Command() {
         }
     }, []);
 
-    // Group downloads by status
-    const activeDownloads = downloads.filter(d => d.status === 'active');
-    const waitingDownloads = downloads.filter(d => d.status === 'waiting' || d.status === 'paused');
-    const completedDownloads = downloads.filter(d => d.status === 'complete');
-    const errorDownloads = downloads.filter(d => d.status === 'error' || d.status === 'removed');
+    // Group downloads by status (filtering out hidden audio helper files)
+    const shouldShow = (d: DownloadInfo) => !d.name.endsWith('.audio.m4a');
+
+    const activeDownloads = downloads.filter(d => d.status === 'active' && shouldShow(d));
+    const waitingDownloads = downloads.filter(d => (d.status === 'waiting' || d.status === 'paused') && shouldShow(d));
+    const completedDownloads = downloads.filter(d => d.status === 'complete' && shouldShow(d));
+    const errorDownloads = downloads.filter(d => (d.status === 'error' || d.status === 'removed') && shouldShow(d));
 
     // Build subtitle - minimal, only show errors if present
     const getSubtitle = (download: DownloadInfo): string => {
@@ -407,12 +508,22 @@ export default function Command() {
                         />
                     )}
                     {isComplete && (
-                        <Action
-                            title="Open Location"
-                            icon={Icon.Folder}
-                            onAction={() => handleOpenLocation(dir)}
-                            shortcut={{ modifiers: ["cmd"], key: "o" }}
-                        />
+                        <>
+                            {filePath && (
+                                <Action
+                                    title="Open File"
+                                    icon={Icon.Document}
+                                    onAction={() => open(filePath)}
+                                    shortcut={{ modifiers: ["cmd"], key: "o" }}
+                                />
+                            )}
+                            <Action
+                                title="Open Location"
+                                icon={Icon.Folder}
+                                onAction={() => handleOpenLocation(dir)}
+                                shortcut={{ modifiers: ["cmd", "shift"], key: "o" }}
+                            />
+                        </>
                     )}
                 </ActionPanel.Section>
                 <ActionPanel.Section>
@@ -465,7 +576,19 @@ export default function Command() {
             searchText={searchText}
             onSearchTextChange={setSearchText}
             navigationTitle={`Downloads ${activeDownloads.length > 0 ? `(${activeDownloads.length} active)` : ''}`}
-            searchBarPlaceholder="Enter URL, magnet link, or YouTube video to download..."
+            searchBarPlaceholder="Enter URL, magnet link, or YouTube video link..."
+            searchBarAccessory={
+                <List.Dropdown
+                    tooltip="Select Download Quality"
+                    value={quality}
+                    onChange={(newValue) => setQuality(newValue as any)}
+                >
+                    <List.Dropdown.Item title="Best" value="best" icon={Icon.Star} />
+                    <List.Dropdown.Item title="1080p" value="1080p" icon={Icon.Monitor} />
+                    <List.Dropdown.Item title="720p" value="720p" icon={Icon.Mobile} />
+                    <List.Dropdown.Item title="Audio" value="audio" icon={Icon.Music} />
+                </List.Dropdown>
+            }
             actions={
                 <ActionPanel>
                     <Action

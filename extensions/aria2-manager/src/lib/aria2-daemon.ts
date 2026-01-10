@@ -66,7 +66,7 @@ export const spawnDaemon = async (config: DaemonConfig = {}): Promise<DaemonSpaw
     if (!(await isAria2Installed())) {
         return {
             success: false,
-            message: 'aria2c is not installed. Please install it with: sudo apt install aria2',
+            message: 'Aria2 executable not found. Please install "aria2" using your package manager.',
         };
     }
 
