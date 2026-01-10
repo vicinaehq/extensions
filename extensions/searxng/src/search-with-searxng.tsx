@@ -1,4 +1,4 @@
-import {Detail, List, LocalStorage} from "@vicinae/api";
+import {Detail, getPreferenceValues, List, LocalStorage} from "@vicinae/api";
 import {issueRequest} from "./requests";
 import { useState, useCallback, useRef, useEffect } from "react";
 import ResultItem from "./components/ResultItem";
@@ -12,7 +12,7 @@ export default function SimpleList() {
 	const [errorState, setErrorState] = useState<SearxngRequestError|null>(null);
 	
 	const [isLoading, setIsLoading] = useState<boolean>(false)
-	const [showDetails, setShowDetails] = useState<boolean>(false);
+	const [showDetails, setShowDetails] = useState<boolean>(getPreferenceValues<Preferences>().details_start_open);
 	
 	const throttleSearchUpdate = useCallback(throttle(async () => {
 		if (!state?.response) {

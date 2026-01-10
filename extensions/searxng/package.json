@@ -38,6 +38,15 @@
       "label": "Keep previous search"
     },
     {
+      "name": "details_start_open",
+      "title": "Details should start open",
+      "description": "If enabled, the detail view are visible when starting to search.",
+      "type": "checkbox",
+      "default": false,
+      "required": false,
+      "label": "Details should start open"
+    },
+    {
       "name": "default_category",
       "title": "Default Category",
       "description": "This defines what category is used by default.",
@@ -94,12 +103,22 @@
     {
       "name": "engines",
       "title": "Engines",
-      "description": "This defines, what engines the search should be using. Multiple engines can be defined using commas.",
+      "description": "This defines, what engines the search should be using. Multiple engines can be defined using commas. This is passed directly to the API.",
       "type": "textfield",
       "default": "",
       "placeholder": "Keep empty for instance defaults",
       "required": false
+    },
+    {
+      "name": "languages",
+      "title": "Languages",
+      "description": "Defines what language is used for searching. You can only define one language. This is a limitation by the API.",
+      "default": "",
+      "type": "textfield",
+      "placeholder": "Keep empty for instance defaults",
+      "required": false
     }
+    
   ],
   "scripts": {
     "build": "vici build",

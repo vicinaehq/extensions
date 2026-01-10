@@ -18,6 +18,9 @@ export async function issueRequest(
     if (preferences.engines && !query.startsWith('!')) {
         url.searchParams.append('engines', preferences.engines);
     }
+    if (preferences.languages) {
+        url.searchParams.append('language', preferences.languages);
+    }
     
     let response: Response;
     try {
@@ -39,10 +42,17 @@ export async function issueRequest(
     }
     
     if (!response.ok) {
+        let data = {};
+        try {
+            data = await response.json();
+        } catch (e) {
+            // ignore
+        }
+        
         return {
             type: "error",
             status_code: response.status,
-            error_message: "An unknown error occurred..."
+            error_message: data.error ?? "An unknown error occurred..."
         }
     }
     
