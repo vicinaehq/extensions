@@ -47,7 +47,7 @@ export function ProjectListItem({ project, index, onRemove }: ProjectListItemPro
                     tag: getProjectTypeLabel(project.type),
                 },
             ]}
-            actions={<ProjectActions projectPath={project.path} onRemove={onRemove} />}
+            actions={<ProjectActions project={project} onRemove={onRemove} />}
         />
     );
 }
