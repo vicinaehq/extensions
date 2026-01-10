@@ -15,7 +15,7 @@ for how to do it.
 
 If you use a public instance, you need to make sure, that instance allows JSON to be used.
 You can easily do this, by using the path `/search?q=hello&format=json` right after the domain in your browser.
-If you get a `Forbidden`-page, this instance can not be used.
+If you get a `Forbidden`-page, this instance cannot be used.
 
 ## Keybinds
 - <kbd>Enter</kbd> - Open the link in the primary browser

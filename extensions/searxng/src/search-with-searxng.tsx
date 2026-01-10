@@ -1,43 +1,46 @@
 import {Detail, List} from "@vicinae/api";
 import {issueRequest} from "./requests";
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import ResultItem from "./components/ResultItem";
-import _ from "lodash";
+import { throttle } from "lodash";
 
 export default function SimpleList() {
-
-	const [currentResponse, setCurrentResponse] = useState<SearxngRequest|null>();
+	const currentResponseRef = useRef<SearxngRequest|null>(null);
+	const pageNumber = useRef<number>(1);
+	
 	const [errorState, setErrorState] = useState<SearxngRequestError|null>(null);
 	
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [showDetails, setShowDetails] = useState<boolean>(false);
-	const [pageNumber, setPageNumber] = useState<number>(1);
 	
-	const throttleSearchUpdate = _.throttle(async () => {
-		if (!currentResponse) {
+	const throttleSearchUpdate = useCallback(throttle(async () => {
+		if (!currentResponseRef.current) {
 			return;
 		}
 		
 		setIsLoading(true);
-		const newPageNumber = pageNumber + 1;
-		const response = await issueRequest(currentResponse.query, newPageNumber);
-		setPageNumber(newPageNumber);
+		const newPageNumber = pageNumber.current + 1;
+		const response = await issueRequest(currentResponseRef.current.query, newPageNumber);
+		pageNumber.current = newPageNumber;
 
 		if (response.type === "error") {
+			setIsLoading(false);
 			setErrorState(response);
 			return;
 		}
 
-		setCurrentResponse({
-			...currentResponse,
+		setErrorState(null);
+		const newCurrentResponse = {
+			...currentResponseRef.current,
 			results: [
-				...currentResponse.results,
+				...currentResponseRef.current.results,
 				...response.results
 			]
-		});
+		};
+		currentResponseRef.current = newCurrentResponse;
 
 		setIsLoading(false);
-	})
+	}), [pageNumber, currentResponseRef])
 	
 	async function updateRequest(query: string) {
 		if (!query) {
@@ -52,9 +55,10 @@ export default function SimpleList() {
 			setErrorState(response);
 			return;
 		}
-
-		setPageNumber(1);
-		setCurrentResponse(response);
+		
+		setErrorState(null);
+		pageNumber.current = 1;
+		currentResponseRef.current = response;
 	}
 	
 	function invertShowDetails() {
@@ -65,7 +69,7 @@ export default function SimpleList() {
 		return resultB.score - resultA.score;
 	}
 	
-	async function infiniteScrollCheck(id: string) {
+	function infiniteScrollCheck(id: string) {
 		if (!id.startsWith('result')) {
 			return;
 		}
@@ -74,11 +78,11 @@ export default function SimpleList() {
 			return;
 		}
 		
-		if (!currentResponse) {
+		if (!currentResponseRef.current) {
 			return;
 		}
 		
-		const maxIndexResults = currentResponse.results.length;
+		const maxIndexResults = currentResponseRef.current.results.length;
 		const threshold = (maxIndexResults - 8);
 		const index = parseInt(id.split('-')[1]);
 		
@@ -110,15 +114,15 @@ ${errorState.error_message}`}
 			  onSelectionChange={infiniteScrollCheck}
 			  isLoading={isLoading}
 		>
-			{currentResponse?.type === "response" ? (
+			{currentResponseRef.current?.type === "response" ? (
 				<>
 					<List.Section title="Info" key="section-info">
-						{currentResponse?.infoboxes.map((result: SearxngRequestInfobox, index: number) => (
+						{currentResponseRef.current.infoboxes.map((result: SearxngRequestInfobox, index: number) => (
 							<ResultItem key={`infobox-${index.toString()}`} result={result} index={index} toggleShowDetails={invertShowDetails} />
 						))}
 					</List.Section>
 					<List.Section title="Results"  key="section-results">
-						{currentResponse?.results
+						{[...currentResponseRef.current.results]
 							.sort(sortResults)
 							.map((result: SearxngRequestResult, index: number) => (
 								<ResultItem key={`result-${index.toString()}`} result={result} index={index} toggleShowDetails={invertShowDetails} />

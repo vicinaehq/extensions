@@ -45,7 +45,7 @@ type RawSearxngRequestResult = BaseSearxngRequestResult & {
 type SearxngRequestResult = BaseSearxngRequestResult & {
     type: "result",
     thumbnail: URL|null,
-    url: URL,
+    url: URL|null,
     publishedDate: Date|null,
     img_src: URL|null,
 }
@@ -56,7 +56,7 @@ type BaseSearxngRequestInfobox = BaseSearxngRequestResult & {
         title: string,
         url: string
     }[],
-    attributes: []
+    attributes: SearxngRequestInfoboxAttribute[]
 }
 
 type RawSearxngRequestInfobox = BaseSearxngRequestInfobox & RawSearxngRequestResult & {
@@ -69,7 +69,19 @@ type SearxngRequestInfobox = BaseSearxngRequestInfobox & SearxngRequestResult & 
 }
 
 type SearxngRequestError = {
-    type: "error"
+    type: "error",
     status_code?: number, 
     error_message: string
+}
+
+type SearxngRequestInfoboxAttribute = {
+    label: string,
+    value: string, 
+    image?: SearxngRequestInfoboxAttributeImage
+    
+}
+
+type SearxngRequestInfoboxAttributeImage = {
+    src: string,
+    alt: string
 }

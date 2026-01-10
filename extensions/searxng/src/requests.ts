@@ -42,7 +42,7 @@ export async function issueRequest(
         return {
             type: "error",
             status_code: response.status,
-            error_message: "A unknown error happend..."
+            error_message: "An unknown error occurred..."
         }
     }
     
@@ -83,13 +83,19 @@ function convertInfobox(infobox: RawSearxngRequestInfobox): SearxngRequestInfobo
 }
 
 function deduplicateResults(results: SearxngRequestResult[]) {
-    const foundUrls: string[] = [];
+    const foundUrls: Set<string> = new Set<string>();
     return results.filter((result) => {
-        if (foundUrls.includes(result.url.toString())) {
+        if (!result.url) {
             return false;
         }
         
-        foundUrls.push(result.url.toString());
+        const url = result.url.toString();
+        
+        if (foundUrls.has(url)) {
+            return false;
+        }
+        
+        foundUrls.add(url);
         
         return true;
     })
@@ -103,10 +109,15 @@ function convertUrl(url: string|null): URL|null {
     if (url === '') {
         return null;
     }
-    return new URL(url);
+    try {
+        return new URL(url);
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
 }
 
 export function findFavicon(url: URL): URL {
-    const faviconUrl = new URL(url.host, "http://f1.allesedv.com/16/");
+    const faviconUrl = new URL(`http://f1.allesedv.com/16/${url.host}`);
     return faviconUrl
 }
