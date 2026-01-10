@@ -12,6 +12,10 @@ Control your downloads directly from Vicinae using Aria2 and yt-dlp. This extens
    Required for downloading videos from YouTube and other streaming sites.
    `sudo pacman -S yt-dlp`
 
+3. **FFmpeg** (Optional):
+   Required for high-quality (1080p/4K) video downloads that use split streams.
+   `sudo pacman -S ffmpeg`
+
 ## Features
 
 * **Quick Download:** Fast way to add a download. You can pass a URL as an argument, or if left empty, it will automatically read from your clipboard.
