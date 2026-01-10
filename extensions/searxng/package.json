@@ -29,6 +29,15 @@
       "required": true
     },
     {
+      "name": "keep_previous_search",
+      "title": "Keep previous search",
+      "description": "If enabled, the search will be stored locally so you can come back and look at the results again.",
+      "type": "checkbox",
+      "default": true,
+      "required": false,
+      "label": "Keep previous search"
+    },
+    {
       "name": "default_category",
       "title": "Default Category",
       "description": "This defines what category is used by default.",

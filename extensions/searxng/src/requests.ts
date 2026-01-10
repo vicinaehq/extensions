@@ -117,7 +117,13 @@ function convertUrl(url: string|null): URL|null {
     }
 }
 
-export function findFavicon(url: URL): URL {
+export function findFavicon(url: URL|string): URL {
+    try {
+        url = new URL(url);
+    } catch (e) {
+        return new URL("");
+    }
+    
     const faviconUrl = new URL(`http://f1.allesedv.com/16/${url.host}`);
     return faviconUrl
 }

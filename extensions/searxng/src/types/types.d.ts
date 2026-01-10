@@ -85,3 +85,8 @@ type SearxngRequestInfoboxAttributeImage = {
     src: string,
     alt: string
 }
+
+type State = {
+    response: SearxngRequest|null,
+    pageNumber: number,
+}
