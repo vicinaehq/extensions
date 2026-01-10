@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { List, ActionPanel, Action, showToast, Toast, Icon, Color, confirmAlert, Alert, open } from '@vicinae/api';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import type { Aria2Task, DownloadInfo } from './types';
 import { Aria2Client, getAria2Client } from './lib/aria2-client';
 import { ensureDaemonRunning, getDaemonStatus } from './lib/aria2-daemon';
@@ -15,7 +17,8 @@ const execAsync = promisify(exec);
 // Config
 const RPC_URL = 'http://localhost:6800/jsonrpc';
 const RPC_SECRET: string | null = null;
-const DOWNLOAD_DIR = process.env.HOME ? `${process.env.HOME}/Downloads` : '/tmp';
+// Use user's Downloads directory, fallback to home/Downloads, or error if no home
+const DOWNLOAD_DIR = process.env.HOME ? path.join(process.env.HOME, 'Downloads') : '/tmp';
 
 /**
  * Main Download Manager Command
@@ -260,18 +263,18 @@ export default function Command() {
                         const audioAria = `${audioPath}.aria2`;
 
                         if (!fs.existsSync(videoAria) && !fs.existsSync(audioAria)) {
+                            // Check if output file already exists to avoid re-merging/race conditions
+                            if (fs.existsSync(outputPath)) {
+                                // Maybe already merged? Or manual file?
+                                // Skip to avoid overwriting or infinite merge loops if source files aren't deleted quickly enough
+                                continue;
+                            }
+
                             // Both downloads finished!
-                            // Check if not already merging (simple lock via temp file or just check output?)
-                            // If output exists, maybe we already merged? Or it's a re-download.
-                            // To be safe, let's merge. mergeMedia overwrites (-y).
-                            // But we don't want to loop merge. mergeMedia deletes sources on success.
-
                             await showToast({ style: Toast.Style.Animated, title: 'Merging streams...', message: baseName });
-
                             await mergeMedia(videoPath, audioPath, outputPath);
-
                             await showToast({ style: Toast.Style.Success, title: 'Merge Complete', message: `${baseName}.mp4` });
-                            loadDownloads(); // Refresh list to show new file (if we were tracking it) or remove old entries
+                            loadDownloads();
                         }
                     }
                 }
@@ -327,8 +330,30 @@ export default function Command() {
                 try {
                     console.log('[aria2] Pausing active download before file deletion...');
                     await clientRef.current.pause(gid);
-                    // Wait a bit for aria2 to release file lock
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    // Wait for aria2 to release control file lock - polling instead of fixed wait
+                    let attempts = 0;
+                    const maxAttempts = 20; // 2 seconds max
+                    const checkInterval = 100;
+
+                    while (attempts < maxAttempts) {
+                        try {
+                            // Try to open the file in 'r+' mode to check if it's locked? 
+                            // Or just wait for .aria2 file logic?
+                            // Simple approach: aria2 updates status quickly. We just need a small buffer.
+                            // Actually, let's check if we can access the file.
+                            const testPath = filePath || (dir && name ? `${dir}/${name}` : null);
+                            if (testPath && fs.existsSync(testPath)) {
+                                fs.accessSync(testPath, fs.constants.W_OK); // Check if writable
+                                break; // Writable, likely released
+                            } else {
+                                break; // Doesn't exist, proceed
+                            }
+                        } catch {
+                            // Locked or permission error
+                            await new Promise(r => setTimeout(r, checkInterval));
+                            attempts++;
+                        }
+                    }
                     console.log('[aria2] Download paused, proceeding with file deletion');
                 } catch (err) {
                     console.log('[aria2] Pause failed, attempting deletion anyway:', err);
@@ -350,7 +375,7 @@ export default function Command() {
                             const stat = fs.statSync(actualPath);
                             if (stat.isDirectory()) {
                                 console.log('[aria2] Deleting directory...');
-                                await execAsync(`rm -rf "${actualPath}"`);
+                                fs.rmSync(actualPath, { recursive: true, force: true });
                             } else {
                                 console.log('[aria2] Deleting file...');
                                 fs.unlinkSync(actualPath);
@@ -428,10 +453,23 @@ export default function Command() {
     }, [handleRemove]);
 
     // Open file location
-    const handleOpenLocation = useCallback(async (dir: string) => {
+    // Open file location - Safe spawn
+    const handleOpenLocation = useCallback(async (dir?: string) => {
+        if (!dir) return; // Guard against undefined
         try {
-            await execAsync(`xdg-open "${dir}"`);
+            // Use spawn to avoid shell injection
+            // Helper function to handle spawn promise
+            await new Promise<void>((resolve, reject) => {
+                const process = spawn('xdg-open', [dir], { stdio: 'ignore' });
+                process.on('error', reject);
+                process.on('exit', (code) => {
+                    if (code === 0) resolve();
+                    else reject(new Error(`xdg-open exited with code ${code}`));
+                });
+                process.unref(); // Don't block parent
+            });
         } catch (err) {
+            console.error('Failed to open location:', err);
             await showToast({ style: Toast.Style.Failure, title: 'Failed to open folder' });
         }
     }, []);
