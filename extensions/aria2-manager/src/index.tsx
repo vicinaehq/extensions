@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { List, ActionPanel, Action, showToast, Toast, Icon, Color, confirmAlert, Alert } from '@vicinae/api';
-import { exec } from 'child_process';
+import { List, ActionPanel, Action, showToast, Toast, Icon, Color, confirmAlert, Alert, open } from '@vicinae/api';
+import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import type { Aria2Task, DownloadInfo } from './types';
 import { Aria2Client, getAria2Client } from './lib/aria2-client';
 import { ensureDaemonRunning, getDaemonStatus } from './lib/aria2-daemon';
 import { extractVideoUrl, isYtDlpInstalled, YtDlpError } from './lib/yt-dlp-handler';
+import { isFfmpegInstalled, mergeMedia } from './lib/ffmpeg-utils';
 import { detectUrlType, isValidUrl, taskToDownloadInfo, formatBytes, formatSpeed, formatTimeRemaining, getStatusIcon } from './lib/utils';
 
 const execAsync = promisify(exec);
@@ -14,7 +17,8 @@ const execAsync = promisify(exec);
 // Config
 const RPC_URL = 'http://localhost:6800/jsonrpc';
 const RPC_SECRET: string | null = null;
-const DOWNLOAD_DIR = process.env.HOME ? `${process.env.HOME}/Downloads` : '/tmp';
+// Use user's Downloads directory, fallback to home/Downloads, or error if no home
+const DOWNLOAD_DIR = process.env.HOME ? path.join(process.env.HOME, 'Downloads') : '/tmp';
 
 /**
  * Main Download Manager Command
@@ -29,6 +33,8 @@ export default function Command() {
     const [searchText, setSearchText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [ytDlpAvailable, setYtDlpAvailable] = useState<boolean | null>(null);
+    const [ffmpegAvailable, setFfmpegAvailable] = useState<boolean | null>(null);
+    const [quality, setQuality] = useState<'best' | '1080p' | '720p' | 'audio'>('best');
     const [lastUpdate, setLastUpdate] = useState<number>(Date.now()); // For forcing re-renders
 
     // Aria2 client ref
@@ -48,6 +54,10 @@ export default function Command() {
             // Check yt-dlp availability
             const ytdlp = await isYtDlpInstalled();
             setYtDlpAvailable(ytdlp);
+
+            // Check ffmpeg availability
+            const ffmpeg = await isFfmpegInstalled();
+            setFfmpegAvailable(ffmpeg);
 
             // Check daemon status
             const status = await getDaemonStatus(RPC_URL);
@@ -87,7 +97,7 @@ export default function Command() {
     }, [initializeDaemon]);
 
     // Fetch all downloads
-    const loadDownloads = async () => {
+    const loadDownloads = useCallback(async () => {
         if (!clientRef.current) return;
 
         setIsLoading(true);
@@ -106,7 +116,7 @@ export default function Command() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
 
     // Fetch downloads on connect and poll every 5 seconds for status updates
@@ -147,7 +157,47 @@ export default function Command() {
                 await showToast({ style: Toast.Style.Animated, title: 'Extracting video URL...' });
 
                 try {
-                    const result = await extractVideoUrl(trimmedInput);
+                    // Start extraction with selected quality
+                    let result = await extractVideoUrl(trimmedInput, { quality });
+
+                    if (result.isSplit && result.videoUrl && result.audioUrl) {
+                        // Split download mode (High Quality) requires FFmpeg
+                        if (!ffmpegAvailable) {
+                            await showToast({
+                                style: Toast.Style.Failure,
+                                title: 'FFmpeg missing',
+                                message: 'Cannot handle HQ download. Falling back to 720p...'
+                            });
+
+                            // Fallback to 720p (Single File)
+                            try {
+                                result = await extractVideoUrl(trimmedInput, { quality: '720p' });
+                                // Proceed to standard single file download logic below
+                            } catch (fallbackErr) {
+                                throw new Error('FFmpeg missing and 720p fallback failed');
+                            }
+                        } else {
+                            // FFmpeg available: Proceed with Split Download
+                            const options: Record<string, string> = { dir: DOWNLOAD_DIR };
+
+                            // Add Video
+                            const videoName = `${result.filename}.video.mp4`;
+                            await clientRef.current.addUri([result.videoUrl], { ...options, out: videoName });
+
+                            // Add Audio
+                            const audioName = `${result.filename}.audio.m4a`;
+                            await clientRef.current.addUri([result.audioUrl], { ...options, out: audioName });
+
+                            await showToast({ style: Toast.Style.Success, title: 'High Quality Download Started', message: 'Downloading video and audio content separately' });
+
+                            // Refresh and return
+                            await loadDownloads();
+                            setTimeout(() => loadDownloads(), 1500);
+                            return; // Exit here as we handled adding
+                        }
+                    }
+
+                    // Standard single file download
                     downloadUrl = result.url;
                     filename = result.filename;
                     await showToast({ style: Toast.Style.Success, title: 'Found video', message: result.title });
@@ -183,7 +233,59 @@ export default function Command() {
         } finally {
             setIsProcessing(false);
         }
-    }, [ytDlpAvailable, loadDownloads]);
+    }, [ytDlpAvailable, ffmpegAvailable, loadDownloads, quality]);
+
+    // Lazy Merge Watcher
+    useEffect(() => {
+        if (!ffmpegAvailable || !isConnected) return;
+
+        const scanAndMerge = async () => {
+            try {
+                // Read download dir
+                if (!fs.existsSync(DOWNLOAD_DIR)) return;
+                const files = await fs.promises.readdir(DOWNLOAD_DIR);
+
+                // Find candidate video files (.video.mp4)
+                const videoFiles = files.filter(f => f.endsWith('.video.mp4'));
+
+                for (const videoFile of videoFiles) {
+                    const baseName = videoFile.replace('.video.mp4', '');
+                    const audioFile = `${baseName}.audio.m4a`;
+
+                    // Check if matching audio exists
+                    if (files.includes(audioFile)) {
+                        const videoPath = `${DOWNLOAD_DIR}/${videoFile}`;
+                        const audioPath = `${DOWNLOAD_DIR}/${audioFile}`;
+                        const outputPath = `${DOWNLOAD_DIR}/${baseName}.mp4`;
+
+                        // Check for .aria2 control files (this implies download is still active)
+                        const videoAria = `${videoPath}.aria2`;
+                        const audioAria = `${audioPath}.aria2`;
+
+                        if (!fs.existsSync(videoAria) && !fs.existsSync(audioAria)) {
+                            // Check if output file already exists to avoid re-merging/race conditions
+                            if (fs.existsSync(outputPath)) {
+                                // Maybe already merged? Or manual file?
+                                // Skip to avoid overwriting or infinite merge loops if source files aren't deleted quickly enough
+                                continue;
+                            }
+
+                            // Both downloads finished!
+                            await showToast({ style: Toast.Style.Animated, title: 'Merging streams...', message: baseName });
+                            await mergeMedia(videoPath, audioPath, outputPath);
+                            await showToast({ style: Toast.Style.Success, title: 'Merge Complete', message: `${baseName}.mp4` });
+                            loadDownloads();
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Lazy merge scan error:', err);
+            }
+        };
+
+        const interval = setInterval(scanAndMerge, 5000);
+        return () => clearInterval(interval);
+    }, [ffmpegAvailable, isConnected]);
 
     // Handle search submit (Enter key)
     const handleSearchSubmit = useCallback(() => {
@@ -216,91 +318,94 @@ export default function Command() {
         }
     }, [loadDownloads]);
 
-    // Remove download - handles both active and completed downloads
+    // Remove download - handles both active, completed AND split (audio/video) downloads
     const handleRemove = useCallback(async (gid: string, status: DownloadInfo['status'], filePath: string | null, dir: string, name: string, deleteFile: boolean = false) => {
         if (!clientRef.current) return;
 
-        console.log('[aria2] handleRemove:', { gid, status, filePath, dir, name, deleteFile });
-
         try {
-            // For active downloads, pause first to release file lock on .aria2 control file
-            if (deleteFile && status === 'active') {
-                try {
-                    console.log('[aria2] Pausing active download before file deletion...');
-                    await clientRef.current.pause(gid);
-                    // Wait a bit for aria2 to release file lock
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    console.log('[aria2] Download paused, proceeding with file deletion');
-                } catch (err) {
-                    console.log('[aria2] Pause failed, attempting deletion anyway:', err);
-                }
+            // Step 1: Identify Sibling File (Split Download Cleanup)
+            // If deleting a .video.mp4, check for a corresponding .audio.m4a
+            let siblingGid: string | null = null;
+            let siblingPath: string | null = null;
+
+            if (name.endsWith('.video.mp4')) {
+                const audioName = name.replace('.video.mp4', '.audio.m4a');
+                const siblingTask = downloads.find(d => d.name === audioName);
+                if (siblingTask) siblingGid = siblingTask.gid;
+                if (dir) siblingPath = `${dir}/${audioName}`;
             }
 
-            // Delete file from disk FIRST if requested (before removing from aria2)
-            if (deleteFile) {
-                // Construct full path - prefer filePath, fallback to dir + name
-                const actualPath = filePath || (dir && name ? `${dir}/${name}` : null);
-                console.log('[aria2] actualPath:', actualPath);
-
-                if (actualPath) {
-                    try {
-                        // Delete main file
-                        console.log('[aria2] Checking if file exists...');
-                        if (fs.existsSync(actualPath)) {
-                            console.log('[aria2] File exists, getting stats...');
-                            const stat = fs.statSync(actualPath);
-                            if (stat.isDirectory()) {
-                                console.log('[aria2] Deleting directory...');
-                                await execAsync(`rm -rf "${actualPath}"`);
-                            } else {
-                                console.log('[aria2] Deleting file...');
-                                fs.unlinkSync(actualPath);
-                            }
-                            console.log('[aria2] File deleted successfully');
-                        } else {
-                            console.log('[aria2] File does not exist');
-                        }
-                        // Also delete .aria2 control file if exists
-                        const aria2ControlFile = `${actualPath}.aria2`;
-                        if (fs.existsSync(aria2ControlFile)) {
-                            console.log('[aria2] Deleting .aria2 control file...');
-                            fs.unlinkSync(aria2ControlFile);
-                        }
-                    } catch (err) {
-                        console.error('[aria2] Failed to delete file:', err);
-                        await showToast({ style: Toast.Style.Failure, title: 'File deletion failed', message: err instanceof Error ? err.message : 'Unknown error' });
-                    }
-                }
-            }
-
-            // For active/waiting/paused downloads, use forceRemove first
+            // Step 2: Stop/Remove Tasks
+            // Force remove active tasks to release file locks
             if (status === 'active' || status === 'waiting' || status === 'paused') {
                 try {
-                    console.log('[aria2] Calling remove(gid, true)...');
                     await clientRef.current.remove(gid, true);
-                    console.log('[aria2] remove() succeeded');
-                } catch (err) {
-                    console.log('[aria2] remove() failed, continuing:', err);
-                }
+                } catch { /* Ignore if task is already gone */ }
             }
 
-            // Remove from result list
+            if (siblingGid) {
+                try {
+                    await clientRef.current.remove(siblingGid, true);
+                } catch { /* Ignore sibling errors */ }
+            }
+
+            // Step 3: Wait for File Lock Release & Status Update
+            // Critical: Wait for OS to release file handle and Aria2 to update internal state
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 4: Clean Session Memory
+            // Remove the "Stopped/Error" result from Aria2 memory so it doesn't reappear in the UI
             try {
-                console.log('[aria2] Calling removeDownloadResult...');
                 await clientRef.current.removeDownloadResult(gid);
-                console.log('[aria2] removeDownloadResult succeeded');
-            } catch (err) {
-                console.log('[aria2] removeDownloadResult failed:', err);
-                // This is expected if the download was never completed
+            } catch { /* Ignore if already cleared */ }
+
+            if (siblingGid) {
+                try {
+                    await clientRef.current.removeDownloadResult(siblingGid);
+                } catch { /* Ignore */ }
             }
 
-            await showToast({ style: Toast.Style.Success, title: deleteFile ? 'Download and file removed' : 'Download removed' });
+            // Step 5: Delete Files from Disk
+            if (deleteFile) {
+                const deletePath = async (pathToDelete: string) => {
+                    if (!pathToDelete) return;
+                    try {
+                        if (fs.existsSync(pathToDelete)) {
+                            const stat = fs.statSync(pathToDelete);
+                            if (stat.isDirectory()) {
+                                fs.rmSync(pathToDelete, { recursive: true, force: true });
+                            } else {
+                                fs.unlinkSync(pathToDelete);
+                            }
+                        }
+                        // Clean up control file
+                        const ariaControl = `${pathToDelete}.aria2`;
+                        if (fs.existsSync(ariaControl)) {
+                            fs.unlinkSync(ariaControl);
+                        }
+                    } catch (err) {
+                        console.error('File deletion error:', pathToDelete, err);
+                    }
+                };
+
+                const mainPath = filePath || (dir && name ? `${dir}/${name}` : null);
+                if (mainPath) await deletePath(mainPath);
+
+                if (siblingPath) await deletePath(siblingPath);
+
+                await showToast({ style: Toast.Style.Success, title: 'Download and files removed' });
+            } else {
+                await showToast({ style: Toast.Style.Success, title: 'Download removed' });
+            }
+
+            // Step 6: Refresh List
             await loadDownloads();
+
         } catch (err) {
-            console.error('[aria2] handleRemove error:', err);
-            await showToast({ style: Toast.Style.Failure, title: 'Failed to remove download', message: err instanceof Error ? err.message : 'Unknown error' });
+            console.error('[aria2] handleRemove fatal:', err);
+            await showToast({ style: Toast.Style.Failure, title: 'Error removing download', message: String(err) });
         }
-    }, [loadDownloads]);
+    }, [downloads, loadDownloads]);
 
     // Remove with confirmation for deleting file
     const handleRemoveWithConfirm = useCallback(async (download: DownloadInfo) => {
@@ -329,19 +434,34 @@ export default function Command() {
     }, [handleRemove]);
 
     // Open file location
-    const handleOpenLocation = useCallback(async (dir: string) => {
+    // Open file location - Safe spawn
+    const handleOpenLocation = useCallback(async (dir?: string) => {
+        if (!dir) return; // Guard against undefined
         try {
-            await execAsync(`xdg-open "${dir}"`);
+            // Use spawn to avoid shell injection
+            // Helper function to handle spawn promise
+            await new Promise<void>((resolve, reject) => {
+                const process = spawn('xdg-open', [dir], { stdio: 'ignore' });
+                process.on('error', reject);
+                process.on('exit', (code) => {
+                    if (code === 0) resolve();
+                    else reject(new Error(`xdg-open exited with code ${code}`));
+                });
+                process.unref(); // Don't block parent
+            });
         } catch (err) {
+            console.error('Failed to open location:', err);
             await showToast({ style: Toast.Style.Failure, title: 'Failed to open folder' });
         }
     }, []);
 
-    // Group downloads by status
-    const activeDownloads = downloads.filter(d => d.status === 'active');
-    const waitingDownloads = downloads.filter(d => d.status === 'waiting' || d.status === 'paused');
-    const completedDownloads = downloads.filter(d => d.status === 'complete');
-    const errorDownloads = downloads.filter(d => d.status === 'error' || d.status === 'removed');
+    // Group downloads by status (filtering out hidden audio helper files)
+    const shouldShow = (d: DownloadInfo) => !d.name.endsWith('.audio.m4a');
+
+    const activeDownloads = downloads.filter(d => d.status === 'active' && shouldShow(d));
+    const waitingDownloads = downloads.filter(d => (d.status === 'waiting' || d.status === 'paused') && shouldShow(d));
+    const completedDownloads = downloads.filter(d => d.status === 'complete' && shouldShow(d));
+    const errorDownloads = downloads.filter(d => (d.status === 'error' || d.status === 'removed') && shouldShow(d));
 
     // Build subtitle - minimal, only show errors if present
     const getSubtitle = (download: DownloadInfo): string => {
@@ -407,12 +527,22 @@ export default function Command() {
                         />
                     )}
                     {isComplete && (
-                        <Action
-                            title="Open Location"
-                            icon={Icon.Folder}
-                            onAction={() => handleOpenLocation(dir)}
-                            shortcut={{ modifiers: ["cmd"], key: "o" }}
-                        />
+                        <>
+                            {filePath && (
+                                <Action
+                                    title="Open File"
+                                    icon={Icon.Document}
+                                    onAction={() => open(filePath)}
+                                    shortcut={{ modifiers: ["cmd"], key: "o" }}
+                                />
+                            )}
+                            <Action
+                                title="Open Location"
+                                icon={Icon.Folder}
+                                onAction={() => handleOpenLocation(dir)}
+                                shortcut={{ modifiers: ["cmd", "shift"], key: "o" }}
+                            />
+                        </>
                     )}
                 </ActionPanel.Section>
                 <ActionPanel.Section>
@@ -465,7 +595,19 @@ export default function Command() {
             searchText={searchText}
             onSearchTextChange={setSearchText}
             navigationTitle={`Downloads ${activeDownloads.length > 0 ? `(${activeDownloads.length} active)` : ''}`}
-            searchBarPlaceholder="Enter URL, magnet link, or YouTube video to download..."
+            searchBarPlaceholder="Enter URL, magnet link, or YouTube video link..."
+            searchBarAccessory={
+                <List.Dropdown
+                    tooltip="Select Download Quality"
+                    value={quality}
+                    onChange={(newValue) => setQuality(newValue as any)}
+                >
+                    <List.Dropdown.Item title="Best" value="best" icon={Icon.Star} />
+                    <List.Dropdown.Item title="1080p" value="1080p" icon={Icon.Monitor} />
+                    <List.Dropdown.Item title="720p" value="720p" icon={Icon.Mobile} />
+                    <List.Dropdown.Item title="Audio" value="audio" icon={Icon.Music} />
+                </List.Dropdown>
+            }
             actions={
                 <ActionPanel>
                     <Action

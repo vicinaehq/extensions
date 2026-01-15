@@ -26,7 +26,7 @@
       "arguments": [
         {
           "name": "url",
-          "placeholder": "URL or magnet link (optional)",
+          "placeholder": "Link or ⏎ for Clipboard",
           "type": "text",
           "required": false
         }
