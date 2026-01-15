@@ -10,9 +10,10 @@ import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { capitalize } from "./utils/capitalize";
 
-import { MENU_ITEMS, MenuItem } from "./config/menu";
+import { FLATTEND_MENU_ITEMS, MENU_ITEMS, MenuItem } from "./config/menu";
 import { noOmarchyEnv } from "~/config/error";
 import { useExec } from "@raycast/utils";
+import { useState } from "react";
 
 const findMenuItems = (
   items: MenuItem[],
@@ -38,48 +39,69 @@ const Command = () => {
       execute: true,
     },
   );
-  const { push } = useNavigation();
-
+  const [query, setQuery] = useState("");
   if (isLoading) return <List isLoading={true} />;
   if (error) return <Detail markdown={noOmarchyEnv} />;
 
   return (
-    <List navigationTitle="Omarchy Menu" searchBarPlaceholder="Go...">
-      {MENU_ITEMS.map((item) => (
-        <List.Item
-          key={item.id}
-          title={item.name}
-          icon={item.icon}
-          actions={
-            <ActionPanel title="Omarchy">
-              {item.command ? (
-                <Action
-                  title="Open"
-                  onAction={async () => {
-                    await closeMainWindow();
-                    await delay(80);
-                    spawn(item.command ?? "", {
-                      shell: true,
-                      detached: true,
-                      stdio: "ignore",
-                    }).unref();
-                  }}
-                />
-              ) : (
-                <Action
-                  title="Open"
-                  onAction={() => push(<DynamicList menu={item.id} />)}
-                />
-              )}
-            </ActionPanel>
-          }
-        />
-      ))}
+    <List
+      navigationTitle="Omarchy Menu"
+      searchBarPlaceholder="Go..."
+      onSearchTextChange={setQuery}
+      filtering={true}
+    >
+      {query.trim() !== ""
+        ? // Show flattened list when searching
+          FLATTEND_MENU_ITEMS.map((item) => (
+            <List.Item
+              key={item.path + item.id}
+              accessories={[{ text: item.path }, { tag: item.icon }]}
+              keywords={[item.name, item.path]}
+              title={item.name}
+              actions={<ActionPanelCommand item={item} />}
+            />
+          ))
+        : // Show hierarchical list when not searching
+          MENU_ITEMS.map((item) => (
+            <List.Item
+              key={item.id}
+              title={item.name}
+              icon={item.icon}
+              actions={<ActionPanelCommand item={item} />}
+            />
+          ))}
     </List>
   );
 };
 
 export default Command;
+
+const ActionPanelCommand = ({ item }: { item: MenuItem }) => {
+  const { push } = useNavigation();
+  return (
+    <ActionPanel title="Omarchy">
+      {item.command ? (
+        <Action
+          title="Open"
+          onAction={async () => {
+            await closeMainWindow();
+            await delay(80);
+            spawn(item.command ?? "", {
+              shell: true,
+              detached: true,
+              stdio: "ignore",
+            }).unref();
+          }}
+        />
+      ) : (
+        <Action
+          title="Open"
+          onAction={() => push(<DynamicList menu={item.id} />)}
+        />
+      )}
+    </ActionPanel>
+  );
+};
 
 const DynamicList = ({ menu }: { menu: string }) => {
   const { push } = useNavigation();

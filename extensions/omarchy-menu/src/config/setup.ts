@@ -5,7 +5,7 @@ import { MenuItem } from "./types";
 export const setup: MenuItem = {
   id: "setup",
   name: "Setup",
-  icon: Icon.Gear,
+  icon: Icon.Cog,
   items: [
     {
       id: "audio",
