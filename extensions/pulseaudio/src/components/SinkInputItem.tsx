@@ -6,6 +6,7 @@ import {
   type PactlSinkInput,
 } from "../pactl";
 import { PlaybackDetail } from "./PlaybackDetail";
+import { SelectOutputSink } from "./SelectOutputSink";
 import { SetVolumeForm } from "./SetVolumeForm";
 import { speakerIconForPercentAndMute } from "../ui/audioIcons";
 import { deviceAccessories } from "../ui/deviceAccessories";
@@ -47,6 +48,13 @@ export function SinkInputItem(props: {
 
   const actions = (
     <ActionPanel title={title}>
+      <ActionPanel.Section title="Output">
+        <Action.Push
+          title="Select Output Device"
+          icon={Icon.SpeakerHigh}
+          target={<SelectOutputSink sinkInput={sinkInput} onOutputChange={refresh} />}
+        />
+      </ActionPanel.Section>
       <ActionPanel.Section title="Stream">
         <Action
           title={sinkInput.mute ? "Unmute Stream" : "Mute Stream"}
