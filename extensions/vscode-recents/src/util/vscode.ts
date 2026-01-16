@@ -56,7 +56,8 @@ export async function openProjectInVSCode(project: RecentProject): Promise<void>
             command += ` --file-uri "${project.path}"`;
         }
 
-        await execAsync(`${command}`);
+        const { NODE_ENV, ...env } = process.env;
+        await execAsync(`${command}`, { env });
     } catch (error) {
         console.error(`Error opening project in ${vscodeFlavour}:`, error);
         showToast({
