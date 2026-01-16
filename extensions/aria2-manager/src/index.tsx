@@ -125,10 +125,10 @@ export default function Command() {
 
         loadDownloads();
 
-        // Poll every 5 seconds to update status (Active → Complete transitions)
+        // Poll every 1 second for smoother live updates
         const interval = setInterval(() => {
             loadDownloads();
-        }, 5000);
+        }, 1000);
 
         return () => clearInterval(interval);
     }, [isConnected]);
@@ -475,9 +475,20 @@ export default function Command() {
         return '';
     };
 
-    // Build accessories - minimal, static only
+    // Build accessories - dynamic progress for active downloads, static for others
     const getAccessories = (download: DownloadInfo): List.Item.Accessory[] => {
         const accessories: List.Item.Accessory[] = [];
+
+        // Active Download Progress
+        if (download.status === 'active') {
+            const progressPercent = download.progress.toFixed(1);
+            const speed = formatSpeed(download.downloadSpeed);
+            const eta = formatTimeRemaining(download.eta);
+
+            accessories.push({
+                text: `${progressPercent}% • ${speed} • ETA: ${eta}`
+            });
+        }
 
         // Only show Torrent tag (static metadata)
         if (download.isTorrent) {
