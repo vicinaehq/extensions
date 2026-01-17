@@ -41,14 +41,24 @@
     in
     {
       packages = forEachSystem (
-        { system, ... }:
+        { system, pkgs, ... }:
         lib.pipe (builtins.readDir ./extensions) [
           (lib.filterAttrs (_name: type: type == "directory"))
           (lib.mapAttrs (
             name: _type:
             vicinae.packages.${system}.mkVicinaeExtension {
               pname = name;
-              src = ./extensions/${name};
+              src = pkgs.stdenv.mkDerivation {
+                name = "${name}-patched-tsconfig";
+                src = ./extensions/${name};
+                buildPhase = ''
+                  substituteInPlace tsconfig.json --replace "../../" "${./.}/"
+                '';
+                installPhase = ''
+                  mkdir -p $out
+                  cp -r . $out
+                '';
+              };
             }
           ))
           (lib.flip builtins.removeAttrs [
