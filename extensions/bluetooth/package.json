@@ -38,7 +38,9 @@
       "type": "checkbox",
       "title": "Connection Toggleable",
       "description": "Use a single toggle action for connect/disconnect instead of separate actions",
-      "default": false
+      "default": false,
+      "label": "Connection Toggleable",
+      "required": false
     }
   ],
   "scripts": {
@@ -46,7 +48,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "0.8.4"
+    "@vicinae/api": "^0.18.3"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

@@ -15,6 +15,7 @@ export type Device = {
 	icon: string;
 	connected: boolean;
 	trusted: boolean;
+  batteryLevel?: number;
 };
 
 export enum DeviceOptions {
