@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "himalaya",
+  "title": "Himalaya",
+  "description": "View and manage emails using Himalaya",
+  "version": "1.0.0",
+  "author": "knoopx",
+  "license": "MIT",
+  "icon": "extension_icon.png",
+  "categories": [
+    "Communication"
+  ],
+  "commands": [
+    {
+      "name": "list",
+      "title": "Mail",
+      "subtitle": "View your emails",
+      "description": "List and view emails from your inbox",
+      "mode": "view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.8.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@types/node": "^20.0.0"
+  }
+}
