@@ -48,14 +48,14 @@ export const CharacterActionPanel = ({ item }: { item: Character }) => {
           title="Copy Hex Code to Clipboard"
           content={numberToHex(item.c)}
           onCopy={() => addToRecentlyUsedItems(item)}
-          shortcut={{ modifiers: ["cmd"], key: "h" }}
+          shortcut={{ modifiers: ["ctrl"], key: "h" }}
         />
         {html ? (
           <Action.CopyToClipboard
             title="Copy HTML Entity to Clipboard"
             content={html}
             onCopy={() => addToRecentlyUsedItems(item)}
-            shortcut={{ modifiers: ["cmd", "shift"], key: "h" }}
+            shortcut={{ modifiers: ["ctrl", "shift"], key: "h" }}
           />
         ) : null}
         <Action.CopyToClipboard
@@ -63,7 +63,7 @@ export const CharacterActionPanel = ({ item }: { item: Character }) => {
           content={`&#${item.c};`}
           onCopy={() => addToRecentlyUsedItems(item)}
           shortcut={{
-            modifiers: ["cmd", "shift"],
+            modifiers: ["ctrl", "shift"],
             key: html !== null ? "t" : "h",
           }}
         />

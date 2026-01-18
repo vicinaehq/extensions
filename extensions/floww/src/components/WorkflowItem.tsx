@@ -60,18 +60,18 @@ ${fileContent}
             title="Apply Workflow"
             icon={Icon.Play}
             onAction={handleApply}
-            shortcut={{ modifiers: ["cmd"], key: "enter" }}
+            shortcut={{ modifiers: ["ctrl"], key: "enter" }}
           />
           <Action
             title="Validate Workflow"
             icon={Icon.CheckCircle}
             onAction={handleValidate}
-            shortcut={{ modifiers: ["cmd"], key: "v" }}
+            shortcut={{ modifiers: ["ctrl"], key: "v" }}
           />
           <Action.CopyToClipboard
             title="Copy Workflow Name"
             content={workflow.name}
-            shortcut={{ modifiers: ["cmd"], key: "c" }}
+            shortcut={{ modifiers: ["ctrl"], key: "c" }}
           />
           <Action
             title="Show in Finder"
@@ -80,7 +80,7 @@ ${fileContent}
               // This would need to be implemented with a proper file system action
               showToast({ title: "Show in Finder", message: "Feature not implemented yet" });
             }}
-            shortcut={{ modifiers: ["cmd"], key: "f" }}
+            shortcut={{ modifiers: ["ctrl"], key: "f" }}
           />
         </ActionPanel>
       }

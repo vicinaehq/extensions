@@ -221,7 +221,7 @@ function ServerList({
                 title="Reset Server Ranking"
                 icon={Icon.ArrowCounterClockwise}
                 onAction={() => resetServerRanking(server)}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "delete" }}
+                shortcut={{ modifiers: ["ctrl", "shift"], key: "delete" }}
               />
             </ActionPanel>
           }
@@ -328,7 +328,7 @@ export default function Command() {
                 onAction={() => {
                   resetLocationRanking(l);
                 }}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "delete" }}
+                shortcut={{ modifiers: ["ctrl", "shift"], key: "delete" }}
               />
             </ActionPanel>
           }

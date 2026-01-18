@@ -229,7 +229,7 @@ function DeviceListItem({
 							title={device.connected ? "Disconnect" : "Connect"}
 							icon={device.connected ? Icon.WifiDisabled : Icon.Wifi}
 							style={device.connected ? "destructive" : undefined}
-							shortcut={{ modifiers: ["cmd"], key: "c" }}
+							shortcut={{ modifiers: ["ctrl"], key: "c" }}
 							onAction={createToggleConnectionHandler(device, refreshDevices)}
 						/>
 					) : (
@@ -237,14 +237,14 @@ function DeviceListItem({
 							<Action
 								title="Connect"
 								icon={Icon.Wifi}
-								shortcut={{ modifiers: ["cmd"], key: "c" }}
+								shortcut={{ modifiers: ["ctrl"], key: "c" }}
 								onAction={createDeviceActionHandler("connect", device, refreshDevices)}
 							/>
 							<Action
 								title="Disconnect"
 								icon={Icon.WifiDisabled}
 								style="destructive"
-								shortcut={{ modifiers: ["cmd"], key: "d" }}
+								shortcut={{ modifiers: ["ctrl"], key: "d" }}
 								onAction={createDeviceActionHandler("disconnect", device, refreshDevices)}
 							/>
 						</>
@@ -252,14 +252,14 @@ function DeviceListItem({
 					<Action
 						title="Trust"
 						icon={Icon.Heart}
-						shortcut={{ modifiers: ["cmd"], key: "t" }}
+						shortcut={{ modifiers: ["ctrl"], key: "t" }}
 						onAction={createDeviceActionHandler("trust", device, refreshDevices)}
 					/>
 					<Action
 						title="Forget"
 						icon={Icon.HeartDisabled}
 						style="destructive"
-						shortcut={{ modifiers: ["cmd"], key: "f" }}
+						shortcut={{ modifiers: ["ctrl"], key: "f" }}
 						onAction={createDeviceActionHandler("remove", device, refreshDevices)}
 					/>
 					<ActionPanel.Section>
@@ -267,24 +267,24 @@ function DeviceListItem({
 							title="Start Scanning"
 							icon={Icon.Bluetooth}
 							target="vicinae://extensions/Gelei/bluetooth/scan"
-							shortcut={{ modifiers: ["cmd"], key: "s" }}
+							shortcut={{ modifiers: ["ctrl"], key: "s" }}
 						/>
 						<Action.Open
 							title="Make Discoverable"
 							icon={Icon.Eye}
 							target="vicinae://extensions/Gelei/bluetooth/discoverable"
-							shortcut={{ modifiers: ["cmd"], key: "d" }}
+							shortcut={{ modifiers: ["ctrl"], key: "d" }}
 						/>
 						<Action
 							title={showingDetail ? "Hide Details" : "Show Details"}
 							icon={showingDetail ? Icon.EyeDisabled : Icon.Eye}
 							onAction={toggleDetails}
-							shortcut={{ modifiers: ["cmd"], key: "i" }}
+							shortcut={{ modifiers: ["ctrl"], key: "i" }}
 						/>
 						<Action
 							title="Refresh"
 							icon={Icon.ArrowClockwise}
-							shortcut={{ modifiers: ["cmd"], key: "r" }}
+							shortcut={{ modifiers: ["ctrl"], key: "r" }}
 							onAction={refreshDevices}
 						/>
 					</ActionPanel.Section>
@@ -317,7 +317,7 @@ export default function Devices() {
 								title="Start Scanning"
 								icon={Icon.Bluetooth}
 								target="vicinae://extensions/Gelei/bluetooth/scan"
-								shortcut={{ modifiers: ["cmd"], key: "s" }}
+								shortcut={{ modifiers: ["ctrl"], key: "s" }}
 							/>
 						</ActionPanel>
 					}
@@ -337,12 +337,12 @@ export default function Devices() {
 						title="Start Scanning"
 						icon={Icon.Bluetooth}
 						target="vicinae://extensions/Gelei/bluetooth/scan"
-						shortcut={{ modifiers: ["cmd"], key: "s" }}
+						shortcut={{ modifiers: ["ctrl"], key: "s" }}
 					/>
 					<Action
 						title="Refresh Devices"
 						icon={Icon.ArrowClockwise}
-						shortcut={{ modifiers: ["cmd"], key: "r" }}
+						shortcut={{ modifiers: ["ctrl"], key: "r" }}
 						onAction={refreshDevices}
 					/>
 				</ActionPanel>

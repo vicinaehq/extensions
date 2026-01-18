@@ -317,31 +317,31 @@ export default function ManageSavedNetworksIwctl() {
                     title="Disconnect"
                     icon={Icon.XMarkCircle}
                     onAction={handleDisconnect}
-                    shortcut={{ modifiers: ["cmd"], key: "d" }}
+                    shortcut={{ modifiers: ["ctrl"], key: "d" }}
                   />
                 ) }
                 <Action
                   title="Connect"
                   icon={Icon.Wifi}
                   onAction={() => handleConnect(network.name)}
-                  shortcut={{ modifiers: ["cmd"], key: "enter" }}
+                  shortcut={{ modifiers: ["ctrl"], key: "enter" }}
                 />
                 <Action
                   title="Forget Network"
                   icon={Icon.Trash}
                   onAction={() => handleForget(network.name)}
-                  shortcut={{ modifiers: ["cmd"], key: "delete" }}
+                  shortcut={{ modifiers: ["ctrl"], key: "delete" }}
                 />
                 <Action
                     title="Toggle AutoConnect"
                     icon={Icon.Repeat}
                     onAction={() => handleAutoConnect(network.name, network.autoconnect)}
-                    shortcut={{ modifiers: ["cmd"], key: "a" }}
+                    shortcut={{ modifiers: ["ctrl"], key: "a" }}
                   />
                 <Action.CopyToClipboard
                   title="Copy Network Name"
                   content={network.name}
-                  shortcut={{ modifiers: ["cmd"], key: "c" }}
+                  shortcut={{ modifiers: ["ctrl"], key: "c" }}
                 />
                 <Action
                   title="Refresh"
@@ -352,7 +352,7 @@ export default function ManageSavedNetworksIwctl() {
                     loadAvailableNetworks();
                     loadSavedNetworksData();
                   }}
-                  shortcut={{ modifiers: ["cmd"], key: "r" }}
+                  shortcut={{ modifiers: ["ctrl"], key: "r" }}
                 />
               </ActionPanel>
             }
