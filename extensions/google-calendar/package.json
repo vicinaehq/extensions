@@ -1,0 +1,65 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "google-calendar",
+  "title": "Google Calendar",
+  "description": "View and manage your Google Calendar events. List upcoming events, create new events, and join Google Meet calls directly from Vicinae.",
+  "icon": "icon.png",
+  "author": "kraeki",
+  "contributors": [],
+  "pastContributors": [],
+  "categories": ["Productivity", "Applications"],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "list-events",
+      "title": "List Events",
+      "subtitle": "Google Calendar",
+      "description": "View your upcoming Google Calendar events",
+      "mode": "view"
+    },
+    {
+      "name": "create-event",
+      "title": "Create Event",
+      "subtitle": "Google Calendar",
+      "description": "Create a new calendar event with optional Google Meet",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "clientId",
+      "type": "textfield",
+      "title": "OAuth Client ID",
+      "description": "Google OAuth 2.0 Client ID from Google Cloud Console. See README for setup instructions.",
+      "required": true
+    },
+    {
+      "name": "clientSecret",
+      "type": "password",
+      "title": "OAuth Client Secret",
+      "description": "Google OAuth 2.0 Client Secret from Google Cloud Console.",
+      "required": true
+    },
+    {
+      "name": "refreshToken",
+      "type": "password",
+      "title": "Refresh Token",
+      "description": "OAuth refresh token. Run 'node scripts/get-refresh-token.js' to obtain this. See README for details.",
+      "required": true
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "^0.18.3",
+    "@googleapis/calendar": "^14.2.0",
+    "date-fns": "^4.1.0",
+    "nanoid": "^5.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.7",
+    "typescript": "^5.8.2"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  }
+}
