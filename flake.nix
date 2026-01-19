@@ -48,6 +48,7 @@
             name: _type:
             vicinae.packages.${system}.mkVicinaeExtension {
               pname = name;
+              version = "0+rev=${self.shortRev or self.dirtyShortRev or "dirty"}";
               src = ./extensions/${name};
               postPatch = ''
                 substituteInPlace tsconfig.json --replace "../../" "${./.}/"
