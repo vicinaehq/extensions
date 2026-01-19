@@ -121,7 +121,7 @@ export default function CustomLinksCommand() {
       <Action
         title="Export Bookmarks"
         icon={Icon.Upload}
-        shortcut={{ modifiers: ["cmd", "shift"], key: "e" }}
+        shortcut={{ modifiers: ["ctrl", "shift"], key: "e" }}
         onAction={handleExportLinks}
       />
     );
@@ -132,7 +132,7 @@ export default function CustomLinksCommand() {
       <Action.Push
         title="Import Bookmarks"
         icon={Icon.Download}
-        shortcut={{ modifiers: ["cmd", "shift"], key: "i" }}
+        shortcut={{ modifiers: ["ctrl", "shift"], key: "i" }}
         target={<ImportForm onLinksImported={handleLinksImported} />}
       />
     );

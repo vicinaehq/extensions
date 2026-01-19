@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "tmux",
+  "title": "Tmux",
+  "description": "Manage tmux sessions - list, attach, and create new sessions",
+  "categories": [
+    "Developer Tools",
+    "System"
+  ],
+  "license": "MIT",
+  "author": "knoopx",
+  "icon": "extension_icon.svg",
+  "commands": [
+    {
+      "name": "sessions",
+      "title": "Sessions",
+      "description": "List and manage tmux sessions",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "terminalCommand",
+      "type": "textfield",
+      "title": "Terminal Command",
+      "description": "Command to open terminal (e.g., 'wezterm', 'gnome-terminal', 'alacritty', 'kitty')",
+      "default": "wezterm",
+      "required": true
+    },
+    {
+      "name": "terminalArgs",
+      "type": "textfield",
+      "title": "Terminal Arguments",
+      "description": "Arguments to pass to terminal command (e.g., 'start --' for wezterm, '--' for gnome-terminal)",
+      "default": "start --",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}

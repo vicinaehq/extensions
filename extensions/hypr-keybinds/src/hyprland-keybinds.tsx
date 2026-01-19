@@ -80,7 +80,7 @@ export default function Command() {
                   <Action
                     title={isShowingDetail ? "Hide Details" : "Show Details"}
                     onAction={() => setIsShowingDetail((v) => !v)}
-                    shortcut={{ modifiers: ["cmd"], key: "d" }}
+                    shortcut={{ modifiers: ["ctrl"], key: "d" }}
                   />
                 </ActionPanel>
               }

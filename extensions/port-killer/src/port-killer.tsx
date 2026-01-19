@@ -204,7 +204,7 @@ export default function PortKiller() {
 									<Action
 										title="Copy Port"
 										icon={Icon.CopyClipboard}
-										shortcut={{ modifiers: ["cmd"], key: "c" }}
+										shortcut={{ modifiers: ["ctrl"], key: "c" }}
 										onAction={async () =>
 											await Clipboard.copy({ text: port.port.toString() })
 										}
@@ -233,7 +233,7 @@ export default function PortKiller() {
 									<Action
 										title="Refresh List"
 										icon={Icon.ArrowClockwise}
-										shortcut={{ modifiers: ["cmd"], key: "r" }}
+										shortcut={{ modifiers: ["ctrl"], key: "r" }}
 										onAction={refreshPorts}
 									/>
 								</ActionPanel>

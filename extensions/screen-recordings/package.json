@@ -1,0 +1,37 @@
+{
+  "name": "screen-recordings",
+  "version": "1.0.0",
+  "description": "Screen recording extension for Vicinae",
+  "main": "dist/index.js",
+  "icon": "extension_icon.png",
+  "title": "Screen Recordings",
+  "author": "knoopx",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "screen-recordings",
+      "title": "Screen Recordings",
+      "description": "Manage screen recordings",
+      "mode": "view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.10.2",
+    "@vicinae/api": "^0.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@vitest/ui": "^4.0.17",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.17"
+  }
+}

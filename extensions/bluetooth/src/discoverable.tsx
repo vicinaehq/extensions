@@ -345,13 +345,13 @@ export default function Discoverable() {
 								title="Scan for Devices"
 								icon={Icon.Bluetooth}
 								target="vicinae://extensions/Gelei/bluetooth/scan"
-								shortcut={{ modifiers: ["cmd"], key: "s" }}
+								shortcut={{ modifiers: ["ctrl"], key: "s" }}
 							/>
 							<Action.Open
 								title="Manage Devices"
 								icon={Icon.List}
 								target="vicinae://extensions/Gelei/bluetooth/devices"
-								shortcut={{ modifiers: ["cmd"], key: "m" }}
+								shortcut={{ modifiers: ["ctrl"], key: "m" }}
 							/>
 						</ActionPanel.Section>
 					</ActionPanel>

@@ -79,7 +79,7 @@ export function EventListItem({
             <Action
               title={isShowingDetail ? "Hide Details" : "Show Details"}
               onAction={onToggleDetail}
-              shortcut={{ modifiers: ["cmd"], key: "d" }}
+              shortcut={{ modifiers: ["ctrl"], key: "d" }}
             />
 
             {event.location && (

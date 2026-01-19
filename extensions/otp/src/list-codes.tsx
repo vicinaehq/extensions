@@ -136,7 +136,7 @@ export default function ListOTPCodes() {
 								title="Add Account"
 								icon={Icon.Plus}
 								target="vicinae://extensions/knoopx/otp/add-account"
-								shortcut={{ modifiers: ["cmd"], key: "n" }}
+								shortcut={{ modifiers: ["ctrl"], key: "n" }}
 							/>
 						</ActionPanel>
 					}

@@ -293,14 +293,14 @@ export default function ScanWifiIwctl() {
                     title="Disconnect"
                     icon={Icon.XMarkCircle}
                     onAction={handleDisconnect}
-                    shortcut={{ modifiers: ["cmd"], key: "d" }}
+                    shortcut={{ modifiers: ["ctrl"], key: "d" }}
                   />
                 ) : (
                   <Action
                     title="Connect"
                     icon={Icon.Wifi}
                     onAction={() => handleConnect(network.ssid, network.security)}
-                    shortcut={{ modifiers: ["cmd"], key: "enter" }}
+                    shortcut={{ modifiers: ["ctrl"], key: "enter" }}
                   />
 
                 )}
@@ -308,24 +308,24 @@ export default function ScanWifiIwctl() {
                     title="Connect Hidden Network3"
                     icon={Icon.Wifi}
                     onAction={() => handleHiddenConnect()}
-                    shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
+                    shortcut={{ modifiers: ["ctrl", "shift"], key: "enter" }}
                   />
                 <Action.CopyToClipboard
                   title="Copy SSID"
                   content={network.ssid}
                   // since cmd/mod + c is my standard copy: cmd/mod + ctrl + c
-                  shortcut={{ modifiers: ["cmd", "ctrl"], key: "c" }}
+                  shortcut={{ modifiers: ["ctrl", "shift"], key: "c" }}
                 />
                 <Action.CopyToClipboard
                   title="Copy BSSID"
                   content={network.bssid}
-                  shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                  shortcut={{ modifiers: ["ctrl", "shift"], key: "c" }}
                 />
                 <Action
                   title="Refresh"
                   icon={Icon.ArrowClockwise}
                   onAction={scanWifi}
-                  shortcut={{ modifiers: ["cmd"], key: "r" }}
+                  shortcut={{ modifiers: ["ctrl"], key: "r" }}
                 />
               </ActionPanel>
             }

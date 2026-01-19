@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="160"
+   height="160"
+   version="1.1"
+   viewBox="0 0 160 160"
+   id="svg1"
+   sodipodi:docname="extension_icon.svg"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.9921875"
+     inkscape:cx="240.88189"
+     inkscape:cy="264.56693"
+     inkscape:window-width="2560"
+     inkscape:window-height="1440"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="vlpa" />
+  <!-- Generator: Sketch 3.3.1 (12005) - http://www.bohemiancoding.com/sketch -->
+  <title
+     id="title1">Tmux logomark + wordmark</title>
+  <desc
+     id="desc1">Created with Sketch.</desc>
+  <g
+     fill="none"
+     fill-rule="evenodd"
+     id="g1">
+    <g
+       id="vlpa">
+      <g
+         id="vlpb">
+        <g
+           id="vlpc"
+           fill="#1bb91f">
+          <path
+             d="m 0,116 h 160 v 29 c 0,8.286 -6.722,15 -15,15 H 15 C 6.717,160 0,153.293 0,145 Z m 0,0 h 160 v 30 H 0 Z"
+             id="path1" />
+        </g>
+        <path
+           id="vlpd"
+           d="M 83,70 V 0 h -6 v 146 h 6 V 76 h 77 V 70 Z M 0,15.01 C 0,6.722 6.722,0 15,0 h 130 c 8.283,0 15,6.725 15,15.01 v 131 H 0 Z"
+           fill="#3c3c3c" />
+      </g>
+    </g>
+  </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Tmux logomark + wordmark</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

@@ -268,31 +268,31 @@ export default function ScanWifiNmcli() {
                     title="Disconnect"
                     icon={Icon.XMarkCircle}
                     onAction={handleDisconnect}
-                    shortcut={{ modifiers: ["cmd"], key: "d" }}
+                    shortcut={{ modifiers: ["ctrl"], key: "d" }}
                   />
                 ) : (
                   <Action
                     title="Connect"
                     icon={Icon.Wifi}
                     onAction={() => handleConnect(network.ssid, network.security)}
-                    shortcut={{ modifiers: ["cmd"], key: "enter" }}
+                    shortcut={{ modifiers: ["ctrl"], key: "enter" }}
                   />
                 )}
                 <Action.CopyToClipboard
                   title="Copy SSID"
                   content={network.ssid}
-                  shortcut={{ modifiers: ["cmd"], key: "c" }}
+                  shortcut={{ modifiers: ["ctrl"], key: "c" }}
                 />
                 <Action.CopyToClipboard
                   title="Copy BSSID"
                   content={network.bssid}
-                  shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                  shortcut={{ modifiers: ["ctrl", "shift"], key: "c" }}
                 />
                 <Action
                   title="Refresh"
                   icon={Icon.ArrowClockwise}
                   onAction={scanWifi}
-                  shortcut={{ modifiers: ["cmd"], key: "r" }}
+                  shortcut={{ modifiers: ["ctrl"], key: "r" }}
                 />
               </ActionPanel>
             }

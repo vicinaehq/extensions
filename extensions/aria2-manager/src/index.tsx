@@ -515,7 +515,7 @@ export default function Command() {
                             title="Pause Download"
                             icon={Icon.Pause}
                             onAction={() => handlePause(gid)}
-                            shortcut={{ modifiers: ["cmd"], key: "p" }}
+                            shortcut={{ modifiers: ["ctrl"], key: "p" }}
                         />
                     )}
                     {isPaused && (
@@ -523,7 +523,7 @@ export default function Command() {
                             title="Resume Download"
                             icon={Icon.Play}
                             onAction={() => handleResume(gid)}
-                            shortcut={{ modifiers: ["cmd"], key: "u" }}
+                            shortcut={{ modifiers: ["ctrl"], key: "u" }}
                         />
                     )}
                     {isComplete && (
@@ -533,14 +533,14 @@ export default function Command() {
                                     title="Open File"
                                     icon={Icon.Document}
                                     onAction={() => open(filePath)}
-                                    shortcut={{ modifiers: ["cmd"], key: "o" }}
+                                    shortcut={{ modifiers: ["ctrl"], key: "o" }}
                                 />
                             )}
                             <Action
                                 title="Open Location"
                                 icon={Icon.Folder}
                                 onAction={() => handleOpenLocation(dir)}
-                                shortcut={{ modifiers: ["cmd", "shift"], key: "o" }}
+                                shortcut={{ modifiers: ["ctrl", "shift"], key: "o" }}
                             />
                         </>
                     )}
@@ -551,7 +551,7 @@ export default function Command() {
                         icon={Icon.Trash}
                         style={Action.Style.Destructive}
                         onAction={() => handleRemoveWithConfirm(download)}
-                        shortcut={{ modifiers: ["cmd"], key: "backspace" }}
+                        shortcut={{ modifiers: ["ctrl"], key: "backspace" }}
                     />
                 </ActionPanel.Section>
             </ActionPanel>
