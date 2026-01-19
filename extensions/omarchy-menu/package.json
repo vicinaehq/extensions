@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@raycast/utils": "^2.2.2",
-    "@vicinae/api": "^0.16.1"
+    "@vicinae/api": "^0.18.3"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.1.1",

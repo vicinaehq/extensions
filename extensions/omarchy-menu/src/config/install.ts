@@ -13,7 +13,7 @@ import { MenuItem } from "./types";
 export const installMenu: MenuItem = {
   id: "install",
   name: "Install",
-  icon: Icon.MemoryChip,
+  icon: Icon.PlusSquare,
   items: [
     {
       id: "package",
