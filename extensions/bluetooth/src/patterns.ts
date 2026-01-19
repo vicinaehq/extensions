@@ -8,6 +8,7 @@ interface BluetoothRegexPatterns {
 	// Device details parsing
 	deviceName: RegExp;
 	connectedStatus: RegExp;
+  batteryLevel: RegExp;
 
 	// Bluetoothctl output parsing
 	deviceLine: RegExp;
@@ -55,6 +56,8 @@ export const BLUETOOTH_REGEX: BluetoothRegexPatterns = {
 	// Device details parsing - extracts info from bluetoothctl info output
 	deviceName: /Name:\s(.+)/,
 	connectedStatus: /Connected:\s*yes/i,
+  batteryLevel: /Battery Percentage: (0x[A-F0-9]{2})/,
+  
 
 	// Bluetoothctl output parsing - parses scan output lines
 	deviceLine: /Device ([0-9A-Fa-f:]+) (.+)/,
