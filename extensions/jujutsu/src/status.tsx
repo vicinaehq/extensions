@@ -1,34 +1,17 @@
-import { List, ActionPanel, Action, Icon, showToast, Color, LaunchProps, Clipboard, useNavigation, LaunchType } from "@vicinae/api";
-import { getJJStatus, JJStatus } from "./utils";
-import JJLog from "./log";
-import JJDiff from "./diff";
-import JJBookmarks from "./bookmarks";
-import { NavigationActions } from "./actions";
+import { List, ActionPanel, Action, Icon, showToast, Color, LaunchProps, Clipboard } from "@vicinae/api";
+import { getJJStatus } from "./utils/status";
+import { JJStatus as JJStatusType, JJArguments } from "./utils/cli";
+import { RepoPathValidationError } from "./components/validation";
+import { ClipboardAction, ViewLogAction, ViewDiffAction, ManageBookmarksAction, OpenInTerminalAction, StatusItemActions } from "./components/actions";
 
-interface Arguments {
-  "repo-path": string;
-}
-
-export default function JJStatus(props: LaunchProps<{ arguments: Arguments }>) {
+export default function JJStatusCommand(props: LaunchProps<{ arguments: JJArguments }>) {
   const { "repo-path": repoPath } = props.arguments;
-  const { push } = useNavigation();
-  const launchLog = () => push(<JJLog launchType={LaunchType.UserInitiated} arguments={{ "repo-path": repoPath }} />);
-  const launchDiff = () => push(<JJDiff launchType={LaunchType.UserInitiated} arguments={{ "repo-path": repoPath }} />);
-  const launchBookmarks = () => push(<JJBookmarks launchType={LaunchType.UserInitiated} arguments={{ "repo-path": repoPath }} />);
 
   if (!repoPath) {
-    return (
-      <List>
-        <List.Item
-          title="Repository path required"
-          subtitle="Provide a repository path as argument"
-          icon={Icon.Warning}
-        />
-      </List>
-    );
+    return <RepoPathValidationError />;
   }
 
-  const status: JJStatus = getJJStatus(repoPath);
+  const status: JJStatusType = getJJStatus(repoPath);
 
   const items: { title: string; subtitle: string; icon: any; accessories: any[] }[] = [];
 
@@ -98,36 +81,7 @@ export default function JJStatus(props: LaunchProps<{ arguments: Arguments }>) {
           accessories={item.accessories}
           actions={
             <ActionPanel>
-              <Action
-                title="Copy File Path"
-                onAction={async () => {
-                  await Clipboard.copy(item.title);
-                  await showToast({ title: "Copied file path!" });
-                }}
-                shortcut={{ modifiers: ["ctrl"], key: "c" }}
-              />
-              <Action
-                title="Open in Terminal"
-                onAction={() => showToast({ title: "Opening terminal..." })}
-                shortcut={{ modifiers: ["ctrl"], key: "t" }}
-              />
-              <ActionPanel.Section />
-              <Action
-                title="View Log..."
-                onAction={launchLog}
-                shortcut={{ modifiers: ["ctrl"], key: "l" }}
-              />
-              <Action
-                title="View Diff..."
-                onAction={launchDiff}
-                shortcut={{ modifiers: ["ctrl"], key: "d" }}
-              />
-              <Action
-                title="View Bookmarks..."
-                onAction={launchBookmarks}
-                shortcut={{ modifiers: ["ctrl"], key: "b" }}
-              />
-              {NavigationActions.createCrossNavigation(repoPath, push, "status")}
+              <StatusItemActions filePath={item.title} repoPath={repoPath} />
             </ActionPanel>
           }
         />

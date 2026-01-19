@@ -1,66 +1,19 @@
-import { List, ActionPanel, Action, Icon, showToast, Color, LaunchProps, useNavigation, Clipboard, Form, Toast } from "@vicinae/api";
-import { getJJBookmarks, JJBookmark, pushToGit, forgetBookmark, execJJ } from "./utils";
-import { NavigationActions } from "./actions";
+import { List, ActionPanel, Action, Icon, showToast, Color, LaunchProps, useNavigation, Form, Toast } from "@vicinae/api";
+import { getJJBookmarks, JJBookmark } from "./utils/bookmarks";
+import { execJJ, JJArguments } from "./utils/exec";
+import { RepoPathValidationError } from "./components/validation";
+import { CopyIdAction, PushBookmarkAction, TrackRemoteAction, ForgetBookmarkAction, DeleteBookmarkAction, PushAllBookmarksAction, CreateBookmarkAction, BookmarkItemActions } from "./components/actions";
+import { getErrorMessage } from "./utils/helpers";
 
-interface Arguments {
-  "repo-path": string;
-}
-
-export default function JJBookmarks(props: LaunchProps<{ arguments: Arguments }>) {
+export default function JJBookmarksCommand(props: LaunchProps<{ arguments: JJArguments }>) {
   const { "repo-path": repoPath } = props.arguments;
   const { push } = useNavigation();
 
   if (!repoPath) {
-    return (
-      <List>
-        <List.Item
-          title="Repository path required"
-          subtitle="Provide a repository path as argument"
-          icon={Icon.Warning}
-        />
-      </List>
-    );
+    return <RepoPathValidationError />;
   }
 
   const bookmarks: JJBookmark[] = getJJBookmarks(repoPath);
-
-  const handleCreateBookmark = () => {
-    push(<CreateBookmarkForm repoPath={repoPath} />);
-  };
-
-  const handleTrackRemote = async (bookmarkName: string) => {
-    try {
-      execJJ(`bookmark track ${bookmarkName}@origin`, repoPath);
-      await showToast({
-        title: "Remote tracked",
-        message: `Now tracking ${bookmarkName} from origin`,
-        style: Toast.Style.Success
-      });
-    } catch (error) {
-      await showToast({
-        title: "Failed to track remote",
-        message: error instanceof Error ? error.message : "Unknown error",
-        style: Toast.Style.Failure
-      });
-    }
-  };
-
-  const handleDeleteBookmark = async (bookmarkName: string) => {
-    try {
-      execJJ(`bookmark delete ${bookmarkName}`, repoPath);
-      await showToast({
-        title: "Bookmark deleted",
-        message: `Deleted bookmark ${bookmarkName}`,
-        style: Toast.Style.Success
-      });
-    } catch (error) {
-      await showToast({
-        title: "Failed to delete bookmark",
-        message: error instanceof Error ? error.message : "Unknown error",
-        style: Toast.Style.Failure
-      });
-    }
-  };
 
   const items: { title: string; subtitle: string; icon: any; bookmark: JJBookmark; isAction: boolean; accessories: any[] }[] = [];
 
@@ -90,158 +43,12 @@ export default function JJBookmarks(props: LaunchProps<{ arguments: Arguments }>
             accessories={item.accessories}
             actions={
               <ActionPanel>
-                <ActionPanel.Section>
-                  <Action
-                    title="Copy Bookmark Name"
-                    onAction={async () => {
-                      await Clipboard.copy(item.bookmark.name);
-                      await showToast({ title: "Copied bookmark name!" });
-                    }}
-                    shortcut={{ modifiers: ["ctrl"], key: "c" }}
-                  />
-                  <Action
-                    title="Copy Change ID"
-                    onAction={async () => {
-                      await Clipboard.copy(item.bookmark.change_id);
-                      await showToast({ title: "Copied change ID!" });
-                    }}
-                    shortcut={{ modifiers: ["ctrl", "shift"], key: "c" }}
-                  />
-                </ActionPanel.Section>
-                <ActionPanel.Section>
-                  <Action
-                    title="Push to Remote"
-                    onAction={async () => {
-                      try {
-                        const result = pushToGit(item.bookmark.name, repoPath);
-                        await showToast({
-                          title: "Pushed successfully",
-                          message: result,
-                          style: Toast.Style.Success
-                        });
-                      } catch (error) {
-                        await showToast({
-                          title: "Failed to push",
-                          message: error instanceof Error ? error.message : "Unknown error",
-                          style: Toast.Style.Failure
-                        });
-                      }
-                    }}
-                    shortcut={{ modifiers: ["ctrl"], key: "p" }}
-                  />
-                  <Action
-                    title="Track Remote"
-                    onAction={() => handleTrackRemote(item.bookmark.name)}
-                    shortcut={{ modifiers: ["ctrl"], key: "t" }}
-                  />
-                </ActionPanel.Section>
-                <ActionPanel.Section>
-                  <Action
-                    title="Forget Bookmark"
-                    onAction={async () => {
-                      try {
-                        forgetBookmark(item.bookmark.name, repoPath);
-                        await showToast({
-                          title: "Bookmark forgotten",
-                          message: `Forgot bookmark ${item.bookmark.name}`,
-                          style: Toast.Style.Success
-                        });
-                      } catch (error) {
-                        await showToast({
-                          title: "Failed to forget bookmark",
-                          message: error instanceof Error ? error.message : "Unknown error",
-                          style: Toast.Style.Failure
-                        });
-                      }
-                    }}
-                    shortcut={{ modifiers: ["ctrl"], key: "f" }}
-                  />
-                  <Action
-                    title="Delete Bookmark"
-                    onAction={() => handleDeleteBookmark(item.bookmark.name)}
-                    style="destructive"
-                    shortcut={{ modifiers: ["ctrl"], key: "delete" }}
-                  />
-                </ActionPanel.Section>
-                {NavigationActions.createCrossNavigation(repoPath, push, "bookmarks")}
-                <ActionPanel.Section>
-                  <Action
-                    title="Create New Bookmark..."
-                    onAction={handleCreateBookmark}
-                    icon={Icon.Plus}
-                    shortcut={{ modifiers: ["ctrl"], key: "n" }}
-                  />
-                  <Action
-                    title="Push All Bookmarks"
-                    onAction={async () => {
-                      try {
-                        const result = pushToGit(undefined, repoPath);
-                        await showToast({
-                          title: "All bookmarks pushed",
-                          message: result,
-                          style: Toast.Style.Success
-                        });
-                      } catch (error) {
-                        await showToast({
-                          title: "Failed to push all",
-                          message: error instanceof Error ? error.message : "Unknown error",
-                          style: Toast.Style.Failure
-                        });
-                      }
-                    }}
-                    shortcut={{ modifiers: ["ctrl", "shift"], key: "p" }}
-                  />
-                </ActionPanel.Section>
+                <BookmarkItemActions bookmarkName={item.bookmark.name} changeId={item.bookmark.change_id} repoPath={repoPath} />
               </ActionPanel>
             }
           />
         ))}
       </List.Section>
     </List>
-  );
-}
-
-// Create bookmark form
-function CreateBookmarkForm({ repoPath }: { repoPath: string }) {
-  const { push } = useNavigation();
-
-  const handleSubmit = async (values: Form.Values) => {
-    const name = values.name as string;
-    const revision = values.revision as string;
-    try {
-      const revArg = revision ? ` -r ${revision}` : "";
-      execJJ(`bookmark create ${name}${revArg}`, repoPath);
-      await showToast({
-        title: "Bookmark created",
-        message: `Created bookmark '${name}'`,
-        style: Toast.Style.Success
-      });
-    } catch (error) {
-      await showToast({
-        title: "Failed to create bookmark",
-        message: error instanceof Error ? error.message : "Unknown error",
-        style: Toast.Style.Failure
-      });
-    }
-  };
-
-  return (
-    <Form
-      actions={
-        <ActionPanel>
-          <Action.SubmitForm title="Create Bookmark" onSubmit={handleSubmit} />
-          {NavigationActions.createCrossNavigation(repoPath, push, "bookmarks")}
-        </ActionPanel>
-      }
-    >
-      <Form.TextField
-        title="Bookmark Name"
-        id="name"
-      />
-      <Form.TextField
-        title="Revision (optional)"
-        id="revision"
-      />
-    </Form>
   );
 }

@@ -136,6 +136,14 @@ def print-command-help [cmd: string] {
       print "vjj edit - Time travel / edit a change"
       print "Usage: vjj edit [--repo <path>]"
     }
+    "revset" => {
+      print "vjj revset - Query changes with revset expressions"
+      print "Usage: vjj revset [--repo <path>]"
+      print ""
+      print "Examples:"
+      print "  vjj revset                    # Query working copy"
+      print "  vjj revset --repo /path       # Query at path"
+    }
     _ => {
       print $"Unknown command: ($cmd)"
       print ""
@@ -159,7 +167,7 @@ def "vjj main" [--repo (-r): string --help (-h)] {
   open-vicinae $url
 }
 
-def _vjj-open [cmd: string, repo: string] {
+def _vjj-open [cmd: string, repo?: string] {
   let actual_repo = if ($repo == null) { get-repo-path } else { $repo }
   let args_enc = ({"repo-path": $actual_repo} | to json --raw | url encode)
   let url = $"vicinae://extensions/knoopx/jujutsu/($cmd)?arguments=($args_enc)"
@@ -238,6 +246,12 @@ def "vjj edit" [--repo (-r): string --help (-h)] {
   _vjj-open "edit" $repo
 }
 
+# jj revset
+def "vjj revset" [--repo (-r): string --help (-h)] {
+  if $help { print-command-help "revset"; return }
+  _vjj-open "revset" $repo
+}
+
 # Main vjj command dispatcher
 # Note: Nushell reserves -h/--help at the script level.
 # Global help is therefore provided via: `vjj help` and `vjj help <command>`.
@@ -269,6 +283,7 @@ def main [
     "abandon" => { if ($repo == null) { vjj abandon } else { vjj abandon --repo $repo } }
     "resolve" => { if ($repo == null) { vjj resolve } else { vjj resolve --repo $repo } }
     "edit" => { if ($repo == null) { vjj edit } else { vjj edit --repo $repo } }
+    "revset" => { if ($repo == null) { vjj revset } else { vjj revset --repo $repo } }
 
     _ => {
       print $"Unknown command: ($cmd)"

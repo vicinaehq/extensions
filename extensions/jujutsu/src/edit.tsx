@@ -1,33 +1,20 @@
 import { List, ActionPanel, Action, showToast, LaunchProps, useNavigation, Color, Form, Clipboard, Toast, Icon, LaunchType } from "@vicinae/api";
-import { execJJ, getJJLog, JJChange } from "./utils";
-import JJLog from "./log";
-import JJStatus from "./status";
+import { execJJ, JJArguments } from "./utils/exec";
+import { getJJLog, JJChange } from "./utils/log";
+import { getErrorMessage } from "./utils/helpers";
+import { RepoPathValidationError } from "./components/validation";
+import { CopyIdAction, ViewLogAction, ViewStatusAction, GoToParentAction, GoToChildAction, PushItemAction, SearchChangesAction } from "./components/actions";
 
-interface Arguments {
-  "repo-path": string;
-}
-
-export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
+export default function JJEditCommand(props: LaunchProps<{ arguments: JJArguments }>) {
   const { "repo-path": repoPath } = props.arguments;
   const { push } = useNavigation();
-  const launchLog = () => push(<JJLog launchType={LaunchType.UserInitiated} arguments={{ "repo-path": repoPath }} />);
-  const launchStatus = () => push(<JJStatus launchType={LaunchType.UserInitiated} arguments={{ "repo-path": repoPath }} />);
-  const relaunchEdit = () => push(<JJEdit launchType={LaunchType.UserInitiated} arguments={{ "repo-path": repoPath }} />);
 
   if (!repoPath) {
-    return (
-      <List>
-        <List.Item
-          title="Repository path required"
-          subtitle="Provide a repository path as argument"
-          icon={Icon.Warning}
-        />
-      </List>
-    );
+    return <RepoPathValidationError />;
   }
 
-  // Get recent changes for navigation
   const recentChanges = getJJLog(10, repoPath);
+  const relaunchEdit = () => push(<JJEditCommand launchType={LaunchType.UserInitiated} arguments={{ "repo-path": repoPath }} />);
 
   const handleEditChange = async (changeId: string) => {
     try {
@@ -36,7 +23,6 @@ export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
         title: `Switched to change ${changeId.slice(0, 8)}`,
         style: Toast.Style.Success
       });
-      // Refresh the view by navigating back to edit
       relaunchEdit();
     } catch (error) {
       await showToast({
@@ -49,8 +35,7 @@ export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
 
   const handleEditByDescription = async (query: string) => {
     try {
-      // Use JJ's revset to find change by description
-      const output = execJJ(`log -r 'description(${query})' --template 'change_id' -l 1`, repoPath);
+      const output = execJJ(`log -r 'description(${query})' --template 'change_id' -n 1`, repoPath);
       const changeId = output.trim();
       if (changeId) {
         await handleEditChange(changeId);
@@ -102,7 +87,6 @@ export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
     }
   };
 
-  // Current working copy info
   let currentChange: JJChange | null = null;
   try {
     const wcLog = getJJLog(1, repoPath);
@@ -113,7 +97,6 @@ export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
 
   const items: { title: string; subtitle: string; icon: string; changeId: string; isCurrent: boolean; accessories: any[] }[] = [];
 
-  // Current change
   if (currentChange) {
     items.push({
       title: `Current: ${currentChange.description || 'No description'}`,
@@ -125,7 +108,6 @@ export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
     });
   }
 
-  // Recent changes
   recentChanges.forEach(change => {
     if (change.change_id !== currentChange?.change_id) {
       items.push({
@@ -156,11 +138,7 @@ export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
           icon="⬆️"
           actions={
             <ActionPanel>
-              <Action
-                title="Go to Parent"
-                onAction={handlePrev}
-                shortcut={{ modifiers: ["ctrl"], key: "arrowUp" }}
-              />
+              <GoToParentAction repoPath={repoPath} shortcut={{ modifiers: ["ctrl"], key: "arrowUp" }} />
             </ActionPanel>
           }
         />
@@ -170,11 +148,7 @@ export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
           icon="⬇️"
           actions={
             <ActionPanel>
-              <Action
-                title="Go to Child"
-                onAction={handleNext}
-                shortcut={{ modifiers: ["ctrl"], key: "arrowDown" }}
-              />
+              <GoToChildAction repoPath={repoPath} shortcut={{ modifiers: ["ctrl"], key: "arrowDown" }} />
             </ActionPanel>
           }
         />
@@ -184,11 +158,7 @@ export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
           icon="🔍"
           actions={
             <ActionPanel>
-              <Action
-                title="Search Changes"
-                onAction={() => push(<SearchChangeForm repoPath={repoPath} onSubmit={handleEditByDescription} />)}
-                shortcut={{ modifiers: ["ctrl"], key: "f" }}
-              />
+              <SearchChangesAction repoPath={repoPath} onSubmit={handleEditByDescription} />
             </ActionPanel>
           }
         />
@@ -203,56 +173,19 @@ export default function JJEdit(props: LaunchProps<{ arguments: Arguments }>) {
             accessories={item.accessories}
             actions={
               <ActionPanel>
-                <Action
-                  title={item.isCurrent ? "Already Current" : "Edit This Change"}
-                  onAction={() => { if (!item.isCurrent) { void handleEditChange(item.changeId); } }}
-                />
-                <Action
-                  title="View Log"
-                  onAction={launchLog}
-                  shortcut={{ modifiers: ["ctrl"], key: "l" }}
-                />
-                <Action
-                  title="View Status"
-                  onAction={launchStatus}
-                  shortcut={{ modifiers: ["ctrl"], key: "s" }}
-                />
-                <Action
-                  title="Copy Change ID"
-                  onAction={async () => {
-                    await Clipboard.copy(item.changeId);
-                    await showToast({ title: "Change ID copied!" });
-                  }}
-                  shortcut={{ modifiers: ["ctrl"], key: "c" }}
-                />
+                <PushItemAction changeId={item.changeId} repoPath={repoPath} />
+                <ActionPanel.Section>
+                  <CopyIdAction id={item.changeId} idType="Change ID" />
+                </ActionPanel.Section>
+                <ActionPanel.Section>
+                  <ViewLogAction repoPath={repoPath} />
+                  <ViewStatusAction repoPath={repoPath} />
+                </ActionPanel.Section>
               </ActionPanel>
             }
           />
         ))}
       </List.Section>
     </List>
-  );
-}
-
-// Search form component
-function SearchChangeForm({ repoPath, onSubmit }: { repoPath: string; onSubmit: (query: string) => void }) {
-  const handleSubmit = (values: Form.Values) => {
-    const query = values.query as string;
-    onSubmit(query);
-  };
-
-  return (
-    <Form
-      actions={
-        <ActionPanel>
-          <Action.SubmitForm title="Search" onSubmit={handleSubmit} />
-        </ActionPanel>
-      }
-    >
-      <Form.TextField
-        id="query"
-        title="Search Query"
-      />
-    </Form>
   );
 }

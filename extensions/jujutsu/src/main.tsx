@@ -1,4 +1,3 @@
-import type { ComponentType } from "react";
 import {
   List,
   ActionPanel,
@@ -8,38 +7,40 @@ import {
   LaunchProps,
   useNavigation,
   Color,
-  Clipboard,
-  Detail,
-  Form,
-  Toast,
   LaunchType,
 } from "@vicinae/api";
-import { getWorkingCopyPath, isJJRepo, execJJ, getJJStatus, getJJLog, getJJBookmarks, JJStatus as JJStatusType, JJChange, pushToGit, pullFromGit } from "./utils";
-import JJResolve from "./resolve";
-import JJEdit from "./edit";
-import JJStatus from "./status";
-import JJLog from "./log";
-import JJDiff from "./diff";
-import JJBookmarks from "./bookmarks";
-import JJDescribe from "./describe";
-import JJNewChange from "./new-change";
-import JJSquash from "./squash";
-import JJSplit from "./split";
-import JJAbandon from "./abandon";
-import JJUndo from "./undo";
-import { RepositoryActions, ChangeActions, SyncActions, AdvancedActions, CombinedActions } from "./actions";
-
-interface Arguments {
-  "repo-path"?: string;
-}
+import type { JJStatus } from "./utils/cli";
+import { getWorkingCopyPath, execJJ, JJArguments } from "./utils/exec";
+import { getJJStatus } from "./utils/status";
+import { getJJLog, JJChange } from "./utils/log";
+import { getJJBookmarks } from "./utils/bookmarks";
+import {
+  ClipboardAction,
+  ViewStatusAction,
+  ViewLogAction,
+  EditDescriptionAction,
+  NewChangeAction,
+  ViewDiffAction,
+  SquashChangesAction,
+  SplitChangeAction,
+  AbandonChangeAction,
+  ResolveConflictsAction,
+  UndoLastOperationAction,
+  CopyChangeIdAction,
+  TryAgainAction,
+  InitializeRepoAction,
+  OpenRepoAction,
+} from "./components/actions";
+import {
+  SHORTCUTS,
+} from "./utils/helpers";
 
 // Enhanced JJ Dashboard with status overview and quick actions
-export default function JJMainOperations(props: LaunchProps<{ arguments?: Arguments }>) {
+export default function JJMainOperations(
+  props: LaunchProps<{ arguments?: JJArguments }>,
+) {
   const { "repo-path": repoPath } = props.arguments || {};
-  const { push, pop } = useNavigation();
-  const launchCommand = (Component: ComponentType<LaunchProps<any>>, args: LaunchProps<any>["arguments"]) => {
-    push(<Component launchType={LaunchType.UserInitiated} arguments={args} />);
-  };
+  const { push } = useNavigation();
 
   // Try to detect current repository if not provided
   let currentRepo: string | null = repoPath || null;
@@ -57,7 +58,7 @@ export default function JJMainOperations(props: LaunchProps<{ arguments?: Argume
   }
 
   // Get current repository status
-  let repoStatus: JJStatusType | null = null;
+  let repoStatus: JJStatus | null = null;
   let recentChanges: JJChange[] = [];
   let bookmarks: any[] = [];
 
@@ -74,10 +75,7 @@ export default function JJMainOperations(props: LaunchProps<{ arguments?: Argume
           icon={Icon.Warning}
           actions={
             <ActionPanel>
-              <Action
-                title="Try Again"
-                onAction={() => launchCommand(JJMainOperations, { "repo-path": currentRepo! })}
-              />
+              <TryAgainAction repoPath={currentRepo!} />
             </ActionPanel>
           }
         />
@@ -85,13 +83,16 @@ export default function JJMainOperations(props: LaunchProps<{ arguments?: Argume
     );
   }
 
-  const repoName = currentRepo.split('/').pop() || currentRepo;
-  const hasUncommittedChanges = repoStatus!.working_copy_changes.modified.length > 0 ||
-                                repoStatus!.working_copy_changes.added.length > 0 ||
-                                repoStatus!.working_copy_changes.removed.length > 0;
+  const repoName = currentRepo.split("/").pop() || currentRepo;
+  const hasUncommittedChanges =
+    repoStatus!.working_copy_changes.modified.length > 0 ||
+    repoStatus!.working_copy_changes.added.length > 0 ||
+    repoStatus!.working_copy_changes.removed.length > 0;
 
-  const currentChange = recentChanges.find(change => change.is_working_copy) || recentChanges[0];
-  const hasDescription = currentChange?.description && currentChange.description.trim() !== '';
+  const currentChange =
+    recentChanges.find((change) => change.is_working_copy) || recentChanges[0];
+  const hasDescription =
+    currentChange?.description && currentChange.description.trim() !== "";
 
   return (
     <List>
@@ -99,30 +100,27 @@ export default function JJMainOperations(props: LaunchProps<{ arguments?: Argume
         {/* Repository Status */}
         <List.Item
           title="Repository Status"
-          subtitle={hasUncommittedChanges ? "Uncommitted changes" : "Clean working copy"}
+          subtitle={
+            hasUncommittedChanges ? "Uncommitted changes" : "Clean working copy"
+          }
           icon={hasUncommittedChanges ? Icon.Document : Icon.CheckCircle}
           accessories={[
             {
-              text: { value: hasUncommittedChanges ? "Modified" : "Clean", color: hasUncommittedChanges ? Color.Orange : Color.Green },
-              icon: Icon.Dot
+              text: {
+                value: hasUncommittedChanges ? "Modified" : "Clean",
+                color: hasUncommittedChanges ? Color.Orange : Color.Green,
+              },
+              icon: Icon.Dot,
             },
             {
               text: `${repoStatus!.working_copy_changes.modified.length + repoStatus!.working_copy_changes.added.length + repoStatus!.working_copy_changes.removed.length} files`,
-              icon: Icon.Dot
-            }
+              icon: Icon.Dot,
+            },
           ]}
           actions={
             <ActionPanel>
-              <Action
-                title="View Full Status..."
-                onAction={() => launchCommand(JJStatus, { "repo-path": currentRepo! })}
-                shortcut={{ modifiers: ["ctrl"], key: "s" }}
-              />
-              <Action
-                title="View Diff..."
-                onAction={() => launchCommand(JJDiff, { "repo-path": currentRepo! })}
-                shortcut={{ modifiers: ["ctrl"], key: "d" }}
-              />
+              <ViewStatusAction repoPath={currentRepo!} />
+              <ViewDiffAction repoPath={currentRepo!} />
             </ActionPanel>
           }
         />
@@ -130,30 +128,29 @@ export default function JJMainOperations(props: LaunchProps<{ arguments?: Argume
         {/* Current Change */}
         <List.Item
           title="Current Change"
-          subtitle={hasDescription ? currentChange!.description.split('\n')[0] : "No description"}
+          subtitle={
+            hasDescription
+              ? currentChange!.description.split("\n")[0]
+              : "No description"
+          }
           icon={Icon.Pencil}
           accessories={[
             {
               text: repoStatus!.working_copy.change_id.slice(0, 8),
-              icon: Icon.Dot
+              icon: Icon.Dot,
             },
             {
-              text: { value: hasDescription ? "Described" : "Needs Description", color: hasDescription ? Color.Green : Color.Yellow },
-              icon: Icon.Dot
-            }
+              text: {
+                value: hasDescription ? "Described" : "Needs Description",
+                color: hasDescription ? Color.Green : Color.Yellow,
+              },
+              icon: Icon.Dot,
+            },
           ]}
           actions={
             <ActionPanel>
-              <Action
-                title="Edit Description..."
-                onAction={() => launchCommand(JJDescribe, { "repo-path": currentRepo! })}
-                shortcut={{ modifiers: ["ctrl"], key: "e" }}
-              />
-              <Action
-                title="New Change..."
-                onAction={() => launchCommand(JJNewChange, { "repo-path": currentRepo! })}
-                shortcut={{ modifiers: ["ctrl"], key: "n" }}
-              />
+              <EditDescriptionAction repoPath={currentRepo!} />
+              <NewChangeAction repoPath={currentRepo!} />
             </ActionPanel>
           }
         />
@@ -165,14 +162,10 @@ export default function JJMainOperations(props: LaunchProps<{ arguments?: Argume
           icon={Icon.Clock}
           actions={
             <ActionPanel>
-              <Action
-                title="View Log..."
-                onAction={() => launchCommand(JJLog, { "repo-path": currentRepo! })}
-                shortcut={{ modifiers: ["ctrl"], key: "l" }}
-                />
-              </ActionPanel>
-            }
-          />
+              <ViewLogAction repoPath={currentRepo!} />
+            </ActionPanel>
+          }
+        />
 
         <List.Item
           title="🔀 Change Operations"
@@ -180,22 +173,9 @@ export default function JJMainOperations(props: LaunchProps<{ arguments?: Argume
           icon={Icon.ArrowUp}
           actions={
             <ActionPanel>
-              <Action
-                title="Squash Changes..."
-                onAction={() => launchCommand(JJSquash, { "repo-path": currentRepo! })}
-                shortcut={{ modifiers: ["ctrl", "shift"], key: "q" }}
-              />
-              <Action
-                title="Split Change..."
-                onAction={() => launchCommand(JJSplit, { "repo-path": currentRepo! })}
-                shortcut={{ modifiers: ["ctrl", "shift"], key: "t" }}
-              />
-              <Action
-                title="Abandon Change"
-                onAction={() => launchCommand(JJAbandon, { "repo-path": currentRepo! })}
-                style={Action.Style.Destructive}
-                shortcut={{ modifiers: ["ctrl"], key: "delete" }}
-              />
+              <SquashChangesAction repoPath={currentRepo!} />
+              <SplitChangeAction repoPath={currentRepo!} />
+              <AbandonChangeAction repoPath={currentRepo!} />
             </ActionPanel>
           }
         />
@@ -209,16 +189,8 @@ export default function JJMainOperations(props: LaunchProps<{ arguments?: Argume
           icon={Icon.Gear}
           actions={
             <ActionPanel>
-              <Action
-                title="Resolve Conflicts..."
-                onAction={() => launchCommand(JJResolve, { "repo-path": currentRepo! })}
-                shortcut={{ modifiers: ["ctrl", "shift"], key: "r" }}
-              />
-              <Action
-                title="Undo Last Operation..."
-                onAction={() => launchCommand(JJUndo, { "repo-path": currentRepo! })}
-                shortcut={{ modifiers: ["ctrl"], key: "z" }}
-              />
+              <ResolveConflictsAction repoPath={currentRepo!} />
+              <UndoLastOperationAction repoPath={currentRepo!} />
             </ActionPanel>
           }
         />
@@ -229,22 +201,13 @@ export default function JJMainOperations(props: LaunchProps<{ arguments?: Argume
           icon={Icon.Clipboard}
           actions={
             <ActionPanel>
-              <Action
+              <ClipboardAction
                 title="Copy Repository Path"
-                onAction={async () => {
-                  await Clipboard.copy(currentRepo!);
-                  await showToast({ title: "Repository path copied!" });
-                }}
-                shortcut={{ modifiers: ["ctrl"], key: "c" }}
+                value={currentRepo!}
+                successTitle="Repository path copied!"
+                shortcut={SHORTCUTS.COPY_REPO_PATH}
               />
-              <Action
-                title="Copy Change ID"
-                onAction={async () => {
-                  await Clipboard.copy(repoStatus!.working_copy.change_id);
-                  await showToast({ title: "Change ID copied!" });
-                }}
-                shortcut={{ modifiers: ["ctrl", "shift"], key: "c" }}
-              />
+              <CopyChangeIdAction changeId={repoStatus!.working_copy.change_id} repoPath={currentRepo!} />
             </ActionPanel>
           }
         />
@@ -262,7 +225,7 @@ function RepositorySelection() {
     process.env.HOME + "/Projects",
     process.env.HOME + "/dev",
     process.env.HOME + "/code",
-    process.cwd()
+    process.cwd(),
   ];
 
   const detectedRepos: string[] = [];
@@ -270,7 +233,7 @@ function RepositorySelection() {
   for (const basePath of commonPaths) {
     try {
       const result = execJJ(`workspace list`, basePath);
-      const workspaces = result.split('\n').filter(line => line.trim());
+      const workspaces = result.split("\n").filter((line) => line.trim());
 
       for (const workspace of workspaces) {
         const match = workspace.match(/(\S+)\s+(.+)/);
@@ -295,14 +258,8 @@ function RepositorySelection() {
           icon={Icon.Warning}
           actions={
             <ActionPanel>
-              <Action
-                title="Initialize Repository"
-                onAction={() => showToast({ title: "Run 'jj git init .' in your project directory" })}
-              />
-              <Action
-                title="Open Repository"
-                onAction={() => showToast({ title: "Navigate to a JJ repository directory" })}
-              />
+              <InitializeRepoAction />
+              <OpenRepoAction />
             </ActionPanel>
           }
         />
@@ -316,14 +273,21 @@ function RepositorySelection() {
         {detectedRepos.map((repoPath, index) => (
           <List.Item
             key={index}
-            title={repoPath.split('/').pop() || repoPath}
+            title={repoPath.split("/").pop() || repoPath}
             subtitle={repoPath}
             icon={Icon.Folder}
             actions={
               <ActionPanel>
                 <Action
                   title="Open Repository"
-                  onAction={() => push(<JJMainOperations launchType={LaunchType.UserInitiated} arguments={{ "repo-path": repoPath }} />)}
+                  onAction={() =>
+                    push(
+                      <JJMainOperations
+                        launchType={LaunchType.UserInitiated}
+                        arguments={{ "repo-path": repoPath }}
+                      />,
+                    )
+                  }
                 />
               </ActionPanel>
             }

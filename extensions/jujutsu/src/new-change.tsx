@@ -1,18 +1,14 @@
 import { Form, ActionPanel, Action, showToast, LaunchProps, useNavigation, Detail, Toast } from "@vicinae/api";
-import { createNewChange } from "./utils";
-import { NavigationActions } from "./actions";
+import { JJArguments } from "./utils/cli";
+import { createNewChange } from "./utils/change";
+import { RepoPathValidationErrorDetail } from "./components/validation";
 
-interface Arguments {
-  "repo-path": string;
-}
-
-export default function NewChange(props: LaunchProps<{ arguments: Arguments }>) {
+export default function NewChange(props: LaunchProps<{ arguments: JJArguments }>) {
   const { "repo-path": repoPath } = props.arguments;
   const { push } = useNavigation();
 
   if (!repoPath) {
-    const markdown = "# Error\n\nRepository path required. Provide a repository path as argument.";
-    return <Detail markdown={markdown} />;
+    return <RepoPathValidationErrorDetail />;
   }
 
   const handleSubmit = async (values: Form.Values) => {
@@ -33,7 +29,6 @@ export default function NewChange(props: LaunchProps<{ arguments: Arguments }>) 
             title="Create New Change"
             onSubmit={handleSubmit}
           />
-          {NavigationActions.createCrossNavigation(repoPath, push, "new-change")}
         </ActionPanel>
       }
     >

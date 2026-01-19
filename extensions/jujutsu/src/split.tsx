@@ -1,25 +1,10 @@
 import { List, ActionPanel, Action, showToast, LaunchProps, Toast } from "@vicinae/api";
-import { execJJ } from "./utils";
+import { execJJ, JJArguments } from "./utils/exec";
+import { getErrorMessage } from "./utils/helpers";
+import { AsyncAction } from "./components/actions";
 
-interface Arguments {
-  "repo-path": string;
-}
-
-export default function JJSplit(props: LaunchProps<{ arguments: Arguments }>) {
+export default function JJSplitCommand(props: LaunchProps<{ arguments: JJArguments }>) {
   const { "repo-path": repoPath } = props.arguments;
-
-  const handleSplit = async () => {
-    try {
-      execJJ("split", repoPath);
-      await showToast({ title: "Change split successfully!", style: Toast.Style.Success });
-    } catch (error) {
-      await showToast({
-        title: "Failed to split change",
-        message: error instanceof Error ? error.message : "Unknown error",
-        style: Toast.Style.Failure
-      });
-    }
-  };
 
   return (
     <List>
@@ -30,15 +15,14 @@ export default function JJSplit(props: LaunchProps<{ arguments: Arguments }>) {
           icon="✂️"
           actions={
             <ActionPanel>
-              <Action
+              <AsyncAction
                 title="Start Split"
-                onAction={handleSplit}
-                shortcut={{ modifiers: ["ctrl"], key: "enter" }}
-              />
-              <Action
-                title="Cancel"
-                onAction={() => showToast({ title: "Operation cancelled" })}
-                shortcut={{ modifiers: ["ctrl"], key: "[" }}
+                operation={async () => {
+                  execJJ("split", repoPath);
+                  await showToast({ title: "Change split successfully!", style: Toast.Style.Success });
+                }}
+                successTitle="Change split successfully!"
+                shortcut={{ modifiers: ["ctrl"], key: "enter" as const }}
               />
             </ActionPanel>
           }

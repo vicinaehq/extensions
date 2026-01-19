@@ -2,9 +2,22 @@
 vi.mock('@vicinae/api', () => ({
   closeMainWindow: vi.fn(),
 }))
-vi.mock('fs')
-vi.mock('child_process')
-vi.mock('os')
+vi.mock('fs', () => ({
+  existsSync: vi.fn(),
+  readFileSync: vi.fn(),
+  writeFileSync: vi.fn(),
+  unlinkSync: vi.fn(),
+  mkdirSync: vi.fn(),
+  statSync: vi.fn(),
+  readdirSync: vi.fn(),
+}))
+vi.mock('child_process', () => ({
+  execSync: vi.fn(),
+  spawn: vi.fn(),
+}))
+vi.mock('os', () => ({
+  homedir: vi.fn(),
+}))
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, statSync, readdirSync } from 'fs'
@@ -20,25 +33,24 @@ import {
   Recording
 } from './utils'
 
-const mockedExistsSync = vi.mocked(existsSync)
-const mockedReadFileSync = vi.mocked(readFileSync)
-const mockedWriteFileSync = vi.mocked(writeFileSync)
-const mockedUnlinkSync = vi.mocked(unlinkSync)
-const mockedMkdirSync = vi.mocked(mkdirSync)
-const mockedStatSync = vi.mocked(statSync)
-const mockedReaddirSync = vi.mocked(readdirSync)
-const mockedExecSync = vi.mocked(execSync)
-const mockedSpawn = vi.mocked(spawn)
-const mockedHomedir = vi.mocked(homedir)
+const mockedExistsSync = existsSync as ReturnType<typeof vi.fn>
+const mockedReadFileSync = readFileSync as ReturnType<typeof vi.fn>
+const mockedWriteFileSync = writeFileSync as ReturnType<typeof vi.fn>
+const mockedUnlinkSync = unlinkSync as ReturnType<typeof vi.fn>
+const mockedMkdirSync = mkdirSync as ReturnType<typeof vi.fn>
+const mockedStatSync = statSync as ReturnType<typeof vi.fn>
+const mockedReaddirSync = readdirSync as ReturnType<typeof vi.fn>
+const mockedExecSync = execSync as ReturnType<typeof vi.fn>
+const mockedSpawn = spawn as ReturnType<typeof vi.fn>
+const mockedHomedir = homedir as ReturnType<typeof vi.fn>
 
 describe('Screen Recording Utils', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // Setup default mocks
-    vi.mocked(homedir).mockReturnValue('/home/test')
-    vi.mocked(execSync).mockReturnValue('')
-    vi.mocked(spawn).mockReturnValue({ pid: 1234, unref: vi.fn() } as any)
+    mockedHomedir.mockReturnValue('/home/test')
+    mockedExecSync.mockReturnValue('')
+    mockedSpawn.mockReturnValue({ pid: 1234, unref: vi.fn() } as any)
   })
 
   describe('File path utilities', () => {

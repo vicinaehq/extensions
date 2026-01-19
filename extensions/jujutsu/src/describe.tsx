@@ -1,18 +1,14 @@
 import { Form, ActionPanel, Action, showToast, LaunchProps, useNavigation, Detail, Toast } from "@vicinae/api";
-import { describeChange, getCurrentDescription } from "./utils";
-import { NavigationActions } from "./actions";
+import { JJArguments } from "./utils/cli";
+import { describeChange, getCurrentDescription } from "./utils/change";
+import { RepoPathValidationErrorDetail } from "./components/validation";
 
-interface Arguments {
-  "repo-path": string;
-}
-
-export default function DescribeChange(props: LaunchProps<{ arguments: Arguments }>) {
+export default function DescribeChange(props: LaunchProps<{ arguments: JJArguments }>) {
   const { "repo-path": repoPath } = props.arguments;
   const { push } = useNavigation();
 
   if (!repoPath) {
-    const markdown = "# Error\n\nRepository path required. Provide a repository path as argument.";
-    return <Detail markdown={markdown} />;
+    return <RepoPathValidationErrorDetail />;
   }
 
   const currentDescription = getCurrentDescription(repoPath);
@@ -34,7 +30,6 @@ export default function DescribeChange(props: LaunchProps<{ arguments: Arguments
             title="Update Description"
             onSubmit={handleSubmit}
           />
-          {NavigationActions.createCrossNavigation(repoPath, push, "describe")}
         </ActionPanel>
       }
     >
