@@ -1,0 +1,293 @@
+{
+  "name": "jujutsu",
+  "title": "Jujutsu",
+  "description": "Manage Jujutsu repositories and version control",
+  "version": "1.1.1",
+  "author": "knoopx",
+  "license": "MIT",
+  "icon": "jujutsu-icon.webp",
+  "categories": [
+    "Developer Tools",
+    "System"
+  ],
+  "commands": [
+    {
+      "name": "main",
+      "title": "JJ Main Operations",
+      "subtitle": "Main JJ operations interface",
+      "description": "Access all Jujutsu operations through a unified interface using navigation",
+      "mode": "view"
+    },
+    {
+      "name": "dashboard",
+      "title": "JJ Dashboard",
+      "subtitle": "Main Jujutsu interface",
+      "description": "Open the main Jujutsu dashboard with repository selection and common operations",
+      "mode": "view"
+    },
+    {
+      "name": "status",
+      "title": "JJ Status",
+      "subtitle": "Show working copy status",
+      "description": "Display the current status of the Jujutsu working copy",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "log",
+      "title": "JJ Log",
+      "subtitle": "Show change history",
+      "description": "Display the log of changes in the repository",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "new-change",
+      "title": "JJ New Change",
+      "subtitle": "Create a new change",
+      "description": "Create a new change on top of the current one",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "describe",
+      "title": "JJ Describe",
+      "subtitle": "Edit change description",
+      "description": "Edit the description of the current change",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "diff",
+      "title": "JJ Diff",
+      "subtitle": "Show changes",
+      "description": "Show the diff of the working copy",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "bookmarks",
+      "title": "JJ Bookmarks",
+      "subtitle": "Manage bookmarks",
+      "description": "List and manage Jujutsu bookmarks for a repository",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "rebase",
+      "title": "JJ Rebase",
+      "subtitle": "Rebase onto branch",
+      "description": "Rebase the current change onto a target branch",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "branch",
+          "placeholder": "Target branch",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "push",
+      "title": "JJ Push",
+      "subtitle": "Push to Git",
+      "description": "Push changes to the Git remote",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "pull",
+      "title": "JJ Pull",
+      "subtitle": "Pull from Git",
+      "description": "Pull changes from the Git remote",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "undo",
+      "title": "JJ Undo",
+      "subtitle": "Undo last operation",
+      "description": "Undo the last Jujutsu operation",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "squash",
+      "title": "JJ Squash",
+      "subtitle": "Squash changes",
+      "description": "Move changes from current change into parent or interactively select changes to squash",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "split",
+      "title": "JJ Split",
+      "subtitle": "Split change",
+      "description": "Split the current change into multiple changes",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "abandon",
+      "title": "JJ Abandon",
+      "subtitle": "Abandon change",
+      "description": "Abandon the current change and create a new empty one in place",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "resolve",
+      "title": "JJ Resolve",
+      "subtitle": "Resolve merge conflicts",
+      "description": "Resolve merge conflicts in the working copy",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "edit",
+      "title": "JJ Edit",
+      "subtitle": "Time travel to different changes",
+      "description": "Edit/navigate to different changes in history",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "workflow",
+      "title": "JJ Workflow",
+      "subtitle": "Execute operation workflows",
+      "description": "Run predefined workflows for common JJ operations like sync, pull, or push",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "repo-path",
+          "placeholder": "Repository path",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "workflow",
+          "placeholder": "Workflow type (pull-push, pull-only, push-only)",
+          "type": "text",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.8.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@types/node": "^20.0.0"
+  }
+}

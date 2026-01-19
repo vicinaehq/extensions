@@ -1,0 +1,5 @@
+scripts:
+  build: vici build
+  dev: vici develop
+  typecheck: tsc --noEmit
+  lint: tsc --noEmit
