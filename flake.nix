@@ -48,17 +48,10 @@
             name: _type:
             vicinae.packages.${system}.mkVicinaeExtension {
               pname = name;
-              src = pkgs.stdenv.mkDerivation {
-                name = "${name}-patched-tsconfig";
-                src = ./extensions/${name};
-                buildPhase = ''
-                  substituteInPlace tsconfig.json --replace "../../" "${./.}/"
-                '';
-                installPhase = ''
-                  mkdir -p $out
-                  cp -r . $out
-                '';
-              };
+              src = ./extensions/${name};
+              postPatch = ''
+                substituteInPlace tsconfig.json --replace "../../" "${./.}/"
+              '';
             }
           ))
           (lib.flip builtins.removeAttrs [
