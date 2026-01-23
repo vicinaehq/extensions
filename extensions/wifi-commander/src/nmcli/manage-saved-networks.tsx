@@ -35,8 +35,10 @@ function parseSavedConnections(output: string): SavedNetwork[] {
         type: parts[2] || "",
         device: parts[3] || "",
         state: parts[4] || "",
+        timestamp: parseInt(parts[5] || "0", 10),
       };
     })
+    .filter((network) => network?.type === "wifi")
     .filter(Boolean) as SavedNetwork[];
 }
 
@@ -77,7 +79,10 @@ export default function ManageSavedNetworksNmcli() {
     try {
       setSavedNetworks((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      const result = await executeNmcliCommandSilent("connection show");
+      const result = await executeNmcliCommandSilent("connection show", [], [
+        "-f",
+        "NAME,UUID,TYPE,DEVICE,STATE,TIMESTAMP",
+      ]);
 
       if (!result.success) {
         setSavedNetworks((prev) => ({
@@ -88,7 +93,9 @@ export default function ManageSavedNetworksNmcli() {
         return;
       }
 
-      const networks = parseSavedConnections(result.stdout);
+      const networks = parseSavedConnections(result.stdout).sort((a, b) => {
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      });
 
       setSavedNetworks({
         networks,

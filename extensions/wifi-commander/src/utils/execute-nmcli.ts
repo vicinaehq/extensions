@@ -45,9 +45,10 @@ export async function executeNmcliCommand(
  */
 export async function executeNmcliCommandSilent(
   subcommand: string,
-  args: string[] = []
+  postArgs: string[] = [],
+  preArgs: string[] = [],
 ): Promise<ExecResult> {
-  const command = `nmcli ${subcommand} ${args.join(" ")}`;
+  const command = `nmcli ${preArgs.join(" ")} ${subcommand} ${postArgs.join(" ")}`;
   return executeCommand(command);
 }
 

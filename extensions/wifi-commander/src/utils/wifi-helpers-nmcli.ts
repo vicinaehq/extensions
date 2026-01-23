@@ -18,6 +18,7 @@ export interface SavedNetwork {
   type: string;
   device: string;
   state: string;
+  timestamp?: number;
 }
 
 export interface WifiDevice {
@@ -137,6 +138,7 @@ export function parseCurrentConnection(output: string): CurrentConnection | null
 
   if (lines.length > 1) {
     const firstLine = lines[1];
+    if (!firstLine) return null;
     const parts = firstLine.split(/\s{2,}/);
     if (parts.length >= 4) {
       return {
