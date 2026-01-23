@@ -103,8 +103,10 @@ export function parseSavedConnections(output: string): SavedNetwork[] {
         type: parts[2] || "",
         device: parts[3] || "",
         state: parts[4] || "",
+        timestamp: parseInt(parts[5] || "0", 10),
       };
     })
+    .filter((network) => network?.type === "wifi")
     .filter(Boolean) as SavedNetwork[];
 }
 
@@ -167,9 +169,15 @@ export function sortNetworks(networks: WifiNetwork[]): WifiNetwork[] {
  */
 export async function loadSavedNetworks(): Promise<SavedNetwork[]> {
   try {
-    const result = await executeNmcliCommandSilent("connection show");
+    const result = await executeNmcliCommandSilent("connection show", [], [
+      "-f",
+      "NAME,UUID,TYPE,DEVICE,STATE,TIMESTAMP",
+    ]);
+
     if (result.success) {
-      return parseSavedConnections(result.stdout);
+      return parseSavedConnections(result.stdout).sort((a, b) => {
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      });
     }
   } catch (error) {
     console.error("Failed to load saved networks:", error);

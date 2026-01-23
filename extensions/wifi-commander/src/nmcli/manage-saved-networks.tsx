@@ -2,6 +2,7 @@ import { Action, ActionPanel, Color, Icon, List, showToast } from "@vicinae/api"
 import { useEffect, useState } from "react";
 import { executeNmcliCommand, executeNmcliCommandSilent } from "../utils/execute-nmcli";
 import {
+  loadSavedNetworks as apiLoadSavedNetworks,
   type CurrentConnection,
   loadCurrentConnection,
   loadWifiDevice,
@@ -16,32 +17,6 @@ interface SavedNetworksResult {
   error: string | null;
 }
 
-function parseSavedConnections(output: string): SavedNetwork[] {
-  const lines = output.split("\n").filter((line) => line.trim());
-
-  if (lines.length < 2) {
-    return [];
-  }
-
-  return lines
-    .slice(1)
-    .map((line) => {
-      const parts = line.split(/\s{2,}/);
-      if (parts.length < 4) return null;
-
-      return {
-        name: parts[0] || "",
-        uuid: parts[1] || "",
-        type: parts[2] || "",
-        device: parts[3] || "",
-        state: parts[4] || "",
-        timestamp: parseInt(parts[5] || "0", 10),
-      };
-    })
-    .filter((network) => network?.type === "wifi")
-    .filter(Boolean) as SavedNetwork[];
-}
-
 export default function ManageSavedNetworksNmcli() {
   const [savedNetworks, setSavedNetworks] = useState<SavedNetworksResult>({
     networks: [],
@@ -50,7 +25,7 @@ export default function ManageSavedNetworksNmcli() {
   });
   const [currentConnection, setCurrentConnection] = useState<CurrentConnection | null>(null);
   const [wifiDevice, setWifiDevice] = useState<WifiDevice | null>(null);
-  const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
+  const [_availableNetworks, setAvailableNetworks] = useState<string[]>([]);
 
   const loadWifiDeviceData = async () => {
     const device = await loadWifiDevice();
@@ -79,24 +54,7 @@ export default function ManageSavedNetworksNmcli() {
     try {
       setSavedNetworks((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      const result = await executeNmcliCommandSilent("connection show", [], [
-        "-f",
-        "NAME,UUID,TYPE,DEVICE,STATE,TIMESTAMP",
-      ]);
-
-      if (!result.success) {
-        setSavedNetworks((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: result.error || "Failed to load saved networks",
-        }));
-        return;
-      }
-
-      const networks = parseSavedConnections(result.stdout).sort((a, b) => {
-        return (b.timestamp || 0) - (a.timestamp || 0);
-      });
-
+      const networks = await apiLoadSavedNetworks();
       setSavedNetworks({
         networks,
         isLoading: false,
