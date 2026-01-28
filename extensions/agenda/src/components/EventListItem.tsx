@@ -1,6 +1,7 @@
 import { Action, ActionPanel, Icon, List } from "@vicinae/api";
 import type { VEvent } from "node-ical";
 import { Calendar } from "../types";
+import { usePreferences } from "../hooks/usePreferences";
 import { getCalendarName } from "../utils/calendar";
 import { getSupportedUrls, urlHandlers } from "../utils/urls";
 import { isAllDayEvent, getDisplayStart, getDisplayEnd } from "../utils/events";
@@ -20,11 +21,12 @@ export function EventListItem({
   onToggleDetail,
   calendars,
 }: EventListItemProps) {
+  const { use24Hour } = usePreferences();
   const startDate = new Date(event.start);
   const endDate = new Date(event.end);
   const isAllDay = isAllDayEvent(startDate, endDate);
-  const displayStart = getDisplayStart(startDate, isAllDay);
-  const displayEnd = getDisplayEnd(endDate, isAllDay);
+  const displayStart = getDisplayStart(startDate, isAllDay, use24Hour);
+  const displayEnd = getDisplayEnd(endDate, isAllDay, use24Hour);
   const calendar = eventCalendarUrl
     ? calendars.find((cal) => cal.url === eventCalendarUrl)
     : undefined;

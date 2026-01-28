@@ -57,6 +57,24 @@
         }
       ],
       "required": false
+    },
+    {
+      "name": "timeFormat",
+      "type": "dropdown",
+      "title": "Time Format",
+      "description": "How to display event times",
+      "default": "12h",
+      "data": [
+        {
+          "title": "12-hour (2:30 PM)",
+          "value": "12h"
+        },
+        {
+          "title": "24-hour (14:30)",
+          "value": "24h"
+        }
+      ],
+      "required": false
     }
   ],
   "scripts": {
