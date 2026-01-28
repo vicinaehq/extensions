@@ -6,12 +6,12 @@ An unofficial [Wiktionary](https://www.wiktionary.org) extension for Vicinae.
 
 Implemented:
 - Search word definitions
+- Search selected or clipboard text
 
 Missing:
-- Search selected words
 - Search etymology
 - Search Synonyms
 
 ## Thanks
 
-This is based on the [raycast-wiktionary](https://github.com/adielbm/raycast-wiktionary#) extension by [adielbm](https://github.com/adielbm).
+This is based on the [raycast-wiktionary](https://github.com/adielbm/raycast-wiktionary) extension by [adielbm](https://github.com/adielbm).

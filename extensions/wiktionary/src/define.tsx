@@ -1,8 +1,18 @@
-import { Action, ActionPanel, Detail, Icon, showToast, Toast } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  Clipboard,
+  Detail,
+  Icon,
+  List,
+  Toast,
+  getPreferenceValues,
+  getSelectedText,
+  showToast,
+} from "@vicinae/api";
 import { useFetch } from "@raycast/utils";
 import { useEffect, useState } from "react";
 import TurndownService from "turndown";
-import { List } from "@vicinae/api";
 
 interface Thumbnail {
   mimetype: string;
@@ -48,12 +58,32 @@ interface DefinitionsRes {
 const HEADERS = { "User-Agent": "Vicinae-Wiktionary-Extension" };
 
 export default function DefineSuggestions() {
+  const preferences = getPreferenceValues();
+
   const [text, setText] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Page[]>([]);
 
   const apiUrl = `https://en.wiktionary.org/w/rest.php/v1/search/title?q=${text}&limit=10`;
+
+  useEffect(() => {
+    const preferredSource = preferences.source;
+    if (preferredSource == "selection") {
+      getSelectedText().then((selectedText) => {
+        if (text == "" && selectedText != "") {
+          setText(selectedText);
+        }
+      });
+    }
+    if (preferredSource == "clipboard") {
+      Clipboard.readText().then((clipboardText) => {
+        if (text == "" && clipboardText != "") {
+          setText(clipboardText);
+        }
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (text.length === 0) {

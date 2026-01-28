@@ -21,7 +21,30 @@
       "mode": "view"
     }
   ],
-  "preferences": [],
+  "preferences": [
+    {
+      "name": "source",
+      "type": "dropdown",
+      "title": "Preferred Source",
+      "description": "Choose a preferred text source.",
+      "data": [
+        {
+          "title": "Selected",
+          "value": "selected"
+        },
+        {
+          "title": "Clipboard",
+          "value": "clipboard"
+        },
+        {
+          "title": "Empty",
+          "value": "empty"
+        }
+      ],
+      "default": "selected",
+      "required": true
+    }
+  ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",
