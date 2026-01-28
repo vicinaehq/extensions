@@ -115,7 +115,9 @@ export default function DefineSuggestions() {
       {!error &&
         suggestions.map((page) => (
           <List.Item
-            icon={{ source: page?.thumbnail?.url ? "https:" + page.thumbnail.url : "../assets/icon.svg" }}
+            icon={{
+              source: page?.thumbnail?.url ? "https:" + page.thumbnail.url : "../assets/icon.svg",
+            }}
             id={page.id.toString()}
             key={page.id}
             title={page.title}
@@ -175,8 +177,8 @@ export function Define({ title }: { title: string }) {
         defs.forEach((item) => {
           markdown += `## ${item.partOfSpeech}\n`;
 
-          item.definitions.forEach(definition => {
-            if (definition.definition.length === 0) return;
+          item.definitions.forEach((definition) => {
+            if (definition.definition == "") return;
 
             const firstDefinitionLine = definition.definition.split("\n")[0];
             const definitionText = td.turndown(firstDefinitionLine);
@@ -191,7 +193,7 @@ export function Define({ title }: { title: string }) {
             }
           });
         });
-      })
+      });
 
       setContent(markdown);
     } catch (err) {
