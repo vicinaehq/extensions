@@ -43,6 +43,15 @@
       ],
       "default": "selected",
       "required": true
+    },
+    {
+      "name": "resultLanguages",
+      "type": "textfield",
+      "title": "Result Languages",
+      "description": "For which languages you want to see definitions. Leave empty for all languages. Format: en,de",
+      "default": "",
+      "placeholder": "en,de",
+      "required": false
     }
   ],
   "scripts": {

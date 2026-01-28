@@ -59,6 +59,7 @@ const HEADERS = { "User-Agent": "Vicinae-Wiktionary-Extension" };
 
 export default function DefineSuggestions() {
   const preferences = getPreferenceValues();
+  const preferredSource: string = preferences.source;
 
   const [text, setText] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -68,7 +69,6 @@ export default function DefineSuggestions() {
   const apiUrl = `https://en.wiktionary.org/w/rest.php/v1/search/title?q=${text}&limit=10`;
 
   useEffect(() => {
-    const preferredSource = preferences.source;
     if (preferredSource == "selection") {
       getSelectedText().then((selectedText) => {
         if (text == "" && selectedText != "") {
@@ -136,8 +136,12 @@ export default function DefineSuggestions() {
 }
 
 export function Define({ title }: { title: string }) {
+  const preferences = getPreferenceValues();
+  const resultLanguages: string[] = preferences.resultLanguages.split(",").map((lang: string) => lang.trim());
+
   const [content, setContent] = useState<string>("");
 
+  // Documentation: https://en.wiktionary.org/wiki/Special:RestSandbox/wmf-restbase#/Page_content/get_page_definition_term
   const apiUrl = `https://en.wiktionary.org/api/rest_v1/page/definition/${encodeURIComponent(title.trim())}`;
   const { data, isLoading, error } = useFetch(apiUrl, { headers: HEADERS });
 
@@ -156,9 +160,15 @@ export function Define({ title }: { title: string }) {
 
       let markdown = "";
 
-      Object.values(definitionsResponse).forEach((defs) => {
-        if (defs.length == 0) return;
+      const languages =
+        resultLanguages.length > 0
+          ? resultLanguages.filter((lang) => lang in definitionsResponse)
+          : Object.keys(definitionsResponse);
 
+      languages.forEach((lang) => {
+        const defs = definitionsResponse[lang];
+
+        if (defs.length == 0) return;
         const langName = defs[0].language;
         markdown += `# ${langName}\n`;
 
