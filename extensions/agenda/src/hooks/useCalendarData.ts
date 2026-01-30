@@ -5,7 +5,7 @@ import type { VEvent } from "node-ical";
 import { Calendar } from "../types";
 import { getCalendars, getCalendarName } from "../utils/calendar";
 import { saveToCache, loadFromCache } from "../utils/cache";
-import { isAllDayEvent, getDisplayStart } from "../utils/events";
+import { isAllDayEvent, getDisplayStart, getLocalDateString } from "../utils/events";
 import { CACHE_KEY } from "../constants";
 
 export function useCalendarData(refreshInterval: number) {
@@ -85,7 +85,7 @@ export function useCalendarData(refreshInterval: number) {
                     ...item,
                     start: occurrenceStartDate,
                     end: occurrenceEndDate,
-                    uid: `${item.uid}_${occurrenceStartDate.toISOString().split("T")[0]}`, // Make UID unique for each occurrence
+                    uid: `${item.uid}_${getLocalDateString(occurrenceStartDate)}`, // Make UID unique for each occurrence
                     recurrenceId: occurrenceStartDate,
                   };
 
@@ -141,21 +141,13 @@ export function useCalendarData(refreshInterval: number) {
           return a.summary.localeCompare(b.summary);
         }
 
-        // Both timed events
-        const aDisplayStart = getDisplayStart(aStart, aIsAllDay);
-        const bDisplayStart = getDisplayStart(bStart, bIsAllDay);
-        return (
-          new Date(
-            aStart.toISOString().split("T")[0] + "T" + aDisplayStart
-          ).getTime() -
-          new Date(
-            bStart.toISOString().split("T")[0] + "T" + bDisplayStart
-          ).getTime()
-        );
+        // Both timed events - sort by actual start time
+        return aStart.getTime() - bStart.getTime();
       });
 
       for (const event of allEvents) {
-        const eventDate = new Date(event.start).toISOString().split("T")[0];
+        // Use local date to prevent timezone-related day shift issues
+        const eventDate = getLocalDateString(new Date(event.start));
         if (!eventsByDate[eventDate]) {
           eventsByDate[eventDate] = [];
         }

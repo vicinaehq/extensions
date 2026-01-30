@@ -30,14 +30,23 @@ export const getCalendarName = (calendar: Calendar): string => {
   }
 };
 
+/**
+ * Parse YYYY-MM-DD string as local date components to avoid timezone shifts
+ */
+const parseDateString = (dateString: string): Date => {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
 export const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
+  const date = parseDateString(dateString);
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
-  if (date.toDateString() === today.toDateString()) {
+  if (date.getTime() === today.getTime()) {
     return "Today";
-  } else if (date.toDateString() === tomorrow.toDateString()) {
+  } else if (date.getTime() === tomorrow.getTime()) {
     return "Tomorrow";
   } else {
     return date.toLocaleDateString("en-US", {
