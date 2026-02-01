@@ -8,23 +8,23 @@ export const callColorGen = async (
 
   switch (ColorGen.toLowerCase()) {
     case "matugen":
-      command = `matugen image ${path}`;
+      command = `matugen image "${path}"`;
       break;
 
     case "pywal":
-      command = `wal -i ${path}`;
+      command = `wal -i "${path}"`;
       break;
 
     case "wpgtk":
-      command = `wpg -s ${path}`;
+      command = `wpg -s "${path}"`;
       break;
 
     case "schemer2":
-      command = `schemer2 ${path}`;
+      command = `schemer2 "${path}"`;
       break;
 
     case "colorz":
-      command = `colorz ${path}`;
+      command = `colorz "${path}"`;
       break;
 
     case "haishoku":
@@ -32,7 +32,7 @@ export const callColorGen = async (
       break;
 
     case "wallust":
-      command = `wallust run ${path}`;
+      command = `wallust run "${path}"`;
       break;
 
     default:
