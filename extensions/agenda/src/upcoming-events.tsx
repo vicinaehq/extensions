@@ -6,15 +6,11 @@ import { UpcomingEvents } from "./components/UpcomingEvents";
 export default function Command() {
   const { refreshInterval } = usePreferences();
 
-  const {
-    calendars,
-    eventsByDate,
-    isLoading,
-    lastRefresh,
-    eventCalendarsRef,
-  } = useCalendarData(refreshInterval);
+  const { calendars, eventsByDate, isLoading, lastRefresh, eventCalendarsRef } =
+    useCalendarData(refreshInterval);
 
-  const { selectedCalendar, setSelectedCalendar } = useCalendarFilter(calendars);
+  const { selectedCalendar, setSelectedCalendar } =
+    useCalendarFilter(calendars);
 
   return (
     <UpcomingEvents

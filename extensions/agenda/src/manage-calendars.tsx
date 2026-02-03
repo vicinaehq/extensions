@@ -7,8 +7,9 @@ import {
   Toast,
   useNavigation,
 } from "@vicinae/api";
+import CalendarForm from "./components/CalendarForm";
 import EditCalendar from "./edit-calendar";
-import { getCalendars, setCalendars, getCalendarName } from "./utils/calendar";
+import { getCalendars, setCalendars, getCalendarName } from "./lib/calendar";
 
 export default function ManageCalendars() {
   const { push } = useNavigation();
@@ -27,19 +28,28 @@ export default function ManageCalendars() {
 
   if (calendars.length === 0) {
     return (
-      <List>
-        <List.Item
+      <List searchBarPlaceholder="Search calendars...">
+        <List.EmptyView
           title="No calendars configured"
-          subtitle="Use 'Add Calendar' to add your first calendar"
-          icon={Icon.ExclamationMark}
+          description="Add your first calendar to get started"
+          icon={Icon.Calendar}
+          actions={
+            <ActionPanel>
+              <Action
+                title="Add Calendar"
+                icon={Icon.Plus}
+                onAction={() => push(<CalendarForm />)}
+              />
+            </ActionPanel>
+          }
         />
       </List>
     );
   }
 
   return (
-    <List>
-      <List.Section title="Configured Calendars">
+    <List searchBarPlaceholder="Search calendars...">
+      <List.Section title={`${calendars.length} calendars`}>
         {calendars.map((calendar, index) => (
           <List.Item
             key={index}
@@ -48,21 +58,32 @@ export default function ManageCalendars() {
             icon={Icon.Calendar}
             actions={
               <ActionPanel>
-                <Action
-                  title="Edit Calendar"
-                  icon={Icon.Pencil}
-                  onAction={() => push(<EditCalendar calendar={calendar} />)}
-                />
-                <Action
-                  title="Remove Calendar"
-                  icon={Icon.Trash}
-                  style={Action.Style.Destructive}
-                  onAction={() => removeCalendar(calendar.url)}
-                />
-                <Action.CopyToClipboard
-                  title="Copy URL"
-                  content={calendar.url}
-                />
+                <ActionPanel.Section>
+                  <Action
+                    title="Edit Calendar"
+                    icon={Icon.Pencil}
+                    onAction={() => push(<EditCalendar calendar={calendar} />)}
+                  />
+                  <Action
+                    title="Add Calendar"
+                    icon={Icon.Plus}
+                    onAction={() => push(<CalendarForm />)}
+                  />
+                </ActionPanel.Section>
+                <ActionPanel.Section>
+                  <Action.CopyToClipboard
+                    icon={Icon.CopyClipboard}
+                    title="Copy URL"
+                    content={calendar.url}
+                  />
+                  <Action
+                    title="Remove Calendar"
+                    icon={Icon.Trash}
+                    style={Action.Style.Destructive}
+                    shortcut={{ modifiers: ["shift"], key: "delete" }}
+                    onAction={() => removeCalendar(calendar.url)}
+                  />
+                </ActionPanel.Section>
               </ActionPanel>
             }
           />

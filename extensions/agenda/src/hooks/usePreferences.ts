@@ -1,5 +1,5 @@
 import { getPreferenceValues } from "@vicinae/api";
-import { Preferences } from "../types";
+import { Preferences } from "../lib/types";
 
 export function usePreferences() {
   const preferences = getPreferenceValues<Preferences>();
