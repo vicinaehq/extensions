@@ -16,7 +16,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@raycast/api": "^1.104.4",
     "@raycast/utils": "^1.19.1",
     "@types/crypto-js": "^4.2.2",
     "@vicinae/api": "^0.19.3",

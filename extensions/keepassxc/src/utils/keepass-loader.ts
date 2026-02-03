@@ -1,4 +1,4 @@
-import { getApplications, getPreferenceValues, LocalStorage, Toast, showToast } from "@raycast/api";
+import { getApplications, getPreferenceValues, LocalStorage, Toast, showToast } from "@vicinae/api";
 import { parse } from "csv-parse/sync";
 import child_process from "child_process";
 import process from "process";
@@ -161,7 +161,7 @@ class KeePassLoader {
    *
    * @returns {Promise<void>} A promise that resolves nothing.
    *
-   * This function uses the `getApplications` function from the `@raycast/api` library
+   * This function uses the `getApplications` function from the `@vicinae/api` library
    * to get a list of all installed applications on the system. It then filters the list
    * to only include applications with the name "KeePassXC". If the list is not empty,
    * it sets the `keepassxcCli` class variable to the path of the found application.

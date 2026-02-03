@@ -14,7 +14,7 @@ import {
   showHUD,
   showToast,
   Toast
-} from "@raycast/api";
+} from "@vicinae/api";
 import { getFavicon } from "@raycast/utils";
 import { KeePassLoader, showToastCliErrors } from "../utils/keepass-loader";
 import { arrayToEntry, processPlaceholders } from "../utils/placeholder-processor";
@@ -275,7 +275,7 @@ export default function SearchDatabase({ setIsUnlocked }: SearchDatabaseParams):
                 </ActionPanel.Section>
                 <Action
                   title="Open URL"
-                  icon={Icon.Globe}
+                  icon={Icon.Globe01}
                   shortcut={{ modifiers: ["ctrl", "shift"], key: "u" }}
                   onAction={async () => {
                     if ("" === url) {

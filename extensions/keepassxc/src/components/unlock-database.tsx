@@ -1,5 +1,5 @@
 import React from "react";
-import { Action, ActionPanel, Form, showToast, Toast } from "@raycast/api";
+import { Action, ActionPanel, Form, showToast, Toast } from "@vicinae/api";
 import { JSX } from "react/jsx-runtime";
 import { useForm } from "@raycast/utils";
 import { KeePassLoader, showToastCliErrors } from "../utils/keepass-loader";

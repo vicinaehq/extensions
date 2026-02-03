@@ -1,4 +1,4 @@
-import { Color, Icon } from "@raycast/api";
+import { Color, Icon } from "@vicinae/api";
 import { KeePassEntry } from "./placeholder-processor";
 
 type accessoryResponse = {

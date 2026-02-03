@@ -1,4 +1,4 @@
-import { getPreferenceValues, LocalStorage } from "@raycast/api";
+import { getPreferenceValues, LocalStorage } from "@vicinae/api";
 
 interface Preference {
   lockAfterInactivity: string;
