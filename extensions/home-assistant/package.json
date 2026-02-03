@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "home-assistant",
+  "title": "Home Assistant",
+  "description": "Control and monitor your Home Assistant entities via the Vicinae launcher",
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "home-assistant",
+      "title": "Home Assistant",
+      "description": "Browse and control Home Assistant entities",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "url",
+      "type": "textfield",
+      "title": "Home Assistant URL",
+      "description": "The URL of your Home Assistant instance (e.g., http://homeassistant.local:8123)",
+      "placeholder": "http://homeassistant.local:8123",
+      "default": "http://homeassistant.local:8123",
+      "required": true
+    },
+    {
+      "name": "token",
+      "type": "password",
+      "title": "Long-Lived Access Token",
+      "description": "Your Home Assistant long-lived access token",
+      "required": true
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@testing-library/react": "^16.0.1",
+    "eslint": "^9.39.1",
+    "jsdom": "^25.0.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.47.0",
+    "vitest": "^2.1.4"
+  }
+}
