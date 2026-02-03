@@ -36,9 +36,10 @@ $ sudo apt install keepassxc
 $ sudo pacman -Sy keepassxc
 ```
 
-## Security Note
+## Security Notes
 
-Your credentials required to access your KeePass database, which include a password and an optional key file, are securely stored in [Vicinae's local encrypted database](https://developers.raycast.com/information/security#data-storage). This storage prevents other extensions from accessing the storage of that extension.
+1. Your credentials required to access your KeePass database, which include a password and an optional key file, are securely stored in [Vicinae's local encrypted database](https://developers.raycast.com/information/security#data-storage). This storage prevents other extensions from accessing the storage of that extension.
+2. The KeePassXC has a feature to delete the related clipboard data after a while - **This is not working when you use this extension!**
 
 ## Future
 
