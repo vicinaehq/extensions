@@ -2,16 +2,23 @@ import { useEffect, useRef, useState } from "react";
 import { LocalStorage, showToast, Toast } from "@vicinae/api";
 import { parseICS } from "node-ical";
 import type { VEvent } from "node-ical";
-import { Calendar } from "../types";
-import { getCalendars, getCalendarName } from "../utils/calendar";
-import { saveToCache, loadFromCache } from "../utils/cache";
-import { isAllDayEvent, getDisplayStart, getLocalDateString } from "../utils/events";
-import { CACHE_KEY } from "../constants";
+import { Calendar } from "../lib/types";
+import { getCalendars } from "../lib/calendar";
+import { saveToCache, loadFromCache } from "../lib/cache";
+import {
+  sortEvents,
+  groupEventsByDate,
+  convertRruleDate,
+  calendarsChanged,
+  isFutureEvent,
+  createOccurrenceUid,
+} from "../lib/eventProcessing";
+import { CACHE_KEY } from "../lib/constants";
 
 export function useCalendarData(refreshInterval: number) {
   const [calendars, setCalendars] = useState<Calendar[]>(() => getCalendars());
   const [eventsByDate, setEventsByDate] = useState<Record<string, VEvent[]>>(
-    {}
+    {},
   );
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -26,7 +33,6 @@ export function useCalendarData(refreshInterval: number) {
       return;
     }
 
-    // Try to load from cache first (unless force refresh)
     if (!forceRefresh) {
       const cached = await loadFromCache(calendars);
       if (cached) {
@@ -55,11 +61,9 @@ export function useCalendarData(refreshInterval: number) {
           const icsData = await response.text();
           const parsed = parseICS(icsData);
 
-          // Extract events from the parsed iCal data
           for (const key in parsed) {
             const item = parsed[key];
             if (item.type === "VEVENT") {
-              // Handle recurring events
               if (item.rrule) {
                 const rangeStart = new Date();
                 const rangeEnd = new Date();
@@ -68,39 +72,34 @@ export function useCalendarData(refreshInterval: number) {
                 const occurrences = item.rrule.between(
                   rangeStart,
                   rangeEnd,
-                  true
+                  true,
                 );
 
                 for (const occurrenceStart of occurrences) {
-                  const occurrenceStartDate = new Date(occurrenceStart) as any;
-                  occurrenceStartDate.tz = item.start.tz; // Copy timezone from original event
+                  const occurrenceStartDate = convertRruleDate(
+                    new Date(occurrenceStart),
+                  ) as typeof item.start;
                   const durationMs = item.end.getTime() - item.start.getTime();
                   const occurrenceEndDate = new Date(
-                    occurrenceStartDate.getTime() + durationMs
-                  ) as any;
-                  occurrenceEndDate.tz = item.end.tz; // Copy timezone from original event
+                    occurrenceStartDate.getTime() + durationMs,
+                  ) as typeof item.end;
 
-                  // Create a new event instance for this occurrence
                   const occurrenceEvent = {
                     ...item,
                     start: occurrenceStartDate,
                     end: occurrenceEndDate,
-                    uid: `${item.uid}_${getLocalDateString(occurrenceStartDate)}`, // Make UID unique for each occurrence
+                    uid: createOccurrenceUid(item.uid, occurrenceStartDate),
                     recurrenceId: occurrenceStartDate,
                   };
 
                   allEvents.push(occurrenceEvent as VEvent);
                   eventCalendarsRef.current.set(
                     occurrenceEvent.uid,
-                    calendar.url
+                    calendar.url,
                   );
                 }
               } else {
-                // Handle non-recurring events
-                const startDate = new Date(item.start);
-
-                // Only include future events
-                if (startDate >= new Date()) {
+                if (isFutureEvent(item)) {
                   allEvents.push(item);
                   eventCalendarsRef.current.set(item.uid, calendar.url);
                 }
@@ -110,7 +109,7 @@ export function useCalendarData(refreshInterval: number) {
         } catch (error) {
           console.error(
             `Failed to fetch calendar from ${calendar.url}:`,
-            error
+            error,
           );
           showToast({
             style: Toast.Style.Failure,
@@ -122,43 +121,13 @@ export function useCalendarData(refreshInterval: number) {
         }
       }
 
-      // Group events by date
-      const eventsByDate: Record<string, VEvent[]> = {};
-      allEvents.sort((a, b) => {
-        const aStart = new Date(a.start);
-        const aEnd = new Date(a.end);
-        const aIsAllDay = isAllDayEvent(aStart, aEnd);
-        const bStart = new Date(b.start);
-        const bEnd = new Date(b.end);
-        const bIsAllDay = isAllDayEvent(bStart, bEnd);
+      const sortedEvents = sortEvents(allEvents);
+      const grouped = groupEventsByDate(sortedEvents);
 
-        // All-day events come first
-        if (aIsAllDay && !bIsAllDay) return -1;
-        if (!aIsAllDay && bIsAllDay) return 1;
-
-        // Both all-day or both timed: sort by time
-        if (aIsAllDay && bIsAllDay) {
-          return a.summary.localeCompare(b.summary);
-        }
-
-        // Both timed events - sort by actual start time
-        return aStart.getTime() - bStart.getTime();
-      });
-
-      for (const event of allEvents) {
-        // Use local date to prevent timezone-related day shift issues
-        const eventDate = getLocalDateString(new Date(event.start));
-        if (!eventsByDate[eventDate]) {
-          eventsByDate[eventDate] = [];
-        }
-        eventsByDate[eventDate].push(event);
-      }
-
-      setEventsByDate(eventsByDate);
+      setEventsByDate(grouped);
       setLastRefresh(new Date());
 
-      // Save to cache
-      await saveToCache(eventsByDate, calendars, eventCalendarsRef.current);
+      await saveToCache(grouped, calendars, eventCalendarsRef.current);
     } catch (error) {
       console.error("Failed to fetch calendar data:", error);
       showToast({
@@ -174,35 +143,19 @@ export function useCalendarData(refreshInterval: number) {
   useEffect(() => {
     fetchCalendarData();
 
-    // Set up refresh interval
     const interval = setInterval(
       () => fetchCalendarData(false),
-      refreshInterval * 60 * 1000
+      refreshInterval * 60 * 1000,
     );
 
-    // Set up cache polling to detect changes from other commands
     const cacheCheckInterval = setInterval(() => {
       const currentCalendars = getCalendars();
-      const currentUrlString = currentCalendars.map((cal) => cal.url).join(",");
-      const stateUrlString = calendars.map((cal) => cal.url).join(",");
-      const currentNameString = currentCalendars
-        .map((cal) => getCalendarName(cal))
-        .join(",");
-      const stateNameString = calendars
-        .map((cal) => getCalendarName(cal))
-        .join(",");
-
-      if (
-        currentUrlString !== stateUrlString ||
-        currentNameString !== stateNameString
-      ) {
+      if (calendarsChanged(currentCalendars, calendars)) {
         setCalendars(currentCalendars);
-        // Clear cache when calendars change
         LocalStorage.removeItem(CACHE_KEY);
-        // Trigger refetch
         setRefetchTrigger((prev) => prev + 1);
       }
-    }, 2000); // Check every 2 seconds
+    }, 2000);
 
     return () => {
       clearInterval(interval);

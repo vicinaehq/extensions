@@ -10,47 +10,37 @@ export const isAllDayEvent = (start: Date, end: Date): boolean => {
   );
 };
 
-/**
- * Display time using UTC timezone because node-ical/rrule stores
- * local time values in the UTC position internally
- */
 export const getDisplayStart = (
   start: Date,
   isAllDay: boolean,
-  use24Hour: boolean = false
+  use24Hour: boolean = false,
 ): string => {
   return isAllDay
     ? ""
-    : start.toLocaleTimeString("en-US", {
+    : start.toLocaleTimeString(undefined, {
         hour: "2-digit",
         minute: "2-digit",
         hour12: !use24Hour,
-        timeZone: "UTC",
       });
 };
 
 export const getDisplayEnd = (
   end: Date,
   isAllDay: boolean,
-  use24Hour: boolean = false
+  use24Hour: boolean = false,
 ): string | undefined => {
   return isAllDay
     ? undefined
-    : end.toLocaleTimeString("en-US", {
+    : end.toLocaleTimeString(undefined, {
         hour: "2-digit",
         minute: "2-digit",
         hour12: !use24Hour,
-        timeZone: "UTC",
       });
 };
 
-/**
- * Get the date string for an event (YYYY-MM-DD format)
- * Uses UTC because node-ical stores local time values as UTC internally
- */
 export const getLocalDateString = (date: Date): string => {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(date.getUTCDate()).padStart(2, "0");
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };

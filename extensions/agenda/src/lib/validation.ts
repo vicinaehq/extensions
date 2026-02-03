@@ -1,7 +1,7 @@
 import { showToast, Toast } from "@vicinae/api";
 import { getCalendars } from "./calendar";
 
-export const validateUrl = (url: string): boolean => {
+const validateUrl = (url: string): boolean => {
   try {
     new URL(url);
     return true;
@@ -43,7 +43,9 @@ export const validateCalendarForm = async (
     url !== existingCalendarUrl
   ) {
     await showToast({
-      title: existingCalendarUrl ? "Calendar Already Exists" : "Calendar Already Added",
+      title: existingCalendarUrl
+        ? "Calendar Already Exists"
+        : "Calendar Already Added",
       message: "This calendar URL is already configured.",
       style: Toast.Style.Failure,
     });

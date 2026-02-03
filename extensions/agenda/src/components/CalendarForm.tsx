@@ -8,17 +8,20 @@ import {
   useNavigation,
   Color,
 } from "@vicinae/api";
-import { Calendar } from "../types";
-import { getCalendars, setCalendars, getCalendarName } from "../utils/calendar";
-import { FormValues, colorOptions } from "../utils/forms";
-import { validateCalendarForm } from "../utils/validation";
+import { Calendar } from "../lib/types";
+import { getCalendars, setCalendars, getCalendarName } from "../lib/calendar";
+import { FormValues, colorOptions } from "../lib/forms";
+import { validateCalendarForm } from "../lib/validation";
 
 interface CalendarFormProps {
   calendar?: Calendar;
   onSubmit?: () => void;
 }
 
-export default function CalendarForm({ calendar, onSubmit }: CalendarFormProps) {
+export default function CalendarForm({
+  calendar,
+  onSubmit,
+}: CalendarFormProps) {
   const { pop } = useNavigation();
   const isEditing = !!calendar;
 
@@ -50,7 +53,11 @@ export default function CalendarForm({ calendar, onSubmit }: CalendarFormProps) 
 
     await showToast({
       title: isEditing ? "Calendar Updated" : "Calendar Added",
-      message: name || (isEditing ? "Calendar has been updated successfully." : "New calendar has been added successfully."),
+      message:
+        name ||
+        (isEditing
+          ? "Calendar has been updated successfully."
+          : "New calendar has been added successfully."),
       style: Toast.Style.Success,
     });
 

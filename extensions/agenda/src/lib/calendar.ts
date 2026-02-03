@@ -1,5 +1,5 @@
 import { Cache } from "@vicinae/api";
-import { Calendar } from "../types";
+import { Calendar } from "./types";
 
 const cache = new Cache();
 
