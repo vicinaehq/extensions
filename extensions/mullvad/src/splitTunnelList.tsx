@@ -96,8 +96,9 @@ function groupProcessesByCommand(
 ): GroupedProcess[] {
 	const groups = new Map<string, GroupedProcess>();
 	const pidSet = new Set(processMap.keys());
-	const rootCache = new Map<string, ProcessInfo>();
+	const rootByPid = new Map<string, ProcessInfo>();
 	const appRootsByCgroupCommand = new Map<string, number>();
+	const cgroupRootCache = new Map<string, ProcessInfo | null>();
 	
 	function tokenizeCommand(command: string): string[] {
 		return command
@@ -106,88 +107,79 @@ function groupProcessesByCommand(
 			.filter(Boolean);
 	}
 	
-	// Helper function to check if a command is a "real application"
-	// Real apps are in the installed apps list from getApplications()
 	function isRealApplication(command: string): boolean {
 		const commandLower = command.toLowerCase();
 		if (installedAppCommands.has(commandLower)) return true;
 		return tokenizeCommand(commandLower).some((token) => installedAppCommands.has(token));
 	}
 	
-	// Helper function to find the "application root" for a process
-	// Strategy: Find the NEAREST real application in the parent chain
-	function findApplicationRoot(proc: ProcessInfo): ProcessInfo {
-		const cached = rootCache.get(proc.pid);
-		if (cached) return cached;
-		
+	function findNearestParentApp(proc: ProcessInfo): ProcessInfo | null {
 		let current = proc;
-		let visited = new Set<string>();
+		const visited = new Set<string>();
 		
-		// First, try to trace back through parents looking for the first real app
 		while (pidSet.has(current.ppid) && !visited.has(current.pid)) {
 			visited.add(current.pid);
-			
 			const parent = processMap.get(current.ppid);
-			if (!parent) break;
-			
-			// If parent is a real application, use it!
-			if (isRealApplication(parent.command)) {
-				rootCache.set(proc.pid, parent);
-				return parent;
-			}
-			
+			if (!parent) return null;
+			if (isRealApplication(parent.command)) return parent;
 			current = parent;
 		}
 		
-		// No real app found in parent chain via PPID
-		// Progressive enhancement: On Linux, try to find a real app in the same cgroup
-		// This helps group daemonized processes (like prettierd) with their launcher (like wezterm)
-		if (proc.cgroup && !isRealApplication(proc.command)) {
-			let cgroupRoot: ProcessInfo | null = null;
-			for (const other of processMap.values()) {
-				if (other.cgroup === proc.cgroup && isRealApplication(other.command)) {
-					if (!cgroupRoot || Number(other.pid) < Number(cgroupRoot.pid)) {
-						cgroupRoot = other;
-					}
+		return null;
+	}
+	
+	function findCgroupRoot(proc: ProcessInfo): ProcessInfo | null {
+		if (!proc.cgroup) return null;
+		const cached = cgroupRootCache.get(proc.cgroup);
+		if (cached !== undefined) return cached;
+		
+		let cgroupRoot: ProcessInfo | null = null;
+		for (const other of processMap.values()) {
+			if (other.cgroup === proc.cgroup && isRealApplication(other.command)) {
+				if (!cgroupRoot || Number(other.pid) < Number(cgroupRoot.pid)) {
+					cgroupRoot = other;
 				}
 			}
-			
+		}
+		
+		cgroupRootCache.set(proc.cgroup, cgroupRoot);
+		return cgroupRoot;
+	}
+	
+	function resolveRoot(proc: ProcessInfo): ProcessInfo {
+		const cached = rootByPid.get(proc.pid);
+		if (cached) return cached;
+		
+		const parentRoot = findNearestParentApp(proc);
+		if (parentRoot) {
+			rootByPid.set(proc.pid, parentRoot);
+			return parentRoot;
+		}
+		
+		if (!isRealApplication(proc.command)) {
+			const cgroupRoot = findCgroupRoot(proc);
 			if (cgroupRoot) {
-				rootCache.set(proc.pid, cgroupRoot);
+				rootByPid.set(proc.pid, cgroupRoot);
 				return cgroupRoot;
 			}
 		}
 		
-		// Fallback: no real app anywhere
-		// If current process itself is a real app, use it
-		if (isRealApplication(proc.command)) {
-			rootCache.set(proc.pid, proc);
-			return proc;
-		}
-		
-		// Final fallback: return the process itself
-		// (will be grouped by command name)
-		rootCache.set(proc.pid, proc);
+		rootByPid.set(proc.pid, proc);
 		return proc;
 	}
 	
-	// Precompute how many "real app" roots exist per cgroup+command
 	for (const proc of processMap.values()) {
-		const root = findApplicationRoot(proc);
+		const root = resolveRoot(proc);
 		if (isRealApplication(root.command) && root.cgroup) {
 			const key = `${root.cgroup}:${root.command.toLowerCase()}`;
 			appRootsByCgroupCommand.set(key, (appRootsByCgroupCommand.get(key) || 0) + 1);
 		}
 	}
-
-	// Group processes by their application root
-	const pidGroups = new Map<string, ProcessInfo[]>();
+	
+	const groupedByKey = new Map<string, ProcessInfo[]>();
 	
 	for (const proc of processMap.values()) {
-		const root = findApplicationRoot(proc);
-		
-		// If root is a real app, group by its PID
-		// Otherwise, group by command name (for similar non-app processes)
+		const root = resolveRoot(proc);
 		let groupKey: string;
 		if (isRealApplication(root.command)) {
 			const rootCommand = root.command.toLowerCase();
@@ -198,23 +190,20 @@ function groupProcessesByCommand(
 			groupKey = `cmd:${root.command}`;
 		}
 		
-		if (!pidGroups.has(groupKey)) {
-			pidGroups.set(groupKey, [proc]);
+		if (!groupedByKey.has(groupKey)) {
+			groupedByKey.set(groupKey, [proc]);
 		} else {
-			pidGroups.get(groupKey)!.push(proc);
+			groupedByKey.get(groupKey)!.push(proc);
 		}
 	}
 	
-	// Convert to GroupedProcess array
-	for (const [groupKey, procs] of pidGroups.entries()) {
-		// Determine the display command (use the root's command)
-		const root = findApplicationRoot(procs[0]);
-		
+	for (const [groupKey, procs] of groupedByKey.entries()) {
+		const root = resolveRoot(procs[0]);
 		groups.set(groupKey, {
 			command: root.command,
 			fullCommand: root.fullCommand,
-			pids: procs.map(p => p.pid),
-			isRunning: procs.some(p => p.isRunning),
+			pids: procs.map((p) => p.pid),
+			isRunning: procs.some((p) => p.isRunning),
 		});
 	}
 
@@ -248,6 +237,16 @@ function getIconForProcess(group: GroupedProcess, appIconMap: Map<string, string
 	
 	// Fallback to terminal icons based on running status
 	return group.isRunning ? Icon.Terminal : Icon.XMarkCircle;
+}
+
+function buildProcessListMarkdown(group: GroupedProcess, processMap: Map<string, ProcessInfo>): string {
+	const lines = group.pids.map((pid) => {
+		const proc = processMap.get(pid);
+		if (!proc) return `- ${pid}`;
+		return `- ${proc.command} (${pid})`;
+	});
+
+	return `## Processes\n${lines.join("\n")}`;
 }
 
 export default function Command() {
@@ -327,7 +326,7 @@ export default function Command() {
 	async function removeProcessGroup(group: GroupedProcess) {
 		const confirmed = await confirmAlert({
 			title: `Remove ${group.command}?`,
-			message: `This will remove ${group.pids.length} process${group.pids.length > 1 ? "es" : ""} from split-tunnel:\n${group.pids.join(", ")}`,
+			message: `This will remove ${group.pids.length} process${group.pids.length > 1 ? "es" : ""} from split-tunnel.`,
 			icon: "mullvad-icon.png",
 		});
 
@@ -397,6 +396,7 @@ export default function Command() {
 							]}
 							detail={
 								<List.Item.Detail
+									markdown={buildProcessListMarkdown(group, processMap)}
 									metadata={
 										<List.Item.Detail.Metadata>
 											<List.Item.Detail.Metadata.Label title="Command" text={group.command} icon={Icon.Terminal} />
