@@ -31,10 +31,19 @@ function buildProcessListMarkdown(
   group: GroupedProcess,
   processMap: Map<string, ProcessInfo>,
 ): string {
-  const lines = group.pids.map((pid) => {
+  const counts = new Map<string, number>();
+  const order: string[] = [];
+
+  for (const pid of group.pids) {
     const proc = processMap.get(pid);
-    if (!proc) return `- ${pid}`;
-    return `- ${proc.command} (${pid})`;
+    const command = (proc ? proc.command : "Unknown").trim();
+    if (!counts.has(command)) order.push(command);
+    counts.set(command, (counts.get(command) || 0) + 1);
+  }
+
+  const lines = order.map((command) => {
+    const count = counts.get(command) || 0;
+    return `- ${command} (${count})`;
   });
 
   return `## Processes\n${lines.join("\n")}`;
