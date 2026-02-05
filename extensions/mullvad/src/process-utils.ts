@@ -43,14 +43,14 @@ export function getIconForProcess(
 	return group.isRunning ? fallbackIcon : fallbackStoppedIcon;
 }
 
-export function tokenizeCommand(command: string): string[] {
+function tokenizeCommand(command: string): string[] {
   return command
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter(Boolean);
 }
 
-export function isRealApplication(
+function isRealApplication(
   command: string,
   installedAppCommands: Set<string>,
 ): boolean {
@@ -61,7 +61,7 @@ export function isRealApplication(
   );
 }
 
-export function findNearestParentApp(
+function findNearestParentApp(
   proc: ProcessInfo,
   processMap: Map<string, ProcessInfo>,
   pidSet: Set<string>,
@@ -179,7 +179,7 @@ export async function parseProcessesInfo(
   return processMap;
 }
 
-export function buildProcessesByCgroup(
+function buildProcessesByCgroup(
   processMap: Map<string, ProcessInfo>,
 ): Map<string, ProcessInfo[]> {
   const processesByCgroup = new Map<string, ProcessInfo[]>();
@@ -195,7 +195,7 @@ export function buildProcessesByCgroup(
   return processesByCgroup;
 }
 
-export function findCgroupRoot(
+function findCgroupRoot(
   proc: ProcessInfo,
   processesByCgroup: Map<string, ProcessInfo[]>,
   installedAppCommands: Set<string>,
@@ -215,7 +215,7 @@ export function findCgroupRoot(
   return cgroupRoot;
 }
 
-export function resolveRoot(
+function resolveRoot(
   proc: ProcessInfo,
   rootByPid: Map<string, ProcessInfo>,
   processMap: Map<string, ProcessInfo>,
@@ -253,7 +253,7 @@ export function resolveRoot(
   return proc;
 }
 
-export function countAppRootsByCgroupCommand(
+function countAppRootsByCgroupCommand(
   processMap: Map<string, ProcessInfo>,
   resolve: (proc: ProcessInfo) => ProcessInfo,
   installedAppCommands: Set<string>,
@@ -269,7 +269,7 @@ export function countAppRootsByCgroupCommand(
   return counts;
 }
 
-export function groupKeyForRoot(
+function groupKeyForRoot(
   root: ProcessInfo,
   appRootsByCgroupCommand: Map<string, number>,
   installedAppCommands: Set<string>,
