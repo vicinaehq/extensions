@@ -86,11 +86,19 @@ export async function hydrateCgroups(
   installedAppCommands: Set<string>,
   limit = 32,
 ): Promise<void> {
+  try {
+    await fs.access("/proc/self/cgroup");
+  } catch {
+    return;
+  }
+
   const pidSet = new Set(processMap.keys());
   const candidatePids: string[] = [];
+  let hasRealApp = false;
 
   for (const proc of processMap.values()) {
     const isApp = isRealApplication(proc.command, installedAppCommands);
+    if (isApp) hasRealApp = true;
     const parentApp = isApp
       ? null
       : findNearestParentApp(proc, processMap, pidSet, installedAppCommands);
@@ -98,6 +106,8 @@ export async function hydrateCgroups(
       candidatePids.push(proc.pid);
     }
   }
+
+  if (!hasRealApp || candidatePids.length === 0) return;
 
   let index = 0;
   const workerCount = Math.min(limit, candidatePids.length);

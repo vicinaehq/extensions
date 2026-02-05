@@ -21,6 +21,12 @@ import {
   type ProcessInfo,
 } from "./process-utils";
 
+type AppMetadata = {
+  iconMap: Map<string, string>;
+  commandSet: Set<string>;
+  appCommandsKey: string;
+};
+
 function buildProcessListMarkdown(
   group: GroupedProcess,
   processMap: Map<string, ProcessInfo>,
@@ -34,57 +40,65 @@ function buildProcessListMarkdown(
   return `## Processes\n${lines.join("\n")}`;
 }
 
-export default function Command() {
+function useAppMetadata() {
   const appsPromise = usePromise(getApplications);
-  const { appIconMap, installedAppCommands, appCommandsKey } = useMemo(() => {
+
+  const appMetadata = useMemo<AppMetadata>(() => {
+    if (!appsPromise.data) {
+      return { iconMap: new Map(), commandSet: new Set(), appCommandsKey: "" };
+    }
+
     const iconMap = new Map<string, string>();
     const commandSet = new Set<string>();
-    const apps = appsPromise.data || [];
 
-    function addCommandVariants(value: string | undefined) {
-      if (!value) return;
-      const lowerValue = value.toLowerCase();
-      commandSet.add(lowerValue);
-      const tokens = lowerValue.split(/[^a-z0-9]+/).filter(Boolean);
+    const addTokens = (str: string, isCommand = false, icon?: string) => {
+      const lower = str.toLowerCase();
+      if (isCommand) commandSet.add(lower);
+      
+      const tokens = lower.split(/[^a-z0-9]+/).filter((t) => t.length > 2);
       for (const token of tokens) {
-        if (token.length > 2) {
-          commandSet.add(token);
-        }
+        if (isCommand) commandSet.add(token);
+        if (icon && !iconMap.has(token)) iconMap.set(token, icon);
       }
-    }
+    };
 
-    function addIconVariants(value: string, icon: string) {
-      const tokens = value
-        .toLowerCase()
-        .split(/[^a-z0-9]+/)
-        .filter(Boolean);
-      for (const token of tokens) {
-        if (token.length > 2 && !iconMap.has(token)) {
-          iconMap.set(token, icon);
-        }
-      }
-    }
-
-    for (const app of apps) {
+    for (const app of appsPromise.data) {
       const nameLower = app.name.toLowerCase();
       iconMap.set(nameLower, app.icon);
-      addCommandVariants(app.name);
-      addIconVariants(nameLower, app.icon);
+      
+      // Add variants for name (both command and icon mapping)
+      addTokens(app.name, true, app.icon);
 
+      // Add variants for path/executable (command only)
       if (app.path) {
-        const pathParts = app.path.split("/");
-        const executable = pathParts[pathParts.length - 1];
-        addCommandVariants(executable);
+        const executable = app.path.split("/").pop();
+        if (executable) {
+           addTokens(executable, true);
+        }
       }
     }
 
     const appCommandsKey = Array.from(commandSet).sort().join("|");
-    return {
-      appIconMap: iconMap,
-      installedAppCommands: commandSet,
-      appCommandsKey,
-    };
+    return { iconMap, commandSet, appCommandsKey };
   }, [appsPromise.data]);
+
+  return {
+    appMetadata,
+    appIconMap: appMetadata.iconMap,
+    installedAppCommands: appMetadata.commandSet,
+    appCommandsKey: appMetadata.appCommandsKey,
+    isLoading: appsPromise.isLoading,
+    error: appsPromise.error,
+  };
+}
+
+export default function Command() {
+  const {
+    appIconMap,
+    installedAppCommands,
+    appCommandsKey,
+    isLoading: isAppsLoading,
+  } = useAppMetadata();
 
   const isMullvadInstalled = useExec("mullvad", ["--version"]);
   const rawSplitTunnelList = useExec("mullvad", ["split-tunnel", "list"], {
@@ -124,7 +138,7 @@ export default function Command() {
   const isLoading =
     rawSplitTunnelList.isLoading ||
     isMullvadInstalled.isLoading ||
-    appsPromise.isLoading ||
+    isAppsLoading ||
     processesPromise.isLoading ||
     (pids.length > 0 && appCommandsKey.length === 0) ||
     (processMap.size === 0 && pids.length > 0);
