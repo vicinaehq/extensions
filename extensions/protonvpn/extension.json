@@ -1,8 +1,0 @@
-{
-  "name": "protonvpn",
-  "title": "ProtonVPN",
-  "description": "Control ProtonVPN directly from Vicinae — connect, disconnect, toggle, and check VPN status instantly.",
-  "repository": "https://github.com/Mujtaba1i/vicinae-protonvpn-extension",
-  "author": "Mujtaba1i",
-  "icon": "https://raw.githubusercontent.com/Mujtaba1i/vicinae-protonvpn-extension/refs/heads/main/assets/protonVPN.png"
-}
