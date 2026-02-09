@@ -1,7 +1,8 @@
 import { Clipboard, showToast, Toast, popToRoot } from '@vicinae/api';
 import { getAria2Client } from './lib/aria2-client';
 import { ensureDaemonRunning } from './lib/aria2-daemon';
-import { extractVideoUrl, isYtDlpInstalled } from './lib/yt-dlp-handler';
+import { extractVideoUrl, isYtDlpInstalled, YtDlpError } from './lib/yt-dlp-handler';
+import { isFfmpegInstalled } from './lib/ffmpeg-utils';
 import { detectUrlType, isValidUrl } from './lib/utils';
 
 // Config
@@ -73,19 +74,70 @@ export default async function Command(props: { arguments: { url?: string } }): P
         let title = 'Download';
 
         // Handle YouTube/video URLs
+        // Handle YouTube/video URLs
         if (urlType === 'youtube' || urlType === 'video') {
             const ytdlpInstalled = await isYtDlpInstalled();
 
             if (ytdlpInstalled) {
                 toast.title = 'Extracting video...';
                 try {
-                    const result = await extractVideoUrl(url);
-                    downloadUrl = result.url;
-                    filename = result.filename;
-                    title = result.title;
+                    // Default to 'best' quality for quick add
+                    const result = await extractVideoUrl(url, { quality: 'best' });
+
+                    if (result.isSplit && result.videoUrl && result.audioUrl) {
+                        // Check for FFmpeg
+                        if (!(await isFfmpegInstalled())) {
+                            await showToast({
+                                style: Toast.Style.Failure,
+                                title: 'FFmpeg missing',
+                                message: 'Cannot handle HQ download. Please install ffmpeg.'
+                            });
+                            // Fallback to non-split? 
+                            // We could retry extractVideoUrl with quality='720p' but let's just error for now or proceed?
+                            // User experience: better to get 720p than fail.
+                            // Retry logic:
+                            try {
+                                const fallback = await extractVideoUrl(url, { quality: '720p' });
+                                downloadUrl = fallback.url;
+                                filename = fallback.filename;
+                                title = fallback.title;
+                                await showToast({ style: Toast.Style.Success, title: 'Found video (720p)', message: title });
+                            } catch {
+                                throw new Error('FFmpeg missing and fallback failed');
+                            }
+                        } else {
+                            // Proceed with split download
+                            const options: Record<string, string> = { dir: DOWNLOAD_DIR };
+
+                            // Video
+                            await client.addUri([result.videoUrl], { ...options, out: `${result.filename}.video.mp4` });
+                            // Audio
+                            await client.addUri([result.audioUrl], { ...options, out: `${result.filename}.audio.m4a` });
+
+                            toast.style = Toast.Style.Success;
+                            toast.title = 'HQ Download Started';
+                            toast.message = 'Open Manager to merge';
+                            return; // Exit directly
+                        }
+                    } else {
+                        // Standard single file
+                        downloadUrl = result.url;
+                        filename = result.filename;
+                        title = result.title;
+                        await showToast({ style: Toast.Style.Success, title: 'Found video', message: result.title });
+                    }
+
                 } catch (err) {
+                    if (err instanceof YtDlpError) {
+                        // Fall back to direct URL if extraction fails completely
+                        console.error('yt-dlp extraction failed:', err);
+                        toast.style = Toast.Style.Failure;
+                        toast.title = 'yt-dlp Error';
+                        toast.message = err.message;
+                        return;
+                    }
                     // Fall back to direct URL
-                    console.error('yt-dlp extraction failed:', err);
+                    console.error('Extraction failed:', err);
                 }
             }
         } else if (urlType === 'magnet' || urlType === 'torrent') {

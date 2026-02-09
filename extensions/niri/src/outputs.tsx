@@ -1,13 +1,13 @@
-import { List, Icon, ActionPanel, Action } from "@vicinae/api";
-import { useNiriObjectData } from "./hooks";
-import type { Output } from "./types";
-import { NiriList } from "./components/NiriList";
-import { runNiriCommand, runNiriAction, showSuccess } from "./utils";
+import { List, Icon, ActionPanel, Action } from '@vicinae/api';
+import { useNiriObjectData } from './hooks';
+import type { Output } from './types';
+import { NiriList } from './components/NiriList';
+import { runNiriCommand, runNiriAction, showSuccess } from './utils';
 
 export default function Outputs() {
   const [outputs, loading, handleRefresh] = useNiriObjectData<Output>(
-    "niri msg --json outputs",
-    "Failed to get outputs",
+    'niri msg --json outputs',
+    'Failed to get outputs'
   );
 
   const setOutputScale = async (outputName: string, scale: number) => {
@@ -19,10 +19,10 @@ export default function Outputs() {
   };
 
   const toggleVRR = async (outputName: string, enable: boolean) => {
-    const action = enable ? "on" : "off";
+    const action = enable ? 'on' : 'off';
     const success = await runNiriCommand(`output ${outputName} vrr ${action}`);
     if (success) {
-      showSuccess(`VRR ${enable ? "enabled" : "disabled"}`);
+      showSuccess(`VRR ${enable ? 'enabled' : 'disabled'}`);
       await handleRefresh();
     }
   };
@@ -31,6 +31,13 @@ export default function Outputs() {
     const success = await runNiriAction(`focus-monitor ${outputName}`);
     if (success) {
       showSuccess(`Focused monitor ${outputName}`);
+    }
+  };
+
+  const setDynamicCastMonitor = async (outputName: string) => {
+    const success = await runNiriAction(`set-dynamic-cast-monitor ${outputName}`);
+    if (success) {
+      showSuccess(`Dynamic cast target set to monitor ${outputName}`);
     }
   };
 
@@ -43,12 +50,10 @@ export default function Outputs() {
     >
       {Object.values(outputs).map((output) => {
         const currentMode = output.modes[output.current_mode];
-        const resolution = currentMode
-          ? `${currentMode.width}×${currentMode.height}`
-          : "Unknown";
+        const resolution = currentMode ? `${currentMode.width}×${currentMode.height}` : 'Unknown';
         const refreshRate = currentMode
           ? `${(currentMode.refresh_rate / 1000).toFixed(1)}Hz`
-          : "Unknown";
+          : 'Unknown';
 
         return (
           <List.Item
@@ -58,24 +63,29 @@ export default function Outputs() {
             icon={Icon.Monitor}
             accessories={[
               output.vrr_supported
-                ? { text: `VRR ${output.vrr_enabled ? "On" : "Off"}`, icon: Icon.Gear }
+                ? { text: `VRR ${output.vrr_enabled ? 'On' : 'Off'}`, icon: Icon.Gear }
                 : {},
               { text: `Scale: ${output.logical.scale}x`, icon: Icon.Window },
             ]}
-              actions={
-                <ActionPanel>
+            actions={
+              <ActionPanel>
+                 <Action
+                   title="Focus Monitor"
+                   icon={Icon.Eye}
+                   onAction={() => focusMonitor(output.name)}
+                 />
+                 <Action
+                   title="Set Dynamic Cast to Monitor"
+                   icon={Icon.Camera}
+                   onAction={() => setDynamicCastMonitor(output.name)}
+                 />
+                {output.vrr_supported && (
                   <Action
-                    title="Focus Monitor"
-                    icon={Icon.Eye}
-                    onAction={() => focusMonitor(output.name)}
+                    title={`VRR ${output.vrr_enabled ? 'Off' : 'On'}`}
+                    icon={Icon.Gear}
+                    onAction={() => toggleVRR(output.name, !output.vrr_enabled)}
                   />
-                  {output.vrr_supported && (
-                    <Action
-                      title={`VRR ${output.vrr_enabled ? "Off" : "On"}`}
-                      icon={Icon.Gear}
-                      onAction={() => toggleVRR(output.name, !output.vrr_enabled)}
-                    />
-                  )}
+                )}
                 <Action
                   title="Set Scale to 1x"
                   icon={Icon.Window}
@@ -96,22 +106,13 @@ export default function Outputs() {
                   icon={Icon.Window}
                   onAction={() => setOutputScale(output.name, 2)}
                 />
-                <Action.CopyToClipboard
-                  title="Copy Output Name"
-                  content={output.name}
-                />
+                <Action.CopyToClipboard title="Copy Output Name" content={output.name} />
                 <Action.CopyToClipboard
                   title="Copy Model"
                   content={`${output.make} ${output.model}`}
                 />
-                <Action.CopyToClipboard
-                  title="Copy Serial"
-                  content={output.serial}
-                />
-                <Action.CopyToClipboard
-                  title="Copy Resolution"
-                  content={resolution}
-                />
+                <Action.CopyToClipboard title="Copy Serial" content={output.serial} />
+                <Action.CopyToClipboard title="Copy Resolution" content={resolution} />
                 <Action.CopyToClipboard
                   title="Copy Physical Size"
                   content={`${output.physical_size[0]}×${output.physical_size[1]}mm`}

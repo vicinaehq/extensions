@@ -41,14 +41,18 @@
     in
     {
       packages = forEachSystem (
-        { system, ... }:
+        { system, pkgs, ... }:
         lib.pipe (builtins.readDir ./extensions) [
           (lib.filterAttrs (_name: type: type == "directory"))
           (lib.mapAttrs (
             name: _type:
             vicinae.packages.${system}.mkVicinaeExtension {
-              pname = name;
+              pname = "vicinae-extension-${name}";
+              version = "0";
               src = ./extensions/${name};
+              postPatch = ''
+                substituteInPlace tsconfig.json --replace "../../" "${./.}/"
+              '';
             }
           ))
           (lib.flip builtins.removeAttrs [

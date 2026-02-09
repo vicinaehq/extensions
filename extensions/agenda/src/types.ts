@@ -5,3 +5,8 @@ export interface Calendar {
   name: string;
   color: Color;
 }
+
+export interface Preferences {
+  refreshInterval: string;
+  timeFormat: "12h" | "24h";
+}

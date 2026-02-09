@@ -1,0 +1,138 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "searxng",
+  "title": "Searxng Integration",
+  "description": "Integrates Searxng into your Vicinae",
+  "categories": [
+    "Web"
+  ],
+  "license": "MIT",
+  "author": "Ninetonine",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "search-with-searxng",
+      "title": "Search with Searxng",
+      "subtitle": "Start searching with Searxng",
+      "description": "Searches the internet",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "instance_domain",
+      "title": "Instance",
+      "description": "Please enter the domain of the instance you want to use. The instance must have enabled to search using JSON!",
+      "type": "textfield",
+      "required": true
+    },
+    {
+      "name": "keep_previous_search",
+      "title": "Keep previous search",
+      "description": "If enabled, the search will be stored locally so you can come back and look at the results again.",
+      "type": "checkbox",
+      "default": true,
+      "required": false,
+      "label": "Keep previous search"
+    },
+    {
+      "name": "details_start_open",
+      "title": "Details should start open",
+      "description": "If enabled, the detail view are visible when starting to search.",
+      "type": "checkbox",
+      "default": false,
+      "required": false,
+      "label": "Details should start open"
+    },
+    {
+      "name": "default_category",
+      "title": "Default Category",
+      "description": "This defines what category is used by default.",
+      "type": "dropdown",
+      "required": false,
+      "default": "general",
+      "data": [
+        {
+          "title": "Instance default",
+          "value": "default"
+        },
+        {
+          "title": "General",
+          "value": "general"
+        },
+        {
+          "title": "Images",
+          "value": "images"
+        },
+        {
+          "title": "Videos",
+          "value": "videos"
+        },
+        {
+          "title": "News",
+          "value": "news"
+        },
+        {
+          "title": "Map",
+          "value": "map"
+        },
+        {
+          "title": "Music",
+          "value": "music"
+        },
+        {
+          "title": "IT",
+          "value": "it"
+        },
+        {
+          "title": "Science",
+          "value": "science"
+        },
+        {
+          "title": "Files",
+          "value": "files"
+        },
+        {
+          "title": "Social Media",
+          "value": "social_media"
+        }
+      ]
+    },
+    {
+      "name": "engines",
+      "title": "Engines",
+      "description": "This defines, what engines the search should be using. Multiple engines can be defined using commas. This is passed directly to the API.",
+      "type": "textfield",
+      "default": "",
+      "placeholder": "Keep empty for instance defaults",
+      "required": false
+    },
+    {
+      "name": "languages",
+      "title": "Languages",
+      "description": "Defines what language is used for searching. You can only define one language. This is a limitation by the API.",
+      "default": "",
+      "type": "textfield",
+      "placeholder": "Keep empty for instance defaults",
+      "required": false
+    }
+    
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.18.1",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/lodash": "^4.17.21",
+    "typescript": "^5.9.2"
+  }
+}

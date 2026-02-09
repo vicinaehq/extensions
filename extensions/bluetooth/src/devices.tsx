@@ -18,7 +18,7 @@ import {
 	Bluetoothctl,
 	Device,
 } from "@/bluetoothctl";
-import { getIconFromInfo } from "@/utils";
+import { getBatteryLevel, getIconFromInfo } from "@/utils";
 import { BLUETOOTH_REGEX } from "@/patterns";
 
 interface Preferences {
@@ -41,12 +41,14 @@ function usePairedDevices() {
 					const connected = BLUETOOTH_REGEX.connectedStatus.test(info);
 					const trusted = info.includes("Trusted: yes");
 					const icon = getIconFromInfo(info);
+          const batteryLevel = getBatteryLevel(info);
 					devices.push({
 						name: name || mac,
 						mac,
 						connected,
 						trusted,
-						icon
+						icon,
+            batteryLevel
 					});
 				} catch (err) {
 					console.error(`Failed to get info for ${mac}:`, err);
@@ -114,6 +116,12 @@ async function performBluetoothAction(device: Device, action: string): Promise<v
 	}
 }
 
+function batteryIconColor(batteryLevel: number): Color {
+  if (batteryLevel > 20) return Color.Green;
+  else if (batteryLevel > 5) return Color.Orange;
+  else return Color.Red
+}
+
 // Device detail component
 function DeviceDetail({ device }: { device: Device }) {
 	return (
@@ -139,6 +147,18 @@ function DeviceDetail({ device }: { device: Device }) {
 							tintColor: device.connected ? Color.Green : Color.Red,
 						}}
 					/>
+          {device.connected && typeof device.batteryLevel === 'number' ? (
+            <List.Item.Detail.Metadata.Label
+              title='Battery Level'
+              text={`${device.batteryLevel} %`}
+              icon={
+                {
+                  source: Icon.Battery,
+                  tintColor: batteryIconColor(device.batteryLevel)
+                }
+              }
+            />
+          ) : undefined}
 				</List.Item.Detail.Metadata>
 			}
 		/>

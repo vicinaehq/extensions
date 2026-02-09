@@ -23,7 +23,7 @@ function parseProjectEntry(entry: VSCodeDatabaseEntry): RecentProject | null {
         projectPath = decodeFileUri(entry.fileUri);
     }
 
-    const { environment } = parseRemoteAuthority(entry.remoteAuthority);
+    const { environment, machineName } = parseRemoteAuthority(entry.remoteAuthority);
 
     // Validate path based on environment (only check local paths exist)
     if (!validateProjectPath(projectPath, environment)) {
@@ -39,6 +39,7 @@ function parseProjectEntry(entry: VSCodeDatabaseEntry): RecentProject | null {
         path: projectPath,
         lastOpened: lastOpened,
         environment: environment,
+        machineName: machineName,
     };
 }
 
