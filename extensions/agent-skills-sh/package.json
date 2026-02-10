@@ -1,6 +1,6 @@
 {
 	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-	"name": "agent-skills",
+	"name": "agent-skills-sh",
 	"title": "Agent Skills",
 	"description": "Install skills from skills.sh, the agent skills directory",
 	"categories": [],
