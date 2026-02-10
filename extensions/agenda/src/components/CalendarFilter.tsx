@@ -1,6 +1,6 @@
 import { List, Icon, Color } from "@vicinae/api";
-import { Calendar } from "../types";
-import { getCalendarName } from "../utils/calendar";
+import { Calendar } from "../lib/types";
+import { getCalendarName } from "../lib/calendar";
 
 interface CalendarFilterProps {
   selectedCalendar: string;
