@@ -1,0 +1,119 @@
+{
+  "name": "github",
+  "title": "GitHub",
+  "description": "Work with issues, pull requests, manage workflows, search repositories and stay on top of notifications",
+  "version": "1.0.0",
+  "author": "knoopx",
+  "license": "MIT",
+  "icon": "icon.png",
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
+  "commands": [
+    {
+      "name": "issues",
+      "title": "Issues",
+      "subtitle": "List your issues",
+      "description": "List issues created by you, assigned to you or mentioning you.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "issues",
+        "bugs",
+        "pull requests"
+      ]
+    },
+    {
+      "name": "repositories",
+      "title": "Repositories",
+      "subtitle": "Search in your repositories",
+      "description": "Search in your public or private repositories by name.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "repositories",
+        "repos",
+        "code"
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "personalAccessToken",
+      "title": "GitHub Token",
+      "description": "Your GitHub personal access token. Required scopes: notifications, repo, project, read:org, read:user.",
+      "type": "password",
+      "required": true
+    },
+    {
+      "name": "numberOfResults",
+      "title": "Number of search results",
+      "description": "For searching repositories, issues, discussions or pull requests, this is the number of results to request.",
+      "type": "textfield",
+      "default": "50"
+    },
+    {
+      "name": "defaultIssueFilter",
+      "title": "Default Issue Filter",
+      "description": "The default filter to use when opening the issues command.",
+      "type": "dropdown",
+      "default": "my-issues",
+      "data": [
+        {
+          "title": "My Issues",
+          "value": "my-issues"
+        },
+        {
+          "title": "Assigned to Me",
+          "value": "assigned"
+        },
+        {
+          "title": "Mentioning Me",
+          "value": "mentioning"
+        },
+        {
+          "title": "All Issues",
+          "value": "all"
+        }
+      ]
+    },
+    {
+      "name": "defaultRepositoryFilter",
+      "title": "Default Repository Filter",
+      "description": "The default filter to use when opening the repositories command.",
+      "type": "dropdown",
+      "default": "my",
+      "data": [
+        {
+          "title": "All Repositories",
+          "value": "all"
+        },
+        {
+          "title": "My Repositories",
+          "value": "my"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "eslint src/ --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.0.1",
+    "@vicinae/api": "^0.8.2",
+    "date-fns": "^3.6.0",
+    "lodash": "^4.17.21",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.5",
+    "@types/node": "^22.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
+    "eslint": "^9.39.2",
+    "typescript": "^5.9.2"
+  }
+}
