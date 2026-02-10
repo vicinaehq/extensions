@@ -62,6 +62,13 @@
       "subtitle": "Mullvad",
       "description": "Reactivates the VPN connection.",
       "mode": "no-view"
+    },
+    {
+      "name": "splitTunnelList",
+      "title": "View Split-Tunnel List",
+      "subtitle": "Mullvad",
+      "description": "View and manage processes excluded from the VPN tunnel",
+      "mode": "view"
     }
   ],
   "dependencies": {
