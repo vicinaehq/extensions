@@ -139,7 +139,10 @@ export default function DefineSuggestions() {
 
 export function Define({ title }: { title: string }) {
   const preferences = getPreferenceValues();
-  const resultLanguages: string[] = preferences.resultLanguages.split(",").map((lang: string) => lang.trim());
+  const resultLanguages: string[] = preferences.resultLanguages
+    .split(",")
+    .map((lang: string) => lang.trim())
+    .filter((lang: string) => lang !== "");
 
   const [content, setContent] = useState<string>("");
 
