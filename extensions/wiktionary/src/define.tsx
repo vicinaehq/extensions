@@ -183,9 +183,9 @@ export function Define({ title }: { title: string }) {
           item.definitions.forEach((definition) => {
             if (definition.definition == "") return;
 
-            const firstDefinitionLine = definition.definition.split("\n")[0];
-            const definitionText = td.turndown(firstDefinitionLine);
-            markdown += `1. ${definitionText}\n`;
+            const definitionText = td.turndown(definition.definition);
+            const firstDefinitionLine = definitionText.split("\n")[0];
+            markdown += `1. ${firstDefinitionLine}\n`;
 
             if (definition.parsedExamples) {
               definition.parsedExamples.forEach((example: { example: string | TurndownService.Node }) => {
