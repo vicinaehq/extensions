@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
-import { execAsync } from "../utils/execAsync";
+import { execSync } from "child_process";
+import { useMemo } from "react";
 
 export const useHasMiseInstalled = () => {
-  const [hasMiseInstalled, setHasMiseInstalled] = useState<boolean>(false);
-  useEffect(() => {
-    (async () => {
-      const hasMise = await execAsync("which mise").catch(() => false);
-      setHasMiseInstalled(!!hasMise);
-    })();
+  return useMemo(() => {
+    try {
+      const hasMise = execSync("which mise").toString().trim();
+      return !!hasMise;
+    } catch {
+      return false;
+    }
   }, []);
-  return hasMiseInstalled;
 };
