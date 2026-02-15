@@ -1,6 +1,6 @@
 import React from "react";
 import { exec } from "child_process";
-import { Action, ActionPanel, Color, Detail, getPreferenceValues, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Color, Detail, getPreferenceValues, Icon, Keyboard, List } from "@vicinae/api";
 import { cleanText } from "./api";
 import { copyToClipboard, relativeTime } from "./utils";
 import type {
@@ -33,27 +33,27 @@ function OptionActions({
           title="View Source Code"
           icon={Icon.Code}
           url={sourceUrl}
-          shortcut={{ modifiers: ["ctrl"], key: "s" }}
+          shortcut={Keyboard.Shortcut.Common.Open}
         />
       )}
       <Action
         title="Copy Option Name"
         icon={Icon.Clipboard}
         onAction={async () => await copyToClipboard(name, "Option name")}
-        shortcut={{ modifiers: ["ctrl"], key: "n" }}
+        shortcut={Keyboard.Shortcut.Common.Copy}
       />
       <Action
         title="Copy Description"
         icon={Icon.Clipboard}
         onAction={async () => await copyToClipboard(description, "Description")}
-        shortcut={{ modifiers: ["ctrl"], key: "d" }}
+        shortcut={Keyboard.Shortcut.Common.CopyName}
       />
       {defaultValue && (
         <Action
           title="Copy Default Value"
           icon={Icon.Clipboard}
           onAction={async () => await copyToClipboard(defaultValue, "Default value")}
-          shortcut={{ modifiers: ["ctrl"], key: "v" }}
+          shortcut={Keyboard.Shortcut.Common.CopyPath}
         />
       )}
     </ActionPanel>
@@ -190,27 +190,27 @@ export function PackageListItem({ pkg }: { pkg: NixPackage }) {
             title="Open Homepage"
             icon={Icon.Globe}
             onAction={openHomepage}
-            shortcut={{ modifiers: ["ctrl"], key: "o" }}
+            shortcut={Keyboard.Shortcut.Common.Open}
           />
           {sourceUrl && (
             <Action.OpenInBrowser
               title="View Source Code"
               icon={Icon.Code}
               url={sourceUrl}
-              shortcut={{ modifiers: ["ctrl"], key: "s" }}
+              shortcut={Keyboard.Shortcut.Common.OpenWith}
             />
           )}
           <Action
             title="Copy Package Name"
             icon={Icon.Clipboard}
             onAction={async () => await copyToClipboard(pkg.package_attr_name, "Package name")}
-            shortcut={{ modifiers: ["ctrl"], key: "n" }}
+            shortcut={Keyboard.Shortcut.Common.Copy}
           />
           <Action
             title="Copy Description"
             icon={Icon.Clipboard}
             onAction={async () => await copyToClipboard(trimmedDescription, "Description")}
-            shortcut={{ modifiers: ["ctrl"], key: "d" }}
+            shortcut={Keyboard.Shortcut.Common.CopyName}
           />
         </ActionPanel>
       }
@@ -329,25 +329,25 @@ export function FlakeListItem({ flake }: { flake: NixFlake }) {
             title="Open Repository"
             icon={Icon.Globe}
             url={sourceUrl}
-            shortcut={{ modifiers: ["ctrl"], key: "o" }}
+            shortcut={Keyboard.Shortcut.Common.Open}
           />
           <Action
             title="Copy Flake Name"
             icon={Icon.Clipboard}
             onAction={async () => await copyToClipboard(flakeName, "Flake name")}
-            shortcut={{ modifiers: ["ctrl"], key: "n" }}
+            shortcut={Keyboard.Shortcut.Common.Copy}
           />
           <Action
             title="Copy Package Name"
             icon={Icon.Clipboard}
             onAction={async () => await copyToClipboard(flake.package_attr_name, "Package name")}
-            shortcut={{ modifiers: ["ctrl"], key: "p" }}
+            shortcut={Keyboard.Shortcut.Common.CopyName}
           />
           <Action
             title="Copy Description"
             icon={Icon.Clipboard}
             onAction={async () => await copyToClipboard(description, "Description")}
-            shortcut={{ modifiers: ["ctrl"], key: "d" }}
+            shortcut={Keyboard.Shortcut.Common.CopyPath}
           />
         </ActionPanel>
       }
@@ -426,7 +426,7 @@ export function PullRequestListItem({ pr, onSelect }: { pr: GitHubIssue; onSelec
             title="Copy Pull Request Number"
             content={pr.number.toString()}
             onCopy={() => copyToClipboard(pr.number.toString(), "pull request number")}
-            shortcut={{ modifiers: ["ctrl"], key: "c" }}
+            shortcut={Keyboard.Shortcut.Common.Copy}
           />
         </ActionPanel>
       }
