@@ -1,13 +1,3 @@
-/**
- * Ollama API types and interfaces
- * 
- * Based on the Raycast Ollama extension by Massimiliano Pasquini
- * Original: https://github.com/raycast/extensions/tree/main/extensions/raycast-ollama
- * Original Author: Massimiliano Pasquini (massimiliano_pasquini)
- * 
- * Adapted for Vicinae by Norman Steger (voodoods)
- */
-
 export interface OllamaModel {
   name: string;
   modified_at: string;
