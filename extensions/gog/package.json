@@ -1,0 +1,95 @@
+{
+  "name": "gog",
+  "title": "gog",
+  "version": "1.0.0",
+  "description": "Manage Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, and Contacts using the gog CLI",
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "gmail",
+      "title": "Gmail",
+      "description": "Manage Gmail",
+      "mode": "view",
+      "icon": "gmail.png"
+    },
+    {
+      "name": "calendar",
+      "title": "Calendar",
+      "description": "View upcoming events (next 30 days)",
+      "mode": "view",
+      "icon": "calendar.png"
+    },
+    {
+      "name": "drive",
+      "title": "Drive",
+      "description": "Manage Drive",
+      "mode": "view",
+      "icon": "drive.png"
+    },
+    {
+      "name": "docs",
+      "title": "Docs",
+      "description": "Manage Docs",
+      "mode": "view",
+      "icon": "docs.png"
+    },
+    {
+      "name": "sheets",
+      "title": "Sheets",
+      "description": "Manage Sheets",
+      "mode": "view",
+      "icon": "sheets.png"
+    },
+    {
+      "name": "slides",
+      "title": "Slides",
+      "description": "Manage Slides",
+      "mode": "view",
+      "icon": "slides.png"
+    },
+    {
+      "name": "tasks",
+      "title": "Tasks",
+      "description": "Manage Tasks",
+      "mode": "view",
+      "icon": "tasks.png"
+    },
+    {
+      "name": "contacts",
+      "title": "Contacts",
+      "description": "Manage Contacts",
+      "mode": "view",
+      "icon": "contacts.png"
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "^0.19.3"
+  },
+  "devDependencies": {
+    "@bufbuild/protobuf": "^2.11.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@vitest/ui": "^4.0.18",
+    "jsdom": "^27.4.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  }
+}
