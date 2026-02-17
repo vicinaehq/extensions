@@ -59,7 +59,6 @@ export function ChatView({
             key={msg.id}
             title={msg.role === 'user' ? '👤 You' : '🦙 Ollama'}
             subtitle={msg.content}
-            accessories={[{ text: msg.role }]}
             actions={
               <ActionPanel>
                 <Action.Push

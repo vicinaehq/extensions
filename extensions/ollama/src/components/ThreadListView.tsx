@@ -19,7 +19,21 @@ export function ThreadListView({
 }: ThreadListViewProps) {
   return (
     <List isLoading={isLoading} navigationTitle="Ollama Conversations">
-      <List.Section title="Conversations">
+      <List.Section title="Actions">
+        <List.Item
+          title="New Conversation"
+          subtitle="Start a new chat session"
+          actions={
+            <ActionPanel>
+              <Action
+                title="Create New Conversation"
+                onAction={onCreateNew}
+              />
+            </ActionPanel>
+          }
+        />
+      </List.Section>
+      <List.Section title="Previous Conversations">
         {threads.length === 0 ? (
           <List.Item
             title="No conversations yet"
@@ -48,21 +62,6 @@ export function ThreadListView({
           ))
         )}
       </List.Section>
-      <List.Section title="Actions">
-        <List.Item
-          title="New Conversation"
-          subtitle="Start a new chat session"
-          actions={
-            <ActionPanel>
-              <Action
-                title="Create New Conversation"
-                onAction={onCreateNew}
-              />
-            </ActionPanel>
-          }
-        />
-      </List.Section>
     </List>
   );
 }
-
