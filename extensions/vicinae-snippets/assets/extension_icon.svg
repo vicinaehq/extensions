@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff5a5a" />
+      <stop offset="1" stop-color="#f43f5e" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.28" cy="0.22" r="0.9">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.18" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.6" r="0.95">
+      <stop offset="0" stop-color="#000000" stop-opacity="0" />
+      <stop offset="1" stop-color="#000000" stop-opacity="0.10" />
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="96" fill="url(#bg)" />
+  <rect width="512" height="512" rx="96" fill="url(#glow)" />
+  <rect width="512" height="512" rx="96" fill="url(#vignette)" />
+  <rect x="10" y="10" width="492" height="492" rx="86" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="8" />
+
+  <g transform="translate(0 6)" fill="#000000" opacity="0.12">
+    <rect x="120" y="129" width="168" height="50" rx="25" />
+    <rect x="325" y="129" width="68" height="50" rx="25" />
+    <rect x="120" y="231" width="100" height="50" rx="25" />
+    <rect x="258" y="231" width="136" height="50" rx="25" />
+    <rect x="120" y="333" width="272" height="50" rx="25" />
+  </g>
+  <g fill="#ffffff" opacity="0.98">
+    <rect x="120" y="129" width="168" height="50" rx="25" />
+    <rect x="325" y="129" width="68" height="50" rx="25" />
+
+    <rect x="120" y="231" width="100" height="50" rx="25" />
+    <rect x="258" y="231" width="136" height="50" rx="25" />
+
+    <rect x="120" y="333" width="272" height="50" rx="25" />
+  </g>
+</svg>

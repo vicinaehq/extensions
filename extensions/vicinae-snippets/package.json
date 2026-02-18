@@ -1,0 +1,60 @@
+{
+  "name": "vicinae-snippets",
+  "title": "Vicinae Snippets",
+  "description": "Create, manage, and quickly paste text snippets in Vicinae (similar to Raycast Snippets). Supports dynamic placeholders and import/export.",
+  "author": "xiadengma",
+  "license": "MIT",
+  "icon": "extension_icon.svg",
+  "categories": [
+    "Productivity"
+  ],
+  "commands": [
+    {
+      "name": "create-snippet",
+      "icon": "extension_icon.svg",
+      "title": "Create Snippet",
+      "subtitle": "Create a new snippet",
+      "description": "Create and save a snippet (supports dynamic placeholders)",
+      "mode": "view"
+    },
+    {
+      "name": "search-snippets",
+      "icon": "extension_icon.svg",
+      "title": "Search Snippets",
+      "subtitle": "Search and paste/copy snippets",
+      "description": "Search, preview, and paste/copy snippets",
+      "mode": "view"
+    },
+    {
+      "name": "import-snippets",
+      "icon": "extension_icon.svg",
+      "title": "Import Snippets",
+      "subtitle": "Import snippets from JSON",
+      "description": "Import from a file first (with clipboard fallback) and show an import report",
+      "mode": "view"
+    },
+    {
+      "name": "export-snippets",
+      "icon": "extension_icon.svg",
+      "title": "Export Snippets",
+      "subtitle": "Export snippets to JSON",
+      "description": "Export snippets to a JSON file and also copy to the clipboard",
+      "mode": "no-view"
+    }
+  ],
+  "scripts": {
+    "dev": "node dev-with-filter.js",
+    "dev:raw": "vici develop",
+    "build": "vici build -o dist",
+    "lint": "vici lint",
+    "check": "npm run lint && npm run build",
+    "self-check": "tsx scripts/self-check.ts"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.19.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
