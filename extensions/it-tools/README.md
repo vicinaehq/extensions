@@ -1,6 +1,6 @@
 # IT Tools
 
-> Access 395+ developer and IT tools directly from Vicinae
+> Access 410+ developer and IT tools directly from Vicinae
 
 Browse and quickly open a comprehensive collection of IT tools including encoders, decoders, converters, formatters, generators, and utilities for everyday development tasks.
 
@@ -10,7 +10,7 @@ This tool is built on top of https://github.com/sharevb/it-tools, which is a for
 
 ## Features
 
-- **395+ Tools**: Access a vast collection of developer utilities
+- **410+ Tools**: Access a vast collection of developer utilities
 - **Quick Search**: Find tools instantly with keyword-based search
 - **Flexible Configuration**: Use the public IT-tools.tech or your own self-hosted instance
 - **One-Click Access**: Open any tool directly in your browser

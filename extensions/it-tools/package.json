@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "it-tools",
   "title": "IT Tools",
-  "description": "Access 375+ developer and IT tools directly from Vicinae. Includes converters, encoders, generators, formatters, and utilities for everyday development tasks.",
+  "description": "Access 410+ developer and IT tools directly from Vicinae. Includes converters, encoders, generators, formatters, and utilities for everyday development tasks.",
   "categories": [
     "Developer Tools",
     "Productivity",
