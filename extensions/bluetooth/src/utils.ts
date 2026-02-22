@@ -1,8 +1,6 @@
-import {
-	Icon,
-} from "@vicinae/api";
+import { Icon } from "@vicinae/api";
+import type { Device } from "@/bluetoothctl";
 import { BLUETOOTH_REGEX } from "@/patterns";
-import { Device } from "@/bluetoothctl";
 
 function isMacLike(name: string): boolean {
 	return BLUETOOTH_REGEX.macAddress.test(name);
@@ -12,39 +10,39 @@ export function getIconFromInfo(info: string) {
 	const iconMatch = BLUETOOTH_REGEX.icon.exec(info);
 	if (iconMatch) {
 		const bluezIcon = iconMatch[1].toLowerCase();
-		if (bluezIcon.includes('headset')
-			|| bluezIcon.includes('headphones')
-			|| bluezIcon.includes('audio-card')) {
+		if (
+			bluezIcon.includes("headset") ||
+			bluezIcon.includes("headphones") ||
+			bluezIcon.includes("audio-card")
+		) {
 			return Icon.Headphones;
 		}
-		if (bluezIcon.includes('keyboard')) {
+		if (bluezIcon.includes("keyboard")) {
 			return Icon.Keyboard;
 		}
-		if (bluezIcon.includes('mouse')) {
+		if (bluezIcon.includes("mouse")) {
 			return Icon.Mouse;
 		}
-		if (bluezIcon.includes('phone')
-			|| bluezIcon.includes('mobile')) {
+		if (bluezIcon.includes("phone") || bluezIcon.includes("mobile")) {
 			return Icon.Mobile;
 		}
-		if (bluezIcon.includes('gamepad')
-			|| bluezIcon.includes('joystick')
-			|| bluezIcon.includes('input-gaming')) {
+		if (
+			bluezIcon.includes("gamepad") ||
+			bluezIcon.includes("joystick") ||
+			bluezIcon.includes("input-gaming")
+		) {
 			return Icon.GameController;
 		}
-		if (bluezIcon.includes('camera')
-			|| bluezIcon.includes('video')) {
+		if (bluezIcon.includes("camera") || bluezIcon.includes("video")) {
 			return Icon.Camera;
 		}
-		if (bluezIcon.includes('printer')) {
+		if (bluezIcon.includes("printer")) {
 			return Icon.Print;
 		}
-		if (bluezIcon.includes('network')
-			|| bluezIcon.includes('wireless')) {
+		if (bluezIcon.includes("network") || bluezIcon.includes("wireless")) {
 			return Icon.Network;
 		}
-		if (bluezIcon.includes('computer')
-			|| bluezIcon.includes('laptop')) {
+		if (bluezIcon.includes("computer") || bluezIcon.includes("laptop")) {
 			return Icon.Desktop;
 		}
 	}
@@ -52,11 +50,10 @@ export function getIconFromInfo(info: string) {
 }
 
 export function getBatteryLevel(info: string): number | undefined {
-  const matches = info.match(BLUETOOTH_REGEX.batteryLevel);
-
-  if (matches === null) return;
-
-  return !!matches[1] ? parseInt(matches[1].trim()) : undefined;
+	// BlueZ outputs "Battery Percentage: 0x46 (70)" - value is hex, was incorrectly parsed with base 10
+	const matches = info.match(BLUETOOTH_REGEX.batteryLevel);
+	if (!matches?.[1]) return undefined;
+	return parseInt(matches[1].trim(), 16);
 }
 
 export function sortDevices(devices: Device[]): Device[] {
@@ -72,15 +69,14 @@ export function sortDevices(devices: Device[]): Device[] {
 	});
 }
 
-
 export function removeFromDeviceList(
 	mac: string,
-	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
+	setDevices: React.Dispatch<React.SetStateAction<Device[]>>,
 ): void {
 	setDevices((prev) => prev.filter((d) => d.mac !== mac));
 }
 
 export function stripAnsiCodes(text: string): string {
 	// Remove ANSI escape sequences (colors, formatting, etc.)
-	return text.replace(/\x1b\[[0-9;]*[mGKHF]/g, '');
+	return text.replace(/\x1b\[[0-9;]*[mGKHF]/g, "");
 }

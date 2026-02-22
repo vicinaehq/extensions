@@ -1,24 +1,24 @@
-import { useEffect, useState, useCallback, useRef } from "react";
 import {
 	Action,
 	ActionPanel,
-	List,
 	Alert,
-	Toast,
-	showToast,
-	Icon,
 	Color,
-	confirmAlert
+	confirmAlert,
+	Icon,
+	List,
+	showToast,
+	Toast,
 } from "@vicinae/api";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	Bluetoothctl,
-	BluetoothctlLine,
+	type BluetoothctlLine,
 	BluetoothctlLineType,
-	Device,
-	PairingEvent,
-	PairingEventType,
+	type Device,
 	makeDiscoverable,
-	makeUndiscoverable
+	makeUndiscoverable,
+	type PairingEvent,
+	PairingEventType,
 } from "@/bluetoothctl";
 
 interface DiscoverabilityStatus {
@@ -41,33 +41,36 @@ function useDiscoverability() {
 	const cleanupFunctionRef = useRef<(() => void) | null>(null);
 
 	const checkDiscoverabilityStatus = useCallback(async () => {
-		setStatus(prev => ({ ...prev, loading: true }));
+		setStatus((prev) => ({ ...prev, loading: true }));
 
 		try {
 			// Get controller info to check discoverability status
 			const info = await Bluetoothctl.getControllerInfo();
 			const discoverable = info.includes("Discoverable: yes");
 
-			setStatus(prev => ({
+			setStatus((prev) => ({
 				...prev,
 				discoverable,
 				loading: false,
 				// Remember original state only on first check
-				wasOriginallyDiscoverable: prev.wasOriginallyDiscoverable !== null ? prev.wasOriginallyDiscoverable : discoverable,
+				wasOriginallyDiscoverable:
+					prev.wasOriginallyDiscoverable !== null
+						? prev.wasOriginallyDiscoverable
+						: discoverable,
 			}));
 		} catch (error) {
 			console.error("Failed to get discoverability status:", error);
 			showToast({
 				style: Toast.Style.Failure,
-				title: "Failed to get Bluetooth status"
+				title: "Failed to get Bluetooth status",
 			});
-			setStatus(prev => ({ ...prev, loading: false }));
+			setStatus((prev) => ({ ...prev, loading: false }));
 		}
 	}, []);
 
 	const DiscoverableCallback = useCallback(async () => {
 		try {
-			setStatus(prev => ({ ...prev, loading: true }));
+			setStatus((prev) => ({ ...prev, loading: true }));
 
 			// Clean up any existing discoverable session
 			if (cleanupFunctionRef.current) {
@@ -78,16 +81,15 @@ function useDiscoverability() {
 			const cleanup = await makeDiscoverable();
 			cleanupFunctionRef.current = cleanup;
 
-			setStatus(prev => ({ ...prev, discoverable: true, loading: false }));
-
+			setStatus((prev) => ({ ...prev, discoverable: true, loading: false }));
 		} catch (error) {
 			console.error("Failed to make discoverable:", error);
 			showToast({
 				style: Toast.Style.Failure,
 				title: "Failed to make device discoverable",
-				message: error instanceof Error ? error.message : "Unknown error"
+				message: error instanceof Error ? error.message : "Unknown error",
 			});
-			setStatus(prev => ({ ...prev, loading: false }));
+			setStatus((prev) => ({ ...prev, loading: false }));
 		}
 	}, []);
 
@@ -102,18 +104,17 @@ function useDiscoverability() {
 				await makeUndiscoverable();
 			}
 
-			setStatus(prev => ({
+			setStatus((prev) => ({
 				...prev,
 				discoverable: status.wasOriginallyDiscoverable,
-				pairingDevice: null
+				pairingDevice: null,
 			}));
-
 		} catch (error) {
 			console.error("Failed to restore original state:", error);
 			showToast({
 				style: Toast.Style.Failure,
 				title: "Failed to restore discoverability state",
-				message: error instanceof Error ? error.message : "Unknown error"
+				message: error instanceof Error ? error.message : "Unknown error",
 			});
 		}
 	}, [status.wasOriginallyDiscoverable, status.discoverable]);
@@ -139,7 +140,7 @@ function useDiscoverability() {
 						trusted: false,
 					};
 
-					setStatus(prev => ({ ...prev, pairingDevice: device }));
+					setStatus((prev) => ({ ...prev, pairingDevice: device }));
 
 					await showToast({
 						style: Toast.Style.Success,
@@ -151,44 +152,56 @@ function useDiscoverability() {
 
 				case BluetoothctlLineType.PasskeyConfirmation: {
 					if (status.pairingDevice) {
-						await handleIncomingPairingEvent({
-							type: PairingEventType.PasskeyConfirmation,
-							device: status.pairingDevice,
-							passkey: line.passkey
-						}, bt);
+						await handleIncomingPairingEvent(
+							{
+								type: PairingEventType.PasskeyConfirmation,
+								device: status.pairingDevice,
+								passkey: line.passkey,
+							},
+							bt,
+						);
 					}
 					break;
 				}
 
 				case BluetoothctlLineType.PinCodeRequest: {
 					if (status.pairingDevice) {
-						await handleIncomingPairingEvent({
-							type: PairingEventType.PinCodeRequest,
-							device: status.pairingDevice
-						}, bt);
+						await handleIncomingPairingEvent(
+							{
+								type: PairingEventType.PinCodeRequest,
+								device: status.pairingDevice,
+							},
+							bt,
+						);
 					}
 					break;
 				}
 
 				case BluetoothctlLineType.PairingSuccess: {
 					if (status.pairingDevice) {
-						await handleIncomingPairingEvent({
-							type: PairingEventType.PairingSuccess,
-							device: status.pairingDevice
-						}, bt);
-						setStatus(prev => ({ ...prev, pairingDevice: null }));
+						await handleIncomingPairingEvent(
+							{
+								type: PairingEventType.PairingSuccess,
+								device: status.pairingDevice,
+							},
+							bt,
+						);
+						setStatus((prev) => ({ ...prev, pairingDevice: null }));
 					}
 					break;
 				}
 
 				case BluetoothctlLineType.PairingFailure: {
 					if (status.pairingDevice) {
-						await handleIncomingPairingEvent({
-							type: PairingEventType.PairingFailure,
-							device: status.pairingDevice,
-							reason: line.reason
-						}, bt);
-						setStatus(prev => ({ ...prev, pairingDevice: null }));
+						await handleIncomingPairingEvent(
+							{
+								type: PairingEventType.PairingFailure,
+								device: status.pairingDevice,
+								reason: line.reason,
+							},
+							bt,
+						);
+						setStatus((prev) => ({ ...prev, pairingDevice: null }));
 					}
 					break;
 				}
@@ -230,7 +243,10 @@ function useDiscoverability() {
 }
 
 // Helper function for handling incoming pairing events
-async function handleIncomingPairingEvent(event: PairingEvent, bt: Bluetoothctl) {
+async function handleIncomingPairingEvent(
+	event: PairingEvent,
+	bt: Bluetoothctl,
+) {
 	switch (event.type) {
 		case PairingEventType.PasskeyConfirmation: {
 			const confirm = await confirmAlert({
@@ -259,7 +275,9 @@ async function handleIncomingPairingEvent(event: PairingEvent, bt: Bluetoothctl)
 		}
 
 		case PairingEventType.PinCodeRequest: {
-			const pin = prompt(`Enter PIN Code for incoming pairing request from ${event.device.name}`);
+			const pin = prompt(
+				`Enter PIN Code for incoming pairing request from ${event.device.name}`,
+			);
 			if (pin) {
 				bt.pin(pin);
 				await showToast({
@@ -306,13 +324,15 @@ export default function Discoverable() {
 			return "Setting up discoverability...";
 		}
 
-		let description = "Your device is visible to other Bluetooth devices while this command is open.\n\n";
+		let description =
+			"Your device is visible to other Bluetooth devices while this command is open.\n\n";
 
 		if (status.pairingDevice) {
 			description += `Currently pairing with: ${status.pairingDevice.name}\n\n`;
 		}
 
-		description += "Discoverability will be automatically restored to its original state when you exit this view.";
+		description +=
+			"Discoverability will be automatically restored to its original state when you exit this view.";
 
 		return description;
 	};

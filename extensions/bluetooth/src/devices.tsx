@@ -1,25 +1,25 @@
-import { useEffect, useState, useCallback } from "react";
 import {
 	Action,
 	ActionPanel,
 	Color,
+	getPreferenceValues,
 	Icon,
 	List,
-	Toast,
 	showToast,
-	getPreferenceValues,
+	Toast,
 } from "@vicinae/api";
+import { useCallback, useEffect, useState } from "react";
 import {
+	Bluetoothctl,
+	connectToDevice,
+	type Device,
+	DeviceOptions,
 	disconnectFromDevice,
 	removeDevice,
 	trustDevice,
-	connectToDevice,
-	DeviceOptions,
-	Bluetoothctl,
-	Device,
 } from "@/bluetoothctl";
-import { getBatteryLevel, getIconFromInfo } from "@/utils";
 import { BLUETOOTH_REGEX } from "@/patterns";
+import { getBatteryLevel, getIconFromInfo } from "@/utils";
 
 interface Preferences {
 	connectionToggleable: boolean;
@@ -32,7 +32,9 @@ function usePairedDevices() {
 
 	const fetchDevices = useCallback(async (): Promise<Device[]> => {
 		try {
-			const initialDevices = await Bluetoothctl.listDevices(DeviceOptions.PAIRED);
+			const initialDevices = await Bluetoothctl.listDevices(
+				DeviceOptions.PAIRED,
+			);
 			const devices: Device[] = [];
 
 			for (const { mac, name } of initialDevices) {
@@ -41,14 +43,14 @@ function usePairedDevices() {
 					const connected = BLUETOOTH_REGEX.connectedStatus.test(info);
 					const trusted = info.includes("Trusted: yes");
 					const icon = getIconFromInfo(info);
-          const batteryLevel = getBatteryLevel(info);
+					const batteryLevel = getBatteryLevel(info);
 					devices.push({
 						name: name || mac,
 						mac,
 						connected,
 						trusted,
 						icon,
-            batteryLevel
+						batteryLevel,
 					});
 				} catch (err) {
 					console.error(`Failed to get info for ${mac}:`, err);
@@ -57,14 +59,17 @@ function usePairedDevices() {
 						mac,
 						connected: false,
 						trusted: false,
-						icon: Icon.Bluetooth
+						icon: Icon.Bluetooth,
 					});
 				}
 			}
 
 			return devices.sort((a, b) => a.name.localeCompare(b.name));
 		} catch (error) {
-			showToast({ style: Toast.Style.Failure, title: "Failed to fetch Bluetooth devices" });
+			showToast({
+				style: Toast.Style.Failure,
+				title: "Failed to fetch Bluetooth devices",
+			});
 			console.error(error);
 			return [];
 		}
@@ -85,41 +90,38 @@ function usePairedDevices() {
 }
 
 // Enhanced Bluetooth action handler using the refactored functions
-async function performBluetoothAction(device: Device, action: string): Promise<void> {
-	try {
-		switch (action) {
-			case "connect":
-				await connectToDevice(device);
-				break;
-			case "disconnect":
-				await disconnectFromDevice(device);
-				break;
-			case "remove":
-				await removeDevice(device);
-				break;
-			case "trust":
-				await trustDevice(device);
-				break;
-			default:
-				console.error(`Unknown action: ${action}`);
-				await showToast({
-					style: Toast.Style.Failure,
-					title: "Unknown Action",
-					message: `Unknown action: ${action}`
-				});
-				return;
-		}
-	} catch (error) {
-		// Error handling is already done in the individual functions
-		// via the centralized parsing system, so we just re-throw
-		throw error;
+async function performBluetoothAction(
+	device: Device,
+	action: string,
+): Promise<void> {
+	switch (action) {
+		case "connect":
+			await connectToDevice(device);
+			break;
+		case "disconnect":
+			await disconnectFromDevice(device);
+			break;
+		case "remove":
+			await removeDevice(device);
+			break;
+		case "trust":
+			await trustDevice(device);
+			break;
+		default:
+			console.error(`Unknown action: ${action}`);
+			await showToast({
+				style: Toast.Style.Failure,
+				title: "Unknown Action",
+				message: `Unknown action: ${action}`,
+			});
+			return;
 	}
 }
 
 function batteryIconColor(batteryLevel: number): Color {
-  if (batteryLevel > 20) return Color.Green;
-  else if (batteryLevel > 5) return Color.Orange;
-  else return Color.Red
+	if (batteryLevel > 20) return Color.Green;
+	else if (batteryLevel > 5) return Color.Orange;
+	else return Color.Red;
 }
 
 // Device detail component
@@ -128,8 +130,14 @@ function DeviceDetail({ device }: { device: Device }) {
 		<List.Item.Detail
 			metadata={
 				<List.Item.Detail.Metadata>
-					<List.Item.Detail.Metadata.Label title="Device Name" text={device.name} />
-					<List.Item.Detail.Metadata.Label title="MAC Address" text={device.mac} />
+					<List.Item.Detail.Metadata.Label
+						title="Device Name"
+						text={device.name}
+					/>
+					<List.Item.Detail.Metadata.Label
+						title="MAC Address"
+						text={device.mac}
+					/>
 					<List.Item.Detail.Metadata.Separator />
 					<List.Item.Detail.Metadata.Label
 						title="Trust Status"
@@ -147,18 +155,16 @@ function DeviceDetail({ device }: { device: Device }) {
 							tintColor: device.connected ? Color.Green : Color.Red,
 						}}
 					/>
-          {device.connected && typeof device.batteryLevel === 'number' ? (
-            <List.Item.Detail.Metadata.Label
-              title='Battery Level'
-              text={`${device.batteryLevel} %`}
-              icon={
-                {
-                  source: Icon.Battery,
-                  tintColor: batteryIconColor(device.batteryLevel)
-                }
-              }
-            />
-          ) : undefined}
+					{device.connected && typeof device.batteryLevel === "number" ? (
+						<List.Item.Detail.Metadata.Label
+							title="Battery Level"
+							text={`${device.batteryLevel} %`}
+							icon={{
+								source: Icon.Battery,
+								tintColor: batteryIconColor(device.batteryLevel),
+							}}
+						/>
+					) : undefined}
 				</List.Item.Detail.Metadata>
 			}
 		/>
@@ -169,7 +175,7 @@ function DeviceDetail({ device }: { device: Device }) {
 function createDeviceActionHandler(
 	action: string,
 	device: Device,
-	refreshDevices: () => Promise<void>
+	refreshDevices: () => Promise<void>,
 ) {
 	return async () => {
 		try {
@@ -188,7 +194,7 @@ function createDeviceActionHandler(
 // Toggle connection handler
 function createToggleConnectionHandler(
 	device: Device,
-	refreshDevices: () => Promise<void>
+	refreshDevices: () => Promise<void>,
 ) {
 	return async () => {
 		try {
@@ -198,7 +204,10 @@ function createToggleConnectionHandler(
 				await connectToDevice(device);
 			}
 		} catch (error) {
-			console.error(`Failed to ${device.connected ? 'disconnect from' : 'connect to'} ${device.name}:`, error);
+			console.error(
+				`Failed to ${device.connected ? "disconnect from" : "connect to"} ${device.name}:`,
+				error,
+			);
 			// Error toasts are handled by the individual functions
 		} finally {
 			// Always refresh to get the latest state
@@ -227,20 +236,24 @@ function DeviceListItem({
 			title={device.name}
 			subtitle={device.mac}
 			icon={device.icon}
-			accessories={!showingDetail ? [
-				{
-					text: device.trusted ?
-						{ value: "Trusted", color: Color.Green } :
-						{ value: "Not Trusted", color: Color.Orange },
-					icon: Icon.Lock,
-				},
-				{
-					text: device.connected ?
-						{ value: "Connected", color: Color.Green } :
-						{ value: "Disconnected", color: Color.Red },
-					icon: device.connected ? Icon.CircleProgress : Icon.XMarkCircle,
-				},
-			] : undefined}
+			accessories={
+				!showingDetail
+					? [
+							{
+								text: device.trusted
+									? { value: "Trusted", color: Color.Green }
+									: { value: "Not Trusted", color: Color.Orange },
+								icon: Icon.Lock,
+							},
+							{
+								text: device.connected
+									? { value: "Connected", color: Color.Green }
+									: { value: "Disconnected", color: Color.Red },
+								icon: device.connected ? Icon.CircleProgress : Icon.XMarkCircle,
+							},
+						]
+					: undefined
+			}
 			detail={showingDetail ? <DeviceDetail device={device} /> : undefined}
 			actions={
 				<ActionPanel>
@@ -258,14 +271,22 @@ function DeviceListItem({
 								title="Connect"
 								icon={Icon.Wifi}
 								shortcut={{ modifiers: ["cmd"], key: "c" }}
-								onAction={createDeviceActionHandler("connect", device, refreshDevices)}
+								onAction={createDeviceActionHandler(
+									"connect",
+									device,
+									refreshDevices,
+								)}
 							/>
 							<Action
 								title="Disconnect"
 								icon={Icon.WifiDisabled}
 								style="destructive"
 								shortcut={{ modifiers: ["cmd"], key: "d" }}
-								onAction={createDeviceActionHandler("disconnect", device, refreshDevices)}
+								onAction={createDeviceActionHandler(
+									"disconnect",
+									device,
+									refreshDevices,
+								)}
 							/>
 						</>
 					)}
@@ -273,14 +294,22 @@ function DeviceListItem({
 						title="Trust"
 						icon={Icon.Heart}
 						shortcut={{ modifiers: ["cmd"], key: "t" }}
-						onAction={createDeviceActionHandler("trust", device, refreshDevices)}
+						onAction={createDeviceActionHandler(
+							"trust",
+							device,
+							refreshDevices,
+						)}
 					/>
 					<Action
 						title="Forget"
 						icon={Icon.HeartDisabled}
 						style="destructive"
 						shortcut={{ modifiers: ["cmd"], key: "f" }}
-						onAction={createDeviceActionHandler("remove", device, refreshDevices)}
+						onAction={createDeviceActionHandler(
+							"remove",
+							device,
+							refreshDevices,
+						)}
 					/>
 					<ActionPanel.Section>
 						<Action.Open

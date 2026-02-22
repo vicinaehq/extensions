@@ -1,13 +1,8 @@
-import {
-	Alert,
-	confirmAlert,
-	Toast,
-	showToast,
-} from "@vicinae/api";
-import { ChildProcess, spawn, exec } from "child_process";
-import { stripAnsiCodes, } from "@/utils";
-import * as util from "util";
+import { type ChildProcess, exec, spawn } from "node:child_process";
+import * as util from "node:util";
+import { Alert, confirmAlert, showToast, Toast } from "@vicinae/api";
 import { BLUETOOTH_REGEX } from "@/patterns";
+import { stripAnsiCodes } from "@/utils";
 
 export type Device = {
 	mac: string;
@@ -15,7 +10,7 @@ export type Device = {
 	icon: string;
 	connected: boolean;
 	trusted: boolean;
-  batteryLevel?: number;
+	batteryLevel?: number;
 };
 
 export enum DeviceOptions {
@@ -23,7 +18,7 @@ export enum DeviceOptions {
 	BONDED = "Bonded",
 	TRUSTED = "Trusted",
 	CONNECTED = "Connected",
-};
+}
 
 // Pairing event types
 export enum PairingEventType {
@@ -35,7 +30,11 @@ export enum PairingEventType {
 }
 
 export type PairingEvent =
-	| { type: PairingEventType.PasskeyConfirmation; device: Device; passkey: string }
+	| {
+			type: PairingEventType.PasskeyConfirmation;
+			device: Device;
+			passkey: string;
+	  }
 	| { type: PairingEventType.PinCodeRequest; device: Device }
 	| { type: PairingEventType.PairingSuccess; device: Device }
 	| { type: PairingEventType.PairingFailure; device: Device; reason?: string }
@@ -82,28 +81,89 @@ export enum BluetoothctlLineType {
 	UndiscoverableFailure = "UndiscoverableFailure",
 
 	// Generic/Unknown
-	Unknown = "Unknown"
+	Unknown = "Unknown",
 }
 
 export type BluetoothctlLine =
-	| { type: BluetoothctlLineType.DeviceListed; device: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.DeviceNew; device: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.DeviceChanged; device: { mac: string; name: string }; property?: string }
-	| { type: BluetoothctlLineType.DeviceDeleted; device: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.PasskeyConfirmation; passkey: string; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.PinCodeRequest; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.PairingSuccess; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.PairingFailure; reason: string; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.ConnectionSuccess; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.ConnectionFailure; reason: string; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.DeviceConnected; device: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.DeviceDisconnected; device: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.DisconnectSuccess; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.DisconnectFailure; reason: string; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.RemoveSuccess; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.RemoveFailure; reason: string; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.TrustSuccess; device?: { mac: string; name: string } }
-	| { type: BluetoothctlLineType.TrustFailure; reason: string; device?: { mac: string; name: string } }
+	| {
+			type: BluetoothctlLineType.DeviceListed;
+			device: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.DeviceNew;
+			device: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.DeviceChanged;
+			device: { mac: string; name: string };
+			property?: string;
+	  }
+	| {
+			type: BluetoothctlLineType.DeviceDeleted;
+			device: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.PasskeyConfirmation;
+			passkey: string;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.PinCodeRequest;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.PairingSuccess;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.PairingFailure;
+			reason: string;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.ConnectionSuccess;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.ConnectionFailure;
+			reason: string;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.DeviceConnected;
+			device: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.DeviceDisconnected;
+			device: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.DisconnectSuccess;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.DisconnectFailure;
+			reason: string;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.RemoveSuccess;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.RemoveFailure;
+			reason: string;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.TrustSuccess;
+			device?: { mac: string; name: string };
+	  }
+	| {
+			type: BluetoothctlLineType.TrustFailure;
+			reason: string;
+			device?: { mac: string; name: string };
+	  }
 	| { type: BluetoothctlLineType.DiscoverableSuccess }
 	| { type: BluetoothctlLineType.DiscoverableFailure; reason: string }
 	| { type: BluetoothctlLineType.UndiscoverableSuccess }
@@ -124,17 +184,27 @@ export function parseBluetoothctlLine(rawLine: string): BluetoothctlLine {
 		const mac = deviceMatch[1];
 		const name = deviceMatch[2].trim();
 
-		if (line.includes('NEW')) {
+		if (line.includes("NEW")) {
 			return { type: BluetoothctlLineType.DeviceNew, device: { mac, name } };
-		} else if (line.includes('CHG')) {
+		} else if (line.includes("CHG")) {
 			// Extract what property changed if possible
-			const property = line.includes('Connected:') ? 'Connected'
-				: line.includes('Paired:') ? 'Paired'
-					: line.includes('Trusted:') ? 'Trusted'
+			const property = line.includes("Connected:")
+				? "Connected"
+				: line.includes("Paired:")
+					? "Paired"
+					: line.includes("Trusted:")
+						? "Trusted"
 						: undefined;
-			return { type: BluetoothctlLineType.DeviceChanged, device: { mac, name }, property };
-		} else if (line.includes('DEL')) {
-			return { type: BluetoothctlLineType.DeviceDeleted, device: { mac, name } };
+			return {
+				type: BluetoothctlLineType.DeviceChanged,
+				device: { mac, name },
+				property,
+			};
+		} else if (line.includes("DEL")) {
+			return {
+				type: BluetoothctlLineType.DeviceDeleted,
+				device: { mac, name },
+			};
 		} else {
 			return { type: BluetoothctlLineType.DeviceListed, device: { mac, name } };
 		}
@@ -143,12 +213,18 @@ export function parseBluetoothctlLine(rawLine: string): BluetoothctlLine {
 	// Connection state changes
 	if (BLUETOOTH_REGEX.DeviceConnectedYes.test(line)) {
 		const mac = line.match(BLUETOOTH_REGEX.DeviceConnectedYes)?.[1] ?? "";
-		return { type: BluetoothctlLineType.DeviceConnected, device: { mac, name: '' } };
+		return {
+			type: BluetoothctlLineType.DeviceConnected,
+			device: { mac, name: "" },
+		};
 	}
 
 	if (BLUETOOTH_REGEX.DeviceConnectedNo.test(line)) {
 		const mac = line.match(BLUETOOTH_REGEX.DeviceConnectedNo)?.[1] ?? "";
-		return { type: BluetoothctlLineType.DeviceDisconnected, device: { mac, name: '' } };
+		return {
+			type: BluetoothctlLineType.DeviceDisconnected,
+			device: { mac, name: "" },
+		};
 	}
 
 	// Pairing patterns
@@ -206,23 +282,31 @@ export function parseBluetoothctlLine(rawLine: string): BluetoothctlLine {
 	}
 
 	// Discoverable patterns
-	if (BLUETOOTH_REGEX.discoverableSuccess?.test(line) ||
-		line.includes("Changing discoverable on succeeded")) {
+	if (
+		BLUETOOTH_REGEX.discoverableSuccess?.test(line) ||
+		line.includes("Changing discoverable on succeeded")
+	) {
 		return { type: BluetoothctlLineType.DiscoverableSuccess };
 	}
 
-	if (BLUETOOTH_REGEX.discoverableFailure?.test(line) ||
-		line.includes("Failed to set discoverable")) {
+	if (
+		BLUETOOTH_REGEX.discoverableFailure?.test(line) ||
+		line.includes("Failed to set discoverable")
+	) {
 		return { type: BluetoothctlLineType.DiscoverableFailure, reason: line };
 	}
 
-	if (BLUETOOTH_REGEX.undiscoverableSuccess?.test(line) ||
-		line.includes("Changing discoverable off succeeded")) {
+	if (
+		BLUETOOTH_REGEX.undiscoverableSuccess?.test(line) ||
+		line.includes("Changing discoverable off succeeded")
+	) {
 		return { type: BluetoothctlLineType.UndiscoverableSuccess };
 	}
 
-	if (BLUETOOTH_REGEX.undiscoverableFailure?.test(line) ||
-		line.includes("Failed to set discoverable")) {
+	if (
+		BLUETOOTH_REGEX.undiscoverableFailure?.test(line) ||
+		line.includes("Failed to set discoverable")
+	) {
 		return { type: BluetoothctlLineType.UndiscoverableFailure, reason: line };
 	}
 
@@ -246,10 +330,12 @@ export class Bluetoothctl {
 			const output = data.toString();
 
 			// Parse each line and call handlers
-			output.split('\n').forEach((rawLine: string) => {
+			output.split("\n").forEach((rawLine: string) => {
 				if (rawLine.trim()) {
 					const parsedLine = parseBluetoothctlLine(rawLine);
-					this.lineHandlers.forEach(handler => handler(parsedLine));
+					this.lineHandlers.forEach((handler) => {
+						handler(parsedLine);
+					});
 				}
 			});
 		});
@@ -270,24 +356,52 @@ export class Bluetoothctl {
 		}
 	}
 
-	pair(mac: string) { this.send(`pair ${mac}`); }
-	connect(mac: string) { this.send(`connect ${mac}`); }
-	disconnect(mac: string) { this.send(`disconnect ${mac}`); }
-	remove(mac: string) { this.send(`remove ${mac}`); }
-	trust(mac: string) { this.send(`trust ${mac}`); }
-	scanOn() { this.send("scan on"); }
-	scanOff() { this.send("scan off"); }
-	discoverable(state: "on" | "off") { this.send(`discoverable ${state}`); }
-	discoverableTimeout(seconds: number) { this.send(`discoverable-timeout ${seconds}`); }
-	yes() { this.send("yes"); }
-	no() { this.send("no"); }
-	pin(pin: string) { this.send(`${pin}`); }
-	devices(devicesOpts?: DeviceOptions) { this.send(`devices ${devicesOpts || ""}`); }
-	kill() { this.proc.kill(); }
+	pair(mac: string) {
+		this.send(`pair ${mac}`);
+	}
+	connect(mac: string) {
+		this.send(`connect ${mac}`);
+	}
+	disconnect(mac: string) {
+		this.send(`disconnect ${mac}`);
+	}
+	remove(mac: string) {
+		this.send(`remove ${mac}`);
+	}
+	trust(mac: string) {
+		this.send(`trust ${mac}`);
+	}
+	scanOn() {
+		this.send("scan on");
+	}
+	scanOff() {
+		this.send("scan off");
+	}
+	discoverable(state: "on" | "off") {
+		this.send(`discoverable ${state}`);
+	}
+	discoverableTimeout(seconds: number) {
+		this.send(`discoverable-timeout ${seconds}`);
+	}
+	yes() {
+		this.send("yes");
+	}
+	no() {
+		this.send("no");
+	}
+	pin(pin: string) {
+		this.send(`${pin}`);
+	}
+	devices(devicesOpts?: DeviceOptions) {
+		this.send(`devices ${devicesOpts || ""}`);
+	}
+	kill() {
+		this.proc.kill();
+	}
 
 	static async getInfo(mac: string): Promise<string> {
 		try {
-			const { stdout } = await execAsync(`bluetoothctl info ${mac}`);
+			const { stdout } = await execAsync(`echo "info ${mac}" | bluetoothctl`);
 			return stdout;
 		} catch (error) {
 			console.error("Error running bluetoothctl info:", error);
@@ -297,7 +411,7 @@ export class Bluetoothctl {
 
 	static async getControllerInfo(): Promise<string> {
 		try {
-			const { stdout } = await execAsync(`bluetoothctl show`);
+			const { stdout } = await execAsync(`echo "show" | bluetoothctl`);
 			return stdout;
 		} catch (error) {
 			console.error("Error running bluetoothctl show:", error);
@@ -305,9 +419,12 @@ export class Bluetoothctl {
 		}
 	}
 
-	static async listDevices(devicesOpts?: DeviceOptions): Promise<{ mac: string; name: string }[]> {
+	static async listDevices(
+		devicesOpts?: DeviceOptions,
+	): Promise<{ mac: string; name: string }[]> {
 		try {
-			const { stdout } = await execAsync("bluetoothctl devices " + (devicesOpts ? devicesOpts : ""));
+			const cmd = devicesOpts ? `devices ${devicesOpts}` : "devices";
+			const { stdout } = await execAsync(`echo "${cmd}" | bluetoothctl`);
 			const lines = stdout.trim().split("\n");
 			return lines
 				.map((line) => {
@@ -335,7 +452,7 @@ export async function pairToDevice(device: Device): Promise<void> {
 		const bt = new Bluetoothctl();
 		const timeout = setTimeout(() => {
 			bt.kill();
-			reject(console.error("Pairing timed out"));
+			reject(new Error("Pairing timed out"));
 		}, 20000);
 
 		// Set up line handler for pairing events
@@ -345,7 +462,10 @@ export async function pairToDevice(device: Device): Promise<void> {
 					const confirm = await confirmAlert({
 						title: `Pairing Confirmation Required`,
 						message: `${device.name} is requesting to pair.\n\nDoes the passkey match on both devices?\n\nPasskey: ${line.passkey}`,
-						primaryAction: { title: "Accept", style: Alert.ActionStyle.Default },
+						primaryAction: {
+							title: "Accept",
+							style: Alert.ActionStyle.Default,
+						},
 						dismissAction: { title: "Decline" },
 					});
 
@@ -365,13 +485,15 @@ export async function pairToDevice(device: Device): Promise<void> {
 							title: "Pairing Declined",
 							message: "You declined the pairing confirmation.",
 						});
-						reject(console.error("User rejected pairing"));
+						reject(new Error("User rejected pairing"));
 					}
 					break;
 				}
 
 				case BluetoothctlLineType.PinCodeRequest: {
-					const pin = prompt(`Enter PIN Code for ${device.name}\n\n(This may be initiated by the device you're trying to pair with)`);
+					const pin = prompt(
+						`Enter PIN Code for ${device.name}\n\n(This may be initiated by the device you're trying to pair with)`,
+					);
 					if (pin) {
 						bt.pin(pin);
 						await showToast({
@@ -387,7 +509,7 @@ export async function pairToDevice(device: Device): Promise<void> {
 							title: "Pairing Cancelled",
 							message: "PIN entry was cancelled.",
 						});
-						reject(console.error("PIN entry cancelled"));
+						reject(new Error("PIN entry cancelled"));
 					}
 					break;
 				}
@@ -412,7 +534,7 @@ export async function pairToDevice(device: Device): Promise<void> {
 						title: "Pairing Failed",
 						message: line.reason ?? "Unknown error",
 					});
-					reject(console.error(line.reason));
+					reject(new Error(line.reason ?? "Unknown error"));
 					break;
 				}
 			}
@@ -433,7 +555,7 @@ export async function connectToDevice(device: Device): Promise<void> {
 		const bt = new Bluetoothctl();
 		const timeout = setTimeout(() => {
 			bt.kill();
-			reject(console.error("Connection timed out"));
+			reject(new Error("Connection timed out"));
 		}, 10000);
 
 		const handleConnectionLine = async (line: BluetoothctlLine) => {
@@ -458,7 +580,7 @@ export async function connectToDevice(device: Device): Promise<void> {
 						title: "Connection Failed",
 						message: line.reason,
 					});
-					reject(console.error(line.reason));
+					reject(new Error(line.reason));
 					break;
 				}
 			}
@@ -468,7 +590,6 @@ export async function connectToDevice(device: Device): Promise<void> {
 		bt.connect(device.mac);
 	});
 }
-
 
 export async function disconnectFromDevice(device: Device): Promise<void> {
 	await showToast({
@@ -480,7 +601,7 @@ export async function disconnectFromDevice(device: Device): Promise<void> {
 		const bt = new Bluetoothctl();
 		const timeout = setTimeout(() => {
 			bt.kill();
-			reject(console.error("Disconnection timed out"));
+			reject(new Error("Disconnection timed out"));
 		}, 10000);
 
 		const handleDisconnectLine = async (line: BluetoothctlLine) => {
@@ -505,7 +626,7 @@ export async function disconnectFromDevice(device: Device): Promise<void> {
 						title: "Disconnection Failed",
 						message: line.reason,
 					});
-					reject(console.error(line.reason));
+					reject(new Error(line.reason));
 					break;
 				}
 			}
@@ -526,7 +647,7 @@ export async function removeDevice(device: Device): Promise<Device> {
 		const bt = new Bluetoothctl();
 		const timeout = setTimeout(() => {
 			bt.kill();
-			reject(console.error("Removal timed out"));
+			reject(new Error("Removal timed out"));
 		}, 10000);
 
 		const handleRemoveLine = async (line: BluetoothctlLine) => {
@@ -551,7 +672,7 @@ export async function removeDevice(device: Device): Promise<Device> {
 						title: "Removal Failed",
 						message: line.reason,
 					});
-					reject(console.error(line.reason));
+					reject(new Error(line.reason));
 					break;
 				}
 			}
@@ -572,7 +693,7 @@ export async function trustDevice(device: Device): Promise<void> {
 		const bt = new Bluetoothctl();
 		const timeout = setTimeout(() => {
 			bt.kill();
-			reject(console.error("Trust timed out"));
+			reject(new Error("Trust timed out"));
 		}, 10000);
 
 		const handleTrustLine = async (line: BluetoothctlLine) => {
@@ -597,7 +718,7 @@ export async function trustDevice(device: Device): Promise<void> {
 						title: "Trust Failed",
 						message: line.reason,
 					});
-					reject(console.error(line.reason));
+					reject(new Error(line.reason));
 					break;
 				}
 			}
@@ -629,7 +750,10 @@ export async function makeDiscoverable(): Promise<() => void> {
 						try {
 							await makeUndiscoverable();
 						} catch (err) {
-							console.error("Failed to disable discoverable mode on cleanup:", err);
+							console.error(
+								"Failed to disable discoverable mode on cleanup:",
+								err,
+							);
 						}
 						bt.kill();
 					});
@@ -638,7 +762,9 @@ export async function makeDiscoverable(): Promise<() => void> {
 
 				case BluetoothctlLineType.DiscoverableFailure: {
 					bt.kill();
-					reject(console.error(`Failed to become discoverable: ${line.reason}`));
+					reject(
+						console.error(`Failed to become discoverable: ${line.reason}`),
+					);
 					break;
 				}
 
@@ -692,7 +818,7 @@ export async function makeUndiscoverable(): Promise<void> {
 
 		const timeout = setTimeout(() => {
 			bt.kill();
-			reject(console.error("Undiscoverable timed out"));
+			reject(new Error("Undiscoverable timed out"));
 		}, 10000);
 
 		const handleUndiscoverableLine = async (line: BluetoothctlLine) => {
@@ -717,7 +843,7 @@ export async function makeUndiscoverable(): Promise<void> {
 						title: "Undiscoverable Failed",
 						message: line.reason,
 					});
-					reject(console.error(line.reason));
+					reject(new Error(line.reason));
 					break;
 				}
 			}
@@ -732,7 +858,7 @@ export async function makeUndiscoverable(): Promise<void> {
 async function handleIncomingPairingEvent(
 	line: BluetoothctlLine,
 	bt: Bluetoothctl,
-	device: Device
+	device: Device,
 ) {
 	switch (line.type) {
 		case BluetoothctlLineType.PasskeyConfirmation: {
@@ -762,7 +888,9 @@ async function handleIncomingPairingEvent(
 		}
 
 		case BluetoothctlLineType.PinCodeRequest: {
-			const pin = prompt(`Enter PIN Code for incoming pairing request from ${device.name}`);
+			const pin = prompt(
+				`Enter PIN Code for incoming pairing request from ${device.name}`,
+			);
 			if (pin) {
 				bt.pin(pin);
 				await showToast({

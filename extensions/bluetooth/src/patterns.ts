@@ -8,7 +8,7 @@ interface BluetoothRegexPatterns {
 	// Device details parsing
 	deviceName: RegExp;
 	connectedStatus: RegExp;
-  batteryLevel: RegExp;
+	batteryLevel: RegExp;
 
 	// Bluetoothctl output parsing
 	deviceLine: RegExp;
@@ -43,7 +43,7 @@ interface BluetoothRegexPatterns {
 	// Discoverable patterns
 	discoverableSuccess: RegExp;
 	discoverableFailure: RegExp;
-	undiscoverableSuccess: RegExp
+	undiscoverableSuccess: RegExp;
 	undiscoverableFailure: RegExp;
 }
 
@@ -56,8 +56,7 @@ export const BLUETOOTH_REGEX: BluetoothRegexPatterns = {
 	// Device details parsing - extracts info from bluetoothctl info output
 	deviceName: /Name:\s(.+)/,
 	connectedStatus: /Connected:\s*yes/i,
-  batteryLevel: /Battery Percentage: (0x[A-F0-9]{2})/,
-  
+	batteryLevel: /Battery Percentage: (0x[A-F0-9]{2})/,
 
 	// Bluetoothctl output parsing - parses scan output lines
 	deviceLine: /Device ([0-9A-Fa-f:]+) (.+)/,
@@ -75,11 +74,13 @@ export const BLUETOOTH_REGEX: BluetoothRegexPatterns = {
 
 	// Connection patterns - handles connection status
 	connectionSuccess: /Connection successful|already connected/i,
-	connectionFailure: /Failed to connect|not available|not paired|AuthenticationFailed/i,
+	connectionFailure:
+		/Failed to connect|not available|not paired|AuthenticationFailed/i,
 
 	// Disconnect patterns
 	disconnectSuccess: /Disconnection successful|Device disconnected/i,
-	disconnectFailure: /Failed to disconnect|org\.bluez\.Error\.(NotConnected|Failed)/i,
+	disconnectFailure:
+		/Failed to disconnect|org\.bluez\.Error\.(NotConnected|Failed)/i,
 
 	// Remove patterns
 	removeSuccess: /Device has been removed/i,
@@ -90,8 +91,10 @@ export const BLUETOOTH_REGEX: BluetoothRegexPatterns = {
 	trustFailure: /Failed to set trust|org\.bluez\.Error\./i,
 
 	// Discoverable patterns
-	discoverableSuccess: /Changing discoverable on succeeded|discoverable on succeeded/i,
+	discoverableSuccess:
+		/Changing discoverable on succeeded|discoverable on succeeded/i,
 	discoverableFailure: /Failed to set discoverable|discoverable on failed/i,
-	undiscoverableSuccess: /Changing discoverable off succeeded|discoverable off succeeded/i,
+	undiscoverableSuccess:
+		/Changing discoverable off succeeded|discoverable off succeeded/i,
 	undiscoverableFailure: /Failed to set discoverable|discoverable off failed/i,
 };

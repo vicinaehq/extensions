@@ -1,26 +1,21 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { Action, ActionPanel, Icon, List } from "@vicinae/api";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-	Action,
-	ActionPanel,
-	Icon,
-	List,
-} from "@vicinae/api";
-import {
-	pairToDevice,
-	connectToDevice,
-	Device,
 	Bluetoothctl,
-	BluetoothctlLine,
-	BluetoothctlLineType
+	type BluetoothctlLine,
+	BluetoothctlLineType,
+	connectToDevice,
+	type Device,
+	pairToDevice,
 } from "@/bluetoothctl";
 import { BLUETOOTH_REGEX } from "@/patterns";
-import { getIconFromInfo, sortDevices, removeFromDeviceList } from "@/utils";
+import { getIconFromInfo, removeFromDeviceList, sortDevices } from "@/utils";
 
 // Simplified processing function using the new parsing system
 async function processBluetoothLine(
 	line: BluetoothctlLine,
 	discovered: Map<string, string>,
-	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
+	setDevices: React.Dispatch<React.SetStateAction<Device[]>>,
 ): Promise<void> {
 	switch (line.type) {
 		case BluetoothctlLineType.DeviceDeleted:
@@ -43,7 +38,7 @@ async function processBluetoothLine(
 async function handleDeletedDevice(
 	line: Extract<BluetoothctlLine, { type: BluetoothctlLineType.DeviceDeleted }>,
 	discovered: Map<string, string>,
-	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
+	setDevices: React.Dispatch<React.SetStateAction<Device[]>>,
 ): Promise<void> {
 	const mac = line.device.mac;
 	discovered.delete(mac);
@@ -53,13 +48,15 @@ async function handleDeletedDevice(
 async function handleChangedDevice(
 	line: Extract<BluetoothctlLine, { type: BluetoothctlLineType.DeviceChanged }>,
 	discovered: Map<string, string>,
-	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
+	setDevices: React.Dispatch<React.SetStateAction<Device[]>>,
 ): Promise<void> {
 	const mac = line.device.mac;
 	const info = await Bluetoothctl.getInfo(mac);
 	const icon = getIconFromInfo(info);
 	const nameMatch = info.match(BLUETOOTH_REGEX.deviceName);
-	const name = nameMatch ? nameMatch[1].trim() : discovered.get(mac) || line.device.name || mac;
+	const name = nameMatch
+		? nameMatch[1].trim()
+		: discovered.get(mac) || line.device.name || mac;
 
 	discovered.set(mac, name);
 
@@ -71,9 +68,9 @@ async function handleChangedDevice(
 			prev.map((device) =>
 				device.mac === mac
 					? { ...device, name, icon, connected: isConnected, trusted: false }
-					: device
-			)
-		)
+					: device,
+			),
+		),
 	);
 
 	// Remove connected devices from the scan list (assuming we only want to show pairable devices)
@@ -85,31 +82,46 @@ async function handleChangedDevice(
 async function handleNewDevice(
 	line: Extract<BluetoothctlLine, { type: BluetoothctlLineType.DeviceNew }>,
 	discovered: Map<string, string>,
-	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
+	setDevices: React.Dispatch<React.SetStateAction<Device[]>>,
 ): Promise<void> {
 	const mac = line.device.mac;
-	const name = line.device.name;
 
 	if (discovered.has(mac)) return;
-
-	discovered.set(mac, name);
 
 	try {
 		const info = await Bluetoothctl.getInfo(mac);
 		const icon = getIconFromInfo(info);
 
+		// Extract name from info if available (devices often broadcast name later than MAC)
+		const nameMatch = info.match(BLUETOOTH_REGEX.deviceName);
+		const aliasMatch = info.match(/Alias:\s*(.+)/);
+		const name =
+			nameMatch?.[1]?.trim() ||
+			aliasMatch?.[1]?.trim() ||
+			line.device.name ||
+			mac;
+		discovered.set(mac, name);
+
 		// Only add if not already connected
 		const isConnected = BLUETOOTH_REGEX.connectedStatus.test(info);
 		if (!isConnected) {
 			setDevices((prev) =>
-				sortDevices([...prev, { mac, name, icon, connected: false, trusted: false }])
+				sortDevices([
+					...prev,
+					{ mac, name, icon, connected: false, trusted: false },
+				]),
 			);
 		}
 	} catch (error) {
 		console.error(`Failed to get info for device ${mac}:`, error);
-		// Add device anyway with minimal info
+		// Add device anyway with whatever name we have from the scan line
+		const name = line.device.name || mac;
+		discovered.set(mac, name);
 		setDevices((prev) =>
-			sortDevices([...prev, { mac, name, icon: "", connected: false, trusted: false }])
+			sortDevices([
+				...prev,
+				{ mac, name, icon: "", connected: false, trusted: false },
+			]),
 		);
 	}
 }
@@ -153,12 +165,11 @@ function useBluetoothScanner() {
 							console.error(`Failed to get info for ${mac}:`, error);
 							return { mac, name, icon: "", connected: false, trusted: false };
 						}
-					})
+					}),
 				);
 
 				const filteredDevices = devicesToAdd.filter(Boolean) as Device[];
 				setDevices(sortDevices(filteredDevices));
-
 			} catch (error) {
 				console.error("Initial device scan failed:", error);
 			}
@@ -180,7 +191,6 @@ function useBluetoothScanner() {
 				bt.kill();
 				setIsLoading(false);
 			}, 30000);
-
 		})();
 
 		return () => {
@@ -203,7 +213,10 @@ export default function Command() {
 	const { devices, isLoading, removeDevice } = useBluetoothScanner();
 
 	return (
-		<List isLoading={isLoading} searchBarPlaceholder="Scanning for Bluetooth devices...">
+		<List
+			isLoading={isLoading}
+			searchBarPlaceholder="Scanning for Bluetooth devices..."
+		>
 			{!isLoading && devices.length === 0 && (
 				<List.EmptyView icon={Icon.Bluetooth} title="No devices found" />
 			)}
