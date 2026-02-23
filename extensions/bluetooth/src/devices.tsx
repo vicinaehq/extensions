@@ -62,7 +62,10 @@ function usePairedDevices() {
 				}
 			}
 
-			return devices.sort((a, b) => a.name.localeCompare(b.name));
+			return devices.sort((a, b) => {
+				if (a.connected !== b.connected) return a.connected ? -1 : 1;
+				return a.name.localeCompare(b.name);
+			});
 		} catch (error) {
 			showToast({
 				style: Toast.Style.Failure,
@@ -233,7 +236,11 @@ function DeviceListItem({
 			key={device.mac}
 			title={device.name}
 			subtitle={device.mac}
-			icon={device.icon}
+			icon={
+				device.connected
+					? { source: device.icon, tintColor: Color.Yellow }
+					: device.icon
+			}
 			accessories={
 				!showingDetail
 					? [
