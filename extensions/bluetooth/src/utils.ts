@@ -4,7 +4,7 @@ import type { Device } from "@/bluetooth";
 const SCAN_DURATION_MS = 10_000;
 const MAC_ADDRESS = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
 const ICON = /Icon:\s+([^\s\n\r]+)/;
-const BATTERY_LEVEL = /Battery Percentage: (0x[A-F0-9]{2})/;
+const BATTERY_LEVEL = /Battery Percentage: 0x[A-Fa-f0-9]{2}\s*\((\d+)\)/;
 const CONNECTED_STATUS = /Connected:\s*yes/i;
 
 export function normalizeMac(mac: string): string {
@@ -68,10 +68,10 @@ export function getIconFromInfo(info: string) {
 }
 
 export function getBatteryLevel(info: string): number | undefined {
-	// BlueZ outputs "Battery Percentage: 0x46 (70)" - value is hex, was incorrectly parsed with base 10
+	// BlueZ outputs "Battery Percentage: 0x46 (70)" - capture decimal in parentheses
 	const matches = info.match(BATTERY_LEVEL);
 	if (!matches?.[1]) return undefined;
-	return parseInt(matches[1].trim(), 16);
+	return parseInt(matches[1], 10);
 }
 
 export function sortDevices(devices: Device[]): Device[] {
