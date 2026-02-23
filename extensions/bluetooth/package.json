@@ -11,6 +11,20 @@
 	"icon": "extension_icon.png",
 	"commands": [
 		{
+			"name": "bluetooth-on",
+			"title": "Bluetooth On",
+			"subtitle": "Power on and reconnect to last device",
+			"description": "Turn on Bluetooth adapter and optionally reconnect to last connected device",
+			"mode": "no-view"
+		},
+		{
+			"name": "bluetooth-off",
+			"title": "Bluetooth Off",
+			"subtitle": "Power off Bluetooth adapter",
+			"description": "Turn off the Bluetooth adapter",
+			"mode": "no-view"
+		},
+		{
 			"name": "scan",
 			"title": "Scan",
 			"subtitle": "Scan for bluetooth devices",
@@ -48,7 +62,8 @@
 		"dev": "vici develop"
 	},
 	"dependencies": {
-		"@vicinae/api": "^0.19.9"
+		"@vicinae/api": "^0.19.9",
+		"dbus-next": "^0.10.2"
 	},
 	"devDependencies": {
 		"typescript": "^5.9.2"

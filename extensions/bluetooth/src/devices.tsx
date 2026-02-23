@@ -10,14 +10,14 @@ import {
 } from "@vicinae/api";
 import { useCallback, useEffect, useState } from "react";
 import {
-	Bluetoothctl,
+	Bluetooth,
 	connectToDevice,
 	type Device,
 	DeviceOptions,
 	disconnectFromDevice,
 	removeDevice,
 	trustDevice,
-} from "@/bluetoothctl";
+} from "@/bluetooth";
 import { BLUETOOTH_REGEX } from "@/patterns";
 import { getBatteryLevel, getIconFromInfo } from "@/utils";
 
@@ -32,14 +32,12 @@ function usePairedDevices() {
 
 	const fetchDevices = useCallback(async (): Promise<Device[]> => {
 		try {
-			const initialDevices = await Bluetoothctl.listDevices(
-				DeviceOptions.PAIRED,
-			);
+			const initialDevices = await Bluetooth.listDevices(DeviceOptions.PAIRED);
 			const devices: Device[] = [];
 
 			for (const { mac, name } of initialDevices) {
 				try {
-					const info = await Bluetoothctl.getInfo(mac);
+					const info = await Bluetooth.getInfo(mac);
 					const connected = BLUETOOTH_REGEX.connectedStatus.test(info);
 					const trusted = info.includes("Trusted: yes");
 					const icon = getIconFromInfo(info);

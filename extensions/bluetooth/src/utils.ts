@@ -1,9 +1,20 @@
 import { Icon } from "@vicinae/api";
-import type { Device } from "@/bluetoothctl";
+import type { Device } from "@/bluetooth";
 import { BLUETOOTH_REGEX } from "@/patterns";
 
-function isMacLike(name: string): boolean {
+const SCAN_DURATION_MS = 10_000;
+
+export function normalizeMac(mac: string): string {
+	return mac.toLowerCase().trim();
+}
+
+export function isMacLike(name: string): boolean {
 	return BLUETOOTH_REGEX.macAddress.test(name);
+}
+
+/** True if device display name is just a MAC (no friendly name resolved yet) */
+export function isNameMacOnly(name: string, mac: string): boolean {
+	return !name || name === mac || isMacLike(name);
 }
 
 export function getIconFromInfo(info: string) {
@@ -73,10 +84,39 @@ export function removeFromDeviceList(
 	mac: string,
 	setDevices: React.Dispatch<React.SetStateAction<Device[]>>,
 ): void {
-	setDevices((prev) => prev.filter((d) => d.mac !== mac));
+	const normalized = normalizeMac(mac);
+	setDevices((prev) => prev.filter((d) => normalizeMac(d.mac) !== normalized));
 }
 
 export function stripAnsiCodes(text: string): string {
-	// Remove ANSI escape sequences (colors, formatting, etc.)
-	return text.replace(/\x1b\[[0-9;]*[mGKHF]/g, "");
+	// Remove ANSI escape sequences (ESC [... mGKHF])
+	const ESC = String.fromCharCode(0x1b);
+	return text.replace(new RegExp(`${ESC}\\[[0-9;]*[mGKHF]`, "g"), "");
+}
+
+export { SCAN_DURATION_MS };
+
+const BLUETOOTH_ERROR_MAP: Record<string, string> = {
+	ConnectionAttemptFailed:
+		"Device unreachable. Ensure it's in pairing mode and in range.",
+	AuthenticationFailed: "Pairing was rejected or failed. Try again.",
+	NotReady: "Bluetooth adapter not ready. Try turning it off and on.",
+	"Not Ready": "Bluetooth adapter not ready. Try Rescan in a moment.",
+	NotAvailable: "Device is not available. It may be off or out of range.",
+	NotPaired: "Device is not paired. Pair it first.",
+	"Failed to pair": "Pairing failed. Ensure the device is in pairing mode.",
+	"Failed to connect": "Connection failed. Try again.",
+	"Failed to disconnect": "Disconnection failed.",
+	"Failed to set trust": "Failed to trust device.",
+	"Failed to set discoverable": "Failed to change discoverable state.",
+};
+
+export function humanizeBluetoothError(raw: string): string {
+	const lower = raw.toLowerCase();
+	for (const [key, message] of Object.entries(BLUETOOTH_ERROR_MAP)) {
+		if (lower.includes(key.toLowerCase())) {
+			return message;
+		}
+	}
+	return raw;
 }
