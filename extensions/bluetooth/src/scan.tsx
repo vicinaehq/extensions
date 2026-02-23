@@ -254,6 +254,14 @@ export default function Command() {
 								shortcut={{ modifiers: ["ctrl"], key: "c" }}
 								onAction={connect(device, removeDevice)}
 							/>
+							<ActionPanel.Section>
+								<Action
+									title="Rescan"
+									icon={Icon.ArrowClockwise}
+									shortcut={{ modifiers: ["cmd"], key: "r" }}
+									onAction={rescan}
+								/>
+							</ActionPanel.Section>
 						</ActionPanel>
 					}
 				/>
