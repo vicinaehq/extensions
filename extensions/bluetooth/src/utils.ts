@@ -1,15 +1,22 @@
 import { Icon } from "@vicinae/api";
 import type { Device } from "@/bluetooth";
-import { BLUETOOTH_REGEX } from "@/patterns";
 
 const SCAN_DURATION_MS = 10_000;
+const MAC_ADDRESS = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+const ICON = /Icon:\s+([^\s\n\r]+)/;
+const BATTERY_LEVEL = /Battery Percentage: (0x[A-F0-9]{2})/;
+const CONNECTED_STATUS = /Connected:\s*yes/i;
 
 export function normalizeMac(mac: string): string {
 	return mac.toLowerCase().trim();
 }
 
 export function isMacLike(name: string): boolean {
-	return BLUETOOTH_REGEX.macAddress.test(name);
+	return MAC_ADDRESS.test(name);
+}
+
+export function isConnectedStatus(info: string): boolean {
+	return CONNECTED_STATUS.test(info);
 }
 
 /** True if device display name is just a MAC (no friendly name resolved yet) */
@@ -18,7 +25,7 @@ export function isNameMacOnly(name: string, mac: string): boolean {
 }
 
 export function getIconFromInfo(info: string) {
-	const iconMatch = BLUETOOTH_REGEX.icon.exec(info);
+	const iconMatch = ICON.exec(info);
 	if (iconMatch) {
 		const bluezIcon = iconMatch[1].toLowerCase();
 		if (
@@ -62,7 +69,7 @@ export function getIconFromInfo(info: string) {
 
 export function getBatteryLevel(info: string): number | undefined {
 	// BlueZ outputs "Battery Percentage: 0x46 (70)" - value is hex, was incorrectly parsed with base 10
-	const matches = info.match(BLUETOOTH_REGEX.batteryLevel);
+	const matches = info.match(BATTERY_LEVEL);
 	if (!matches?.[1]) return undefined;
 	return parseInt(matches[1].trim(), 16);
 }

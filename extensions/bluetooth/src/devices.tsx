@@ -18,8 +18,7 @@ import {
 	removeDevice,
 	trustDevice,
 } from "@/bluetooth";
-import { BLUETOOTH_REGEX } from "@/patterns";
-import { getBatteryLevel, getIconFromInfo } from "@/utils";
+import { getBatteryLevel, getIconFromInfo, isConnectedStatus } from "@/utils";
 
 interface Preferences {
 	connectionToggleable: boolean;
@@ -38,7 +37,7 @@ function usePairedDevices() {
 			for (const { mac, name } of initialDevices) {
 				try {
 					const info = await Bluetooth.getInfo(mac);
-					const connected = BLUETOOTH_REGEX.connectedStatus.test(info);
+					const connected = isConnectedStatus(info);
 					const trusted = info.includes("Trusted: yes");
 					const icon = getIconFromInfo(info);
 					const batteryLevel = getBatteryLevel(info);

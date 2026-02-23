@@ -1,6 +1,6 @@
 import { showToast, Toast } from "@vicinae/api";
 import { Bluetooth, connectToDevice, type Device } from "@/bluetooth";
-import { BLUETOOTH_REGEX } from "@/patterns";
+import { isConnectedStatus } from "@/utils";
 
 export default async function BluetoothOn() {
 	const success = await Bluetooth.powerOn();
@@ -26,7 +26,7 @@ export default async function BluetoothOn() {
 
 	try {
 		const info = await Bluetooth.getInfo(last.mac);
-		if (!BLUETOOTH_REGEX.connectedStatus.test(info)) {
+		if (!isConnectedStatus(info)) {
 			const device: Device = {
 				mac: last.mac,
 				name: last.name,

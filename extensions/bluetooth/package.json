@@ -2,7 +2,7 @@
 	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
 	"name": "bluetooth",
 	"title": "Bluetooth",
-	"description": "Vicinae bluetooth extension for managing bluetooth devices using bluetoothctl",
+	"description": "Vicinae bluetooth extension for managing bluetooth devices using org.bluez via dbus-next",
 	"categories": [],
 	"license": "MIT",
 	"author": "Gelei",

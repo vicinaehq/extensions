@@ -1,6 +1,5 @@
 /**
  * BlueZ Agent (org.bluez.Agent1) - D-Bus service for pairing dialogs.
- * Replaces bluetoothctl for PasskeyConfirm, PinCodeRequest, etc.
  */
 
 import { Alert, confirmAlert, showToast, Toast } from "@vicinae/api";
@@ -38,11 +37,13 @@ async function getDeviceName(devicePath: string): Promise<string> {
 	}
 }
 
-const { Interface, DBusError } = dbus.interface;
+const { Interface } = dbus.interface;
+const { DBusError } = dbus;
 
 // Agent implementation using configureMembers (no decorators)
 class BluetoothAgent extends Interface {
 	Release() {}
+
 	async RequestPinCode(device: string): Promise<string> {
 		onPairingStarted?.(device);
 		const name = await getDeviceName(device);
@@ -60,6 +61,7 @@ class BluetoothAgent extends Interface {
 		});
 		return pin;
 	}
+
 	DisplayPinCode(_device: string, pincode: string) {
 		showToast({
 			style: Toast.Style.Success,
@@ -67,6 +69,7 @@ class BluetoothAgent extends Interface {
 			message: `PIN: ${pincode}`,
 		});
 	}
+
 	async RequestPasskey(device: string): Promise<number> {
 		onPairingStarted?.(device);
 		const name = await getDeviceName(device);
@@ -81,6 +84,7 @@ class BluetoothAgent extends Interface {
 			throw new DBusError("org.bluez.Error.Rejected", "Invalid passkey");
 		return passkey;
 	}
+
 	DisplayPasskey(_device: string, passkey: number, _entered?: number) {
 		showToast({
 			style: Toast.Style.Success,
@@ -88,6 +92,7 @@ class BluetoothAgent extends Interface {
 			message: `Passkey: ${passkey.toString().padStart(6, "0")}`,
 		});
 	}
+
 	async RequestConfirmation(device: string, passkey: number): Promise<void> {
 		onPairingStarted?.(device);
 		const name = await getDeviceName(device);
@@ -106,6 +111,7 @@ class BluetoothAgent extends Interface {
 			message: `Connecting to ${name}`,
 		});
 	}
+
 	async RequestAuthorization(device: string): Promise<void> {
 		onPairingStarted?.(device);
 		const name = await getDeviceName(device);
@@ -121,11 +127,14 @@ class BluetoothAgent extends Interface {
 				"User declined authorization",
 			);
 	}
+
 	AuthorizeService(_device: string, _uuid: string) {}
+
 	Cancel() {
 		onPairingEnded?.();
 	}
 }
+
 BluetoothAgent.configureMembers({
 	methods: {
 		Release: { inSignature: "", outSignature: "" },
