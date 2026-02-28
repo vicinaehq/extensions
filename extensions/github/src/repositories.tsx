@@ -5,8 +5,8 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { useDebounce } from "@uidotdev/usehooks";
 import { persister, queryClient } from "./queryClient";
 import type { GitHubPreferencesMinimal } from "./types";
-import { useMyGithubRepos, useSearchGithubRepos } from "./hooks/useGithubRepos";
 import { repositoryDropdownItems } from "./config";
+import { useGetMyRepos, useSearchRepos } from "./hooks/useGetRepos";
 
 function Repositories() {
   return (
@@ -27,13 +27,13 @@ function Command() {
     preferences.defaultRepositoryFilter || "my",
   );
 
-  const { data: myRepos = [], isLoading, isFetching } = useMyGithubRepos();
+  const { data: myRepos = [], isLoading, isFetching } = useGetMyRepos();
 
   const {
     data: searchRepos = [],
     isLoading: isSearchLoading,
     isFetching: isSearchFetching,
-  } = useSearchGithubRepos(debouncedSearchText, true);
+  } = useSearchRepos(debouncedSearchText, true);
 
   const repos = filter === "all" ? searchRepos : myRepos;
 

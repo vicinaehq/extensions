@@ -1,3 +1,5 @@
+import { RestEndpointMethodTypes } from "@octokit/rest";
+
 export type GitHubPreferences = {
   personalAccessToken: string;
   numberOfResults?: string;
@@ -11,3 +13,10 @@ export type GitHubPreferencesMinimal = {
 };
 
 export type FilterType = "my" | "assigned" | "mentioning" | "all";
+
+export type Repository =
+  RestEndpointMethodTypes["repos"]["listForAuthenticatedUser"]["response"]["data"][number];
+export type Assignee =
+  RestEndpointMethodTypes["issues"]["listAssignees"]["response"]["data"][number];
+export type Label =
+  RestEndpointMethodTypes["issues"]["listLabelsForRepo"]["response"]["data"][number];

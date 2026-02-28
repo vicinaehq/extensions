@@ -9,11 +9,11 @@ import { useState } from "react";
 
 import { persister, queryClient } from "./queryClient";
 import type { FilterType, GitHubPreferences } from "./types";
-import { useGitHubIssues } from "./hooks/useGithubIssues";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { useMyGithubRepos } from "./hooks/useGithubRepos";
 import { issueDropdownItems } from "./config";
 import { useDebounce } from "@uidotdev/usehooks";
+import { useGetIssues } from "./hooks/useGetIssues";
+import { useGetMyRepos } from "./hooks/useGetRepos";
 
 function Issues() {
   return (
@@ -37,8 +37,8 @@ function Command() {
     data: issues = [],
     isLoading,
     isFetching,
-  } = useGitHubIssues(filter, debouncedSearchText);
-  const { data: repos = [] } = useMyGithubRepos();
+  } = useGetIssues(filter, debouncedSearchText);
+  const { data: repos = [] } = useGetMyRepos();
 
   return (
     <List

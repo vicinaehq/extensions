@@ -5,9 +5,9 @@ import { getPreferenceValues } from "@vicinae/api";
 
 const { numberOfResults } = getPreferenceValues<GitHubPreferencesMinimal>();
 
-export const useMyGithubRepos = () => {
+export const useGetMyRepos = () => {
   return useQuery({
-    queryKey: ["myGithubRepos"],
+    queryKey: ["myRepos"],
     queryFn: async () => {
       return octokit.paginate(octokit.repos.listForAuthenticatedUser, {
         sort: "updated",
@@ -18,7 +18,7 @@ export const useMyGithubRepos = () => {
   });
 };
 
-export const useSearchGithubRepos = (query: string, enabled = false) => {
+export const useSearchRepos = (query: string, enabled = false) => {
   return useQuery({
     queryKey: ["githubRepos", query],
     queryFn: async () => {
