@@ -8,14 +8,14 @@ import {
 import { useState } from "react";
 
 import { persister, queryClient } from "./queryClient";
-import type { FilterType, GitHubPreferences } from "./types";
+import type { GitHubPreferences } from "./types";
 import { useGitHubIssues } from "./hooks/useGithubIssues";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useMyGithubRepos } from "./hooks/useGithubRepos";
 import { issueDropdownItems } from "./config";
 import { useDebounce } from "@uidotdev/usehooks";
 
-function Issues() {
+function Prs() {
   return (
     <PersistQueryClientProvider
       client={queryClient}
@@ -29,7 +29,9 @@ function Issues() {
 const { defaultIssueFilter } = getPreferenceValues<GitHubPreferences>();
 
 function Command() {
-  const [filter, setFilter] = useState<FilterType>(defaultIssueFilter || "my");
+  const [filter, setFilter] = useState<FilterType>(
+    defaultIssueFilter || "my-prs",
+  );
   const [searchText, setSearchText] = useState("");
   const debouncedSearchText = useDebounce(searchText, 300);
 
@@ -108,4 +110,6 @@ function Command() {
   );
 }
 
-export default Issues;
+export default Prs;
+
+

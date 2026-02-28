@@ -1,7 +1,7 @@
 export type GitHubPreferences = {
   personalAccessToken: string;
   numberOfResults?: string;
-  defaultIssueFilter?: "my-issues" | "assigned" | "mentioning" | "all";
+  defaultIssueFilter?: "my" | "assigned" | "mentioning" | "all";
 };
 
 export type GitHubPreferencesMinimal = {
@@ -9,3 +9,5 @@ export type GitHubPreferencesMinimal = {
   numberOfResults?: string;
   defaultRepositoryFilter?: "all" | "my";
 };
+
+export type FilterType = "my" | "assigned" | "mentioning" | "all";

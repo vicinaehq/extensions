@@ -1,96 +1,49 @@
-import { List, ActionPanel, Action, getPreferenceValues } from "@vicinae/api";
-import { useState, useEffect } from "react";
-import { Octokit } from "@octokit/rest";
+import { Action, ActionPanel, getPreferenceValues, List } from "@vicinae/api";
+import { useState } from "react";
 
-import { useGitHubSearch } from "./hooks";
-import { getRepositoryFilterQuery, repositoryDropdownItems } from "./filters";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { useDebounce } from "@uidotdev/usehooks";
+import { persister, queryClient } from "./queryClient";
 import type { GitHubPreferencesMinimal } from "./types";
-
-type Repository = {
-  id: number;
-  name: string;
-  full_name: string;
-  description: string | null;
-  html_url: string;
-  owner: {
-    login: string;
-    avatar_url: string;
-    [key: string]: any;
-  } | null;
-  stargazers_count: number;
-  forks_count: number;
-  language: string | null;
-  [key: string]: any;
-};
-
-type FilterType = "all" | "my";
+import { useMyGithubRepos, useSearchGithubRepos } from "./hooks/useGithubRepos";
+import { repositoryDropdownItems } from "./config";
 
 function Repositories() {
+  return (
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister }}
+    >
+      <Command />
+    </PersistQueryClientProvider>
+  );
+}
+
+function Command() {
   const preferences = getPreferenceValues<GitHubPreferencesMinimal>();
-  const [allMyRepos, setAllMyRepos] = useState<Repository[]>([]);
   const [searchText, setSearchText] = useState("");
-  const [filter, setFilter] = useState<FilterType>(preferences.defaultRepositoryFilter || 'my');
-
-  const searchRepos = async (octokit: Octokit, query: string) => {
-    if (query === 'user:@me') {
-      // For "my repositories", get all repositories the user has access to
-      const response = await octokit.repos.listForAuthenticatedUser({
-        sort: 'updated',
-        direction: 'desc',
-        per_page: parseInt(preferences.numberOfResults || '50'),
-        affiliation: 'owner,collaborator,organization_member'
-      });
-      return response.data;
-    } else {
-      // For other searches, use the search API
-      const response = await octokit.search.repos({
-        q: query,
-        sort: 'updated',
-        order: 'desc',
-        per_page: parseInt(preferences.numberOfResults || '50')
-      });
-      return response.data.items;
-    }
-  };
-
-  const { data: searchResults, isLoading } = useGitHubSearch<Repository>(
-    searchRepos,
-    filter === 'all' ? getRepositoryFilterQuery(filter, searchText) : (allMyRepos.length === 0 ? 'user:@me' : ''),
-    preferences,
-    filter === 'all' ? [searchText, filter] : [filter]
+  const debouncedSearchText = useDebounce(searchText, 300);
+  const [filter, setFilter] = useState<FilterType>(
+    preferences.defaultRepositoryFilter || "my",
   );
 
-  // Store all my repos when first loaded
-  useEffect(() => {
-    if (filter === 'my' && searchResults.length > 0 && allMyRepos.length === 0) {
-      setAllMyRepos(searchResults);
-    }
-  }, [filter, searchResults, allMyRepos.length]);
+  const { data: myRepos = [], isLoading, isFetching } = useMyGithubRepos();
 
-  // Clear stored repos and cache when switching filters
-  useEffect(() => {
-    if (filter === 'all') {
-      setAllMyRepos([]);
-      // Note: Vicinae Cache handles LRU automatically, so we don't need manual clearing
-      // The cache will evict old entries as needed
-    }
-  }, [filter]);
+  const {
+    data: searchRepos = [],
+    isLoading: isSearchLoading,
+    isFetching: isSearchFetching,
+  } = useSearchGithubRepos(debouncedSearchText, true);
 
-  // Filter repositories locally for "my" repositories
-  const repositories = filter === 'my' && allMyRepos.length > 0
-    ? allMyRepos.filter(repo =>
-        searchText.trim() === '' ||
-        repo.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        repo.full_name.toLowerCase().includes(searchText.toLowerCase()) ||
-        (repo.description && repo.description.toLowerCase().includes(searchText.toLowerCase()))
-      )
-    : searchResults;
+  const repos = filter === "all" ? searchRepos : myRepos;
 
   return (
     <List
-      isLoading={isLoading}
+      isLoading={isLoading || isFetching || isSearchLoading || isSearchFetching}
       searchBarPlaceholder="Search in public and private repositories"
       onSearchTextChange={setSearchText}
+      filtering={filter !== "all"}
+      searchText={searchText}
       searchBarAccessory={
         <List.Dropdown
           tooltip="Filter Repositories"
@@ -98,13 +51,17 @@ function Repositories() {
           value={filter}
           onChange={(newValue) => setFilter(newValue as FilterType)}
         >
-          {repositoryDropdownItems.map(item => (
-            <List.Dropdown.Item key={item.value} title={item.title} value={item.value} />
+          {repositoryDropdownItems.map((item) => (
+            <List.Dropdown.Item
+              key={item.value}
+              title={item.title}
+              value={item.value}
+            />
           ))}
         </List.Dropdown>
       }
     >
-      {repositories.map((repo) => (
+      {repos.map((repo) => (
         <List.Item
           key={repo.id}
           title={repo.name}
@@ -113,7 +70,7 @@ function Repositories() {
           accessories={[
             { text: `${repo.stargazers_count} ⭐` },
             { text: `${repo.forks_count} 🍴` },
-            ...(repo.language ? [{ text: repo.language }] : [])
+            ...(repo.language ? [{ text: repo.language }] : []),
           ]}
           actions={
             <ActionPanel>
@@ -128,7 +85,7 @@ function Repositories() {
               />
               <Action.CopyToClipboard
                 title="Copy Clone URL (HTTPS)"
-                content={repo.html_url + '.git'}
+                content={repo.html_url + ".git"}
               />
             </ActionPanel>
           }
@@ -139,3 +96,5 @@ function Repositories() {
 }
 
 export default Repositories;
+
+type FilterType = "all" | "my";
