@@ -2,11 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { octokit } from "../api/githubClient";
 import { Assignee, Repository } from "../types";
 
-export const useGetAssignees = (repo?: Repository) => {
+const defaultValue: Assignee[] = [];
+export const useGetAssignees = (repo: Repository | null) => {
   return useQuery<Assignee[]>({
     queryKey: ["githubAssignees", repo?.id],
     queryFn: async () => {
-      if (!repo) return [];
+      if (!repo) return defaultValue;
       const [owner, repoName] = repo.full_name.split("/");
       const assignees = await octokit.paginate(octokit.issues.listAssignees, {
         owner,

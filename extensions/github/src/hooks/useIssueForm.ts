@@ -35,24 +35,24 @@ export const useIssueForm = () => {
       Toast.Style.Animated,
       "Creating issue...",
     );
-
-    const response = await octokit.issues.create({
-      owner,
-      repo: repoName,
-      title: validatedRepo.data.title.trim(),
-      body: validatedRepo.data.description,
-      assignees: validatedRepo.data.assignee?.login
-        ? [validatedRepo.data.assignee.login]
-        : undefined,
-      labels: validatedRepo.data.label
-        ? [validatedRepo.data.label.name]
-        : undefined,
-    });
-    if (response.status === 201) {
+    try {
+      await octokit.issues.create({
+        owner,
+        repo: repoName,
+        title: validatedRepo.data.title.trim(),
+        body: validatedRepo.data.description,
+        assignees: validatedRepo.data.assignee?.login
+          ? [validatedRepo.data.assignee.login]
+          : undefined,
+        labels: validatedRepo.data.label
+          ? [validatedRepo.data.label.name]
+          : undefined,
+      });
       closeMainWindow();
-    } else {
+    } catch {
       loadingToast.hide();
       await showToast(Toast.Style.Failure, "Failed to create issue");
+      return;
     }
   };
   console.log(errors);

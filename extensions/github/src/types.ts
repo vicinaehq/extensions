@@ -20,3 +20,7 @@ export type Assignee =
   RestEndpointMethodTypes["issues"]["listAssignees"]["response"]["data"][number];
 export type Label =
   RestEndpointMethodTypes["issues"]["listLabelsForRepo"]["response"]["data"][number];
+export type Branch =
+  RestEndpointMethodTypes["repos"]["listBranches"]["response"]["data"][number];
+export type Issue =
+  RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["response"]["data"]["items"][number];

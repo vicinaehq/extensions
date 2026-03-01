@@ -1,8 +1,6 @@
-import { FilterType } from "../types";
-
 // Issue filter functions
 export function getIssueFilterQuery(
-  filterType: FilterType,
+  filterType: string,
   issueType: "pr" | "issue",
   query = "",
 ) {

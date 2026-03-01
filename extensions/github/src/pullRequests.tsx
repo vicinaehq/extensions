@@ -7,9 +7,9 @@ import { prDropdownItems } from "./config";
 import { persister, queryClient } from "./queryClient";
 import type { FilterType, GitHubPreferences } from "./types";
 import { useGetMyRepos } from "./hooks/useGetRepos";
-import { useGetPrs } from "./hooks/useGetPrs";
+import { useGetPullRequests } from "./hooks/useGetPullRequests";
 
-function Prs() {
+function PullRequests() {
   return (
     <PersistQueryClientProvider
       client={queryClient}
@@ -31,7 +31,7 @@ function Command() {
     data: prs = [],
     isLoading,
     isFetching,
-  } = useGetPrs(filter, debouncedSearchText);
+  } = useGetPullRequests(filter, debouncedSearchText);
   const { data: repos = [] } = useGetMyRepos();
 
   return (
@@ -102,4 +102,4 @@ function Command() {
   );
 }
 
-export default Prs;
+export default PullRequests;

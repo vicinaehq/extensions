@@ -33,7 +33,20 @@
       ]
     },
     {
-      "name": "prs",
+      "name": "createPullRequest",
+      "title": "Create Pull Request",
+      "subtitle": "Create a new pull request",
+      "description": "Create a new pull request in a repository.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "pull requests",
+        "create",
+        "bugs"
+      ]
+    },
+    {
+      "name": "pullRequests",
       "title": "Pull Requests",
       "subtitle": "List your pull requests",
       "description": "List pull requests created by you, assigned to you or mentioning you.",

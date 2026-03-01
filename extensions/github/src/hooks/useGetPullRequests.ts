@@ -3,7 +3,7 @@ import { octokit } from "../api/githubClient";
 import { FilterType } from "../types";
 import { getPrFilterQuery } from "../utils/getPrFilterQuery";
 
-export const useGetPrs = (filter: FilterType, query = "") => {
+export const useGetPullRequests = (filter: FilterType, query = "") => {
   const q = getPrFilterQuery(filter, query);
   return useQuery({
     queryKey: ["githubPrs", q, filter],
