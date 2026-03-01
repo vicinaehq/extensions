@@ -6,6 +6,8 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       gcTime: Infinity,
+      networkMode: "always",
+      refetchIntervalInBackground: true,
     },
   },
 });

@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { octokit } from "../api/githubClient";
 import { FilterType } from "../types";
-import { getPrFilterQuery } from "../utils/getPrFilterQuery";
+import { getPullRequestFilterQuery } from "../utils/getPullRequestFilterQuery";
 
 export const useGetPullRequests = (filter: FilterType, query = "") => {
-  const q = getPrFilterQuery(filter, query);
+  const q = getPullRequestFilterQuery(filter, query);
   return useQuery({
     queryKey: ["githubPrs", q, filter],
     queryFn: async () => {

@@ -1,12 +1,10 @@
-import { Action, ActionPanel, getPreferenceValues, List } from "@vicinae/api";
+import { Action, ActionPanel, List } from "@vicinae/api";
 import { useState } from "react";
 
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useDebounce } from "@uidotdev/usehooks";
 import { persister, queryClient } from "./queryClient";
-import type { GitHubPreferencesMinimal } from "./types";
-import { repositoryDropdownItems } from "./config";
-import { useGetMyRepos, useSearchRepos } from "./hooks/useGetRepos";
+import { useSearchRepos } from "./hooks/useSearchRepos";
 
 function Repositories() {
   return (
@@ -20,46 +18,21 @@ function Repositories() {
 }
 
 function Command() {
-  const preferences = getPreferenceValues<GitHubPreferencesMinimal>();
   const [searchText, setSearchText] = useState("");
   const debouncedSearchText = useDebounce(searchText, 300);
-  const [filter, setFilter] = useState<FilterType>(
-    preferences.defaultRepositoryFilter || "my",
-  );
-
-  const { data: myRepos = [], isLoading, isFetching } = useGetMyRepos();
 
   const {
-    data: searchRepos = [],
-    isLoading: isSearchLoading,
-    isFetching: isSearchFetching,
+    data: repos = [],
+    isLoading,
+    isFetching,
   } = useSearchRepos(debouncedSearchText, true);
-
-  const repos = filter === "all" ? searchRepos : myRepos;
 
   return (
     <List
-      isLoading={isLoading || isFetching || isSearchLoading || isSearchFetching}
-      searchBarPlaceholder="Search in public and private repositories"
+      isLoading={isLoading || isFetching}
+      searchBarPlaceholder="Search for repositories by name..."
       onSearchTextChange={setSearchText}
-      filtering={filter !== "all"}
       searchText={searchText}
-      searchBarAccessory={
-        <List.Dropdown
-          tooltip="Filter Repositories"
-          storeValue={true}
-          value={filter}
-          onChange={(newValue) => setFilter(newValue as FilterType)}
-        >
-          {repositoryDropdownItems.map((item) => (
-            <List.Dropdown.Item
-              key={item.value}
-              title={item.title}
-              value={item.value}
-            />
-          ))}
-        </List.Dropdown>
-      }
     >
       {repos.map((repo) => (
         <List.Item
@@ -96,5 +69,3 @@ function Command() {
 }
 
 export default Repositories;
-
-type FilterType = "all" | "my";

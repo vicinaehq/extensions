@@ -12,8 +12,6 @@ export function getIssueFilterQuery(
     case "mentioning":
       return `mentions:@me is:${issueType} state:open ${query}`;
     default:
-      if (filterType)
-        return `repo:${filterType} is:${issueType} state:open ${query}`;
-      return `author:@me is:${issueType} state:open ${query}`;
+      return `repo:${filterType} is:${issueType} state:open ${query}`;
   }
 }

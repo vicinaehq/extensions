@@ -9,7 +9,7 @@
   "commands": [
     {
       "name": "issues",
-      "title": "Issues",
+      "title": "My Issues",
       "subtitle": "List your issues",
       "description": "List issues created by you, assigned to you or mentioning you.",
       "mode": "view",
@@ -17,6 +17,18 @@
         "github",
         "issues",
         "bugs"
+      ]
+    },
+    {
+      "name": "workflowRuns",
+      "title": "Workflow Runs",
+      "subtitle": "List your workflow runs",
+      "description": "List workflow runs created by you, assigned to you or mentioning you.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "workflow",
+        "runs"
       ]
     },
     {
@@ -47,7 +59,7 @@
     },
     {
       "name": "pullRequests",
-      "title": "Pull Requests",
+      "title": "My Pull Requests",
       "subtitle": "List your pull requests",
       "description": "List pull requests created by you, assigned to you or mentioning you.",
       "mode": "view",
@@ -57,9 +69,22 @@
       ]
     },
     {
-      "name": "repositories",
-      "title": "Repositories",
+      "name": "myRepositories",
+      "title": "My Repositories",
       "subtitle": "Search in your repositories",
+      "description": "List your public and private repositories",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "repositories",
+        "repos",
+        "code"
+      ]
+    },
+    {
+      "name": "searchRepositories",
+      "title": "Search Repositories",
+      "subtitle": "Search in repositories",
       "description": "Search in your public or private repositories by name.",
       "mode": "view",
       "keywords": [
