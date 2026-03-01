@@ -53,7 +53,7 @@ function Command() {
         error={errors?.fieldErrors.repo?.[0]}
         value={repo?.full_name || ""}
         onChange={(newValue) =>
-          setRepo(repos?.find((r) => r.full_name === newValue))
+          setRepo(repos?.find((r) => r.full_name === newValue) || null)
         }
       >
         {repos?.map((repo) => (
@@ -69,14 +69,16 @@ function Command() {
       <Form.TextField
         id="title"
         error={errors?.fieldErrors.title?.[0]}
-        title="Issue Title"
+        title="Title"
+        placeholder="Enter issue title..."
         value={title}
         onChange={setTitle}
       />
       <Form.TextArea
         id="description"
         error={errors?.fieldErrors.description?.[0]}
-        title="Issue Description"
+        placeholder="Issue description (e.g **bold**)..."
+        title="Description"
         value={description}
         onChange={setDescription}
       />
@@ -84,6 +86,7 @@ function Command() {
         id="assignee"
         error={errors?.fieldErrors.assignee?.[0]}
         title="Assignee"
+        placeholder="Select an assignee"
         value={assignee?.login || ""}
         onChange={(newValue) =>
           setAssignee(assignees?.find((a) => a.login === newValue) || null)
@@ -102,6 +105,7 @@ function Command() {
         id="labels"
         error={errors?.fieldErrors.label?.[0]}
         title="Labels"
+        placeholder="Select an label"
         value={label?.name || ""}
         onChange={(newValue) =>
           setLabel(labels?.find((l) => l.name === newValue) || null)

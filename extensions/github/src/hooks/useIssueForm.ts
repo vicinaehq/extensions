@@ -5,7 +5,7 @@ import { octokit } from "../api/githubClient";
 import { Assignee, Label, Repository } from "../types";
 
 export const useIssueForm = () => {
-  const [repo, setRepo] = useState<Repository | undefined>();
+  const [repo, setRepo] = useState<Repository | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [label, setLabel] = useState<Label | null>(null);

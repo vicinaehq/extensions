@@ -130,14 +130,16 @@ function Command() {
       <Form.TextField
         id="title"
         error={errors?.fieldErrors.title?.[0]}
-        title="PR Title"
+        placeholder="PR title"
+        title="Title"
         value={title}
         onChange={setTitle}
       />
       <Form.TextArea
         id="description"
         error={errors?.fieldErrors.description?.[0]}
-        title="PR Description"
+        placeholder="PR description (e.g **bold**)..."
+        title="Description"
         value={description}
         onChange={setDescription}
       />

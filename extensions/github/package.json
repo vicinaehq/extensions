@@ -143,7 +143,7 @@
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-query-persist-client": "^5.90.22",
     "@uidotdev/usehooks": "^2.4.1",
-    "@vicinae/api": "^0.19.9",
+    "@vicinae/api": "^0.20.2",
     "date-fns": "^3.6.0",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.2",

@@ -3,7 +3,7 @@ import { octokit } from "../api/githubClient";
 import { Label, Repository } from "../types";
 
 const defaultValue: Label[] = [];
-export const useGetLabels = (repo?: Repository) => {
+export const useGetLabels = (repo: Repository | null) => {
   return useQuery<Label[]>({
     queryKey: ["githubLabels", repo?.id],
     queryFn: async () => {
