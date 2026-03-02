@@ -1,22 +1,65 @@
 import { homedir } from "node:os";
-import { basename } from "node:path";
+import { basename, join } from "node:path";
 import { spawn } from "node:child_process";
-import { access, stat } from "node:fs/promises";
-import { ZED_DB_PATHS } from "./constants";
+import { access, readdir, stat } from "node:fs/promises";
+import { ZED_CHANNEL_DIRS, ZED_DB_DIRS } from "./constants";
 import type { RecentProject, RemoteConnection } from "./types";
 
-export function getDbPath(): string {
+function getDbDir(): string {
     const home = homedir();
-    const platform = process.platform as keyof typeof ZED_DB_PATHS;
-    const resolve = platform in ZED_DB_PATHS ? ZED_DB_PATHS[platform] : ZED_DB_PATHS.linux;
+    const platform = process.platform as keyof typeof ZED_DB_DIRS;
+    const resolve = platform in ZED_DB_DIRS ? ZED_DB_DIRS[platform] : ZED_DB_DIRS.linux;
     return resolve(home);
 }
 
-export async function loadRecents(): Promise<{ items: RecentProject[]; diagnostics?: string }> {
-    const dbPath = getDbPath();
+/** Returns all existing channel db.sqlite paths, ordered by preference. */
+async function discoverDbPaths(): Promise<string[]> {
+    const dbDir = getDbDir();
+    const paths: string[] = [];
 
-    if (!(await fileExists(dbPath))) {
-        return { items: [], diagnostics: `Zed database not found at:\n  ${dbPath}\n\nMake sure Zed is installed and has been opened at least once.` };
+    // Check known channel dirs first (in priority order)
+    for (const channel of ZED_CHANNEL_DIRS) {
+        const dbPath = join(dbDir, channel, "db.sqlite");
+        if (await fileExists(dbPath)) {
+            paths.push(dbPath);
+        }
+    }
+
+    // Also scan for any other 0-* dirs we might not know about
+    try {
+        const entries = await readdir(dbDir);
+        for (const entry of entries) {
+            if (!entry.startsWith("0-")) continue;
+            if (CHANNEL_DIRS_SET.has(entry)) continue; // already checked
+            const dbPath = join(dbDir, entry, "db.sqlite");
+            if (await fileExists(dbPath)) {
+                paths.push(dbPath);
+            }
+        }
+    } catch {
+        // dbDir doesn't exist or not readable
+    }
+
+    return paths;
+}
+
+const CHANNEL_DIRS_SET = new Set<string>(ZED_CHANNEL_DIRS);
+
+/** Returns the first found db path (for display/diagnostics). */
+export function getDbPath(): string {
+    const dbDir = getDbDir();
+    return join(dbDir, "0-stable", "db.sqlite");
+}
+
+export async function loadRecents(): Promise<{ items: RecentProject[]; diagnostics?: string }> {
+    const dbPaths = await discoverDbPaths();
+
+    if (dbPaths.length === 0) {
+        const fallback = getDbPath();
+        return {
+            items: [],
+            diagnostics: `Zed database not found at:\n  ${fallback}\n\nMake sure Zed is installed and has been opened at least once.`,
+        };
     }
 
     const query = `SELECT w.workspace_id, w.paths, w.timestamp, w.remote_connection_id,
@@ -26,33 +69,47 @@ export async function loadRecents(): Promise<{ items: RecentProject[]; diagnosti
         WHERE w.paths IS NOT NULL AND length(w.paths) > 0
         ORDER BY w.timestamp DESC;`;
 
-    const result = await execSqlite(dbPath, query);
-    if (result.code !== 0) {
-        return { items: [], diagnostics: `Failed to read Zed database:\n${result.stderr}` };
+    // Query all discovered databases and merge results
+    const seen = new Map<string, RecentProject>();
+
+    for (const dbPath of dbPaths) {
+        const result = await execSqlite(dbPath, query);
+        if (result.code !== 0) continue;
+
+        for (const line of result.stdout.split("\n")) {
+            if (!line.trim()) continue;
+            const cols = line.split("|");
+            const path = cols[1];
+            if (!path) continue;
+
+            // Deduplicate: keep the entry with the newest timestamp
+            const timestamp = cols[2];
+            const lastOpened = timestamp ? new Date(timestamp.endsWith("Z") ? timestamp : `${timestamp}Z`) : undefined;
+            const existing = seen.get(path);
+            if (existing?.lastOpened && lastOpened && existing.lastOpened >= lastOpened) {
+                continue;
+            }
+
+            const remote = cols[4] ? parseRemote(cols) : undefined;
+            const exists = remote ? true : await fileExists(path);
+            const isDirectory = exists && !remote ? await isDir(path) : true;
+
+            seen.set(path, {
+                path,
+                label: basename(path),
+                exists,
+                isDirectory,
+                lastOpened,
+                keywords: makeKeywords(basename(path), path),
+                remote,
+            });
+        }
     }
 
-    const items: RecentProject[] = [];
-    for (const line of result.stdout.split("\n")) {
-        if (!line.trim()) continue;
-        const cols = line.split("|");
-        const path = cols[1];
-        if (!path) continue;
-
-        const timestamp = cols[2];
-        const remote = cols[4] ? parseRemote(cols) : undefined;
-        const exists = remote ? true : await fileExists(path);
-        const isDirectory = exists && !remote ? await isDir(path) : true;
-
-        items.push({
-            path,
-            label: basename(path),
-            exists,
-            isDirectory,
-            lastOpened: timestamp ? new Date(timestamp.endsWith("Z") ? timestamp : `${timestamp}Z`) : undefined,
-            keywords: makeKeywords(basename(path), path),
-            remote,
-        });
-    }
+    const items = Array.from(seen.values()).sort((a, b) => {
+        if (!a.lastOpened || !b.lastOpened) return 0;
+        return b.lastOpened.getTime() - a.lastOpened.getTime();
+    });
 
     if (items.length === 0) {
         return { items: [], diagnostics: "No recent projects found in Zed database." };
@@ -62,9 +119,10 @@ export async function loadRecents(): Promise<{ items: RecentProject[]; diagnosti
 }
 
 export async function removeRecent(projectPath: string): Promise<void> {
-    const dbPath = getDbPath();
+    const dbPaths = await discoverDbPaths();
     const escaped = projectPath.replace(/'/g, "''");
-    await execSqlite(dbPath, `DELETE FROM workspaces WHERE paths='${escaped}';`);
+    // Remove from all databases where it might exist
+    await Promise.all(dbPaths.map((dbPath) => execSqlite(dbPath, `DELETE FROM workspaces WHERE paths='${escaped}';`)));
 }
 
 function parseRemote(cols: string[]): RemoteConnection {

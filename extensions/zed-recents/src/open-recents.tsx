@@ -11,7 +11,7 @@ export default function Command() {
         try {
             dbPath = getDbPath();
         } catch {
-            dbPath = "~/.local/share/zed/db/0-stable/db.sqlite";
+            dbPath = "~/.local/share/zed/db/";
         }
         return (
             <List searchBarPlaceholder="Search recent projects">
