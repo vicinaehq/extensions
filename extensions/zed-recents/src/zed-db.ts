@@ -71,10 +71,16 @@ export async function loadRecents(): Promise<{ items: RecentProject[]; diagnosti
 
     // Query all discovered databases and merge results
     const seen = new Map<string, RecentProject>();
+    let sqliteCliMissing = false;
 
     for (const dbPath of dbPaths) {
         const result = await execSqlite(dbPath, query);
-        if (result.code !== 0) continue;
+        if (result.code !== 0) {
+            if (isSqliteCliMissing(result.code, result.stderr, result.stdout)) {
+                sqliteCliMissing = true;
+            }
+            continue;
+        }
 
         for (const line of result.stdout.split("\n")) {
             if (!line.trim()) continue;
@@ -112,6 +118,12 @@ export async function loadRecents(): Promise<{ items: RecentProject[]; diagnosti
     });
 
     if (items.length === 0) {
+        if (sqliteCliMissing) {
+            return {
+                items: [],
+                diagnostics: "The `sqlite3` CLI is not installed or not available in PATH.\n\nInstall sqlite3 and restart Vicinae.",
+            };
+        }
         return { items: [], diagnostics: "No recent projects found in Zed database." };
     }
 
@@ -171,4 +183,12 @@ function execSqlite(dbPath: string, sql: string): Promise<{ stdout: string; stde
         child.on("error", (err) => resolve({ stdout: "", stderr: String(err), code: 127 }));
         child.on("close", (code) => resolve({ stdout, stderr, code: code ?? 0 }));
     });
+}
+
+function isSqliteCliMissing(code: number, stderr: string, stdout: string): boolean {
+    // POSIX command-not-found exits with 127. This is the most reliable signal.
+    if (code === 127) return true;
+
+    const text = `${stderr}\n${stdout}`.toLowerCase();
+    return text.includes("spawn sqlite3 enoent") || (text.includes("sqlite3") && text.includes("not found"));
 }
