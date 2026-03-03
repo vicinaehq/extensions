@@ -63,7 +63,8 @@
 	},
 	"dependencies": {
 		"@vicinae/api": "^0.19.9",
-		"dbus-next": "^0.10.2"
+		"dbus-next": "^0.10.2",
+		"x11": "^2.3.0"
 	},
 	"devDependencies": {
 		"typescript": "^5.9.2"
