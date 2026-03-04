@@ -24,9 +24,9 @@ export const trigger: MenuItem = {
           icon: " ",
           items: [
 						{
-							id: "with-no-audio"
-							name: "With no audio"
-							command: "omarchy-cmd-screenrecord"
+							id: "with-no-audio",
+							name: "With no audio",
+							command: "omarchy-cmd-screenrecord",
 						},
             {
               id: "with-desktop-audio",
@@ -135,11 +135,11 @@ export const trigger: MenuItem = {
 		{
 			id: "hardware",
 			name: "Hardware",
-			icon: " "
+			icon: " ",
 			items: [
 				{
 					id: "hybrid-gpu",
-					name: "Hybrid GPU"
+					name: "Hybrid GPU",
 					icon: " ",
 					command: present_terminal("omarchy-toggle-hybrid-gpu"),
 				},

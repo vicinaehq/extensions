@@ -229,7 +229,7 @@ export const installMenu: MenuItem = {
             },
           ],
         },
-        
+				{
           id: "python",
           name: "Python",
           icon: " ",
@@ -432,9 +432,9 @@ export const installMenu: MenuItem = {
         },
 				{
 					id: "nvidia-geforce-now",
-					name: "NVIDIA GeForce NOW"
+					name: "NVIDIA GeForce NOW",
 					icon: "󰢹 ",
-					command: present_terminal("omarchy-install-geforce-now")
+					command: present_terminal("omarchy-install-geforce-now"),
 				},
         {
           id: "retroarch",
