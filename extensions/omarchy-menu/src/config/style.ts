@@ -14,7 +14,7 @@ export const style: MenuItem = {
       id: "background",
       name: "Background",
       icon: " ",
-			items: background_list()
+			command: "omarchy-theme-bg-next"
     },
     {
       id: "hyprland",
