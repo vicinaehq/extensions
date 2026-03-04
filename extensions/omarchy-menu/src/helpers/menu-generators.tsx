@@ -78,4 +78,3 @@ export const fonts_list = (): MenuItem[] => {
   });
 };
 
-export const backgrounds_list = (): MenuItem[] => {}
