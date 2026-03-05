@@ -1,13 +1,15 @@
 {
-    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.4.6/schema.json",
     "formatter": {
         "enabled": true,
+        "includes": ["src/**/*.ts", "src/**/*.tsx", "*.json"],
         "lineWidth": 135,
         "indentWidth": 4,
         "indentStyle": "space"
     },
     "linter": {
         "enabled": true,
+        "includes": ["src/**/*.ts", "src/**/*.tsx", "*.json"],
         "rules": {
             "recommended": true
         }

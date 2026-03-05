@@ -1,6 +1,6 @@
-import { List, Icon } from "@vicinae/api";
+import { Icon, List } from "@vicinae/api";
+import { ProjectEnvironment, ProjectType, type RecentProject } from "../types";
 import { ProjectActions } from "./ProjectActions";
-import { RecentProject, ProjectType, ProjectEnvironment } from "../types";
 
 interface ProjectListItemProps {
     project: RecentProject;

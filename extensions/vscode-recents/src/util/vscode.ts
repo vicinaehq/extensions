@@ -1,8 +1,8 @@
-import { promisify } from "util";
-import { exec } from "child_process";
-import { type Preferences, ProjectType, type RecentProject, WindowPreference } from "../types";
-import { VSCODE_EXECUTABLES } from "../constants";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
 import { getPreferenceValues, showToast, Toast } from "@vicinae/api";
+import { VSCODE_EXECUTABLES } from "../constants";
+import { type Preferences, ProjectType, type RecentProject, WindowPreference } from "../types";
 
 const execAsync = promisify(exec);
 
@@ -56,7 +56,7 @@ export async function openProjectInVSCode(project: RecentProject): Promise<void>
             command += ` --file-uri "${project.path}"`;
         }
 
-        const { NODE_ENV, ...env } = process.env;
+        const { NODE_ENV: _NODE_ENV, ...env } = process.env;
         await execAsync(`${command}`, { env });
     } catch (error) {
         console.error(`Error opening project in ${vscodeFlavour}:`, error);

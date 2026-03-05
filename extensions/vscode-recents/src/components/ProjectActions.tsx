@@ -1,7 +1,7 @@
-import { openProjectInVSCode } from "../util/vscode";
-import { removeRecentProject } from "../util/database";
-import { Action, ActionPanel, Icon, closeMainWindow, showInFileBrowser, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, closeMainWindow, Icon, showInFileBrowser, showToast, Toast } from "@vicinae/api";
 import { ProjectEnvironment, type RecentProject } from "../types";
+import { removeRecentProject } from "../util/database";
+import { openProjectInVSCode } from "../util/vscode";
 
 interface ProjectActionsProps {
     project: RecentProject;
