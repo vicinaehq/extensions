@@ -15,6 +15,14 @@ export const VSCODE_EXECUTABLES: Record<string, string> = {
     "Code - Insiders": "code-insiders",
 };
 
+export const VSCODE_FLAVOURS: { value: string; label: string }[] = [
+    { value: "Antigravity", label: "Antigravity" },
+    { value: "Cursor", label: "Cursor" },
+    { value: "VSCodium", label: "VSCodium" },
+    { value: "Code", label: "Visual Studio Code" },
+    { value: "Code - Insiders", label: "Visual Studio Code (Insiders)" },
+];
+
 export const VSCODE_STATE_PATHS = {
     linux: (home: string, flavour: string) => `${home}/.config/${flavour}/User/globalStorage/state.vscdb`,
     win32: (home: string, flavour: string) => `${home}/AppData/Roaming/${flavour}/User/globalStorage/state.vscdb`,
