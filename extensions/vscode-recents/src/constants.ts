@@ -8,6 +8,7 @@ export const WORKSPACE_EXTENSION = ".code-workspace";
 
 // Note: needs to match Preferences.vscodeFlavour values
 export const VSCODE_EXECUTABLES: Record<string, string> = {
+    Antigravity: "antigravity",
     Code: "code",
     Cursor: "cursor",
     VSCodium: "codium",

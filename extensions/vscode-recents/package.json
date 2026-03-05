@@ -30,6 +30,10 @@
             "description": "The flavour of VSCode to use",
             "data": [
                 {
+                    "title": "Antigravity",
+                    "value": "Antigravity"
+                },
+                {
                     "title": "Cursor",
                     "value": "Cursor"
                 },
