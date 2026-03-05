@@ -1,12 +1,12 @@
-import { queryRecentProjects } from "./database";
-import { type RecentProject, ProjectType, type VSCodeRecentData, type VSCodeDatabaseEntry } from "../types";
 import {
     decodeFileUri,
     getProjectLabel,
-    sortProjectsByLastOpenedOrIndex as sortProjectsByLastOpened,
     parseRemoteAuthority,
+    sortProjectsByLastOpenedOrIndex as sortProjectsByLastOpened,
     validateProjectPath,
 } from "../helpers";
+import { ProjectType, type RecentProject, type VSCodeDatabaseEntry, type VSCodeRecentData } from "../types";
+import { queryRecentProjects } from "./database";
 
 function parseProjectEntry(entry: VSCodeDatabaseEntry): RecentProject | null {
     let projectPath = "";
@@ -43,13 +43,14 @@ function parseProjectEntry(entry: VSCodeDatabaseEntry): RecentProject | null {
     };
 }
 
-export function getRecentProjects(): RecentProject[] {
+export async function getRecentProjects(): Promise<RecentProject[]> {
     const projects: RecentProject[] = [];
 
     try {
-        const rows = queryRecentProjects();
+        const rows = await queryRecentProjects();
+        const rowsArray = Array.isArray(rows) ? rows : [];
 
-        for (const row of rows) {
+        for (const row of rowsArray) {
             try {
                 const data: VSCodeRecentData = JSON.parse(row.value);
 

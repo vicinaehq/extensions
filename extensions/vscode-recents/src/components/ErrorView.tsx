@@ -1,4 +1,4 @@
-import { List, Icon } from "@vicinae/api";
+import { Icon, List } from "@vicinae/api";
 
 interface ErrorViewProps {
     error: Error;

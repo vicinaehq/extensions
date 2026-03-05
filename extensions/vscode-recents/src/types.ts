@@ -38,6 +38,7 @@ export interface VSCodeRecentData {
 }
 
 export enum VSCodeFlavour {
+    Antigravity = "Antigravity",
     Code = "Code",
     Cursor = "Cursor",
     VSCodium = "VSCodium",
