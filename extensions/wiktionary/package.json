@@ -1,0 +1,73 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "wiktionary",
+  "title": "Wiktionary Dictionary",
+  "description": "Lookup words through Wiktionary",
+  "categories": [
+    "Productivity",
+    "Web"
+  ],
+  "license": "MIT",
+  "author": "luleyleo",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "icon.svg",
+  "commands": [
+    {
+      "name": "define",
+      "title": "Define",
+      "subtitle": "Wiktionary",
+      "description": "Look up a word or phrase using Wiktionary",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "source",
+      "type": "dropdown",
+      "title": "Preferred Source",
+      "description": "Choose a preferred text source.",
+      "data": [
+        {
+          "title": "Selected",
+          "value": "selected"
+        },
+        {
+          "title": "Clipboard",
+          "value": "clipboard"
+        },
+        {
+          "title": "Empty",
+          "value": "empty"
+        }
+      ],
+      "default": "selected",
+      "required": true
+    },
+    {
+      "name": "resultLanguages",
+      "type": "textfield",
+      "title": "Result Languages",
+      "description": "For which languages you want to see definitions. Leave empty for all languages. Format: en,de",
+      "default": "",
+      "placeholder": "en,de",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.19.1",
+    "@raycast/utils": "^2.2.2",
+    "@types/turndown": "^5.0.6",
+    "turndown": "^7.2.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
