@@ -6,6 +6,8 @@ A [Vicinae](https://github.com/vicinaehq/vicinae) extension for checking real-ti
 
 - Real-time stock prices
 - Price changes and percentages
+- **Symbol search** - search for any stock symbol via Yahoo Finance, with progressive price data loading
+- **Watchlist** - pre-configured symbols from preferences, with auto-refresh
 - **Color-coded indicators** - green for gains, red for losses, gray for no change
 - **Sparkline charts** showing the last 20 trading days
 - Market data like open, high, low, volume, and 52-week range
@@ -51,7 +53,9 @@ Choose the default period for price changes:
 1. Install the extension
 2. Add your stock symbols in the settings
 3. Pick your refresh rate and default time range
-4. Run the "Stocks" command to see prices
+4. Run the "Stocks" command to see your watchlist
+
+Type in the search bar to find any stock symbol. Search results show basic info first, then progressively load full price data and sparklines. Clear the search bar to return to your watchlist.
 
 Data refreshes automatically. Stocks sort with winners on top, then by biggest changes. Change the time range with the dropdown. Switch to detail view for more info like exchange status, volume, and yearly ranges.
 

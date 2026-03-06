@@ -85,6 +85,20 @@ export interface YahooFinanceResponse {
   };
 }
 
+export interface YahooSearchResult {
+  symbol: string;
+  shortname?: string;
+  longname?: string;
+  quoteType: string;
+  exchDisp?: string;
+  typeDisp?: string;
+  isYahooFinance: boolean;
+}
+
+export interface YahooSearchResponse {
+  quotes: YahooSearchResult[];
+}
+
 export interface Preferences {
   symbols: string;
   refreshInterval: string;
