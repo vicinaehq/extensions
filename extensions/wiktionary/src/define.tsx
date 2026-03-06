@@ -69,7 +69,7 @@ export default function DefineSuggestions() {
   const apiUrl = `https://en.wiktionary.org/w/rest.php/v1/search/title?q=${text}&limit=10`;
 
   useEffect(() => {
-    if (preferredSource == "selection") {
+    if (preferredSource == "selected") {
       getSelectedText().then((selectedText) => {
         if (text == "" && selectedText != "") {
           setText(selectedText);
