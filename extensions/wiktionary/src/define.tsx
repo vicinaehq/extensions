@@ -110,7 +110,13 @@ export default function DefineSuggestions() {
   }, [text]);
 
   return (
-    <List searchBarPlaceholder="Search Wiktionary" onSearchTextChange={setText} isLoading={isLoading} throttle>
+    <List
+      searchBarPlaceholder="Search Wiktionary"
+      searchText={text}
+      onSearchTextChange={setText}
+      isLoading={isLoading}
+      throttle
+    >
       {error && <List.Item title="Error" subtitle={error} />}
       {!error &&
         suggestions.map((page) => (
