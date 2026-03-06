@@ -121,9 +121,7 @@ export default function DefineSuggestions() {
       {!error &&
         suggestions.map((page) => (
           <List.Item
-            icon={{
-              source: page?.thumbnail?.url ? "https:" + page.thumbnail.url : "../assets/icon.svg",
-            }}
+            icon={{ source: page?.thumbnail?.url ? `https:${page.thumbnail.url}` : "../assets/icon.svg" }}
             id={page.id.toString()}
             key={page.id}
             title={page.title}
@@ -164,9 +162,7 @@ export function Define({ title }: { title: string }) {
 
       td.addRule("remove-links", {
         filter: ["a"],
-        replacement: function (content) {
-          return content;
-        },
+        replacement: (content) => content,
       });
 
       let markdown = "";
