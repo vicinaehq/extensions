@@ -28,7 +28,7 @@ export function PageItem({ search, title, language }: { search: string; title: s
   return (
     <View.Item
       content={{ source: page?.thumbnail?.source || Icon.Image }}
-      icon={{ source: page?.thumbnail?.source || "../assets/wikipedia.png" }}
+      icon={{ source: page?.thumbnail?.source || Icon.Globe }}
       id={title}
       title={title}
       subtitle={page?.description ? toSentenceCase(page.description) : ""}
