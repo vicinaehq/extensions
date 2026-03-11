@@ -20,6 +20,6 @@ jobs:
       - name: Upload compat file
         run: |
           curl -f -X POST \
-            "${{ secrets.STORE_BASE_URL }}/v1/raycast/upload-compat" \
+            "${{ vars.STORE_BASE_URL }}/v1/raycast/upload-compat" \
             -H "Authorization: Bearer ${{ secrets.STORE_API_SECRET }}" \
             -F "file=@raycast/compat.json"
