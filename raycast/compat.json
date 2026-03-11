@@ -7,13 +7,13 @@
     "status": "full",
     "confidence": "confirmed",
     "needs_patch": true,
-    "notes": ["only works with premium accounts", "oauth required, but everything works"]
+    "notes": ["playback only works with a premium account"]
   },
   "visual-studio-code": {
     "status": "full",
     "confidence": "confirmed",
     "needs_patch": true,
-    "notes": ["Recent Projects doesn't work, hardcoded macos path at https://github.com/raycast/extensions/blob/a14ef2b05d551e9ab988e2e9134a40bbc225c938/extensions/visual-studio-code-recent-projects/src/db.ts#L86"]
+    "notes": ["Recent Projects doesn't work due to hardcoded macos paths"]
   },
   "chatgpt": {
     "status": "full",
@@ -22,7 +22,7 @@
   "linear": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["react error 130", "many bugs", "segfaults"]
+    "notes": ["react error 130", "segfaults"]
   },
   "arc": {
     "status": "impossible",
@@ -35,14 +35,13 @@
   },
   "github": {
     "status": "partial",
-    "confidence": "probed",
-    "notes": ["form bugs fixed, todo: check again after oauth"]
+    "confidence": "probed"
   },
   "speedtest": {
     "status": "full",
     "confidence": "confirmed",
     "needs_patch": true,
-    "notes": ["works if you manually download speedtest cli and place it in extension support dir"]
+    "notes": ["requires manually downloading speedtest cli to extension support dir"]
   },
   "obsidian": {
     "status": "full",
@@ -51,7 +50,7 @@
   "apple-notes": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["applescript", "macos paths to db"]
+    "notes": ["applescript", "hardcoded MacOS paths to db"]
   },
   "google-search": {
     "status": "full",
@@ -60,12 +59,12 @@
   "raycast-system-monitor": {
     "status": "partial",
     "confidence": "confirmed",
-    "notes": ["depends on macos programs", "Memory, Power, Network don't work"]
+    "notes": ["depends on MacOS programs", "Memory, Power, Network don't work"]
   },
   "pomodoro": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["Menu bar?", "doesn't seem to time"]
+    "notes": ["requires menu bar support", "timer doesn't work"]
   },
   "coffee": {
     "status": "impossible",
@@ -75,7 +74,7 @@
   "timers": {
     "status": "partial",
     "confidence": "confirmed",
-    "notes": ["depends on macos programs: afplay", "needs menu bar", "stopwatch works", "timers need https://github.com/ThatNerdSquared/timers-for-raycast/issues/42"]
+    "notes": ["depends on macos program: afplay", "requires menu bar support", "timers need https://github.com/ThatNerdSquared/timers-for-raycast/issues/42"]
   },
   "youtube": {
     "status": "partial",
@@ -85,7 +84,7 @@
   "cleanshotx": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["macos only app"]
+    "notes": ["MacOS only app"]
   },
   "video-downloader": {
     "status": "full",
@@ -99,7 +98,7 @@
   "music": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["based on applescript"]
+    "notes": ["applescript"]
   },
   "lorem-ipsum": {
     "status": "full",
@@ -107,23 +106,21 @@
   },
   "zoom": {
     "status": "full",
-    "confidence": "confirmed",
-    "notes": ["works now with oauth"]
+    "confidence": "confirmed"
   },
   "json-format": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["most commands work", "form infinite refresh bug"]
+    "notes": ["may have a form infinite refresh bug"]
   },
   "gif-search": {
-    "status": "partial",
-    "confidence": "probed",
-    "notes": ["Grid.Dropdown missing"]
+    "status": "full",
+    "confidence": "confirmed",
+    "notes": []
   },
   "todoist": {
     "status": "partial",
-    "confidence": "probed",
-    "notes": ["PickDate - A few react errors in some views"]
+    "confidence": "probed"
   },
   "emoji": {
     "status": "full",
@@ -136,7 +133,7 @@
   "deepcast": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["tl works but loading hangs"]
+    "notes": ["translation works but loading hangs"]
   },
   "remove-paywall": {
     "status": "full",
@@ -145,12 +142,12 @@
   "audio-device": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["macos only", "extension ships with binary"]
+    "notes": ["macos only", "ships with native binary"]
   },
   "downloads-manager": {
     "status": "full",
     "confidence": "confirmed",
-    "notes": ["downloads path input field shows file picker instead of dir picker"]
+    "notes": ["downloads path input shows file picker instead of dir picker"]
   },
   "shell": {
     "status": "full",
@@ -160,12 +157,12 @@
   "jira": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["works now with oauth", "nested actions not working"]
+    "notes": ["nested actions not working"]
   },
   "perplexity": {
     "status": "nothing",
     "confidence": "probed",
-    "notes": ["preference default value?", "perplexityApp"]
+    "notes": ["preference default value issue", "perplexityApp dependency"]
   },
   "vscode-project-manager": {
     "status": "full",
@@ -174,15 +171,15 @@
     "notes": ["hardcoded paths"]
   },
   "browser-bookmarks": {
-    "status": "full",
+    "status": "partial",
     "confidence": "confirmed",
     "needs_patch": true,
-    "notes": ["tightly tied to macos paths of all browsers"]
+    "notes": ["hardcoded MacOS paths, not blocking"]
   },
   "sips": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["macos programs", "applescript"]
+    "notes": ["MacOS programs", "applescript"]
   },
   "safari": {
     "status": "impossible",
@@ -192,18 +189,18 @@
   "toothpick": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["based on applescript/blueutil"]
+    "notes": ["applescript/blueutil"]
   },
   "spotify-controls": {
     "status": "impossible",
     "confidence": "confirmed",
     "has_equivalent": true,
-    "notes": ["applescript only"]
+    "notes": ["applescript"]
   },
   "google-workspace": {
     "status": "nothing",
     "confidence": "probed",
-    "notes": ["oauth deeplink does not open in vicinae"]
+    "notes": ["oauth flow may not fully work"]
   },
   "ray-so": {
     "status": "full",
@@ -221,7 +218,7 @@
   "screenocr": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["Apple's VisionKit ML API"]
+    "notes": ["depends on Apple VisionKit"]
   },
   "myip": {
     "status": "full",
@@ -231,7 +228,7 @@
     "status": "impossible",
     "confidence": "confirmed",
     "has_equivalent": true,
-    "notes": ["based on spotlight"]
+    "notes": ["depends on Spotlight"]
   },
   "docker": {
     "status": "full",
@@ -240,7 +237,7 @@
   "figma-files-raycast-extension": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["grid has only 1 column"]
+    "notes": ["grid shows only 1 column"]
   },
   "google-maps-search": {
     "status": "full",
@@ -249,12 +246,12 @@
   "quit-applications": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["applescript based"]
+    "notes": ["applescript"]
   },
   "wikipedia": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["Random page calls launchCommand"]
+    "notes": ["Random page uses unsupported launchCommand"]
   },
   "cheatsheets": {
     "status": "full",
@@ -268,7 +265,7 @@
   "quick-event": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["applescript/osa-script"]
+    "notes": ["applescript"]
   },
   "things": {
     "status": "impossible",
@@ -309,12 +306,12 @@
   "raycast-explorer": {
     "status": "partial",
     "confidence": "confirmed",
-    "notes": ["raycast themes won't work"]
+    "notes": ["themes not supported"]
   },
   "random": {
     "status": "full",
     "confidence": "confirmed",
-    "notes": ["Quicklinks, need to fix shortcuts"]
+    "notes": ["shortcuts not working"]
   },
   "raycast-apple-intelligence": {
     "status": "impossible",
@@ -325,12 +322,12 @@
     "status": "impossible",
     "confidence": "confirmed",
     "has_equivalent": true,
-    "notes": ["reads from raycast directory, but vicinae has a built-in command for this"]
+    "notes": ["reads from raycast directory"]
   },
   "google-meet": {
     "status": "partial",
     "confidence": "confirmed",
-    "notes": ["applescript for copy to clipboard"]
+    "notes": ["copy to clipboard requires applescript"]
   },
   "svgl": {
     "status": "full",
@@ -370,12 +367,12 @@
   "screenshot": {
     "status": "impossible",
     "confidence": "confirmed",
-    "notes": ["uses `screencapture` program"]
+    "notes": ["depends on `screencapture` program"]
   },
   "curl": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["adding parameters -> infinite loop somewhere"]
+    "notes": ["adding parameters causes infinite loop"]
   },
   "word-search": {
     "status": "full",
@@ -429,7 +426,7 @@
   "jwt-decoder": {
     "status": "partial",
     "confidence": "confirmed",
-    "notes": ["decode copy works, but doesn't display", "qt svg issue"]
+    "notes": ["decoded output doesn't display", "Qt SVG rendering issue"]
   },
   "brave": {
     "status": "impossible",
@@ -440,7 +437,7 @@
     "status": "full",
     "confidence": "confirmed",
     "needs_patch": true,
-    "notes": ["requires setting profile dir", "can be patched to add linux paths"]
+    "notes": ["hardcoded profile dir, needs linux paths"]
   },
   "meme-generator": {
     "status": "full",
@@ -473,7 +470,7 @@
   "browser-history": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["listing works but opening doesn't work"]
+    "notes": ["opening links doesn't work"]
   },
   "cyberchef": {
     "status": "full",
@@ -482,12 +479,12 @@
   "snake": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["view scrolls, can't play"]
+    "notes": ["view scrolls unexpectedly, game unplayable"]
   },
   "tldr": {
     "status": "full",
     "confidence": "confirmed",
-    "notes": ["ext broken, doesn't work on raycast also (cannot fetch tldr pages)"]
+    "notes": ["broken upstream, cannot fetch tldr pages"]
   },
   "devdocs": {
     "status": "full",
@@ -501,7 +498,7 @@
     "status": "impossible",
     "confidence": "confirmed",
     "has_equivalent": true,
-    "notes": ["depends on macos program: networkQuality", "use speedtest extension instead"]
+    "notes": ["depends on macos program: networkQuality"]
   },
   "ghostty": {
     "status": "impossible",
@@ -516,7 +513,7 @@
     "status": "full",
     "confidence": "confirmed",
     "needs_patch": true,
-    "notes": ["download works, must set download dir", "thumbnail gen with ffmpeg requires applescript but is optional"]
+    "notes": ["must set download dir", "thumbnail generation requires applescript (optional)"]
   },
   "raycast-icons": {
     "status": "full",
@@ -529,7 +526,7 @@
   "quick-notes": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["view notes: TypeError: Cannot read properties of undefined (reading 'length')"]
+    "notes": ["TypeError: Cannot read properties of undefined (reading 'length')"]
   },
   "placeholder": {
     "status": "full",
@@ -542,13 +539,13 @@
   "whois": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["needs formatting"]
+    "notes": ["output formatting issues"]
   },
   "keepassxc": {
     "status": "full",
     "confidence": "confirmed",
     "needs_patch": true,
-    "notes": ["needs cli path patch", "crashed upon unlocking"]
+    "notes": ["hardcoded cli path", "crashes upon unlocking"]
   },
   "dig": {
     "status": "full",
@@ -557,12 +554,12 @@
   "tw-colorpicker": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["list left icon no color"]
+    "notes": ["list icon colors not displayed"]
   },
   "fancy-text": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["openExtensionPreferences"]
+    "notes": ["openExtensionPreferences not supported"]
   },
   "gitignore": {
     "status": "nothing",
