@@ -22,5 +22,4 @@ jobs:
           curl -f -X POST \
             "${{ secrets.STORE_BASE_URL }}/v1/raycast/upload-compat" \
             -H "Authorization: Bearer ${{ secrets.STORE_API_SECRET }}" \
-            -H "Content-Type: application/json" \
-            -d @raycast/compat.json
+            -F "file=@raycast/compat.json"
