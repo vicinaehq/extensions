@@ -51,8 +51,7 @@ async function hasAnyToolboxScript(dir: string): Promise<boolean> {
 		try {
 			const s = await stat(candidate);
 			if (s.isFile()) return true;
-		} catch {
-		}
+		} catch {}
 	}
 	return false;
 }
@@ -64,18 +63,19 @@ async function hasAnyToolboxApp(dir: string): Promise<boolean> {
 		try {
 			const s = await stat(candidate);
 			if (s.isDirectory()) return true;
-		} catch {
-		}
+		} catch {}
 	}
 	return false;
 }
 
-async function validateToolboxScriptsDir(dirPath: string): Promise<{ valid: boolean; error?: string }> {
+async function validateToolboxScriptsDir(
+	dirPath: string,
+): Promise<{ valid: boolean; error?: string }> {
 	const exists = await validatePath(dirPath);
 	if (!exists) {
 		return { valid: false, error: "directory does not exist" };
 	}
-	
+
 	try {
 		const stats = await stat(dirPath);
 		if (!stats.isDirectory()) {
@@ -92,16 +92,18 @@ async function validateToolboxScriptsDir(dirPath: string): Promise<{ valid: bool
 			error: "no JetBrains launcher scripts found in this directory",
 		};
 	}
-	
+
 	return { valid: true };
 }
 
-async function validateToolboxAppsDir(dirPath: string): Promise<{ valid: boolean; error?: string }> {
+async function validateToolboxAppsDir(
+	dirPath: string,
+): Promise<{ valid: boolean; error?: string }> {
 	const exists = await validatePath(dirPath);
 	if (!exists) {
 		return { valid: false, error: "directory does not exist" };
 	}
-	
+
 	try {
 		const stats = await stat(dirPath);
 		if (!stats.isDirectory()) {
@@ -118,7 +120,7 @@ async function validateToolboxAppsDir(dirPath: string): Promise<{ valid: boolean
 			error: "no JetBrains Toolbox apps found in this directory",
 		};
 	}
-	
+
 	return { valid: true };
 }
 
@@ -131,7 +133,9 @@ export async function loadProjectsWithLaunchersAndIcons(options?: {
 	const homeDir = options?.homeDir ?? process.env.HOME ?? "";
 
 	if (options?.toolboxScriptsDir) {
-		const validation = await validateToolboxScriptsDir(options.toolboxScriptsDir);
+		const validation = await validateToolboxScriptsDir(
+			options.toolboxScriptsDir,
+		);
 		if (!validation.valid) {
 			throw new InvalidPathError(
 				options.toolboxScriptsDir,
@@ -171,7 +175,9 @@ export async function loadProjectsWithLaunchersAndIcons(options?: {
 		throw new ToolboxNotFoundError();
 	}
 
-	const projects = await loadJetBrainsRecentProjects(homeDir);
+	const jetbrainsProjects = await loadJetBrainsRecentProjects(homeDir);
+	const googleProjects = await loadJetBrainsRecentProjects(homeDir, "Google");
+	const projects = jetbrainsProjects.concat(googleProjects);
 
 	if (projects.length === 0) {
 		return {
