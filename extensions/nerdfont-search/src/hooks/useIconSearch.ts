@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { type IconIndex, useIconData } from "./useIconData";
-import { filterIconIndex } from "../search/filtering";
+import { filterIconIndex } from "../filtering";
 
 type IconEntry = {
   id: string;

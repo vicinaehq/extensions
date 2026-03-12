@@ -1,5 +1,5 @@
-import { PACK_FILTER_ALL, SEARCH_RESULT_LIMIT } from "../constants";
-import type { IconIndex } from "../schemas/icon-data";
+import { PACK_FILTER_ALL, SEARCH_RESULT_LIMIT } from "./constants";
+import type { IconIndex } from "./schemas/icon-data";
 
 const SCORE_EPSILON = 0.000001;
 

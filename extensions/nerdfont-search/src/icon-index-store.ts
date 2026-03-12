@@ -1,13 +1,13 @@
 import { Cache } from "@vicinae/api";
 import Fuse from "fuse.js";
 import type { IFuseOptions } from "fuse.js";
-import fuseOptions from "../fuse-options.json";
-import searchConfig from "../search-config.json";
+import fuseOptions from "./fuse-options.json";
+import searchConfig from "./search-config.json";
 import {
 	parseIconIndexFile,
 	type IconIndex,
 	type SerializedIconIndex,
-} from "../schemas/icon-data";
+} from "./schemas/icon-data";
 
 let fuseInstance: Fuse<IconIndex> | null = null;
 let cachedIconIndex: IconIndex[] | null = null;

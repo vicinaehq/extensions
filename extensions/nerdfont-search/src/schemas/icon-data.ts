@@ -1,24 +1,5 @@
 import { z } from "zod/v4-mini";
 
-interface SerializedIconIndex {
-	id: string;
-	pack: string;
-	char: string;
-	code: string;
-	displayName: string;
-	packLabel: string;
-	searchTokens: number[];
-}
-
-interface IconIndexFile {
-	dictionary: string[];
-	icons: SerializedIconIndex[];
-}
-
-type IconIndex = Omit<SerializedIconIndex, "searchTokens"> & {
-	searchTokens: string[];
-};
-
 const serializedIconIndexSchema = z.object({
 	id: z.string(),
 	pack: z.string(),
@@ -33,6 +14,12 @@ const iconIndexFileSchema = z.object({
 	dictionary: z.array(z.string()),
 	icons: z.array(serializedIconIndexSchema),
 });
+
+type SerializedIconIndex = z.infer<typeof serializedIconIndexSchema>;
+type IconIndexFile = z.infer<typeof iconIndexFileSchema>;
+type IconIndex = Omit<SerializedIconIndex, "searchTokens"> & {
+	searchTokens: string[];
+};
 
 function parseIconIndexFile(input: unknown): IconIndexFile {
 	const parsed = iconIndexFileSchema.parse(input);

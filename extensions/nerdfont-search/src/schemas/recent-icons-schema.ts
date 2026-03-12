@@ -14,17 +14,7 @@ const recentIconSchema = z.object({
 
 const recentIconsSchema = z.array(recentIconSchema);
 
-type RecentIcon = {
-	id: string;
-	char: string;
-	code: string;
-	hexCode: string;
-	htmlEntity: string;
-	displayName: string;
-	nerdFontId: string;
-	packLabel: string;
-	iconPath: string;
-};
+type RecentIcon = z.infer<typeof recentIconSchema>;
 
 function parseRecentIconsJson(cached: string | null | undefined): RecentIcon[] {
 	if (!cached) {

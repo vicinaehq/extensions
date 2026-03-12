@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  ensureIconIndexLoaded,
-  getCachedIconIndex,
-  getFuseInstance,
-  type IconIndex,
-} from "../data/icon-index-store";
+	ensureIconIndexLoaded,
+	getCachedIconIndex,
+	getFuseInstance,
+	type IconIndex,
+} from "../icon-index-store";
 
 export function useIconData() {
   const [iconIndex, setIconIndex] = useState<IconIndex[]>(

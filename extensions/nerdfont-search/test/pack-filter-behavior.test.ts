@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const Fuse = require("fuse.js");
 const fuseOptions = require("../src/fuse-options.json");
-const { filterIconIndex } = require("../src/search/filtering");
+const { filterIconIndex } = require("../src/filtering");
 
 const indexData = require("./fixtures/icon-index.fixture.json");
 
