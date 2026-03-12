@@ -6,7 +6,7 @@ body:
     id: extension-name
     attributes:
       label: Extension name
-      description: The name of the native extension
+      description: The exact directory name under `extensions/` in this repository
       placeholder: e.g. bluetooth
     validations:
       required: true

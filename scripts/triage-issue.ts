@@ -5,6 +5,7 @@ const token = process.env.GITHUB_TOKEN!;
 const issueNumber = parseInt(process.env.ISSUE_NUMBER!);
 const issueBody = process.env.ISSUE_BODY || "";
 const issueAuthor = process.env.ISSUE_AUTHOR || "";
+const issueTitle = process.env.ISSUE_TITLE || "";
 
 const headers = {
   Authorization: `Bearer ${token}`,
@@ -79,6 +80,14 @@ async function main() {
   if (!author) {
     console.error(`Extension "${extensionName}" has no author field in manifest`);
     process.exit(1);
+  }
+
+  // Prefix issue title with extension name
+  if (!issueTitle.startsWith(`[${extensionName}]`)) {
+    console.log(`Updating issue title: [${extensionName}] ${issueTitle}`);
+    await githubPatch(`${apiBase}/issues/${issueNumber}`, {
+      title: `[${extensionName}] ${issueTitle}`,
+    });
   }
 
   if (issueAuthor.toLowerCase() === author.toLowerCase()) {
