@@ -10,7 +10,7 @@ import {
 import { useMemo, useState } from "react";
 import { ENABLE_PACK_FILTER, PACK_FILTER_ALL } from "./constants";
 import { type IconEntry, useIconSearch } from "./hooks/useIconSearch";
-import { type RecentIcon, useRecentIcons } from "./hooks/useRecentIcons";
+import { useRecentIcons } from "./hooks/useRecentIcons";
 import searchConfig from "./search-config.json";
 
 const PACK_LABELS = searchConfig.packLabels as Record<string, string>;
