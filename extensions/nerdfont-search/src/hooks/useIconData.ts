@@ -1,21 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import Fuse from "fuse.js";
-
-type GlyphRecord = Record<string, { char: string; code: string }>;
-
-type SerializedIconIndex = {
-	id: string;
-	pack: string;
-	char: string;
-	code: string;
-	displayName: string;
-	packLabel: string;
-	searchTokens: number[];
-};
-
-type IconIndex = Omit<SerializedIconIndex, "searchTokens"> & {
-	searchTokens: string[];
-};
+import {
+	parseIconIndexFile,
+	parseGlyphnames,
+	type GlyphRecord,
+	type IconIndex,
+} from "../schemas/icon-data";
 
 let cachedGlyphnames: GlyphRecord | null = null;
 let tokenDictionary: string[] = [];
@@ -27,16 +17,13 @@ async function loadGlyphnames(): Promise<GlyphRecord> {
 	}
 
 	const glyphnamesData = await import("../../assets/glyphnames.json");
-	cachedGlyphnames = glyphnamesData.default as unknown as GlyphRecord;
+	cachedGlyphnames = parseGlyphnames(glyphnamesData.default);
 	return cachedGlyphnames;
 }
 
 async function loadIconIndex(): Promise<IconIndex[]> {
 	const indexData = await import("../../assets/icon-index.json");
-	const data = indexData.default as {
-		dictionary: string[];
-		icons: SerializedIconIndex[];
-	};
+	const data = parseIconIndexFile(indexData.default);
 
 	tokenDictionary = data.dictionary;
 

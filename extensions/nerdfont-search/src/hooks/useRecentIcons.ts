@@ -1,9 +1,24 @@
 import { Cache } from "@vicinae/api";
 import { useState } from "react";
+import { z } from "zod/v4-mini";
 import { RECENT_ICONS_LIMIT } from "../constants";
 
 const RECENT_ICONS_CACHE_KEY = "nerdfont-search.recent-icons.v1";
 const cache = new Cache();
+
+const recentIconSchema = z.object({
+	id: z.string(),
+	char: z.string(),
+	code: z.string(),
+	hexCode: z.string(),
+	htmlEntity: z.string(),
+	displayName: z.string(),
+	nerdFontId: z.string(),
+	packLabel: z.string(),
+	iconPath: z.string(),
+});
+
+const recentIconsSchema = z.array(recentIconSchema);
 
 interface RecentIcon {
 	id: string;
@@ -17,32 +32,6 @@ interface RecentIcon {
 	iconPath: string;
 }
 
-const RECENT_ICON_SCHEMA = {
-	id: "string",
-	char: "string",
-	code: "string",
-	hexCode: "string",
-	htmlEntity: "string",
-	displayName: "string",
-	nerdFontId: "string",
-	packLabel: "string",
-	iconPath: "string",
-} as const satisfies Record<keyof RecentIcon, "string">;
-
-const RECENT_ICON_KEYS = Object.keys(RECENT_ICON_SCHEMA) as Array<keyof RecentIcon>;
-
-function isRecentIcon(value: unknown): value is RecentIcon {
-	if (isRecord(value) === false) {
-		return false;
-	}
-
-	return RECENT_ICON_KEYS.every((key) => typeof value[key] === RECENT_ICON_SCHEMA[key]);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null;
-}
-
 function readRecentIcons(): RecentIcon[] {
 	const cached = cache.get(RECENT_ICONS_CACHE_KEY);
 
@@ -52,8 +41,9 @@ function readRecentIcons(): RecentIcon[] {
 
 	try {
 		const parsed: unknown = JSON.parse(cached);
-		if (Array.isArray(parsed) && parsed.every(isRecentIcon)) {
-			return parsed;
+		const validated = recentIconsSchema.safeParse(parsed);
+		if (validated.success) {
+			return validated.data;
 		}
 		cache.remove(RECENT_ICONS_CACHE_KEY);
 		return [];
