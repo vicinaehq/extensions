@@ -1,4 +1,4 @@
-name: Raycast Extension Issue
+name: Raycast Extension Compatibility Issue
 description: Report an issue with a Raycast extension running on Vicinae
 labels: ["raycast"]
 body:
@@ -6,7 +6,7 @@ body:
     id: extension-name
     attributes:
       label: Extension name
-      description: The name of the Raycast extension (as it appears in the store)
+      description: The name of the Raycast extension
       placeholder: e.g. spotify-player
     validations:
       required: true
@@ -42,3 +42,5 @@ body:
     attributes:
       label: Vicinae version
       placeholder: e.g. 0.5.2
+    validations:
+      required: true

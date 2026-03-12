@@ -30,3 +30,5 @@ body:
     attributes:
       label: Vicinae version
       placeholder: e.g. 0.5.2
+    validations:
+      required: true
