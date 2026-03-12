@@ -36,7 +36,7 @@ async function comment(message: string) {
 }
 
 async function main() {
-  const match = issueBody.match(/### Extension name\s*\n\s*(.+)/);
+  const match = issueBody.match(/### Extension name\s*\n+\s*(.+)/);
   if (!match) {
     console.log("Could not find extension name in issue body");
     return;
