@@ -6,7 +6,7 @@ const Fuse = require("fuse.js");
 const fuseOptions = require("../src/fuse-options.json");
 const { filterIconIndex } = require("../src/search/filtering");
 
-const indexData = require("../assets/icon-index.json");
+const indexData = require("./fixtures/icon-index.fixture.json");
 
 const decodedIndex = indexData.icons.map((icon) => ({
 	...icon,
@@ -22,7 +22,7 @@ test("pack filter behavior for short and full search terms", () => {
 		return acc;
 	}, {});
 
-	const testPack = Object.keys(packCounts).find((pack) => packCounts[pack] > 20);
+	const testPack = Object.keys(packCounts).find((pack) => packCounts[pack] > 1);
 	assert.ok(testPack, "expected at least one pack with enough items to test");
 
 	const noSearchAll = filterIconIndex({

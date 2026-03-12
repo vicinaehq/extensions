@@ -1,60 +1,21 @@
 import { useEffect, useState } from "react";
-import Fuse from "fuse.js";
-import type { IFuseOptions } from "fuse.js";
-import fuseOptions from "../fuse-options.json";
-import { parseIconIndexFile, type IconIndex } from "../schemas/icon-data";
-
-let tokenDictionary: string[] = [];
-let fuseInstance: Fuse<IconIndex> | null = null;
-let cachedIconIndex: IconIndex[] | null = null;
-let iconIndexLoadPromise: Promise<IconIndex[]> | null = null;
-
-const FUSE_OPTIONS: IFuseOptions<IconIndex> = fuseOptions;
-
-async function loadIconIndex(): Promise<IconIndex[]> {
-  const indexData = await import("../../assets/icon-index.json");
-  const data = parseIconIndexFile(indexData.default);
-
-  tokenDictionary = data.dictionary;
-
-  const decodedIndex = data.icons.map((icon) => ({
-    ...icon,
-    searchTokens: icon.searchTokens.map((idx) => tokenDictionary[idx]),
-  }));
-
-  fuseInstance = new Fuse(decodedIndex, FUSE_OPTIONS);
-
-  return decodedIndex;
-}
-
-function ensureIconIndexLoaded(): Promise<IconIndex[]> {
-  if (cachedIconIndex) {
-    return Promise.resolve(cachedIconIndex);
-  }
-
-  if (iconIndexLoadPromise) {
-    return iconIndexLoadPromise;
-  }
-
-  iconIndexLoadPromise = loadIconIndex()
-    .then((data) => {
-      cachedIconIndex = data;
-      return data;
-    })
-    .finally(() => {
-      iconIndexLoadPromise = null;
-    });
-
-  return iconIndexLoadPromise;
-}
+import {
+  ensureIconIndexLoaded,
+  getCachedIconIndex,
+  getFuseInstance,
+  type IconIndex,
+} from "../data/icon-index-store";
 
 export function useIconData() {
-  const [iconIndex, setIconIndex] = useState<IconIndex[]>(() => cachedIconIndex ?? []);
-  const [isLoading, setIsLoading] = useState(cachedIconIndex === null);
+  const [iconIndex, setIconIndex] = useState<IconIndex[]>(
+    () => getCachedIconIndex() ?? [],
+  );
+  const [isLoading, setIsLoading] = useState(getCachedIconIndex() === null);
 
   useEffect(() => {
-    if (cachedIconIndex) {
-      setIconIndex(cachedIconIndex);
+    const cached = getCachedIconIndex();
+    if (cached) {
+      setIconIndex(cached);
       setIsLoading(false);
       return;
     }
@@ -63,7 +24,7 @@ export function useIconData() {
 
     setIsLoading(true);
 
-    void ensureIconIndexLoaded()
+    ensureIconIndexLoaded()
       .then((data) => {
         if (cancelled) {
           return;
@@ -88,9 +49,8 @@ export function useIconData() {
   return {
     iconIndex,
     isLoading,
-    fuseInstance,
+    fuseInstance: getFuseInstance(),
   };
 }
 
-export { tokenDictionary };
 export type { IconIndex };

@@ -6,7 +6,7 @@ const Fuse = require("fuse.js");
 const fuseOptions = require("../src/fuse-options.json");
 const { sortFuseResultsByScoreThenId } = require("../src/search/filtering");
 
-const indexData = require("../assets/icon-index.json");
+const indexData = require("./fixtures/icon-index.fixture.json");
 
 const decodedIndex = indexData.icons.map((icon) => ({
 	...icon,

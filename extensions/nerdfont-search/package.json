@@ -23,14 +23,10 @@
   ],
   "preferences": [],
   "scripts": {
-    "prebuild": "node scripts/build-index.js",
     "build": "vici build",
-    "predev": "node scripts/build-index.js",
     "dev": "vici develop",
-    "refresh:index": "node scripts/build-index.js --refresh",
     "format": "biome format --write src",
     "lint": "vici lint",
-    "pretest": "node scripts/build-index.js",
     "test": "node --import tsx --test test/*.test.ts"
   },
   "dependencies": {
