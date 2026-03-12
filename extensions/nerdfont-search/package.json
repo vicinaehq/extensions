@@ -27,6 +27,7 @@
     "build": "vici build",
     "predev": "node scripts/build-index.js",
     "dev": "vici develop",
+    "refresh:index": "node scripts/build-index.js --refresh",
     "format": "biome format --write src",
     "lint": "vici lint",
     "pretest": "node scripts/build-index.js",
@@ -35,7 +36,6 @@
     "test": "npm run test:consistency && npm run test:stable-sort"
   },
   "dependencies": {
-    "@tanstack/react-query-persist-client": "^5.90.18",
     "@tanstack/react-query": "^5.90.17",
     "@vicinae/api": "^0.19.9",
     "fuse.js": "^7.1.0"

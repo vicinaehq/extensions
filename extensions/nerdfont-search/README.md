@@ -9,6 +9,9 @@ npm install
 npm run dev
 ```
 
+`predev` builds the search index from `assets/glyphnames.json` when it already exists and only downloads when the cache is missing.
+Use `npm run refresh:index` to force-refresh `glyphnames.json` from Nerd Fonts upstream.
+
 ## Build
 
 ```bash

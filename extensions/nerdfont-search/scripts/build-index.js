@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const https = require('https');
 const path = require('path');
 
 const searchConfig = require('../src/search-config.json');
@@ -14,6 +15,7 @@ const GLYPHNAMES_URL = `https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v
 const assetsDir = path.join(__dirname, '../assets');
 const glyphnamesPath = path.join(assetsDir, 'glyphnames.json');
 const iconIndexPath = path.join(assetsDir, 'icon-index.json');
+const shouldRefresh = process.argv.includes('--refresh');
 
 function addSynonyms(token) {
   const synonyms = TOKEN_SYNONYMS[token] || [];
@@ -62,21 +64,80 @@ function simpleTitleCase(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-async function fetchGlyphnames() {
+function downloadWithHttps(url) {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (response) => {
+        if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+          resolve(downloadWithHttps(response.headers.location));
+          return;
+        }
+
+        if (response.statusCode !== 200) {
+          reject(new Error(`Failed to download glyphnames.json: ${response.statusCode} ${response.statusMessage || ''}`.trim()));
+          return;
+        }
+
+        let text = '';
+        response.setEncoding('utf8');
+        response.on('data', (chunk) => {
+          text += chunk;
+        });
+        response.on('end', () => {
+          resolve(text);
+        });
+      })
+      .on('error', reject);
+  });
+}
+
+async function downloadGlyphnames() {
   console.log(`Downloading glyphnames from ${GLYPHNAMES_URL}`);
 
-  const response = await fetch(GLYPHNAMES_URL);
-  if (!response.ok) {
-    throw new Error(`Failed to download glyphnames.json: ${response.status} ${response.statusText}`);
+  let text;
+  if (typeof fetch === 'function') {
+    const response = await fetch(GLYPHNAMES_URL);
+    if (!response.ok) {
+      throw new Error(`Failed to download glyphnames.json: ${response.status} ${response.statusText}`);
+    }
+    text = await response.text();
+  } else {
+    text = await downloadWithHttps(GLYPHNAMES_URL);
   }
 
-  const text = await response.text();
   const parsed = JSON.parse(text);
 
   fs.mkdirSync(assetsDir, { recursive: true });
   fs.writeFileSync(glyphnamesPath, text);
 
   return parsed;
+}
+
+function readCachedGlyphnames() {
+  if (fs.existsSync(glyphnamesPath) === false) {
+    return null;
+  }
+
+  try {
+    const text = fs.readFileSync(glyphnamesPath, 'utf8');
+    const parsed = JSON.parse(text);
+    console.log(`Using cached glyphnames from ${glyphnamesPath}`);
+    return parsed;
+  } catch {
+    console.log(`Cached glyphnames at ${glyphnamesPath} is invalid JSON, redownloading`);
+    return null;
+  }
+}
+
+async function loadGlyphnames() {
+  if (shouldRefresh === false) {
+    const cachedGlyphnames = readCachedGlyphnames();
+    if (cachedGlyphnames) {
+      return cachedGlyphnames;
+    }
+  }
+
+  return downloadGlyphnames();
 }
 
 function buildIconIndex(glyphnames) {
@@ -150,10 +211,11 @@ function buildIconIndex(glyphnames) {
 async function main() {
   console.log('Building icon search index...');
 
-  const glyphnames = await fetchGlyphnames();
+  const glyphnames = await loadGlyphnames();
   const indexData = buildIconIndex(glyphnames);
   console.log(`Generated index with ${indexData.icons.length} icons`);
 
+  fs.mkdirSync(assetsDir, { recursive: true });
   fs.writeFileSync(iconIndexPath, JSON.stringify(indexData));
 
   const glyphStats = fs.statSync(glyphnamesPath);

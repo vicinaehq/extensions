@@ -1,12 +1,11 @@
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Action, ActionPanel, Grid, Icon } from "@vicinae/api";
 import { useMemo, useState } from "react";
-import { PACK_FILTER_ALL, QUERY_MAX_AGE } from "./constants";
+import { PACK_FILTER_ALL } from "./constants";
 import { useDebounce } from "./hooks/useDebounce";
 import { useIconData } from "./hooks/useIconData";
 import { type IconEntry, useIconSearch } from "./hooks/useIconSearch";
 import { type RecentIcon, useRecentIcons } from "./hooks/useRecentIcons";
-import { queryPersister } from "./queryPersister";
 import { queryClient } from "./queryClient";
 import searchConfig from "./search-config.json";
 
@@ -33,7 +32,11 @@ function NerdFontSearchInner() {
 	// Determine which icons to display
 	const displayIcons = useMemo(() => {
 		if (debouncedSearch.length === 0) {
-			return recentIcons as IconEntry[];
+			return recentIcons.map((icon) => ({
+				...icon,
+				keywords: [],
+				markdown: "",
+			}));
 		}
 		if (debouncedSearch.length < 3) {
 			return [];
@@ -225,14 +228,8 @@ function IconActions({
 
 export default function NerdFontSearch() {
 	return (
-		<PersistQueryClientProvider
-			client={queryClient}
-			persistOptions={{
-				persister: queryPersister,
-				maxAge: QUERY_MAX_AGE,
-			}}
-		>
+		<QueryClientProvider client={queryClient}>
 			<NerdFontSearchInner />
-		</PersistQueryClientProvider>
+		</QueryClientProvider>
 	);
 }
