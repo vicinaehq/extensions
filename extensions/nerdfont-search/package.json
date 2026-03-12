@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "nerdfont-search",
   "title": "NerdFonts",
-  "description": "utility to search and find nerdfont icons and add them to your clipboard",
+  "description": "utility to search and find nerdfont icons and add them to your clipboard (requires Nerd Font installed)",
   "categories": [
     "Developer Tools",
     "Design Tools"

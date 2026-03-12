@@ -29,7 +29,66 @@ type CopyType =
   | "Unicode codepoint"
   | "HTML entity";
 
-function NerdFontSearchInner() {
+function IconActions({
+  icon,
+  onCopy,
+  onClearRecent,
+}: {
+  icon: IconEntry;
+  onCopy: (copyType: CopyType) => void;
+  onClearRecent?: () => void;
+}) {
+  return (
+    <ActionPanel>
+      <ActionPanel.Section>
+        <Action.CopyToClipboard
+          title="Copy glyph"
+          content={icon.char}
+          icon={Icon.CopyClipboard}
+          onCopy={() => onCopy("glyph")}
+          shortcut={{ modifiers: ["cmd"], key: "c" }}
+        />
+        <Action.CopyToClipboard
+          title="Copy Nerd Font name"
+          content={icon.nerdFontId}
+          icon={Icon.Hashtag}
+          onCopy={() => onCopy("Nerd Font name")}
+          shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+        />
+        <Action.CopyToClipboard
+          title="Copy identifier"
+          content={icon.id}
+          icon={Icon.BlankDocument}
+          onCopy={() => onCopy("identifier")}
+        />
+        <Action.CopyToClipboard
+          title="Copy Unicode codepoint"
+          content={icon.hexCode}
+          icon={Icon.Terminal}
+          onCopy={() => onCopy("Unicode codepoint")}
+        />
+        <Action.CopyToClipboard
+          title="Copy HTML entity"
+          content={icon.htmlEntity}
+          icon={Icon.Globe01}
+          onCopy={() => onCopy("HTML entity")}
+        />
+      </ActionPanel.Section>
+      {onClearRecent && (
+        <ActionPanel.Section title="Recent Icons">
+          <Action
+            title="Clear Recently Copied Icons"
+            icon={Icon.Trash}
+            shortcut={{ modifiers: ["cmd", "shift"], key: "delete" }}
+            onAction={onClearRecent}
+          />
+        </ActionPanel.Section>
+      )}
+    </ActionPanel>
+  );
+}
+
+export default function NerdFontSearch() {
   const [searchText, setSearchText] = useState("");
   const [selectedPack, setSelectedPack] = useState(PACK_FILTER_ALL);
   const activePack = ENABLE_PACK_FILTER ? selectedPack : PACK_FILTER_ALL;
@@ -161,67 +220,4 @@ function NerdFontSearchInner() {
       )}
     </Grid>
   );
-}
-
-function IconActions({
-  icon,
-  onCopy,
-  onClearRecent,
-}: {
-  icon: IconEntry;
-  onCopy: (copyType: CopyType) => void;
-  onClearRecent?: () => void;
-}) {
-  return (
-    <ActionPanel>
-      <ActionPanel.Section>
-        <Action.CopyToClipboard
-          title="Copy glyph"
-          content={icon.char}
-          icon={Icon.CopyClipboard}
-          onCopy={() => onCopy("glyph")}
-          shortcut={{ modifiers: ["cmd"], key: "c" }}
-        />
-        <Action.CopyToClipboard
-          title="Copy Nerd Font name"
-          content={icon.nerdFontId}
-          icon={Icon.Hashtag}
-          onCopy={() => onCopy("Nerd Font name")}
-          shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-        />
-        <Action.CopyToClipboard
-          title="Copy identifier"
-          content={icon.id}
-          icon={Icon.BlankDocument}
-          onCopy={() => onCopy("identifier")}
-        />
-        <Action.CopyToClipboard
-          title="Copy Unicode codepoint"
-          content={icon.hexCode}
-          icon={Icon.Terminal}
-          onCopy={() => onCopy("Unicode codepoint")}
-        />
-        <Action.CopyToClipboard
-          title="Copy HTML entity"
-          content={icon.htmlEntity}
-          icon={Icon.Globe01}
-          onCopy={() => onCopy("HTML entity")}
-        />
-      </ActionPanel.Section>
-      {onClearRecent && (
-        <ActionPanel.Section title="Recent Icons">
-          <Action
-            title="Clear Recently Copied Icons"
-            icon={Icon.Trash}
-            shortcut={{ modifiers: ["cmd", "shift"], key: "delete" }}
-            onAction={onClearRecent}
-          />
-        </ActionPanel.Section>
-      )}
-    </ActionPanel>
-  );
-}
-
-export default function NerdFontSearch() {
-  return <NerdFontSearchInner />;
 }
