@@ -6,7 +6,7 @@ on:
 
 jobs:
   triage:
-    if: contains(github.event.issue.labels.*.name, 'vicinae-extension')
+    if: contains(github.event.issue.labels.*.name, 'vicinae')
     runs-on: ubuntu-latest
 
     steps:

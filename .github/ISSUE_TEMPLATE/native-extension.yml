@@ -1,6 +1,6 @@
 name: Vicinae Extension Issue
 description: Report an issue with a Vicinae native extension
-labels: ["vicinae-extension"]
+labels: ["vicinae"]
 body:
   - type: input
     id: extension-name
