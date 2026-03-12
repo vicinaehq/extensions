@@ -1,14 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import Fuse from "fuse.js";
 import type { IFuseOptions } from "fuse.js";
-import {
-	parseIconIndexFile,
-	parseGlyphnames,
-	type GlyphRecord,
-	type IconIndex,
-} from "../schemas/icon-data";
+import { parseIconIndexFile, type IconIndex } from "../schemas/icon-data";
 
-let cachedGlyphnames: GlyphRecord | null = null;
 let tokenDictionary: string[] = [];
 let fuseInstance: Fuse<IconIndex> | null = null;
 
@@ -31,16 +25,6 @@ const FUSE_OPTIONS: IFuseOptions<IconIndex> = {
 	findAllMatches: false,
 	useExtendedSearch: false,
 };
-
-async function loadGlyphnames(): Promise<GlyphRecord> {
-	if (cachedGlyphnames) {
-		return cachedGlyphnames;
-	}
-
-	const glyphnamesData = await import("../../assets/glyphnames.json");
-	cachedGlyphnames = parseGlyphnames(glyphnamesData.default);
-	return cachedGlyphnames;
-}
 
 async function loadIconIndex(): Promise<IconIndex[]> {
 	const indexData = await import("../../assets/icon-index.json");
@@ -65,19 +49,12 @@ export function useIconData(shouldLoad: boolean) {
 		enabled: shouldLoad,
 	});
 
-	const glyphnamesQuery = useQuery({
-		queryKey: ["glyphnames"],
-		queryFn: loadGlyphnames,
-		enabled: shouldLoad,
-	});
-
 	return {
 		iconIndex: indexQuery.data ?? [],
-		glyphnames: glyphnamesQuery.data ?? null,
-		isLoading: indexQuery.isLoading || glyphnamesQuery.isLoading,
+		isLoading: indexQuery.isLoading,
 		fuseInstance,
 	};
 }
 
 export { tokenDictionary };
-export type { GlyphRecord, IconIndex };
+export type { IconIndex };

@@ -1,10 +1,5 @@
 import { z } from "zod/v4-mini";
 
-interface Glyph {
-	char: string;
-	code: string;
-}
-
 interface SerializedIconIndex {
 	id: string;
 	pack: string;
@@ -20,16 +15,9 @@ interface IconIndexFile {
 	icons: SerializedIconIndex[];
 }
 
-type GlyphRecord = Record<string, Glyph>;
-
 type IconIndex = Omit<SerializedIconIndex, "searchTokens"> & {
 	searchTokens: string[];
 };
-
-const glyphSchema = z.object({
-	char: z.string(),
-	code: z.string(),
-});
 
 const serializedIconIndexSchema = z.object({
 	id: z.string(),
@@ -45,27 +33,6 @@ const iconIndexFileSchema = z.object({
 	dictionary: z.array(z.string()),
 	icons: z.array(serializedIconIndexSchema),
 });
-
-const glyphnamesSourceSchema = z.record(z.string(), z.unknown());
-
-function parseGlyphnames(input: unknown): GlyphRecord {
-	const source = glyphnamesSourceSchema.parse(input);
-	const glyphnames: GlyphRecord = {};
-
-	for (const [id, value] of Object.entries(source)) {
-		if (id === "METADATA") {
-			continue;
-		}
-
-		const glyph = glyphSchema.parse(value);
-		glyphnames[id] = {
-			char: glyph.char,
-			code: glyph.code,
-		};
-	}
-
-	return glyphnames;
-}
 
 function parseIconIndexFile(input: unknown): IconIndexFile {
 	const parsed = iconIndexFileSchema.parse(input);
@@ -84,5 +51,5 @@ function parseIconIndexFile(input: unknown): IconIndexFile {
 	};
 }
 
-export { parseGlyphnames, parseIconIndexFile };
-export type { GlyphRecord, IconIndex, SerializedIconIndex };
+export { parseIconIndexFile };
+export type { IconIndex, SerializedIconIndex };

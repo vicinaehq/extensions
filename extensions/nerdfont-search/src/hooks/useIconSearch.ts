@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { PACK_FILTER_ALL, SEARCH_RESULT_LIMIT } from "../constants";
-import { type GlyphRecord, type IconIndex, useIconData } from "./useIconData";
+import { type IconIndex, useIconData } from "./useIconData";
 
 type IconEntry = {
 	id: string;
@@ -34,7 +34,8 @@ function splitNameIntoWords(value: string): string[] {
 
 function createIconEntry(
 	id: string,
-	glyph: { char: string; code: string },
+	char: string,
+	code: string,
 	displayName: string,
 	packLabel: string,
 ): IconEntry {
@@ -42,10 +43,10 @@ function createIconEntry(
 	const rawName = rest.join("-");
 	const words = splitNameIntoWords(rawName);
 
-	const codeUpper = glyph.code.toUpperCase();
+	const codeUpper = code.toUpperCase();
 	const nerdFontId = `nf-${id.replace(/_/g, "-")}`;
-	const htmlEntity = `&#x${glyph.code};`;
-	const iconPath = createIconDataURL(glyph.char, glyph.code);
+	const htmlEntity = `&#x${code};`;
+	const iconPath = createIconDataURL(char, code);
 	const keywordSet = new Set<string>();
 
 	keywordSet.add(id.toLowerCase());
@@ -60,9 +61,9 @@ function createIconEntry(
 		.forEach((token) => {
 			if (token) keywordSet.add(token);
 		});
-	keywordSet.add(glyph.code.toLowerCase());
+	keywordSet.add(code.toLowerCase());
 	keywordSet.add(codeUpper);
-	keywordSet.add(`0x${glyph.code.toLowerCase()}`);
+	keywordSet.add(`0x${code.toLowerCase()}`);
 	keywordSet.add(`0x${codeUpper}`);
 	keywordSet.add(`\\u${codeUpper}`);
 	keywordSet.add(htmlEntity.toLowerCase());
@@ -83,7 +84,7 @@ function createIconEntry(
 	});
 
 	const markdown = [
-		`# ${glyph.char} ${displayName}`,
+		`# ${char} ${displayName}`,
 		"",
 		`- **Nerd Font name:** \`${nerdFontId}\``,
 		`- **Codepoint:** \`${codeUpper}\``,
@@ -94,8 +95,8 @@ function createIconEntry(
 		id,
 		packLabel,
 		displayName,
-		char: glyph.char,
-		code: glyph.code,
+		char,
+		code,
 		hexCode: `0x${codeUpper}`,
 		htmlEntity,
 		nerdFontId,
@@ -105,16 +106,16 @@ function createIconEntry(
 	};
 }
 
-function getIconEntry(index: IconIndex, glyphnames: GlyphRecord): IconEntry {
+function getIconEntry(index: IconIndex): IconEntry {
 	const cached = iconCache.get(index.id);
 	if (cached) {
 		return cached;
 	}
 
-	const glyph = glyphnames[index.id];
 	const entry = createIconEntry(
 		index.id,
-		glyph,
+		index.char,
+		index.code,
 		index.displayName,
 		index.packLabel,
 	);
@@ -123,11 +124,8 @@ function getIconEntry(index: IconIndex, glyphnames: GlyphRecord): IconEntry {
 	return entry;
 }
 
-function loadIconEntries(
-	filteredIndex: IconIndex[],
-	glyphnames: GlyphRecord,
-): IconEntry[] {
-	return filteredIndex.map((idx) => getIconEntry(idx, glyphnames));
+function loadIconEntries(filteredIndex: IconIndex[]): IconEntry[] {
+	return filteredIndex.map((idx) => getIconEntry(idx));
 }
 
 export function useIconSearch(
@@ -137,7 +135,6 @@ export function useIconSearch(
 	const shouldLoadData = searchText.length >= 3;
 	const {
 		iconIndex,
-		glyphnames,
 		isLoading: dataLoading,
 		fuseInstance,
 	} = useIconData(shouldLoadData);
@@ -180,11 +177,8 @@ export function useIconSearch(
 	// Async loading of full icon entries
 	const { data: icons = [], isLoading: entriesLoading } = useQuery({
 		queryKey: ["iconEntries", filteredIndexKey],
-		queryFn: () => {
-			if (!glyphnames) throw new Error("Glyphnames not loaded");
-			return loadIconEntries(filteredIndex, glyphnames);
-		},
-		enabled: filteredIndex.length > 0 && glyphnames !== null,
+		queryFn: () => loadIconEntries(filteredIndex),
+		enabled: filteredIndex.length > 0,
 		placeholderData: keepPreviousData,
 	});
 
