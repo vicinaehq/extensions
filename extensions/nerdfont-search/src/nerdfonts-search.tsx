@@ -5,13 +5,11 @@ import {
   Color,
   Grid,
   Icon,
-  showToast,
-  Toast,
+  showHUD,
   type Image,
 } from "@vicinae/api";
 import { useMemo, useState } from "react";
-import { PACK_FILTER_ALL } from "./constants";
-import { useIconData } from "./hooks/useIconData";
+import { ENABLE_PACK_FILTER, PACK_FILTER_ALL } from "./constants";
 import { type IconEntry, useIconSearch } from "./hooks/useIconSearch";
 import { type RecentIcon, useRecentIcons } from "./hooks/useRecentIcons";
 import { queryClient } from "./queryClient";
@@ -26,55 +24,47 @@ function createThemedIcon(source: string): Image {
   };
 }
 
+type CopyType =
+  | "glyph"
+  | "Nerd Font name"
+  | "identifier"
+  | "Unicode codepoint"
+  | "HTML entity";
+
 function NerdFontSearchInner() {
   const [searchText, setSearchText] = useState("");
   const [selectedPack, setSelectedPack] = useState(PACK_FILTER_ALL);
+  const activePack = ENABLE_PACK_FILTER ? selectedPack : PACK_FILTER_ALL;
 
   // Use custom hooks for data management
   const { recentIcons, addRecent, clearRecent } = useRecentIcons();
-  const { icons: searchResults, isLoading } = useIconSearch(searchText, selectedPack);
+  const { icons: searchResults, isLoading } = useIconSearch(
+    searchText,
+    activePack,
+  );
 
-  // Get icon index for pack filter options
-  const shouldLoadData = searchText.length >= 3;
-  const { iconIndex } = useIconData(shouldLoadData);
-
-  // Determine which icons to display
   const displayIcons = useMemo(() => {
-    if (searchText.length === 0) {
+    if (searchText.length === 0 && activePack === PACK_FILTER_ALL) {
       return recentIcons.map((icon) => ({
         ...icon,
         keywords: [],
         markdown: "",
       }));
     }
-    if (searchText.length < 3) {
+    if (searchText.length < 3 && activePack === PACK_FILTER_ALL) {
       return [];
     }
     return searchResults;
-  }, [searchText, recentIcons, searchResults]);
+  }, [searchText, activePack, recentIcons, searchResults]);
 
   // Pack filter options
   const packFilterOptions = useMemo<{ value: string; label: string }[]>(() => {
-    if (iconIndex.length === 0) {
-      return [];
-    }
-
-    const packOptions = iconIndex.reduce<Record<string, string>>(
-      (acc: Record<string, string>, icon: { pack: string }) => {
-        if (!acc[icon.pack]) {
-          acc[icon.pack] = PACK_LABELS[icon.pack] ?? icon.pack.toUpperCase();
-        }
-        return acc;
-      },
-      {},
-    );
-
-    return Object.keys(packOptions)
-      .map((value) => ({ value, label: packOptions[value] }))
+    return Object.entries(PACK_LABELS)
+      .map(([value, label]) => ({ value, label }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [iconIndex]);
+  }, []);
 
-  const handleCopyIcon = async (icon: IconEntry) => {
+  const handleCopyIcon = async (icon: IconEntry, copyType: CopyType) => {
     const recentIcon: RecentIcon = {
       id: icon.id,
       char: icon.char,
@@ -88,11 +78,7 @@ function NerdFontSearchInner() {
     };
     addRecent(recentIcon);
 
-    await showToast({
-      style: Toast.Style.Success,
-      title: "Copied to clipboard",
-      message: icon.displayName,
-    });
+    await showHUD(`Copied ${copyType}: ${icon.displayName}`);
   };
 
   return (
@@ -100,56 +86,64 @@ function NerdFontSearchInner() {
       columns={8}
       fit={Grid.Fit.Contain}
       aspectRatio="1"
-      filtering
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search Nerd Font icons (min 3 characters)"
+      searchBarPlaceholder="Search NerdFont Icons (min 3 characters)"
       searchBarAccessory={
-        <Grid.Dropdown
-          tooltip="Filter by icon pack"
-          storeValue
-          onChange={setSelectedPack}
-          value={selectedPack}
-        >
-          <Grid.Dropdown.Item title="All icon packs" value={PACK_FILTER_ALL} />
-          {packFilterOptions.map((option) => (
-            <Grid.Dropdown.Item
-              key={option.value}
-              title={option.label}
-              value={option.value}
-            />
-          ))}
-        </Grid.Dropdown>
+        ENABLE_PACK_FILTER ? (
+          <Grid.Dropdown
+            tooltip="Filter by icon pack"
+            onChange={(newValue) => {
+              setSelectedPack(newValue);
+            }}
+            defaultValue={PACK_FILTER_ALL}
+          >
+            <Grid.Dropdown.Item title="All icon packs" value={PACK_FILTER_ALL} />
+            {packFilterOptions.map((option) => (
+              <Grid.Dropdown.Item
+                key={option.value}
+                title={option.label}
+                value={option.value}
+              />
+            ))}
+          </Grid.Dropdown>
+        ) : undefined
       }
     >
       {displayIcons.length === 0 ? (
         <Grid.EmptyView
-            title={
-              searchText.length > 0 && searchText.length < 3
-                ? "Keep typing..."
-                : searchText.length >= 3
-                  ? "No icons found"
-                  : "Start searching"
-            }
-            description={
-              searchText.length > 0 && searchText.length < 3
-                ? "Enter at least 3 characters to search"
-                : searchText.length >= 3
-                  ? "Try a different search term or pick another icon pack"
-                  : recentIcons.length > 0
-                    ? "Your recently copied icons will appear here"
-                    : "Enter at least 3 characters to search for icons"
-            }
+          title={
+            searchText.length > 0 && searchText.length < 3
+              ? "Keep typing..."
+              : searchText.length === 0 && activePack !== PACK_FILTER_ALL
+                ? "No icons found"
+              : searchText.length >= 3
+                ? "No icons found"
+                : "Start searching"
+          }
+          description={
+            searchText.length > 0 && searchText.length < 3
+              ? "Enter at least 3 characters to search"
+              : searchText.length === 0 && activePack !== PACK_FILTER_ALL
+                ? "Try selecting another icon pack"
+              : searchText.length >= 3
+                ? "Try a different search term or pick another icon pack"
+                : recentIcons.length > 0
+                  ? "Your recently copied icons will appear here"
+                  : "Enter at least 3 characters to search for icons"
+          }
           icon={Icon.MagnifyingGlass}
         />
       ) : (
         <Grid.Section
           title={
-              searchText.length === 0 && recentIcons.length > 0
-                ? "Recently Copied"
-                : selectedPack === PACK_FILTER_ALL
-                  ? "All icon packs"
-                : (PACK_LABELS[selectedPack] ?? selectedPack.toUpperCase())
+            searchText.length === 0 &&
+            activePack === PACK_FILTER_ALL &&
+            recentIcons.length > 0
+              ? "Recently Copied"
+              : activePack === PACK_FILTER_ALL
+                ? "All icon packs"
+                : (PACK_LABELS[activePack] ?? activePack.toUpperCase())
           }
           subtitle={`${displayIcons.length.toLocaleString()} icons`}
         >
@@ -164,8 +158,8 @@ function NerdFontSearchInner() {
               actions={
                 <IconActions
                   icon={icon}
-                  onCopy={() => {
-                    void handleCopyIcon(icon);
+                  onCopy={(copyType) => {
+                    void handleCopyIcon(icon, copyType);
                   }}
                   onClearRecent={
                     recentIcons.length > 0 ? clearRecent : undefined
@@ -186,7 +180,7 @@ function IconActions({
   onClearRecent,
 }: {
   icon: IconEntry;
-  onCopy: () => void;
+  onCopy: (copyType: CopyType) => void;
   onClearRecent?: () => void;
 }) {
   return (
@@ -196,33 +190,33 @@ function IconActions({
           title="Copy glyph"
           content={icon.char}
           icon={Icon.CopyClipboard}
-          onCopy={onCopy}
+          onCopy={() => onCopy("glyph")}
           shortcut={{ modifiers: ["cmd"], key: "c" }}
         />
         <Action.CopyToClipboard
           title="Copy Nerd Font name"
           content={icon.nerdFontId}
           icon={Icon.Hashtag}
-          onCopy={onCopy}
+          onCopy={() => onCopy("Nerd Font name")}
           shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
         />
         <Action.CopyToClipboard
           title="Copy identifier"
           content={icon.id}
           icon={Icon.BlankDocument}
-          onCopy={onCopy}
+          onCopy={() => onCopy("identifier")}
         />
         <Action.CopyToClipboard
           title="Copy Unicode codepoint"
           content={icon.hexCode}
           icon={Icon.Terminal}
-          onCopy={onCopy}
+          onCopy={() => onCopy("Unicode codepoint")}
         />
         <Action.CopyToClipboard
           title="Copy HTML entity"
           content={icon.htmlEntity}
           icon={Icon.Globe01}
-          onCopy={onCopy}
+          onCopy={() => onCopy("HTML entity")}
         />
       </ActionPanel.Section>
       {onClearRecent && (

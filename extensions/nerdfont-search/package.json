@@ -15,7 +15,7 @@
   "commands": [
     {
       "name": "nerdfonts-search",
-      "title": "Search NerdFonts",
+      "title": "Search NerdFont Icons",
       "subtitle": "search for icons",
       "description": "find icons",
       "mode": "view"
