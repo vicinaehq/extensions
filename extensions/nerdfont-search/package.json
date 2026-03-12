@@ -31,9 +31,7 @@
     "format": "biome format --write src",
     "lint": "vici lint",
     "pretest": "node scripts/build-index.js",
-    "test:consistency": "node test/search-consistency.test.js",
-    "test:stable-sort": "node test/verify-stable-sort.test.js",
-    "test": "npm run test:consistency && npm run test:stable-sort"
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.17",
@@ -43,6 +41,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.2"
   }
 }

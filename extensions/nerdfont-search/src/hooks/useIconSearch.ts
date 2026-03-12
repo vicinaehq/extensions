@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { PACK_FILTER_ALL, SEARCH_RESULT_LIMIT } from "../constants";
 import { type IconIndex, useIconData } from "./useIconData";
+import { filterIconIndex } from "../search/filtering";
 
 type IconEntry = {
   id: string;
@@ -130,49 +130,14 @@ function loadIconEntries(filteredIndex: IconIndex[]): IconEntry[] {
 export function useIconSearch(searchText: string, selectedPack: string) {
 	const { iconIndex, isLoading, fuseInstance } = useIconData();
 
-  const filteredIndex = useMemo(() => {
-    if (iconIndex.length === 0) {
-      return [];
-    }
-
-    if (searchText.length < 3) {
-      if (selectedPack === PACK_FILTER_ALL) {
-        return [];
-      }
-
-      return iconIndex
-        .filter((icon) => icon.pack === selectedPack)
-        .sort((a, b) => a.displayName.localeCompare(b.displayName))
-        .slice(0, SEARCH_RESULT_LIMIT);
-    }
-
-    if (!fuseInstance) {
-      return [];
-    }
-
-    let searchResults = fuseInstance.search(searchText);
-
-    if (selectedPack !== PACK_FILTER_ALL) {
-      searchResults = searchResults.filter(
-        (result) => result.item.pack === selectedPack,
-      );
-    }
-
-    // Add stable secondary sort by ID for items with same score
-    // This ensures consistent ordering when scores are identical
-    searchResults.sort((a, b) => {
-      const scoreDiff = (a.score || 0) - (b.score || 0);
-      if (Math.abs(scoreDiff) < 0.000001) {
-        // Scores are essentially equal, sort by ID for stability
-        return a.item.id.localeCompare(b.item.id);
-      }
-      return scoreDiff;
-    });
-
-    return searchResults
-      .slice(0, SEARCH_RESULT_LIMIT)
-      .map((result) => result.item);
-  }, [iconIndex, selectedPack, searchText, fuseInstance]);
+	const filteredIndex = useMemo(() => {
+		return filterIconIndex({
+			iconIndex,
+			fuseInstance,
+			searchText,
+			selectedPack,
+		});
+	}, [iconIndex, selectedPack, searchText, fuseInstance]);
 
 	const icons = useMemo(() => {
 		if (filteredIndex.length === 0) {
