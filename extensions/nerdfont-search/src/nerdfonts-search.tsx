@@ -5,6 +5,8 @@ import {
   Color,
   Grid,
   Icon,
+  showToast,
+  Toast,
   type Image,
 } from "@vicinae/api";
 import { useMemo, useState } from "react";
@@ -72,7 +74,7 @@ function NerdFontSearchInner() {
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [iconIndex]);
 
-  const handleCopyIcon = (icon: IconEntry) => {
+  const handleCopyIcon = async (icon: IconEntry) => {
     const recentIcon: RecentIcon = {
       id: icon.id,
       char: icon.char,
@@ -85,6 +87,12 @@ function NerdFontSearchInner() {
       iconPath: icon.iconPath,
     };
     addRecent(recentIcon);
+
+    await showToast({
+      style: Toast.Style.Success,
+      title: "Copied to clipboard",
+      message: icon.displayName,
+    });
   };
 
   return (
@@ -156,7 +164,9 @@ function NerdFontSearchInner() {
               actions={
                 <IconActions
                   icon={icon}
-                  onCopy={() => handleCopyIcon(icon)}
+                  onCopy={() => {
+                    void handleCopyIcon(icon);
+                  }}
                   onClearRecent={
                     recentIcons.length > 0 ? clearRecent : undefined
                   }
