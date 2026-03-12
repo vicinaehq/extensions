@@ -18,7 +18,6 @@ type IconEntry = {
 };
 
 const iconCache = new Map<string, IconEntry>();
-let synonymsModule: { addSynonyms: (token: string) => string[] } | null = null;
 
 function createIconDataURL(char: string, _code: string): string {
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><text x="128" y="180" font-family="JetBrainsMono Nerd Font Mono,Symbols Nerd Font Mono,monospace" font-size="160" text-anchor="middle" fill="black" font-weight="normal">${char}</text></svg>`;
@@ -33,17 +32,12 @@ function splitNameIntoWords(value: string): string[] {
 		.filter(Boolean);
 }
 
-async function createIconEntry(
+function createIconEntry(
 	id: string,
 	glyph: { char: string; code: string },
 	displayName: string,
 	packLabel: string,
-): Promise<IconEntry> {
-	if (!synonymsModule) {
-		synonymsModule = await import("../synonyms");
-	}
-	const { addSynonyms } = synonymsModule;
-
+): IconEntry {
 	const [pack, ...rest] = id.split("-");
 	const rawName = rest.join("-");
 	const words = splitNameIntoWords(rawName);
@@ -86,10 +80,6 @@ async function createIconEntry(
 		if (normalized.includes("-")) {
 			keywordSet.add(normalized.replace("-", " "));
 		}
-
-		for (const synonym of addSynonyms(normalized)) {
-			keywordSet.add(synonym);
-		}
 	});
 
 	const markdown = [
@@ -115,17 +105,14 @@ async function createIconEntry(
 	};
 }
 
-async function getIconEntry(
-	index: IconIndex,
-	glyphnames: GlyphRecord,
-): Promise<IconEntry> {
+function getIconEntry(index: IconIndex, glyphnames: GlyphRecord): IconEntry {
 	const cached = iconCache.get(index.id);
 	if (cached) {
 		return cached;
 	}
 
 	const glyph = glyphnames[index.id];
-	const entry = await createIconEntry(
+	const entry = createIconEntry(
 		index.id,
 		glyph,
 		index.displayName,
@@ -136,20 +123,18 @@ async function getIconEntry(
 	return entry;
 }
 
-async function loadIconEntries(
+function loadIconEntries(
 	filteredIndex: IconIndex[],
 	glyphnames: GlyphRecord,
-): Promise<IconEntry[]> {
-	const allPromises = filteredIndex.map((idx) => getIconEntry(idx, glyphnames));
-	return Promise.all(allPromises);
+): IconEntry[] {
+	return filteredIndex.map((idx) => getIconEntry(idx, glyphnames));
 }
 
 export function useIconSearch(
-	_searchText: string,
+	searchText: string,
 	selectedPack: string,
-	debouncedSearch: string,
 ) {
-	const shouldLoadData = debouncedSearch.length >= 3;
+	const shouldLoadData = searchText.length >= 3;
 	const {
 		iconIndex,
 		glyphnames,
@@ -159,11 +144,11 @@ export function useIconSearch(
 
 	// Sync filtering with Fuse
 	const filteredIndex = useMemo(() => {
-		if (debouncedSearch.length < 3 || iconIndex.length === 0 || !fuseInstance) {
+		if (searchText.length < 3 || iconIndex.length === 0 || !fuseInstance) {
 			return [];
 		}
 
-		let searchResults = fuseInstance.search(debouncedSearch);
+		let searchResults = fuseInstance.search(searchText);
 
 		if (selectedPack !== PACK_FILTER_ALL) {
 			searchResults = searchResults.filter(
@@ -185,7 +170,7 @@ export function useIconSearch(
 		return searchResults
 			.slice(0, SEARCH_RESULT_LIMIT)
 			.map((result) => result.item);
-	}, [iconIndex, selectedPack, debouncedSearch, fuseInstance]);
+	}, [iconIndex, selectedPack, searchText, fuseInstance]);
 
 	// Create a stable key from filteredIndex to ensure cache correctness
 	const filteredIndexKey = useMemo(() => {

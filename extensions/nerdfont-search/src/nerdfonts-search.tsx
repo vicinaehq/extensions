@@ -1,8 +1,14 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Action, ActionPanel, Color, Grid, Icon, type Image } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Grid,
+  Icon,
+  type Image,
+} from "@vicinae/api";
 import { useMemo, useState } from "react";
 import { PACK_FILTER_ALL } from "./constants";
-import { useDebounce } from "./hooks/useDebounce";
 import { useIconData } from "./hooks/useIconData";
 import { type IconEntry, useIconSearch } from "./hooks/useIconSearch";
 import { type RecentIcon, useRecentIcons } from "./hooks/useRecentIcons";
@@ -12,44 +18,38 @@ import searchConfig from "./search-config.json";
 const PACK_LABELS = searchConfig.packLabels as Record<string, string>;
 
 function createThemedIcon(source: string): Image {
-	return {
-		source,
-		tintColor: Color.PrimaryText,
-	};
+  return {
+    source,
+    tintColor: Color.PrimaryText,
+  };
 }
 
 function NerdFontSearchInner() {
   const [searchText, setSearchText] = useState("");
   const [selectedPack, setSelectedPack] = useState(PACK_FILTER_ALL);
 
-  const debouncedSearch = useDebounce(searchText, 100);
-
   // Use custom hooks for data management
   const { recentIcons, addRecent, clearRecent } = useRecentIcons();
-  const { icons: searchResults, isLoading } = useIconSearch(
-    searchText,
-    selectedPack,
-    debouncedSearch,
-  );
+  const { icons: searchResults, isLoading } = useIconSearch(searchText, selectedPack);
 
   // Get icon index for pack filter options
-  const shouldLoadData = debouncedSearch.length >= 3;
+  const shouldLoadData = searchText.length >= 3;
   const { iconIndex } = useIconData(shouldLoadData);
 
   // Determine which icons to display
   const displayIcons = useMemo(() => {
-    if (debouncedSearch.length === 0) {
+    if (searchText.length === 0) {
       return recentIcons.map((icon) => ({
         ...icon,
         keywords: [],
         markdown: "",
       }));
     }
-    if (debouncedSearch.length < 3) {
+    if (searchText.length < 3) {
       return [];
     }
     return searchResults;
-  }, [debouncedSearch, recentIcons, searchResults]);
+  }, [searchText, recentIcons, searchResults]);
 
   // Pack filter options
   const packFilterOptions = useMemo<{ value: string; label: string }[]>(() => {
@@ -116,31 +116,31 @@ function NerdFontSearchInner() {
     >
       {displayIcons.length === 0 ? (
         <Grid.EmptyView
-          title={
-            debouncedSearch.length > 0 && debouncedSearch.length < 3
-              ? "Keep typing..."
-              : debouncedSearch.length >= 3
-                ? "No icons found"
-                : "Start searching"
-          }
-          description={
-            debouncedSearch.length > 0 && debouncedSearch.length < 3
-              ? "Enter at least 3 characters to search"
-              : debouncedSearch.length >= 3
-                ? "Try a different search term or pick another icon pack"
-                : recentIcons.length > 0
-                  ? "Your recently copied icons will appear here"
-                  : "Enter at least 3 characters to search for icons"
-          }
+            title={
+              searchText.length > 0 && searchText.length < 3
+                ? "Keep typing..."
+                : searchText.length >= 3
+                  ? "No icons found"
+                  : "Start searching"
+            }
+            description={
+              searchText.length > 0 && searchText.length < 3
+                ? "Enter at least 3 characters to search"
+                : searchText.length >= 3
+                  ? "Try a different search term or pick another icon pack"
+                  : recentIcons.length > 0
+                    ? "Your recently copied icons will appear here"
+                    : "Enter at least 3 characters to search for icons"
+            }
           icon={Icon.MagnifyingGlass}
         />
       ) : (
         <Grid.Section
           title={
-            debouncedSearch.length === 0 && recentIcons.length > 0
-              ? "Recently Copied"
-              : selectedPack === PACK_FILTER_ALL
-                ? "All icon packs"
+              searchText.length === 0 && recentIcons.length > 0
+                ? "Recently Copied"
+                : selectedPack === PACK_FILTER_ALL
+                  ? "All icon packs"
                 : (PACK_LABELS[selectedPack] ?? selectedPack.toUpperCase())
           }
           subtitle={`${displayIcons.length.toLocaleString()} icons`}
