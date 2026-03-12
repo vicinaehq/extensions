@@ -1,4 +1,3 @@
-import { QueryClientProvider } from "@tanstack/react-query";
 import {
   Action,
   ActionPanel,
@@ -12,7 +11,6 @@ import { useMemo, useState } from "react";
 import { ENABLE_PACK_FILTER, PACK_FILTER_ALL } from "./constants";
 import { type IconEntry, useIconSearch } from "./hooks/useIconSearch";
 import { type RecentIcon, useRecentIcons } from "./hooks/useRecentIcons";
-import { queryClient } from "./queryClient";
 import searchConfig from "./search-config.json";
 
 const PACK_LABELS = searchConfig.packLabels as Record<string, string>;
@@ -65,19 +63,7 @@ function NerdFontSearchInner() {
   }, []);
 
   const handleCopyIcon = async (icon: IconEntry, copyType: CopyType) => {
-    const recentIcon: RecentIcon = {
-      id: icon.id,
-      char: icon.char,
-      code: icon.code,
-      hexCode: icon.hexCode,
-      htmlEntity: icon.htmlEntity,
-      displayName: icon.displayName,
-      nerdFontId: icon.nerdFontId,
-      packLabel: icon.packLabel,
-      iconPath: icon.iconPath,
-    };
-    addRecent(recentIcon);
-
+    addRecent(icon);
     await showHUD(`Copied ${copyType}: ${icon.displayName}`);
   };
 
@@ -98,7 +84,10 @@ function NerdFontSearchInner() {
             }}
             defaultValue={PACK_FILTER_ALL}
           >
-            <Grid.Dropdown.Item title="All icon packs" value={PACK_FILTER_ALL} />
+            <Grid.Dropdown.Item
+              title="All icon packs"
+              value={PACK_FILTER_ALL}
+            />
             {packFilterOptions.map((option) => (
               <Grid.Dropdown.Item
                 key={option.value}
@@ -117,20 +106,20 @@ function NerdFontSearchInner() {
               ? "Keep typing..."
               : searchText.length === 0 && activePack !== PACK_FILTER_ALL
                 ? "No icons found"
-              : searchText.length >= 3
-                ? "No icons found"
-                : "Start searching"
+                : searchText.length >= 3
+                  ? "No icons found"
+                  : "Start searching"
           }
           description={
             searchText.length > 0 && searchText.length < 3
               ? "Enter at least 3 characters to search"
               : searchText.length === 0 && activePack !== PACK_FILTER_ALL
                 ? "Try selecting another icon pack"
-              : searchText.length >= 3
-                ? "Try a different search term or pick another icon pack"
-                : recentIcons.length > 0
-                  ? "Your recently copied icons will appear here"
-                  : "Enter at least 3 characters to search for icons"
+                : searchText.length >= 3
+                  ? "Try a different search term or pick another icon pack"
+                  : recentIcons.length > 0
+                    ? "Your recently copied icons will appear here"
+                    : "Enter at least 3 characters to search for icons"
           }
           icon={Icon.MagnifyingGlass}
         />
@@ -234,9 +223,5 @@ function IconActions({
 }
 
 export default function NerdFontSearch() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <NerdFontSearchInner />
-    </QueryClientProvider>
-  );
+  return <NerdFontSearchInner />;
 }

@@ -34,7 +34,6 @@
     "test": "node --import tsx --test test/*.test.ts"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.90.17",
     "@vicinae/api": "^0.19.9",
     "fuse.js": "^7.1.0",
     "zod": "^4.3.6"
