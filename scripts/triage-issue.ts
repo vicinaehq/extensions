@@ -82,7 +82,6 @@ async function main() {
     process.exit(1);
   }
 
-  // Prefix issue title with extension name
   if (!issueTitle.startsWith(`[${extensionName}]`)) {
     console.log(`Updating issue title: [${extensionName}] ${issueTitle}`);
     await githubPatch(`${apiBase}/issues/${issueNumber}`, {
