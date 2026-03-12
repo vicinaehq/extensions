@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Action, ActionPanel, Grid, Icon } from "@vicinae/api";
+import { Action, ActionPanel, Color, Grid, Icon, type Image } from "@vicinae/api";
 import { useMemo, useState } from "react";
 import { PACK_FILTER_ALL } from "./constants";
 import { useDebounce } from "./hooks/useDebounce";
@@ -10,6 +10,13 @@ import { queryClient } from "./queryClient";
 import searchConfig from "./search-config.json";
 
 const PACK_LABELS = searchConfig.packLabels as Record<string, string>;
+
+function createThemedIcon(source: string): Image {
+	return {
+		source,
+		tintColor: Color.PrimaryText,
+	};
+}
 
 function NerdFontSearchInner() {
   const [searchText, setSearchText] = useState("");
@@ -142,7 +149,7 @@ function NerdFontSearchInner() {
             <Grid.Item
               key={icon.id}
               id={icon.id}
-              content={icon.iconPath}
+              content={createThemedIcon(icon.iconPath)}
               title={icon.displayName}
               subtitle={icon.nerdFontId}
               keywords={icon.keywords || []}

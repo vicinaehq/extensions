@@ -21,7 +21,7 @@ const iconCache = new Map<string, IconEntry>();
 let synonymsModule: { addSynonyms: (token: string) => string[] } | null = null;
 
 function createIconDataURL(char: string, _code: string): string {
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><text x="128" y="180" font-family="JetBrainsMono Nerd Font Mono,Symbols Nerd Font Mono,monospace" font-size="160" text-anchor="middle" fill="white" font-weight="normal">${char}</text></svg>`;
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><text x="128" y="180" font-family="JetBrainsMono Nerd Font Mono,Symbols Nerd Font Mono,monospace" font-size="160" text-anchor="middle" fill="black" font-weight="normal">${char}</text></svg>`;
 	return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
