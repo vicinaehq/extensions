@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "nerdfont-search",
+  "title": "NerdFonts",
+  "description": "utility to search and find nerdfont icons and add them to your clipboard",
+  "categories": [
+    "Developer Tools",
+    "Design Tools"
+  ],
+  "license": "MIT",
+  "author": "fbosch",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "nerdfonts-search",
+      "title": "Search NerdFonts",
+      "subtitle": "search for icons",
+      "description": "find icons",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "prebuild": "node scripts/build-index.js",
+    "build": "vici build",
+    "predev": "node scripts/build-index.js",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint",
+    "pretest": "node scripts/build-index.js",
+    "test:consistency": "node test/search-consistency.test.js",
+    "test:stable-sort": "node test/verify-stable-sort.test.js",
+    "test": "npm run test:consistency && npm run test:stable-sort"
+  },
+  "dependencies": {
+    "@tanstack/react-query-persist-client": "^5.90.18",
+    "@tanstack/react-query": "^5.90.17",
+    "@vicinae/api": "^0.18.3",
+    "fuse.js": "^7.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.11",
+    "typescript": "^5.9.3"
+  }
+}
