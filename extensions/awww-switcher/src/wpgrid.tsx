@@ -4,6 +4,7 @@ import { getImagesFromPath, Image } from "./utils/image";
 import { WindowManagement as wm } from "@vicinae/api";
 import { omniCommand } from "./utils/hyprland";
 import { createHash } from "node:crypto";
+import untildify from "untildify";
 
 // test
 
@@ -11,6 +12,7 @@ export default function DisplayGrid() {
   const [monitors, setMonitors] = useState<wm.Screen[]>([]);
   const [isWMSupported, setIsWMSupported] = useState<boolean>(true);
   const path: string = getPreferenceValues().wallpaperPath;
+  const pathExpanded: string = untildify(path);
   const awwwTransition: string = getPreferenceValues().transitionType || "fade";
   const awwwSteps: number = parseInt(getPreferenceValues().transitionSteps) || 90;
   const awwwDuration: number = parseInt(getPreferenceValues().transitionDuration) || 3;
@@ -48,7 +50,7 @@ export default function DisplayGrid() {
         style: Toast.Style.Failure,
       });
     });
-    getImagesFromPath(path)
+    getImagesFromPath(pathExpanded)
       .then((ws) => {
         setIsLoading(false);
         setWallpapers(ws);
