@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "vicinae-ollama",
+  "title": "Ollama AI",
+  "description": "Perform Local Inference with Ollama. Adapted from Raycast Ollama extension.",
+  "icon": "extension_icon.png",
+  "author": "voodoods",
+  "contributors": [],
+  "pastContributors": [
+    "massimiliano_pasquini"
+  ],
+  "license": "MIT",
+  "categories": [
+    "Applications",
+    "Productivity"
+  ],
+  "commands": [
+    {
+      "name": "chat",
+      "title": "Chat with Ollama",
+      "description": "Chat with Ollama AI models",
+      "mode": "view"
+    },
+    {
+      "name": "models",
+      "title": "Manage Models",
+      "description": "View and manage Ollama models",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "ollamaServer",
+      "title": "Ollama Server URL",
+      "description": "URL of the Ollama server",
+      "type": "textfield",
+      "required": false,
+      "default": "http://localhost:11434"
+    },
+    {
+      "name": "chatHistoryMessagesNumber",
+      "title": "Chat Memory Messages",
+      "description": "Number of last messages to use as memory",
+      "type": "textfield",
+      "required": false,
+      "default": "20"
+    }
+  ],
+  "scripts": {
+    "build": "npx vici build",
+    "dev": "npx vici develop",
+    "lint": "npx vici lint",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.1"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@vitejs/plugin-react": "^5.1.4",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
+    "happy-dom": "^20.6.1",
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.18"
+  }
+}
