@@ -1,7 +1,8 @@
 import { Color, Icon, List } from "@vicinae/api";
-import { displayNameForDevice, type PactlDevice } from "../pactl";
+import { type PactlDevice } from "../pactl";
 import { micIconForMute, speakerIconForPercentAndMute } from "../ui/audioIcons";
 import { prettyValue } from "../ui/format";
+import { displayNameForDevice } from "../utils/displayNameForDevice";
 
 function buildDeviceMarkdown(args: {
   kind: "sink" | "source";
@@ -15,13 +16,18 @@ function buildDeviceMarkdown(args: {
   return lines.join("\n");
 }
 
-export function DeviceDetail(props: {
+export function AudioDeviceDetail(props: {
   kind: "sink" | "source";
   device: PactlDevice;
   isDefault: boolean;
   volumePercent?: number;
 }) {
   const { kind, device, isDefault, volumePercent } = props;
+
+  const icon =
+    kind === "sink"
+      ? speakerIconForPercentAndMute(volumePercent, device.mute)
+      : micIconForMute(device.mute);
 
   const propsMap = device.properties ?? {};
   const importantKeys = [
@@ -43,11 +49,7 @@ export function DeviceDetail(props: {
         <List.Item.Detail.Metadata>
           <List.Item.Detail.Metadata.Label
             title="Status"
-            icon={
-              kind === "sink"
-                ? speakerIconForPercentAndMute(volumePercent, device.mute)
-                : micIconForMute(device.mute)
-            }
+            icon={icon}
             text={`${device.mute ? "Muted" : "Unmuted"}${typeof volumePercent === "number" ? ` · ${volumePercent}%` : ""}`}
           />
           <List.Item.Detail.Metadata.Separator />
@@ -64,14 +66,26 @@ export function DeviceDetail(props: {
             />
           </List.Item.Detail.Metadata.TagList>
           <List.Item.Detail.Metadata.Separator />
-          <List.Item.Detail.Metadata.Label title="Index" text={String(device.index)} />
+          <List.Item.Detail.Metadata.Label
+            title="Index"
+            text={String(device.index)}
+          />
           <List.Item.Detail.Metadata.Label title="Name" text={device.name} />
-          {device.description ? <List.Item.Detail.Metadata.Label title="Description" text={device.description} /> : null}
+          {device.description ? (
+            <List.Item.Detail.Metadata.Label
+              title="Description"
+              text={device.description}
+            />
+          ) : null}
           {importantKeys.length ? (
             <>
               <List.Item.Detail.Metadata.Separator />
               {importantKeys.slice(0, 6).map((k) => (
-                <List.Item.Detail.Metadata.Label key={k} title={k} text={prettyValue(propsMap[k])} />
+                <List.Item.Detail.Metadata.Label
+                  key={k}
+                  title={k}
+                  text={prettyValue(propsMap[k])}
+                />
               ))}
             </>
           ) : null}
@@ -80,5 +94,3 @@ export function DeviceDetail(props: {
     />
   );
 }
-
-

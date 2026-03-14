@@ -1,36 +1,53 @@
-import { Action, ActionPanel, Form, Toast, showToast, useNavigation } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  Form,
+  Toast,
+  showToast,
+  useNavigation,
+} from "@vicinae/api";
 import { useState } from "react";
 import { pactl } from "../pactl";
 import { clamp } from "../ui/format";
 import { showErrorToast } from "../ui/toasts";
 
-type SetVolumeFormProps = {
-    kind: "sink" | "source";
-    deviceName: string;
-    deviceTitle: string;
-    currentPercent?: number;
-    onDone: () => Promise<void> | void;
-} | {
-    kind: "sink-input";
-    deviceTitle: string;
-    deviceIndex: number;
-    currentPercent?: number;
-    onDone: () => Promise<void> | void;
-}
+type SetVolumeFormProps =
+  | {
+      kind: "sink" | "source";
+      type: "stream";
+      deviceTitle: string;
+      deviceIndex: number;
+      currentPercent?: number;
+      onDone: () => Promise<void> | void;
+    }
+  | {
+      kind: "sink" | "source";
+      type: "device";
+      deviceTitle: string;
+      deviceName: string;
+      currentPercent?: number;
+      onDone: () => Promise<void> | void;
+    };
+
+const presets = [0, 10, 25, 50, 75, 100, 125, 150];
 
 export function SetVolumeForm(props: SetVolumeFormProps) {
-  const { kind, deviceTitle, currentPercent, onDone } = props;
+  const { kind, type, deviceTitle, currentPercent, onDone } = props;
   const { pop } = useNavigation();
-  const presets = [0, 10, 25, 50, 75, 100, 125, 150];
-  const [text, setText] = useState(String(typeof currentPercent === "number" ? currentPercent : 100));
+  const [text, setText] = useState((currentPercent || 100).toString());
 
   async function apply(percent: number): Promise<void> {
-    const safe = clamp(Math.round(percent), 0, 150);
     try {
-      if (kind === "sink") await pactl.setSinkVolume(props.deviceName, safe);
-      else if (kind === "sink-input") await pactl.setSinkInputVolume(props.deviceIndex, safe);
-      else await pactl.setSourceVolume(props.deviceName, safe);
-      await showToast({ style: Toast.Style.Success, title: "Volume updated", message: `${deviceTitle} → ${safe}%` });
+      if (type === "stream") {
+        await pactl.setStreamVolume(props.deviceIndex, percent, kind);
+      } else {
+        await pactl.setDeviceVolume(props.deviceName, percent, kind);
+      }
+      await showToast({
+        style: Toast.Style.Success,
+        title: "Volume updated",
+        message: `${deviceTitle} → ${percent}%`,
+      });
       await onDone();
       pop();
     } catch (e) {
@@ -46,15 +63,14 @@ export function SetVolumeForm(props: SetVolumeFormProps) {
     return n;
   }
 
-  async function submit(input: Form.Values): Promise<void> {
-    const raw = input.volume;
-    const val = typeof raw === "string" ? raw : "";
-    const parsed = parsePercent(val);
-    if (parsed === undefined) {
-      await showToast({ style: Toast.Style.Failure, title: "Invalid volume", message: "Enter a number between 0 and 150" });
-      return;
-    }
-    await apply(clamp(parsed, 0, 150));
+  async function submit(): Promise<void> {
+    const parsed = parsePercent(text);
+    if (parsed !== undefined) return apply(clamp(Math.round(parsed), 0, 150));
+    await showToast({
+      style: Toast.Style.Failure,
+      title: "Invalid volume",
+      message: "Enter a number between 0 and 150",
+    });
   }
 
   return (
@@ -75,7 +91,12 @@ export function SetVolumeForm(props: SetVolumeFormProps) {
       />
       <Form.Separator />
       <Form.Description text="Presets" />
-      <Form.Dropdown id="preset" title="Pick a preset" defaultValue="" onChange={(v) => v && setText(v)}>
+      <Form.Dropdown
+        id="preset"
+        title="Pick a preset"
+        defaultValue=""
+        onChange={(v) => v && setText(v)}
+      >
         <Form.Dropdown.Item title="—" value="" />
         {presets.map((p) => (
           <Form.Dropdown.Item key={p} title={`${p}%`} value={String(p)} />
@@ -84,5 +105,3 @@ export function SetVolumeForm(props: SetVolumeFormProps) {
     </Form>
   );
 }
-
-
