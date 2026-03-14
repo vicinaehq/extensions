@@ -1,8 +1,15 @@
-import type { StockData, YahooFinanceResponse } from "./types";
+import type {
+  StockData,
+  YahooFinanceResponse,
+  YahooSearchResponse,
+  YahooSearchResult,
+} from "./types";
 import {
+  SEARCH_RESULTS_LIMIT,
   SPARKLINE_DATA_POINTS,
   USER_AGENT,
   YAHOO_FINANCE_BASE_URL,
+  YAHOO_FINANCE_SEARCH_URL,
 } from "./constants";
 
 export async function fetchSparklineData(symbol: string): Promise<number[]> {
@@ -132,5 +139,31 @@ export async function fetchStockData(
   } catch (error) {
     console.error(`Error fetching stock data for ${symbol}:`, error);
     return null;
+  }
+}
+
+export async function searchSymbols(
+  query: string,
+  limit: number = SEARCH_RESULTS_LIMIT,
+): Promise<YahooSearchResult[]> {
+  try {
+    const response = await fetch(
+      `${YAHOO_FINANCE_SEARCH_URL}?q=${encodeURIComponent(query)}&quotesCount=${limit}&newsCount=0&listsCount=0`,
+      {
+        headers: {
+          "User-Agent": USER_AGENT,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as YahooSearchResponse;
+    return (data.quotes ?? []).filter((q) => q.isYahooFinance);
+  } catch (error) {
+    console.error("Error searching symbols:", error);
+    return [];
   }
 }
