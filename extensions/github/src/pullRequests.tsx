@@ -1,21 +1,15 @@
-import {
-  Action,
-  ActionPanel,
-  getPreferenceValues,
-  Icon,
-  List,
-} from "@vicinae/api";
+import { Action, ActionPanel, getPreferenceValues, List } from "@vicinae/api";
 import { useState } from "react";
 
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { useDebounce } from "@uidotdev/usehooks";
+import { prDropdownItems } from "./config";
 import { persister, queryClient } from "./queryClient";
 import type { FilterType, GitHubPreferences } from "./types";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { issueDropdownItems } from "./config";
-import { useDebounce } from "@uidotdev/usehooks";
-import { useGetIssues } from "./hooks/useGetIssues";
 import { useGetMyRepos } from "./hooks/useGetRepos";
+import { useGetPullRequests } from "./hooks/useGetPullRequests";
 
-function Issues() {
+function PullRequests() {
   return (
     <PersistQueryClientProvider
       client={queryClient}
@@ -34,10 +28,10 @@ function Command() {
   const debouncedSearchText = useDebounce(searchText, 300);
 
   const {
-    data: issues = [],
+    data: prs = [],
     isLoading,
     isFetching,
-  } = useGetIssues(filter, debouncedSearchText);
+  } = useGetPullRequests(filter, debouncedSearchText);
   const { data: repos = [] } = useGetMyRepos();
 
   return (
@@ -48,12 +42,12 @@ function Command() {
       searchBarPlaceholder="Filter by title, number, or assignee"
       searchBarAccessory={
         <List.Dropdown
-          tooltip="Filter Issues"
+          tooltip="Filter PRs"
           storeValue={true}
           value={filter}
           onChange={(newValue) => setFilter(newValue as FilterType)}
         >
-          {issueDropdownItems.map((item) => (
+          {prDropdownItems.map((item) => (
             <List.Dropdown.Item
               key={item.value}
               title={item.title}
@@ -73,30 +67,30 @@ function Command() {
         </List.Dropdown>
       }
     >
-      {issues.map((issue) => {
-        const repoName = issue.repository_url.replace(
+      {prs.map((pr) => {
+        const repoName = pr.repository_url.replace(
           "https://api.github.com/repos/",
           "",
         );
         return (
           <List.Item
-            key={issue.id}
-            title={issue.title}
-            subtitle={`#${issue.number} in ${repoName}`}
-            icon={Icon.Warning}
+            key={pr.id}
+            title={pr.title}
+            subtitle={`#${pr.number} in ${repoName}`}
+            icon="pr_icon.svg"
             actions={
               <ActionPanel>
                 <Action.OpenInBrowser
                   title="Open in Browser"
-                  url={issue.html_url}
+                  url={pr.html_url}
                 />
                 <Action.CopyToClipboard
                   title="Copy URL"
-                  content={issue.html_url}
+                  content={pr.html_url}
                 />
                 <Action.CopyToClipboard
-                  title="Copy Issue Number"
-                  content={`#${issue.number}`}
+                  title="Copy PR Number"
+                  content={`#${pr.number}`}
                   shortcut={{ modifiers: ["ctrl"], key: "c" }}
                 />
               </ActionPanel>
@@ -108,4 +102,4 @@ function Command() {
   );
 }
 
-export default Issues;
+export default PullRequests;
