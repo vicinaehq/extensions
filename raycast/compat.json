@@ -22,7 +22,7 @@
   "linear": {
     "status": "partial",
     "confidence": "probed",
-    "notes": ["react error 130", "segfaults"]
+    "notes": ["some forms may trigger render loops"]
   },
   "arc": {
     "status": "impossible",
