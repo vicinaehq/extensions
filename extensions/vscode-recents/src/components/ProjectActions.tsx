@@ -1,7 +1,8 @@
-import { openProjectInVSCode } from "../util/vscode";
+import { Action, ActionPanel, closeMainWindow, Icon, showInFileBrowser, showToast, Toast } from "@vicinae/api";
+import { VSCODE_FLAVOURS } from "../constants";
+import { ProjectEnvironment, type RecentProject, type VSCodeFlavour } from "../types";
 import { removeRecentProject } from "../util/database";
-import { Action, ActionPanel, Icon, closeMainWindow, showInFileBrowser, showToast, Toast } from "@vicinae/api";
-import { ProjectEnvironment, type RecentProject } from "../types";
+import { openProjectInVSCode } from "../util/vscode";
 
 interface ProjectActionsProps {
     project: RecentProject;
@@ -20,6 +21,18 @@ export function ProjectActions({ project, onRemove }: ProjectActionsProps) {
                 }}
                 shortcut={{ modifiers: [], key: "enter" }}
             />
+            <ActionPanel.Submenu title="Open in..." icon={Icon.AppWindow}>
+                {VSCODE_FLAVOURS.map(({ value, label }) => (
+                    <Action
+                        key={value}
+                        title={`Open in ${label}`}
+                        onAction={async () => {
+                            closeMainWindow();
+                            await openProjectInVSCode(project, value as VSCodeFlavour);
+                        }}
+                    />
+                ))}
+            </ActionPanel.Submenu>
             {project.environment === ProjectEnvironment.Local && (
                 <Action
                     icon={Icon.Folder}
@@ -28,7 +41,7 @@ export function ProjectActions({ project, onRemove }: ProjectActionsProps) {
                         closeMainWindow();
                         showInFileBrowser(project.path);
                     }}
-                    shortcut={{ modifiers: ["shift"], key: "enter" }}
+                    shortcut={{ modifiers: ["opt"], key: "enter" }}
                 />
             )}
             <Action.CopyToClipboard
