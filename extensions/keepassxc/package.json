@@ -1,0 +1,124 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "keepassxc",
+  "title": "KeePassXC",
+  "description": "Access a KeePass database through KeePassXC.",
+  "icon": "keepassxc.png",
+  "author": "system7",
+  "pastContributors": [
+    "pabroux",
+    "zkytech",
+    "CT-7567",
+    "Ygnas"
+  ],
+  "categories": [
+    "Security"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@raycast/utils": "^1.19.1",
+    "@types/crypto-js": "^4.2.2",
+    "@vicinae/api": "^0.19.3",
+    "crypto-js": "^4.2.0",
+    "csv-parse": "^5.6.0",
+    "otpauth": "^9.4.1",
+    "run-applescript": "^7.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@raycast/eslint-config": "^2.1.1",
+    "@stylistic/eslint-plugin": "^5.7.1",
+    "@types/node": "^22.18.9",
+    "@types/react": "^19.2.2",
+    "@vicinae/api": "^0.19.3",
+    "eslint": "^9.37.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.3.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "commands": [
+    {
+      "name": "search",
+      "title": "Search password entries",
+      "subtitle": "KeePassXC",
+      "description": "Search in KeePassXC",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "database",
+      "type": "file",
+      "required": true,
+      "title": "KeePass Database",
+      "description": "KeePass database to access"
+    },
+    {
+      "name": "lockAfterInactivity",
+      "type": "dropdown",
+      "required": false,
+      "title": "Database Locking after Inactivity",
+      "description": "Time after which the database will be locked",
+      "data": [
+        {
+          "title": "Never",
+          "value": "-1"
+        },
+        {
+          "title": "2 minutes",
+          "value": "2"
+        },
+        {
+          "title": "5 minutes",
+          "value": "5"
+        },
+        {
+          "title": "10 minutes",
+          "value": "10"
+        },
+        {
+          "title": "15 minutes",
+          "value": "15"
+        },
+        {
+          "title": "20 minutes",
+          "value": "20"
+        },
+        {
+          "title": "25 minutes",
+          "value": "25"
+        },
+        {
+          "title": "30 minutes",
+          "value": "30"
+        },
+        {
+          "title": "45 minutes",
+          "value": "45"
+        },
+        {
+          "title": "60 minutes",
+          "value": "60"
+        }
+      ],
+      "default": "-1"
+    },
+    {
+      "name": "userInterfaceFavicon",
+      "type": "checkbox",
+      "required": false,
+      "title": "User Interface",
+      "description": "Whether to display favicons in the user interface",
+      "label": "Favicon",
+      "default": false
+    }
+  ]
+}
