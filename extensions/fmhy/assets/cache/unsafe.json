@@ -1,0 +1,240 @@
+{
+  "categories": [
+    {
+      "name": "Adblock/VPN/Privacy",
+      "slug": "adblock-vpn-privacy",
+      "icon": "📛",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "AI",
+      "slug": "ai",
+      "icon": "🤖",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Android/iOS",
+      "slug": "android",
+      "icon": "📱",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Audio Piracy",
+      "slug": "audio",
+      "icon": "🎵",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Download Piracy",
+      "slug": "download",
+      "icon": "💾",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "EDU Piracy",
+      "slug": "edu",
+      "icon": "🧠",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Gaming Piracy",
+      "slug": "games",
+      "icon": "🎮",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "System Tools",
+      "slug": "system-tools",
+      "icon": "💻",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "File Tools",
+      "slug": "file-tools",
+      "icon": "🗃️",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Internet Tools",
+      "slug": "internet-tools",
+      "icon": "🔗",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Social Media Tools",
+      "slug": "social-media",
+      "icon": "💬",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Text Tools",
+      "slug": "text-tools",
+      "icon": "📝",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Video Tools",
+      "slug": "video-tools",
+      "icon": "📼",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Misc",
+      "slug": "misc",
+      "icon": "📂",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Reading Piracy",
+      "slug": "reading",
+      "icon": "📗",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Torrent Piracy",
+      "slug": "torrent",
+      "icon": "🌀",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Image Tools",
+      "slug": "img-tools",
+      "icon": "📷",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Gaming Tools",
+      "slug": "gaming-tools",
+      "icon": "👾",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Linux/Mac",
+      "slug": "linux",
+      "icon": "🐧🍏",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Dev Tools",
+      "slug": "dev-tools",
+      "icon": "🖥️",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Non-English",
+      "slug": "non-eng",
+      "icon": "🌏",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Storage",
+      "slug": "storage",
+      "icon": "🗄️",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Video Piracy",
+      "slug": "video",
+      "icon": "📺",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    },
+    {
+      "name": "Unsafe Sites",
+      "slug": "unsafe",
+      "icon": "⚠️",
+      "linkCount": 1,
+      "starredCount": 0,
+      "subcategories": [
+        {
+          "name": "# Torrent Sites / Clients",
+          "anchor": "-torrent-sites-clients",
+          "links": [
+            {
+              "id": "20534c049b64",
+              "title": "Fake 1337x Sites",
+              "url": "https://i.ibb.co/2YHqHmVW/image.png",
+              "description": "/ [2](https://i.imgur.com/gFZjaVh.png)",
+              "isStarred": false,
+              "category": "Unsafe Sites",
+              "categorySlug": "unsafe",
+              "subcategory": "",
+              "subSubcategory": "# Torrent Sites / Clients",
+              "icon": "⚠️",
+              "fmhyUrl": "https://fmhy.net/unsafe#-torrent-sites-clients"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Base64",
+      "slug": "base64",
+      "icon": "🔑",
+      "linkCount": 0,
+      "starredCount": 0,
+      "subcategories": []
+    }
+  ],
+  "allLinks": [
+    {
+      "id": "20534c049b64",
+      "title": "Fake 1337x Sites",
+      "url": "https://i.ibb.co/2YHqHmVW/image.png",
+      "description": "/ [2](https://i.imgur.com/gFZjaVh.png)",
+      "isStarred": false,
+      "category": "Unsafe Sites",
+      "categorySlug": "unsafe",
+      "subcategory": "",
+      "subSubcategory": "# Torrent Sites / Clients",
+      "icon": "⚠️",
+      "fmhyUrl": "https://fmhy.net/unsafe#-torrent-sites-clients"
+    }
+  ],
+  "lastUpdated": "2025-12-19T00:02:06.335Z"
+}

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://vicinae.com/schemas/extension.json",
+  "name": "fmhy",
+  "title": "FMHY",
+  "description": "An extension to browser and search sites from the FMHY site.",
+  "icon": "extension_icon.png",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "browse",
+      "title": "Browse FMHY",
+      "description": "Browse FMHY categories and links",
+      "mode": "view"
+    },
+    {
+      "name": "search",
+      "title": "Search FMHY",
+      "description": "Search across all FMHY links",
+      "mode": "view"
+    },
+    {
+      "name": "favorites",
+      "title": "FMHY Favorites",
+      "description": "View your favorite FMHY links",
+      "mode": "view"
+    },
+    {
+      "name": "recent",
+      "title": "Recent FMHY Links",
+      "description": "View recently accessed FMHY links",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "cacheTTL",
+      "type": "textfield",
+      "required": false,
+      "title": "Cache Duration (Hours)",
+      "description": "How long to keep data cached before fetching updates (default: 24)",
+      "default": "24"
+    },
+    {
+      "name": "showNSFW",
+      "label": "Show NSFW Content",
+      "type": "checkbox",
+      "required": false,
+      "title": "Content Filter",
+      "description": "Enable to show NSFW categories if available",
+      "default": false
+    }
+  ],
+  "dependencies": {
+    "@raycast/utils": "^2.2.1",
+    "@vicinae/api": "^0.16.14"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.0.4",
+    "@types/node": "22.13.10",
+    "@types/react": "19.0.10",
+    "eslint": "^9.22.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2",
+    "@raycast/api": "^1.103.0"
+  },
+  "scripts": {
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "fix-lint": "vici lint --fix",
+    "build": "vici build",
+    "publish": "npx @vicinae/api@latest publish",
+    "prepublishOnly": "echo \"\\n\\nIt seems like you are trying to publish the Raycast extension to npm.\\n\\nIf you did intend to publish it to npm, remove the \\`prepublishOnly\\` script and rerun \\`npm publish\\` again.\\nIf you wanted to publish it to the Raycast Store instead, use \\`npm run publish\\` instead.\\n\\n\" && exit 1",
+    "test": "npm run build && npm run lint && npm run test:cache",
+    "test:cache": "npx tsx scripts/test-cache.ts",
+    "test:parser": "npx tsx scripts/test-parser.ts",
+    "test:search": "npx tsx scripts/test-search.ts",
+    "update-cache": "npx tsx scripts/update-cache.ts",
+    "platform:raycast": "npx tsx scripts/toggle-platform.ts raycast",
+    "platform:vicinae": "npx tsx scripts/toggle-platform.ts vicinae",
+    "platform:status": "npx tsx scripts/toggle-platform.ts status"
+  },
+  "author": "theblackcat98",
+  "platforms": [
+    "Windows",
+    "macOS"
+  ],
+  "categories": [
+    "Media",
+    "Applications"
+  ]
+}
