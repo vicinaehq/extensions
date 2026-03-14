@@ -98,6 +98,13 @@ export const IDE_SPECS: IdeSpec[] = [
 		toolboxScriptNames: ["aqua", "aquaQA"],
 		toolboxAppCodes: ["QA"],
 	},
+	{
+		ideId: "android-studio",
+		ideName: "Android Studio",
+		configDirPrefixes: ["AndroidStudio"],
+		toolboxScriptNames: ["studio"],
+		toolboxAppCodes: ["AI"],
+	},
 ];
 
 export function inferIdeFromConfigDirName(configDirName: string): {
