@@ -2,6 +2,8 @@ import { opendir, readdir, readFile, stat } from "fs/promises";
 import { createReadStream } from "fs";
 import * as _path from "path";
 import { imageSize } from "image-size";
+import { LocalStorage as storage } from "@vicinae/api";
+import { createHash } from "node:crypto";
 
 const hyprpaperSupportedFormats = ["jpg", "jpeg", "png", "webp", "gif"];
 
@@ -77,29 +79,62 @@ const processImage = async (path: string): Promise<Image> => {
   }
 };
 
-export const getImagesFromPath = async (path: string): Promise<Image[]> => {
+async function getPrevWallpapersHash(): Promise<string | undefined> {
+  return storage.getItem("wallpapersHash");
+}
+
+async function getWallpapers(): Promise<string | undefined> {
+  return storage.getItem("wallpapers") ?? "";
+}
+
+const getWallpapersHash = async (path: string): Promise<string> => {
   try {
-    console.time("🚀 TOTAL SPEED");
+    console.time("🚀 TOTAL HASH SPEED");
     const imagesPaths = await parseImagesFromPath(path);
-    console.log(`📁 Found ${imagesPaths.length} images`);
-
-    const concurrencyLimit = 16; // 16 works for me, need feedback on slower machines
-
-    const results: Image[] = [];
-
-    for (let i = 0; i < imagesPaths.length; i += concurrencyLimit) {
-      const batch = imagesPaths.slice(i, i + concurrencyLimit);
-      const batchResults = await Promise.all(
-        batch.map((img) => processImage(_path.join(path, img))),
-      );
-      results.push(...batchResults);
-    }
-
-    console.timeEnd("🚀 TOTAL SPEED");
-    console.log("---"); // Werid buffer issue for timeend
-    return results;
+    const hash = createHash("md5").update(imagesPaths.sort().join("\n")).digest("hex");
+    console.timeEnd("🚀 TOTAL HASH SPEED");
+    console.log("---");
+    return hash;
   } catch (e) {
     console.error(e);
-    throw new Error("Failed to get images from provided path");
+    throw new Error("Failed to get hash of wallpapers directory");
   }
+}
+
+// fetch images only if the source directory signature has changed and stores both the src dir signature and the wallpapers in LocalStorage
+export const getImagesFromPath = async (path: string): Promise<Image[]> => {
+  let results: Image[] = [];
+  let previousWallpapersHash = await getPrevWallpapersHash();
+  const currentWallpapersHash = await getWallpapersHash(path);
+
+  if ((previousWallpapersHash == undefined) || (previousWallpapersHash != currentWallpapersHash)) {
+    storage.setItem("wallpapersHash", currentWallpapersHash!);
+    try {
+      console.time("🚀 TOTAL SPEED");
+      const imagesPaths = await parseImagesFromPath(path);
+      console.log(`📁 Found ${imagesPaths.length} images`);
+
+      const concurrencyLimit = 16; // 16 works for me, need feedback on slower machines
+
+
+      for (let i = 0; i < imagesPaths.length; i += concurrencyLimit) {
+        const batch = imagesPaths.slice(i, i + concurrencyLimit);
+        const batchResults = await Promise.all(
+          batch.map((img) => processImage(_path.join(path, img))),
+        );
+        results.push(...batchResults);
+      }
+
+      console.timeEnd("🚀 TOTAL SPEED");
+      console.log("---"); // Werid buffer issue for timeend
+    } catch (e) {
+      console.error(e);
+      throw new Error("Failed to get images from provided path");
+    }
+    storage.setItem("wallpapers", JSON.stringify(results));
+  } else {
+    results = JSON.parse(await getWallpapers() ?? "[]") as Image[];
+  }
+
+  return results;
 };

@@ -68,104 +68,104 @@ export default function DisplayGrid() {
       columns={gridRows}
       aspectRatio="16/9"
       fit={Grid.Fit.Fill}
-      isLoading={false}
+      isLoading={isLoading}
     >
       <Grid.Section title={isLoading ? `Loading images in '${path}'...` : `Showing images from '${path}'`}>
         {isLoading
           ? Array.from({ length: gridRows * 3 }).map((_, i) => (
-              <Grid.Item
-                key={i}
-                content={{ source: "loading.gif" }}
-                title="Loading..."
-                subtitle={preferences.showImageDetails ? `480x270 • 79.5 KB` : undefined}
-              />
-            ))
+            <Grid.Item
+              key={i}
+              content={{ source: "loading.gif" }}
+              title="Loading..."
+              subtitle={preferences.showImageDetails ? `480x270 • 79.5 KB` : undefined}
+            />
+          ))
           : wallpapers.map((w) => (
-              <Grid.Item
-                key={w.fullpath}
-                content={{ source: w.fullpath }}
-                title={w.name}
-                {...(preferences.showImageDetails && {
-                  subtitle: `${w.width}x${w.height} • ${w.size.toFixed(2)} MB`,
-                  accessories: [{ text: `${w.width}x${w.height}` }, { text: `${w.size.toFixed(2)} MB` }],
-                })}
-                actions={
-                  <ActionPanel>
-                    <ActionPanel.Section title="Set on All Monitors">
-                      <Action
-                        title={`Set '${w.name}' on All`}
-                        icon={Icon.Image}
-                        onAction={() => {
-                          omniCommand(
-                            w.fullpath,
-                            "ALL",
-                            awwwTransition,
-                            awwwSteps,
-                            awwwDuration,
-                            preferences.toggleVicinaeSetting,
-                            colorGen,
-                            postProduction,
-                            postCommandString,
-                            awwwFPS,
-                          );
-                        }}
-                      />
-                    </ActionPanel.Section>
+            <Grid.Item
+              key={w.fullpath}
+              content={{ source: w.fullpath }}
+              title={w.name}
+              {...(preferences.showImageDetails && {
+                subtitle: `${w.width}x${w.height} • ${w.size.toFixed(2)} MB`,
+                accessories: [{ text: `${w.width}x${w.height}` }, { text: `${w.size.toFixed(2)} MB` }],
+              })}
+              actions={
+                <ActionPanel>
+                  <ActionPanel.Section title="Set on All Monitors">
+                    <Action
+                      title={`Set '${w.name}' on All`}
+                      icon={Icon.Image}
+                      onAction={() => {
+                        omniCommand(
+                          w.fullpath,
+                          "ALL",
+                          awwwTransition,
+                          awwwSteps,
+                          awwwDuration,
+                          preferences.toggleVicinaeSetting,
+                          colorGen,
+                          postProduction,
+                          postCommandString,
+                          awwwFPS,
+                        );
+                      }}
+                    />
+                  </ActionPanel.Section>
 
-                    {isWMSupported && (
-                      <>
-                        <ActionPanel.Section title="Split on Monitors">
-                          {monitorNames.includes(leftMonitorName) && monitorNames.includes(rightMonitorName) && (
-                            <Action
-                              title={`Split wallpaper ${leftMonitorName} | ${rightMonitorName}`}
-                              icon={Icon.ArrowsExpand}
-                              onAction={() => {
-                                omniCommand(
-                                  w.fullpath,
-                                  `${leftMonitorName}|${rightMonitorName}`,
-                                  awwwTransition,
-                                  awwwSteps,
-                                  awwwDuration,
-                                  preferences.toggleVicinaeSetting,
-                                  colorGen,
-                                  postProduction,
-                                  postCommandString,
-                                  awwwFPS,
-                                );
-                              }}
-                            />
-                          )}
-                        </ActionPanel.Section>
+                  {isWMSupported && (
+                    <>
+                      <ActionPanel.Section title="Split on Monitors">
+                        {monitorNames.includes(leftMonitorName) && monitorNames.includes(rightMonitorName) && (
+                          <Action
+                            title={`Split wallpaper ${leftMonitorName} | ${rightMonitorName}`}
+                            icon={Icon.ArrowsExpand}
+                            onAction={() => {
+                              omniCommand(
+                                w.fullpath,
+                                `${leftMonitorName}|${rightMonitorName}`,
+                                awwwTransition,
+                                awwwSteps,
+                                awwwDuration,
+                                preferences.toggleVicinaeSetting,
+                                colorGen,
+                                postProduction,
+                                postCommandString,
+                                awwwFPS,
+                              );
+                            }}
+                          />
+                        )}
+                      </ActionPanel.Section>
 
-                        <ActionPanel.Section title="Set on Specific Monitor">
-                          {monitors.map((monitor) => (
-                            <Action
-                              key={hashMonitor(monitor)} // This should be more resistant than simply using monitor.model, in case someone has the same monitor twice
-                              title={`Set on ${monitor.name}`}
-                              icon={Icon.Monitor}
-                              onAction={() => {
-                                omniCommand(
-                                  w.fullpath,
-                                  monitor.name,
-                                  awwwTransition,
-                                  awwwSteps,
-                                  awwwDuration,
-                                  preferences.toggleVicinaeSetting,
-                                  colorGen,
-                                  postProduction,
-                                  postCommandString,
-                                  awwwFPS,
-                                );
-                              }}
-                            />
-                          ))}
-                        </ActionPanel.Section>
-                      </>
-                    )}
-                  </ActionPanel>
-                }
-              />
-            ))}
+                      <ActionPanel.Section title="Set on Specific Monitor">
+                        {monitors.map((monitor) => (
+                          <Action
+                            key={hashMonitor(monitor)} // This should be more resistant than simply using monitor.model, in case someone has the same monitor twice
+                            title={`Set on ${monitor.name}`}
+                            icon={Icon.Monitor}
+                            onAction={() => {
+                              omniCommand(
+                                w.fullpath,
+                                monitor.name,
+                                awwwTransition,
+                                awwwSteps,
+                                awwwDuration,
+                                preferences.toggleVicinaeSetting,
+                                colorGen,
+                                postProduction,
+                                postCommandString,
+                                awwwFPS,
+                              );
+                            }}
+                          />
+                        ))}
+                      </ActionPanel.Section>
+                    </>
+                  )}
+                </ActionPanel>
+              }
+            />
+          ))}
       </Grid.Section>
     </Grid>
   );
