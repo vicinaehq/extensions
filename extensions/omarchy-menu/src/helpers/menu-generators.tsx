@@ -77,3 +77,4 @@ export const fonts_list = (): MenuItem[] => {
     };
   });
 };
+
