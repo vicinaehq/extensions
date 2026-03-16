@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { ActionPanel, Action, Grid, showToast, Toast, Icon, getPreferenceValues } from "@vicinae/api";
-import { getImagesFromPath, Image } from "./utils/image";
+import { getImagesMetadata, getImagesFromPath, Image } from "./utils/image";
 import { WindowManagement as wm } from "@vicinae/api";
 import { omniCommand } from "./utils/hyprland";
 import { createHash } from "node:crypto";
+import { Metadata } from "@vicinae/api/dist/api/components/metadata";
 
 // test
 
@@ -27,8 +28,8 @@ export default function DisplayGrid() {
   const rightMonitorName: string = getPreferenceValues().rightMonitor;
   const postCommandString: string = getPreferenceValues().postCommand;
 
-  const [wallpapersPath, setWallpapersPath] = useState<string | null>(null);
-  const [wallpapers, setWallpapers] = useState<Image[]>([]);
+  const [wallpapers, setWallpapers] = useState<string[]>([]);
+  const [wallpapersMetadata, setWallpapersMetadata] = useState<Record<string, Image>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   const monitorNames = monitors.map((m) => m.name);
@@ -48,19 +49,19 @@ export default function DisplayGrid() {
         style: Toast.Style.Failure,
       });
     });
-    getImagesFromPath(path)
-      .then((ws) => {
-        setIsLoading(false);
-        setWallpapers(ws);
-      })
-      .catch((e) => {
-        showToast({
-          title: e.message,
-          style: Toast.Style.Failure,
-        });
-        setIsLoading(false);
-      });
-  }, [wallpapersPath]);
+
+    Promise.all([
+      getImagesFromPath(path),
+      getImagesMetadata(path),
+    ]).then(([images, metadata]) => {
+      setWallpapers(images);
+      setWallpapersMetadata(metadata);
+      setIsLoading(false);
+    }).catch((e) => {
+      showToast({ title: e.message, style: Toast.Style.Failure });
+      setIsLoading(false);
+    });
+  }, [path]);
 
   return (
     <Grid
@@ -82,22 +83,22 @@ export default function DisplayGrid() {
           ))
           : wallpapers.map((w) => (
             <Grid.Item
-              key={w.fullpath}
-              content={{ source: w.fullpath }}
-              title={w.name}
+              key={w}
+              content={{ source: w }}
+              title={wallpapersMetadata[w]?.name}
               {...(preferences.showImageDetails && {
-                subtitle: `${w.width}x${w.height} • ${w.size.toFixed(2)} MB`,
-                accessories: [{ text: `${w.width}x${w.height}` }, { text: `${w.size.toFixed(2)} MB` }],
+                subtitle: `${wallpapersMetadata[w]?.width}x${wallpapersMetadata[w]?.height} • ${wallpapersMetadata[w]?.size.toFixed(2)} MB`,
+                accessories: [{ text: `${wallpapersMetadata[w]?.width}x${wallpapersMetadata[w]?.height}` }, { text: `${wallpapersMetadata[w]?.size.toFixed(2)} MB` }],
               })}
               actions={
                 <ActionPanel>
                   <ActionPanel.Section title="Set on All Monitors">
                     <Action
-                      title={`Set '${w.name}' on All`}
+                      title={`Set '${wallpapersMetadata[w]?.name}' on All`}
                       icon={Icon.Image}
                       onAction={() => {
                         omniCommand(
-                          w.fullpath,
+                          w,
                           "ALL",
                           awwwTransition,
                           awwwSteps,
@@ -121,7 +122,7 @@ export default function DisplayGrid() {
                             icon={Icon.ArrowsExpand}
                             onAction={() => {
                               omniCommand(
-                                w.fullpath,
+                                w,
                                 `${leftMonitorName}|${rightMonitorName}`,
                                 awwwTransition,
                                 awwwSteps,
@@ -145,7 +146,7 @@ export default function DisplayGrid() {
                             icon={Icon.Monitor}
                             onAction={() => {
                               omniCommand(
-                                w.fullpath,
+                                w,
                                 monitor.name,
                                 awwwTransition,
                                 awwwSteps,
