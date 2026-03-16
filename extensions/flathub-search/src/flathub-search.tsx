@@ -11,14 +11,13 @@ import {
 	showToast,
 	Toast,
 } from "@vicinae/api";
-import { useEffect, useState } from "react";
+import { useCallback, useDeferredValue, useState } from "react";
 import {
 	type FlathubApp,
 	hasFlatpakHandler,
 	PERSIST_MAX_AGE,
 	persister,
 	queryClient,
-	SEARCH_DEBOUNCE_MS,
 } from "./api";
 import { useAppDetails, useFlathubSearch, usePopularApps } from "./hooks";
 
@@ -27,15 +26,6 @@ function formatInstalls(count?: number): string {
 	if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M installs`;
 	if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K installs`;
 	return `${count} installs`;
-}
-
-function useDebounce<T>(value: T, delay: number): T {
-	const [debounced, setDebounced] = useState(value);
-	useEffect(() => {
-		const id = setTimeout(() => setDebounced(value), delay);
-		return () => clearTimeout(id);
-	}, [value, delay]);
-	return debounced;
 }
 
 type Screenshot = NonNullable<FlathubApp["screenshots"]>[number];
@@ -74,8 +64,8 @@ function buildDetailMarkdown(
 		.join("\n\n---\n\n");
 }
 
-function AppDetail({ app }: { app: FlathubApp }) {
-	const { data: fullApp, isLoading } = useAppDetails(app);
+function AppDetail({ app, enabled }: { app: FlathubApp; enabled: boolean }) {
+	const { data: fullApp, isLoading } = useAppDetails(app, enabled);
 
 	const displayApp = fullApp || app;
 
@@ -207,16 +197,16 @@ function AppListItem({
 }) {
 	return (
 		<List.Item
-			key={app.app_id}
+			id={app.app_id}
 			title={app.name}
-			subtitle={showingDetail ? undefined : app.summary}
+			subtitle={app.summary}
 			icon={app.icon || Icon.AppWindow}
 			accessories={
 				app.installs_last_month
 					? [{ text: formatInstalls(app.installs_last_month) }]
 					: []
 			}
-			detail={<AppDetail app={app} />}
+			detail={<AppDetail app={app} enabled={showingDetail} />}
 			actions={
 				<AppActions
 					app={app}
@@ -237,7 +227,7 @@ function FlathubSearchContent({
 }) {
 	const [searchText, setSearchText] = useState(fallbackText || "");
 	const [showingDetail, setShowingDetail] = useState(false);
-	const debouncedSearch = useDebounce(searchText, SEARCH_DEBOUNCE_MS);
+	const deferredSearch = useDeferredValue(searchText);
 
 	const { data: popularApps = [], isLoading: loadingPopular } =
 		usePopularApps();
@@ -245,17 +235,17 @@ function FlathubSearchContent({
 		data: searchResults = [],
 		isLoading: loadingSearch,
 		isFetching: fetchingSearch,
-	} = useFlathubSearch(debouncedSearch);
+	} = useFlathubSearch(deferredSearch);
 
-	const showingSearch = debouncedSearch.trim().length > 0;
+	const showingSearch = searchText.trim().length > 0;
 	const displayed = showingSearch ? searchResults : popularApps;
 	// Use isFetching for search so the spinner shows during keepPreviousData transitions.
 	// isRestoring suppresses the empty-state flash while the persisted cache is being hydrated.
 	const isLoading =
 		isRestoring ||
 		(showingSearch ? loadingSearch || fetchingSearch : loadingPopular);
-	const canInstall = hasFlatpakHandler();
-	const toggleDetail = () => setShowingDetail((prev) => !prev);
+	const [canInstall] = useState(hasFlatpakHandler);
+	const toggleDetail = useCallback(() => setShowingDetail((prev) => !prev), []);
 
 	return (
 		<List
@@ -263,38 +253,37 @@ function FlathubSearchContent({
 			isShowingDetail={showingDetail}
 			searchBarPlaceholder="Search Flathub applications..."
 			onSearchTextChange={setSearchText}
-			searchText={searchText}
 		>
-			{showingSearch ? (
-				displayed.length === 0 && !isLoading ? (
-					<List.EmptyView
-						title="No applications found"
-						description="Try different search terms"
-					/>
-				) : (
-					displayed.map((app) => (
-						<AppListItem
-							key={app.app_id}
-							app={app}
-							canInstall={canInstall}
-							showingDetail={showingDetail}
-							onToggleDetail={toggleDetail}
-						/>
-					))
-				)
+		{showingSearch ? (
+			displayed.length === 0 && !isLoading ? (
+				<List.EmptyView
+					title="No applications found"
+					description="Try different search terms"
+				/>
 			) : (
-				<List.Section title="Popular Applications">
-					{displayed.map((app) => (
-						<AppListItem
-							key={app.app_id}
-							app={app}
-							canInstall={canInstall}
-							showingDetail={showingDetail}
-							onToggleDetail={toggleDetail}
-						/>
-					))}
-				</List.Section>
-			)}
+		displayed.map((app) => (
+			<AppListItem
+				key={app.app_id}
+				app={app}
+				canInstall={canInstall}
+				showingDetail={showingDetail}
+				onToggleDetail={toggleDetail}
+			/>
+		))
+	)
+) : (
+	<List.Section title="Popular Applications">
+		{displayed.map((app) => (
+			<AppListItem
+				key={app.app_id}
+				app={app}
+				canInstall={canInstall}
+				showingDetail={showingDetail}
+				onToggleDetail={toggleDetail}
+			/>
+		))}
+			</List.Section>
+		)}
 		</List>
 	);
 }

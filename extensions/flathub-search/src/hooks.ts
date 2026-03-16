@@ -24,10 +24,11 @@ export function useFlathubSearch(query: string) {
 	});
 }
 
-export function useAppDetails(app: FlathubApp) {
+export function useAppDetails(app: FlathubApp, enabled: boolean) {
 	return useQuery({
 		queryKey: ["flathub", "app-detail", app.app_id],
 		queryFn: () => fetchAppDetails(app.app_id),
 		staleTime: ms("10m"),
+		enabled,
 	});
 }
