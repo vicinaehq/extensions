@@ -1,4 +1,4 @@
-import { Calendar } from "./types";
+import { Calendar } from "./lib/types";
 import CalendarForm from "./components/CalendarForm";
 
 interface EditCalendarProps {

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "color-converter",
+  "title": "Color Converter",
+  "description": "Quickly convert colors to different formats (Hex, rgb, rgba, etc.)",
+  "categories": [
+    "Data",
+    "Design Tools",
+    "Developer Tools",
+    "Productivity",
+    "Web"
+  ],
+  "license": "MIT",
+  "author": "Costeer",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "convert-color",
+      "title": "Convert Color",
+      "subtitle": "Convert colors",
+      "description": "Quickly convert colors to different formats (Hex, rgb, rgba, etc.)",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.19.3",
+    "colord": "^2.9.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/react": "19.0.10",
+    "react": "19.0.0",
+    "typescript": "^5.9.2"
+  }
+}

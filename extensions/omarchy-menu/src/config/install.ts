@@ -13,7 +13,7 @@ import { MenuItem } from "./types";
 export const installMenu: MenuItem = {
   id: "install",
   name: "Install",
-  icon: Icon.MemoryChip,
+  icon: Icon.PlusSquare,
   items: [
     {
       id: "package",
@@ -29,37 +29,37 @@ export const installMenu: MenuItem = {
     },
     {
       id: "web",
-      name: "Web",
-      icon: "󰣇",
+      name: "Web App",
+      icon: " ",
       command: present_terminal("omarchy-webapp-install"),
     },
     {
       id: "tui",
       name: "TUI",
-      icon: "󰣇",
+      icon: " ",
       command: present_terminal("omarchy-tui-install"),
     },
     {
       id: "service",
       name: "Service",
-      icon: "󰣇",
+      icon: " ",
       items: [
         {
           id: "dropbox",
           name: "Dropbox",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-dropbox"),
         },
         {
           id: "tailscale",
           name: "Tailscale",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-tailscale"),
         },
         {
           id: "bitwarden",
           name: "Bitwarden",
-          icon: "󰟵",
+          icon: "󰟵 ",
           command: install_and_launch(
             "Bitwarden",
             "bitwarden bitwarden-cli",
@@ -69,37 +69,43 @@ export const installMenu: MenuItem = {
         {
           id: "chromium-account",
           name: "Chromium Account",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-chromium-google-account"),
         },
+				{
+					id: "nord-vpn",
+					name: "NordVPN",
+					icon: "󱇱 ",
+					command: present_terminal("omarchy-install-nordvpn"),
+				},
       ],
     },
     {
       id: "install-style",
       name: "Style",
-      icon: "󰣇",
+      icon: " ",
       items: [
         {
           id: "theme",
           name: "Theme",
-          icon: "󰸌",
+          icon: "󰸌 ",
           command: present_terminal("omarchy-theme-install"),
         },
         {
           id: "background",
           name: "Background",
-          icon: "",
+          icon: " ",
           command: "nautilus ~/.config/omarchy/current/theme/backgrounds",
         },
         {
           id: "install-font",
           name: "Font",
-          icon: "",
+          icon: " ",
           items: [
             {
               id: "meslo-lg-mono",
               name: "Meslo LG Mono",
-              icon: "",
+              icon: " ",
               command: install_font(
                 "Meslo LG Mono",
                 "ttf-meslo-nerd",
@@ -109,7 +115,7 @@ export const installMenu: MenuItem = {
             {
               id: "fira-code",
               name: "Fira Code",
-              icon: "",
+              icon: " ",
               command: install_font(
                 "Fira Code",
                 "ttf-firacode-nerd",
@@ -119,7 +125,7 @@ export const installMenu: MenuItem = {
             {
               id: "victor-mono",
               name: "Victor Code",
-              icon: "",
+              icon: " ",
               command: install_font(
                 "Victor Code",
                 "ttf-victor-mono-nerd",
@@ -129,7 +135,7 @@ export const installMenu: MenuItem = {
             {
               id: "bistream-vera-mono",
               name: "Bistream Vera Mono",
-              icon: "",
+              icon: " ",
               command: install_font(
                 "Bistream Vera Code",
                 "ttf-bitstream-vera-mono-nerd",
@@ -139,7 +145,7 @@ export const installMenu: MenuItem = {
             {
               id: "commit-mono",
               name: "Commit Monot",
-              icon: "",
+              icon: " ",
               command: install_font(
                 "Commit Mono",
                 "otf-commit-mono-nerd",
@@ -153,7 +159,7 @@ export const installMenu: MenuItem = {
     {
       id: "development",
       name: "Development",
-      icon: "󰣇",
+      icon: "󰵮 ",
       items: [
         {
           id: "ruby-on-rails",
@@ -164,30 +170,30 @@ export const installMenu: MenuItem = {
         {
           id: "docker-db",
           name: "Docker DB",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-docker-dbs"),
         },
         {
           id: "javascript",
           name: "JavaScript",
-          icon: "",
+          icon: " ",
           items: [
             {
               id: "node",
               name: "Node.js",
-              icon: "",
+              icon: " ",
               command: present_terminal("omarchy-install-dev-env node"),
             },
             {
               id: "bun",
               name: "Bun",
-              icon: "",
+              icon: " ",
               command: present_terminal("omarchy-install-dev-env bun"),
             },
             {
               id: "deno",
               name: "Deno",
-              icon: "",
+              icon: " ",
               command: present_terminal("omarchy-install-dev-env deno"),
             },
           ],
@@ -195,38 +201,38 @@ export const installMenu: MenuItem = {
         {
           id: "go",
           name: "Go",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-dev-env go"),
         },
         {
           id: "php",
           name: "PHP",
-          icon: "",
+          icon: " ",
           items: [
             {
               id: "php",
               name: "PHP",
-              icon: "",
+              icon: " ",
               command: present_terminal("omarchy-install-dev-env php"),
             },
             {
               id: "laravel",
               name: "Laravel",
-              icon: "",
+              icon: " ",
               command: present_terminal("omarchy-install-dev-env laravel"),
             },
             {
               id: "symfony",
               name: "Symfony",
-              icon: "",
+              icon: " ",
               command: present_terminal("omarchy-install-dev-env symfony"),
             },
           ],
         },
-        {
+				{
           id: "python",
           name: "Python",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-dev-env python"),
         },
         {
@@ -243,7 +249,7 @@ export const installMenu: MenuItem = {
             {
               id: "phoenix",
               name: "Phoenix",
-              icon: "",
+              icon: " ",
               command: present_terminal("omarchy-install-dev-env phoenix"),
             },
           ],
@@ -251,13 +257,13 @@ export const installMenu: MenuItem = {
         {
           id: "zig",
           name: "Zig",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-dev-env zig"),
         },
         {
           id: "rust",
           name: "Rust",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-dev-env rust"),
         },
         {
@@ -269,19 +275,19 @@ export const installMenu: MenuItem = {
         {
           id: "net",
           name: ".NET",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-dev-env dotnet"),
         },
         {
           id: "o-caml",
           name: "OCaml",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-dev-env ocaml"),
         },
         {
           id: "clojure",
           name: "Clojure",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-dev-env clojure"),
         },
       ],
@@ -289,30 +295,30 @@ export const installMenu: MenuItem = {
     {
       id: "editor",
       name: "Editor",
-      icon: "󰣇",
+      icon: " ",
       items: [
         {
           id: "vs-code",
           name: "VSCode",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-vscode"),
         },
         {
           id: "cursor",
           name: "Cursor",
-          icon: "",
+          icon: " ",
           command: install_and_launch("Cursor", "cursor-bin", "cursor"),
         },
         {
           id: "zed",
           name: "Zed",
-          icon: "",
+          icon: " ",
           command: install_and_launch("Zed", "zed", "dev.zed.Zed"),
         },
         {
           id: "sublime-text",
           name: "Sublime Text",
-          icon: "",
+          icon: " ",
           command: install_and_launch(
             "Sublime Text",
             "sublime-text-4",
@@ -322,13 +328,13 @@ export const installMenu: MenuItem = {
         {
           id: "helix",
           name: "Helix",
-          icon: "",
+          icon: " ",
           command: install("Helix", "helix"),
         },
         {
           id: "emacs",
           name: "Emacs",
-          icon: "",
+          icon: " ",
           command: `${install("Emacs", "emacs-wayland")}  && systemctl --user enable --now emacs.service`,
         },
       ],
@@ -336,24 +342,24 @@ export const installMenu: MenuItem = {
     {
       id: "terminal",
       name: "Terminal",
-      icon: "󰣇",
+      icon: " ",
       items: [
         {
           id: "alacritty",
           name: "Alacritty",
-          icon: "",
+          icon: " ",
           command: install_terminal("alacritty"),
         },
         {
           id: "ghostty",
           name: "Ghostty",
-          icon: "",
+          icon: " ",
           command: install_terminal("ghostty"),
         },
         {
           id: "kitty",
           name: "Kitty",
-          icon: "",
+          icon: " ",
           command: install_terminal("kitty"),
         },
       ],
@@ -361,79 +367,79 @@ export const installMenu: MenuItem = {
     {
       id: "ai",
       name: "AI",
-      icon: "󰣇",
+      icon: "󱚤 ",
       items: [
         {
           id: "claude-code",
           name: "Claude Code",
-          icon: "󱚤",
+          icon: "󱚤 ",
           command: install("Claude Code", "claude-code"),
         },
         {
           id: "cursor-cli",
           name: "Cursor CLI",
-          icon: "󱚤",
+          icon: "󱚤 ",
           command: install("Cursor CLI", "cursor-cli"),
         },
         {
           id: "openai-codex",
-          name: "OpenAI Codex",
-          icon: "󱚤",
-          command: install("OpenAI Codex", "openai-codex-bin"),
+          name: "Codex",
+          icon: "󱚤 ",
+          command: install("Codex", "openai-codex"),
         },
         {
           id: "gemini",
-          name: "Gemini",
-          icon: "󱚤",
+          name: "Gemini CLI",
+          icon: "󱚤 ",
           command: install("Gemini", "gemini-cli"),
         },
         {
           id: "lm-studio",
           name: "LM Studio",
-          icon: "󱚤",
+          icon: "󱚤 ",
           command: install("LM Studio", "lmstudio"),
         },
         {
           id: "ollama",
           name: "Ollama",
-          icon: "󱚤",
+          icon: "󱚤 ",
           command: 'install "Ollama" $ollama_pkg',
         },
         {
           id: "crush",
           name: "Crush",
-          icon: "󱚤",
+          icon: "󱚤 ",
           command: install("Crush", "crush-bin"),
-        },
-        {
-          id: "opencode",
-          name: "opencode",
-          icon: "󱚤",
-          command: install("opencode", "opencode"),
         },
       ],
     },
     {
       id: "windows",
       name: "Windows",
-      icon: "󰣇",
+      icon: "󰍲 ",
       command: present_terminal("omarchy-windows-vm install"),
     },
     {
       id: "gaming",
       name: "Gaming",
-      icon: "󰣇",
+      icon: " ",
       items: [
         {
           id: "steam",
           name: "Steam",
-          icon: "",
+          icon: " ",
           command: present_terminal("omarchy-install-steam"),
         },
+				{
+					id: "nvidia-geforce-now",
+					name: "NVIDIA GeForce NOW",
+					icon: "󰢹 ",
+					command: present_terminal("omarchy-install-geforce-now"),
+				},
         {
           id: "retroarch",
           name: "RetroArch [AUR]",
-          icon: "",
+          icon: " ",
           command: aur_install_and_launch(
             "RetroArch",
             "retroarch retroarch-assets libretro libretro-fbneo",
@@ -443,7 +449,7 @@ export const installMenu: MenuItem = {
         {
           id: "minecraft",
           name: "Minecraft",
-          icon: "󰍳",
+          icon: "󰍳 ",
           command: install_and_launch(
             "Minecraft",
             "minecraft-launcher",
@@ -452,8 +458,8 @@ export const installMenu: MenuItem = {
         },
         {
           id: "xbox",
-          name: "Xbox",
-          icon: "",
+          name: "Xbox Controller [AUR]",
+          icon: "󰖺 ",
           command: present_terminal("omarchy-install-xbox-controllers"),
         },
       ],

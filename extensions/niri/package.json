@@ -48,13 +48,20 @@
       "description": "Display the list of workspaces",
       "mode": "view"
     },
-    {
-      "name": "pick-color",
-      "title": "Pick Color",
-      "subtitle": "Pick a color from screen",
-      "description": "Pick a color from the screen with the mouse",
-      "mode": "no-view"
-    }
+     {
+       "name": "pick-color",
+       "title": "Pick Color",
+       "subtitle": "Pick a color from screen",
+       "description": "Pick a color from the screen with the mouse",
+       "mode": "no-view"
+     },
+     {
+       "name": "clear-dynamic-cast-target",
+       "title": "Clear Dynamic Cast Target",
+       "subtitle": "Clear the dynamic cast target",
+       "description": "Clear the dynamic cast target, making it show nothing",
+       "mode": "no-view"
+     }
   ],
   "scripts": {
     "build": "vici build",

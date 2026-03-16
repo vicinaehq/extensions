@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "podman",
+  "title": "Podman",
+  "description": "Vicinae extension for managing Podman containers",
+  "categories": ["Developer Tools", "Productivity"],
+  "license": "MIT",
+  "author": "knoopx",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "containers",
+      "title": "Containers",
+      "subtitle": "Manage Podman containers",
+      "description": "List and manage Podman containers",
+      "mode": "view"
+    },
+    {
+      "name": "images",
+      "title": "Images",
+      "subtitle": "Manage Podman images",
+      "description": "List and manage Podman images",
+      "mode": "view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

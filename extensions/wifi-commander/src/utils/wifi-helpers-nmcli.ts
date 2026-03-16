@@ -18,6 +18,7 @@ export interface SavedNetwork {
   type: string;
   device: string;
   state: string;
+  timestamp?: number;
 }
 
 export interface WifiDevice {
@@ -102,8 +103,10 @@ export function parseSavedConnections(output: string): SavedNetwork[] {
         type: parts[2] || "",
         device: parts[3] || "",
         state: parts[4] || "",
+        timestamp: parseInt(parts[5] || "0", 10),
       };
     })
+    .filter((network) => network?.type === "wifi")
     .filter(Boolean) as SavedNetwork[];
 }
 
@@ -137,6 +140,7 @@ export function parseCurrentConnection(output: string): CurrentConnection | null
 
   if (lines.length > 1) {
     const firstLine = lines[1];
+    if (!firstLine) return null;
     const parts = firstLine.split(/\s{2,}/);
     if (parts.length >= 4) {
       return {
@@ -165,9 +169,15 @@ export function sortNetworks(networks: WifiNetwork[]): WifiNetwork[] {
  */
 export async function loadSavedNetworks(): Promise<SavedNetwork[]> {
   try {
-    const result = await executeNmcliCommandSilent("connection show");
+    const result = await executeNmcliCommandSilent("connection show", [], [
+      "-f",
+      "NAME,UUID,TYPE,DEVICE,STATE,TIMESTAMP",
+    ]);
+
     if (result.success) {
-      return parseSavedConnections(result.stdout);
+      return parseSavedConnections(result.stdout).sort((a, b) => {
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      });
     }
   } catch (error) {
     console.error("Failed to load saved networks:", error);

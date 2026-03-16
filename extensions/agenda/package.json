@@ -19,12 +19,6 @@
       "mode": "view"
     },
     {
-      "name": "add-calendar",
-      "title": "Add Calendar",
-      "description": "Add a new calendar",
-      "mode": "view"
-    },
-    {
       "name": "manage-calendars",
       "title": "Manage Calendars",
       "description": "View and manage configured calendars",
@@ -57,12 +51,32 @@
         }
       ],
       "required": false
+    },
+    {
+      "name": "timeFormat",
+      "type": "dropdown",
+      "title": "Time Format",
+      "description": "How to display event times",
+      "default": "12h",
+      "data": [
+        {
+          "title": "12-hour (2:30 PM)",
+          "value": "12h"
+        },
+        {
+          "title": "24-hour (14:30)",
+          "value": "24h"
+        }
+      ],
+      "required": false
     }
   ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@vicinae/api": "^0.16.5",
@@ -73,6 +87,7 @@
     "@types/node": "^24.10.1",
     "eslint": "^9.39.1",
     "prettier": "^3.6.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

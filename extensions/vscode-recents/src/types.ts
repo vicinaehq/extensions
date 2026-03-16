@@ -1,3 +1,12 @@
+export enum ProjectEnvironment {
+    Local = "",
+    RemoteWSL = "wsl",
+    Codespace = "vsonline",
+    RemoteTunnel = "tunnel",
+    RemoteSSH = "ssh-remote",
+    DevContainer = "dev-container",
+}
+
 export enum ProjectType {
     File = "file",
     Folder = "folder",
@@ -8,15 +17,19 @@ export interface RecentProject {
     path: string;
     label: string;
     type: ProjectType;
-    lastOpened: number;
+    machineName?: string;
+    lastOpened: number | undefined;
+    environment: ProjectEnvironment;
 }
 
 export interface VSCodeDatabaseEntry {
     fileUri?: string;
     folderUri?: string;
+    remoteAuthority?: string;
     workspace?: {
         configPath: string;
     };
+    label?: string;
     lastAccessTime?: number;
 }
 
@@ -31,8 +44,15 @@ export enum VSCodeFlavour {
     CodeInsiders = "Code - Insiders",
 }
 
+export enum WindowPreference {
+    NewWindow = "NewWindow",
+    ReuseWindow = "ReuseWindow",
+    Default = "Default",
+}
+
 export interface Preferences {
     vscodeFlavour: VSCodeFlavour;
+    windowPreference: WindowPreference;
 }
 
 export interface DatabaseRow {

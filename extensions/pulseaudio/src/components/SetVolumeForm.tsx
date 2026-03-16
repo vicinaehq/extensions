@@ -4,14 +4,22 @@ import { pactl } from "../pactl";
 import { clamp } from "../ui/format";
 import { showErrorToast } from "../ui/toasts";
 
-export function SetVolumeForm(props: {
-  kind: "sink" | "source";
-  deviceName: string;
-  deviceTitle: string;
-  currentPercent?: number;
-  onDone: () => Promise<void> | void;
-}) {
-  const { kind, deviceName, deviceTitle, currentPercent, onDone } = props;
+type SetVolumeFormProps = {
+    kind: "sink" | "source";
+    deviceName: string;
+    deviceTitle: string;
+    currentPercent?: number;
+    onDone: () => Promise<void> | void;
+} | {
+    kind: "sink-input";
+    deviceTitle: string;
+    deviceIndex: number;
+    currentPercent?: number;
+    onDone: () => Promise<void> | void;
+}
+
+export function SetVolumeForm(props: SetVolumeFormProps) {
+  const { kind, deviceTitle, currentPercent, onDone } = props;
   const { pop } = useNavigation();
   const presets = [0, 10, 25, 50, 75, 100, 125, 150];
   const [text, setText] = useState(String(typeof currentPercent === "number" ? currentPercent : 100));
@@ -19,8 +27,9 @@ export function SetVolumeForm(props: {
   async function apply(percent: number): Promise<void> {
     const safe = clamp(Math.round(percent), 0, 150);
     try {
-      if (kind === "sink") await pactl.setSinkVolume(deviceName, safe);
-      else await pactl.setSourceVolume(deviceName, safe);
+      if (kind === "sink") await pactl.setSinkVolume(props.deviceName, safe);
+      else if (kind === "sink-input") await pactl.setSinkInputVolume(props.deviceIndex, safe);
+      else await pactl.setSourceVolume(props.deviceName, safe);
       await showToast({ style: Toast.Style.Success, title: "Volume updated", message: `${deviceTitle} → ${safe}%` });
       await onDone();
       pop();

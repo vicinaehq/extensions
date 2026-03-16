@@ -1,21 +1,16 @@
-import { getPreferenceValues } from "@vicinae/api";
 import { useCalendarData } from "./hooks/useCalendarData";
 import { useCalendarFilter } from "./hooks/useCalendarFilter";
+import { usePreferences } from "./hooks/usePreferences";
 import { UpcomingEvents } from "./components/UpcomingEvents";
 
 export default function Command() {
-  const preferences = getPreferenceValues();
-  const refreshInterval = parseInt(preferences.refreshInterval) || 15;
+  const { refreshInterval } = usePreferences();
 
-  const {
-    calendars,
-    eventsByDate,
-    isLoading,
-    lastRefresh,
-    eventCalendarsRef,
-  } = useCalendarData(refreshInterval);
+  const { calendars, eventsByDate, isLoading, lastRefresh, eventCalendarsRef } =
+    useCalendarData(refreshInterval);
 
-  const { selectedCalendar, setSelectedCalendar } = useCalendarFilter(calendars);
+  const { selectedCalendar, setSelectedCalendar } =
+    useCalendarFilter(calendars);
 
   return (
     <UpcomingEvents

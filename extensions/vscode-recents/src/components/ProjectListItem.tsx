@@ -1,6 +1,6 @@
 import { List, Icon } from "@vicinae/api";
 import { ProjectActions } from "./ProjectActions";
-import { RecentProject, ProjectType } from "../types";
+import { RecentProject, ProjectType, ProjectEnvironment } from "../types";
 
 interface ProjectListItemProps {
     project: RecentProject;
@@ -11,13 +11,13 @@ interface ProjectListItemProps {
 function getProjectIcon(type: ProjectType): Icon {
     switch (type) {
         case ProjectType.Workspace:
-            return Icon.Document;
+            return Icon.BlankDocument;
         case ProjectType.Folder:
             return Icon.Folder;
         case ProjectType.File:
             return Icon.BlankDocument;
         default:
-            return Icon.QuestionMark;
+            return Icon.QuestionMarkCircle;
     }
 }
 
@@ -35,9 +35,21 @@ function getProjectTypeLabel(type: ProjectType): List.Item.Tag {
 }
 
 export function ProjectListItem({ project, index, onRemove }: ProjectListItemProps) {
+    const hasExistingSSHInfo = /\[SSH:\s*[^\]]+\]/.test(project.label);
+    const hasExistingDevContainerInfo = /\[Dev Container\]/.test(project.label);
+
+    let title = project.label;
+    // VSCode already includes "tags" in the project label occasionally
+    // but it is extremely inconsistent, so we add them ourselves for clarity
+    if (project.environment === ProjectEnvironment.RemoteSSH && project.machineName && !hasExistingSSHInfo) {
+        title = `${project.label} [SSH: ${project.machineName}]`;
+    } else if (project.environment === ProjectEnvironment.DevContainer && !hasExistingDevContainerInfo) {
+        title = `${project.label} [Dev Container]`;
+    }
+
     return (
         <List.Item
-            title={project.label}
+            title={title}
             subtitle={project.path}
             icon={getProjectIcon(project.type)}
             key={`${project.path}-${index}`}
@@ -47,7 +59,7 @@ export function ProjectListItem({ project, index, onRemove }: ProjectListItemPro
                     tag: getProjectTypeLabel(project.type),
                 },
             ]}
-            actions={<ProjectActions projectPath={project.path} onRemove={onRemove} />}
+            actions={<ProjectActions project={project} onRemove={onRemove} />}
         />
     );
 }

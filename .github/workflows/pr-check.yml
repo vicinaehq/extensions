@@ -54,7 +54,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build:
-    needs: validate
+    needs: [validate, detect-changes]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

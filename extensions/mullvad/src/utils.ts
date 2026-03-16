@@ -9,7 +9,11 @@ export async function verifyIsMullvadInstalled() {
     return true;
   } catch (e) {
     console.error(e);
-    await showToast(Style.Failure, "Mullvad is not installed", "You can install it from https://mullvad.net/download/");
+    await showToast(
+      Style.Failure,
+      "Mullvad is not installed",
+      "You can install it from https://mullvad.net/download/",
+    );
     return false;
   }
 }

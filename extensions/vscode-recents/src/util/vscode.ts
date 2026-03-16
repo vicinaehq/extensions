@@ -1,6 +1,6 @@
 import { promisify } from "util";
 import { exec } from "child_process";
-import { Preferences } from "../types";
+import { type Preferences, ProjectType, type RecentProject, WindowPreference } from "../types";
 import { VSCODE_EXECUTABLES } from "../constants";
 import { getPreferenceValues, showToast, Toast } from "@vicinae/api";
 
@@ -26,8 +26,8 @@ async function isExecutableAvailable(executable: string): Promise<boolean> {
     }
 }
 
-export async function openProjectInVSCode(projectPath: string): Promise<void> {
-    const { vscodeFlavour } = getPreferenceValues<Preferences>();
+export async function openProjectInVSCode(project: RecentProject): Promise<void> {
+    const { vscodeFlavour, windowPreference } = getPreferenceValues<Preferences>();
     const executable = getVSCodeExecutable();
 
     try {
@@ -42,7 +42,22 @@ export async function openProjectInVSCode(projectPath: string): Promise<void> {
             return;
         }
 
-        await execAsync(`${executable} --new-window "${projectPath}"`);
+        let command = `${executable}`;
+
+        if (windowPreference === WindowPreference.NewWindow) {
+            command += " --new-window";
+        } else if (windowPreference === WindowPreference.ReuseWindow) {
+            command += " --reuse-window";
+        }
+
+        if (project.type === ProjectType.Folder) {
+            command += ` --folder-uri "${project.path}"`;
+        } else {
+            command += ` --file-uri "${project.path}"`;
+        }
+
+        const { NODE_ENV, ...env } = process.env;
+        await execAsync(`${command}`, { env });
     } catch (error) {
         console.error(`Error opening project in ${vscodeFlavour}:`, error);
         showToast({

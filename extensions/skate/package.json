@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "skate",
+  "title": "Skate",
+  "description": "Manage your Skate key-value databases directly from Vicinae",
+  "categories": ["Developer Tools", "Productivity"],
+  "license": "MIT",
+  "author": "knoopx",
+  "icon": "extension_icon.svg",
+  "commands": [
+    {
+      "name": "skate",
+      "title": "Skate",
+      "description": "Browse and manage Skate key-value databases",
+      "mode": "view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.15.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

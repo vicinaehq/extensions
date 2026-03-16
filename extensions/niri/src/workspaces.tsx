@@ -1,19 +1,16 @@
-import { List, Icon, ActionPanel, Action } from "@vicinae/api";
-import { useNiriArrayData } from "./hooks";
-import type { Workspace, Window } from "./types";
-import { NiriList } from "./components/NiriList";
-import { runNiriAction, showSuccess } from "./utils";
+import { List, Icon, ActionPanel, Action } from '@vicinae/api';
+import { useNiriArrayData } from './hooks';
+import type { Workspace, Window } from './types';
+import { NiriList } from './components/NiriList';
+import { runNiriAction, showSuccess } from './utils';
 
 export default function Workspaces() {
   const [workspaces, workspacesLoading, handleRefresh] = useNiriArrayData<Workspace>(
-    "niri msg --json workspaces",
-    "Failed to get workspaces",
+    'niri msg --json workspaces',
+    'Failed to get workspaces'
   );
 
-  const [windows] = useNiriArrayData<Window>(
-    "niri msg --json windows",
-    "Failed to get windows",
-  );
+  const [windows] = useNiriArrayData<Window>('niri msg --json windows', 'Failed to get windows');
 
   const loading = workspacesLoading;
 
@@ -46,14 +43,12 @@ export default function Workspaces() {
             subtitle={`Output: ${workspace.output}${activeWindowTitle ? ` • ${activeWindowTitle}` : ''}`}
             icon={Icon.Window}
             accessories={[
-              workspace.is_focused ? { text: "Focused", icon: Icon.Eye } : {},
-              workspace.is_active
-                ? { text: "Active", icon: Icon.CheckCircle }
+              workspace.is_focused ? { text: 'Focused', icon: Icon.Eye } : {},
+              workspace.is_active ? { text: 'Active', icon: Icon.CheckCircle } : {},
+              workspace.is_urgent ? { text: 'Urgent', icon: Icon.ExclamationMark } : {},
+              windowCount > 0
+                ? { text: `${windowCount} window${windowCount > 1 ? 's' : ''}`, icon: Icon.Window }
                 : {},
-              workspace.is_urgent
-                ? { text: "Urgent", icon: Icon.ExclamationMark }
-                : {},
-              windowCount > 0 ? { text: `${windowCount} window${windowCount > 1 ? 's' : ''}`, icon: Icon.Window } : {},
             ]}
             actions={
               <ActionPanel>
@@ -70,10 +65,7 @@ export default function Workspaces() {
                   title="Copy Workspace Index"
                   content={workspace.idx.toString()}
                 />
-                <Action.CopyToClipboard
-                  title="Copy Output Name"
-                  content={workspace.output}
-                />
+                <Action.CopyToClipboard title="Copy Output Name" content={workspace.output} />
               </ActionPanel>
             }
           />

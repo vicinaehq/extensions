@@ -39,5 +39,5 @@ jobs:
       - name: Deploy extension
         run: bun scripts/deploy-extension.ts ${{ matrix.extension }}
         env:
-          STORE_BASE_URL: ${{ secrets.STORE_BASE_URL || 'http://localhost:3000' }}
+          STORE_BASE_URL: ${{ vars.STORE_BASE_URL }}
           STORE_API_SECRET: ${{ secrets.STORE_API_SECRET }}

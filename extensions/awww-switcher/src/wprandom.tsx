@@ -6,6 +6,7 @@ import { LocalStorage as storage } from "@vicinae/api";
 
 export default async function RandomWallpaper() {
   const path: string = getPreferenceValues().wallpaperPath;
+  const pathExpanded: string = untildify(path);
   const awwwTransition: string = getPreferenceValues().transitionType || "fade";
   const awwwSteps: number = parseInt(getPreferenceValues().transitionSteps) || 90;
   const awwwDuration: number = parseInt(getPreferenceValues().transitionDuration) || 3;
@@ -47,7 +48,7 @@ export default async function RandomWallpaper() {
     );
 
     const monitorNames = isWMSupported ? monitors.map((m) => m.name) : [];
-    const wallpapers: Image[] = await getImagesFromPath(path);
+    const wallpapers: Image[] = await getImagesFromPath(pathExpanded);
 
     if (wallpapers.length === 0) {
       await showToast({

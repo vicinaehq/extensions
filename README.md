@@ -1,8 +1,22 @@
 # Vicinae Extensions
 
-This repository hosts all the source code for the Vicinae extensions that can be installed from the Vicinae store.
+This repository hosts the following:
 
-If you are looking to build your own Vicinae extension, refer to the [Vicinae documentation](https://docs.vicinae.com/extensions/introduction).
+- source code for vicinae extensions published to the official store, directly installable from the store command in the app. These extensions are submitted/updated via pull request and manually approved before each release.
+- raycast extension compatibility tracker under `./raycast/compat.json`.
+- issue tracking for vicinae extension problems and raycast extension *compatibility* problems.
+
+If you are looking to build your own vicinae extension, we recommend reading the [documentation](https://docs.vicinae.com/extensions/introduction). Once you are done, consider submitting to the store if it's ready for others to use.
+
+## Report a vicinae extension bug / request a feature
+
+If you want to report a problem with a native vicinae extension or request a new feature, use the [GitHub issue tracker](https://github.com/vicinaehq/extensions/issues/new/choose) and select the right template.
+
+## Report a Raycast extension compatibility issue
+
+Some Raycast extensions don't work on vicinae for various reasons. If you want to report a compatibility issue for an extension you would really like to have working, use the [GitHub issue tracker](https://github.com/vicinaehq/extensions/issues/new/choose) and select the right template.
+
+Do _NOT_ use our tracker to report bugs that are also present in the official Raycast. We exclusively track compatibility problems here.
 
 ## Install a vicinae extension
 
@@ -10,7 +24,7 @@ In order to install a vicinae extension that made it to the store, the best way 
 
 If you want to install extensions manually though, here is what you need to do:
 
-Clone the repository. you might want to use [git sparse checkout](https://git-scm.com/docs/git-sparse-checkout) as the repository is growing big:
+Clone the repository. You might want to use [git sparse checkout](https://git-scm.com/docs/git-sparse-checkout) as the repository is growing big:
 
 ```bash
 git clone https://github.com/vicinaehq/extensions

@@ -1,5 +1,5 @@
 import { Icon, List } from "@vicinae/api";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Database } from "sql.js";
 
 import {
@@ -13,7 +13,7 @@ import {
 function getFirefoxHistory(db: Database) {
   const history = [];
   const statement = db.prepare(
-    `SELECT DISTINCT moz_places.url AS urlString, moz_places.title AS title, MAX(moz_historyvisits.visit_date) AS lastVisitDate FROM moz_places LEFT JOIN moz_historyvisits ON moz_places.id = moz_historyvisits.place_id WHERE moz_places.url IS NOT NULL AND moz_places.hidden = 0 GROUP BY moz_places.url ORDER BY lastVisitDate DESC;`
+    `SELECT DISTINCT substr(moz_places.url, 1, CASE WHEN instr(moz_places.url, '?') > 0 AND instr(moz_places.url, '#') > 0 THEN min(instr(moz_places.url, '?'), instr(moz_places.url, '#')) - 1 WHEN instr(moz_places.url, '?') > 0 THEN instr(moz_places.url, '?') - 1 WHEN instr(moz_places.url, '#') > 0 THEN instr(moz_places.url, '#') - 1 ELSE length(moz_places.url) END) AS normalizedUrl, moz_places.url AS urlString, moz_places.title AS title, MAX(moz_historyvisits.visit_date) AS lastVisitDate FROM moz_places LEFT JOIN moz_historyvisits ON moz_places.id = moz_historyvisits.place_id WHERE moz_places.url IS NOT NULL AND moz_places.hidden = 0 AND moz_historyvisits.visit_date >= ((julianday('now', 'start of month', '-1 month') - 2440587.5) * 86400000000) AND moz_historyvisits.visit_date < ((julianday('now', 'start of month') - 2440587.5) * 86400000000) GROUP BY normalizedUrl ORDER BY lastVisitDate DESC;`
   );
   while (statement.step()) {
     const row = statement.getAsObject();
@@ -36,7 +36,6 @@ export default function Command() {
   const [currentProfile, setCurrentProfile] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [query, setQuery] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -103,14 +102,6 @@ export default function Command() {
     })();
   }, [currentProfile]);
 
-  const filteredHistory = useMemo(() => {
-    return history.filter(
-      (item) =>
-        item.title.toLowerCase().includes(query.toLowerCase()) ||
-        item.url.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [history, query]);
-
   const formatDate = (timestamp: number) => {
     if (timestamp === 0) return "";
     const date = new Date(timestamp / 1000); // Firefox stores microseconds, but actually it's microseconds since 1970-01-01
@@ -121,14 +112,13 @@ export default function Command() {
     <List
       isLoading={isLoading}
       searchBarPlaceholder="Search Firefox history"
-      onSearchTextChange={setQuery}
     >
-      {filteredHistory.slice(0, 100).map((item) => (
+      {history.map((item) => (
         <List.Item
           key={item.id}
           icon={Icon.Globe}
           title={item.title}
-          subtitle={item.domain ?? ""}
+          subtitle={item.url}
           accessories={[{ text: formatDate(item.lastVisitDate) }]}
           actions={createCommonActions(item.url)}
         />
