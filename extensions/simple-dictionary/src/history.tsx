@@ -7,10 +7,9 @@ import {
   showToast,
   confirmAlert,
   Toast,
-  LaunchType,
   Keyboard,
+  open,
 } from "@vicinae/api";
-import { launchCommand } from "@raycast/api";
 import { JSX, useEffect, useState } from "react";
 import History, { HistoryEntry } from "./classes/history";
 import Dictionary from "./classes/dictionary";
@@ -92,15 +91,9 @@ export default function Command(): JSX.Element {
                             shortcut={Keyboard.Shortcut.Common.Open as Keyboard.Shortcut.Common}
                             onAction={async (): Promise<void> => {
                               try {
-                                await launchCommand({
-                                  name: "search",
-                                  type: LaunchType.UserInitiated,
-                                  arguments: {
-                                    word: word,
-                                    language: langCode,
-                                  },
-                                });
-                              } catch {
+                                const argumentsParam = encodeURIComponent(JSON.stringify({ word, language: langCode }));
+                                open(`vicinae://extensions/Osmagtor/simple-dictionary/search?arguments=${argumentsParam}`);
+                              } catch (err: any) {
                                 await showToast({
                                   style: Toast.Style.Failure,
                                   title: "Failed to search word",
