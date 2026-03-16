@@ -138,9 +138,20 @@ function AppActions({
 			/>
 			<ActionPanel.Section>
 				<Action
+					title="Install"
+					icon={Icon.Download}
+					shortcut={{ modifiers: ["ctrl"], key: "i" }}
+					onAction={async () => {
+						await open(
+							`flatpak+https://dl.flathub.org/repo/appstream/${app.app_id}.flatpakref`,
+						);
+						await closeMainWindow();
+					}}
+				/>
+				<Action
 					title="Open on Flathub"
 					icon={Icon.Globe01}
-					shortcut={{ modifiers: ["cmd"], key: "o" }}
+					shortcut={{ modifiers: ["ctrl"], key: "o" }}
 					onAction={async () => {
 						await open(`https://flathub.org/apps/${app.app_id}`);
 						await closeMainWindow();
@@ -157,12 +168,21 @@ function AppActions({
 							message: app.app_id,
 						});
 					}}
-					shortcut={{ modifiers: ["cmd"], key: "c" }}
+					shortcut={{ modifiers: ["ctrl"], key: "." }}
 				/>
-				<Action.CopyToClipboard
+				<Action
 					title="Copy Install Command"
-					content={`flatpak install flathub ${app.app_id}`}
-					shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+					icon={Icon.CopyClipboard}
+					onAction={async () => {
+						const cmd = `flatpak install flathub ${app.app_id}`;
+						await Clipboard.copy(cmd);
+						await showToast({
+							style: Toast.Style.Success,
+							title: "Copied Install Command",
+							message: cmd,
+						});
+					}}
+					shortcut={{ modifiers: ["ctrl", "shift"], key: "." }}
 				/>
 			</ActionPanel.Section>
 		</ActionPanel>
