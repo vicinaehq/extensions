@@ -1,3 +1,4 @@
+import { keepPreviousData, QueryClient, useQuery } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import {
 	Action,
@@ -11,15 +12,20 @@ import {
 	showToast,
 	Toast,
 } from "@vicinae/api";
+import ms from "ms";
 import { useCallback, useDeferredValue, useState } from "react";
 import {
 	type FlathubApp,
+	fetchAppDetails,
+	fetchPopularApps,
 	hasFlatpakHandler,
 	PERSIST_MAX_AGE,
 	persister,
 	queryClient,
+	searchFlathub,
 } from "./api";
-import { useAppDetails, useFlathubSearch, usePopularApps } from "./hooks";
+
+const canInstall = hasFlatpakHandler();
 
 function formatInstalls(count?: number): string {
 	if (!count) return "";
@@ -28,10 +34,8 @@ function formatInstalls(count?: number): string {
 	return `${count} installs`;
 }
 
-type Screenshot = NonNullable<FlathubApp["screenshots"]>[number];
-
 function buildDetailMarkdown(
-	screenshots: Screenshot[],
+	screenshots: NonNullable<FlathubApp["screenshots"]>,
 	app: FlathubApp,
 	displayApp: FlathubApp,
 ): string {
@@ -65,10 +69,14 @@ function buildDetailMarkdown(
 }
 
 function AppDetail({ app, enabled }: { app: FlathubApp; enabled: boolean }) {
-	const { data: fullApp, isLoading } = useAppDetails(app, enabled);
+	const { data: fullApp, isLoading } = useQuery({
+		queryKey: ["flathub", "app-detail", app.app_id],
+		queryFn: () => fetchAppDetails(app.app_id),
+		staleTime: ms("10m"),
+		enabled,
+	});
 
 	const displayApp = fullApp || app;
-
 	const screenshots = displayApp.screenshots || [];
 	const latestRelease = displayApp.releases?.[0];
 
@@ -112,86 +120,12 @@ function AppDetail({ app, enabled }: { app: FlathubApp; enabled: boolean }) {
 	);
 }
 
-function AppActions({
-	app,
-	canInstall,
-	onToggleDetail,
-}: {
-	app: FlathubApp;
-	canInstall: boolean;
-	onToggleDetail: () => void;
-}) {
-	return (
-		<ActionPanel>
-			<Action
-				title="Toggle Detail"
-				icon={Icon.AppWindowSidebarLeft}
-				onAction={onToggleDetail}
-				shortcut={{ modifiers: ["cmd"], key: "d" }}
-			/>
-			<ActionPanel.Section>
-				{canInstall && (
-					<Action
-						title="Install"
-						icon={Icon.Download}
-						shortcut={{ modifiers: ["ctrl"], key: "i" }}
-						onAction={async () => {
-							await open(
-								`flatpak+https://dl.flathub.org/repo/appstream/${app.app_id}.flatpakref`,
-							);
-							await closeMainWindow();
-						}}
-					/>
-				)}
-				<Action
-					title="Open on Flathub"
-					icon={Icon.Globe01}
-					shortcut={{ modifiers: ["ctrl"], key: "o" }}
-					onAction={async () => {
-						await open(`https://flathub.org/apps/${app.app_id}`);
-						await closeMainWindow();
-					}}
-				/>
-				<Action
-					title="Copy App ID"
-					icon={Icon.CopyClipboard}
-					onAction={async () => {
-						await Clipboard.copy(app.app_id);
-						await showToast({
-							style: Toast.Style.Success,
-							title: "Copied App ID",
-							message: app.app_id,
-						});
-					}}
-					shortcut={{ modifiers: ["ctrl"], key: "." }}
-				/>
-				<Action
-					title="Copy Install Command"
-					icon={Icon.CopyClipboard}
-					onAction={async () => {
-						const cmd = `flatpak install flathub ${app.app_id}`;
-						await Clipboard.copy(cmd);
-						await showToast({
-							style: Toast.Style.Success,
-							title: "Copied Install Command",
-							message: cmd,
-						});
-					}}
-					shortcut={{ modifiers: ["ctrl", "shift"], key: "." }}
-				/>
-			</ActionPanel.Section>
-		</ActionPanel>
-	);
-}
-
 function AppListItem({
 	app,
-	canInstall,
 	showingDetail,
 	onToggleDetail,
 }: {
 	app: FlathubApp;
-	canInstall: boolean;
 	showingDetail: boolean;
 	onToggleDetail: () => void;
 }) {
@@ -208,11 +142,65 @@ function AppListItem({
 			}
 			detail={<AppDetail app={app} enabled={showingDetail} />}
 			actions={
-				<AppActions
-					app={app}
-					canInstall={canInstall}
-					onToggleDetail={onToggleDetail}
-				/>
+				<ActionPanel>
+					<Action
+						title="Toggle Detail"
+						icon={Icon.AppWindowSidebarLeft}
+						onAction={onToggleDetail}
+						shortcut={{ modifiers: ["cmd"], key: "d" }}
+					/>
+					<ActionPanel.Section>
+						{canInstall && (
+							<Action
+								title="Install"
+								icon={Icon.Download}
+								shortcut={{ modifiers: ["ctrl"], key: "i" }}
+								onAction={async () => {
+									await open(
+										`flatpak+https://dl.flathub.org/repo/appstream/${app.app_id}.flatpakref`,
+									);
+									await closeMainWindow();
+								}}
+							/>
+						)}
+						<Action
+							title="Open on Flathub"
+							icon={Icon.Globe01}
+							shortcut={{ modifiers: ["ctrl"], key: "o" }}
+							onAction={async () => {
+								await open(`https://flathub.org/apps/${app.app_id}`);
+								await closeMainWindow();
+							}}
+						/>
+						<Action
+							title="Copy App ID"
+							icon={Icon.CopyClipboard}
+							onAction={async () => {
+								await Clipboard.copy(app.app_id);
+								await showToast({
+									style: Toast.Style.Success,
+									title: "Copied App ID",
+									message: app.app_id,
+								});
+							}}
+							shortcut={{ modifiers: ["ctrl"], key: "." }}
+						/>
+						<Action
+							title="Copy Install Command"
+							icon={Icon.CopyClipboard}
+							onAction={async () => {
+								const cmd = `flatpak install flathub ${app.app_id}`;
+								await Clipboard.copy(cmd);
+								await showToast({
+									style: Toast.Style.Success,
+									title: "Copied Install Command",
+									message: cmd,
+								});
+							}}
+							shortcut={{ modifiers: ["ctrl", "shift"], key: "." }}
+						/>
+					</ActionPanel.Section>
+				</ActionPanel>
 			}
 		/>
 	);
@@ -229,13 +217,21 @@ function FlathubSearchContent({
 	const [showingDetail, setShowingDetail] = useState(false);
 	const deferredSearch = useDeferredValue(searchText);
 
-	const { data: popularApps = [], isLoading: loadingPopular } =
-		usePopularApps();
+	const { data: popularApps = [], isLoading: loadingPopular } = useQuery({
+		queryKey: ["flathub", "popular"],
+		queryFn: fetchPopularApps,
+		staleTime: ms("10m"),
+	});
 	const {
 		data: searchResults = [],
 		isLoading: loadingSearch,
 		isFetching: fetchingSearch,
-	} = useFlathubSearch(deferredSearch);
+	} = useQuery({
+		queryKey: ["flathub", "search", deferredSearch],
+		queryFn: () => searchFlathub(deferredSearch),
+		enabled: deferredSearch.trim().length > 0,
+		placeholderData: keepPreviousData,
+	});
 
 	const showingSearch = searchText.trim().length > 0;
 	const displayed = showingSearch ? searchResults : popularApps;
@@ -244,7 +240,6 @@ function FlathubSearchContent({
 	const isLoading =
 		isRestoring ||
 		(showingSearch ? loadingSearch || fetchingSearch : loadingPopular);
-	const [canInstall] = useState(hasFlatpakHandler);
 	const toggleDetail = useCallback(() => setShowingDetail((prev) => !prev), []);
 
 	return (
@@ -254,36 +249,34 @@ function FlathubSearchContent({
 			searchBarPlaceholder="Search Flathub applications..."
 			onSearchTextChange={setSearchText}
 		>
-		{showingSearch ? (
-			displayed.length === 0 && !isLoading ? (
-				<List.EmptyView
-					title="No applications found"
-					description="Try different search terms"
-				/>
+			{showingSearch ? (
+				displayed.length === 0 && !isLoading ? (
+					<List.EmptyView
+						title="No applications found"
+						description="Try different search terms"
+					/>
+				) : (
+					displayed.map((app) => (
+						<AppListItem
+							key={app.app_id}
+							app={app}
+							showingDetail={showingDetail}
+							onToggleDetail={toggleDetail}
+						/>
+					))
+				)
 			) : (
-		displayed.map((app) => (
-			<AppListItem
-				key={app.app_id}
-				app={app}
-				canInstall={canInstall}
-				showingDetail={showingDetail}
-				onToggleDetail={toggleDetail}
-			/>
-		))
-	)
-) : (
-	<List.Section title="Popular Applications">
-		{displayed.map((app) => (
-			<AppListItem
-				key={app.app_id}
-				app={app}
-				canInstall={canInstall}
-				showingDetail={showingDetail}
-				onToggleDetail={toggleDetail}
-			/>
-		))}
-			</List.Section>
-		)}
+				<List.Section title="Popular Applications">
+					{displayed.map((app) => (
+						<AppListItem
+							key={app.app_id}
+							app={app}
+							showingDetail={showingDetail}
+							onToggleDetail={toggleDetail}
+						/>
+					))}
+				</List.Section>
+			)}
 		</List>
 	);
 }

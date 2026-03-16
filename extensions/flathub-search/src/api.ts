@@ -35,9 +35,6 @@ export type FlathubApp = {
   }>;
 };
 
-export type FlathubSearchResponse = {
-  hits: FlathubApp[];
-};
 
 export function hasFlatpakHandler(): boolean {
   try {
@@ -59,8 +56,7 @@ const FLATHUB_APP_DETAIL_URL = "https://flathub.org/api/v2/appstream";
 const PERSIST_KEY = "flathub-query-v1";
 
 export const PERSIST_MAX_AGE = ms("24h");
-export const POPULAR_LIMIT = 20;
-export const SEARCH_DEBOUNCE_MS = ms("500ms");
+const POPULAR_LIMIT = 20;
 
 const cache = new Cache();
 
@@ -118,7 +114,7 @@ async function postFlathubSearch(query: string): Promise<FlathubApp[]> {
       `Flathub request failed: ${response.status} ${response.statusText}`,
     );
   }
-  const data: FlathubSearchResponse = await response.json();
+  const data = await response.json() as { hits: FlathubApp[] };
   return data.hits || [];
 }
 
