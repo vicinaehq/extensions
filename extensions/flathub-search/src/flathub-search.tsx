@@ -1,8 +1,8 @@
 import { keepPreviousData, QueryClient, useQuery } from "@tanstack/react-query";
 import {
-	PersistQueryClientProvider,
 	type PersistedClient,
 	type Persister,
+	PersistQueryClientProvider,
 } from "@tanstack/react-query-persist-client";
 import {
 	Action,
@@ -11,8 +11,9 @@ import {
 	Clipboard,
 	closeMainWindow,
 	Icon,
-	LaunchProps,
+	type LaunchProps,
 	List,
+	open,
 	showToast,
 	Toast,
 } from "@vicinae/api";
@@ -155,16 +156,6 @@ function AppDetail({ app }: { app: FlathubApp }) {
 	});
 
 	const displayApp = fullApp || app;
-
-	const _formatDate = (timestamp?: number) => {
-		if (!timestamp) return null;
-		const date = new Date(timestamp * 1000);
-		return date.toLocaleDateString(undefined, {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
-		});
-	};
 
 	const screenshots = displayApp.screenshots || [];
 	const latestRelease = displayApp.releases?.[0];
@@ -318,7 +309,7 @@ function FlathubSearchContent({ fallbackText }: { fallbackText?: string }) {
 									<ActionPanel.Section>
 										<Action
 											title="Copy App ID"
-											icon={Icon.Clipboard}
+											icon={Icon.CopyClipboard}
 											onAction={async () => {
 												await Clipboard.copy(app.app_id);
 												await showToast({
@@ -329,19 +320,20 @@ function FlathubSearchContent({ fallbackText }: { fallbackText?: string }) {
 											}}
 											shortcut={{ modifiers: ["cmd"], key: "c" }}
 										/>
-									<Action.OpenInBrowser
-										title="Open on Flathub"
-										url={`https://flathub.org/apps/${app.app_id}`}
-										shortcut={{ modifiers: ["cmd"], key: "o" }}
-										onOpen={async () => {
-											await showToast({
-												style: Toast.Style.Success,
-												title: "Opening on Flathub",
-												message: app.name,
-											});
-											await closeMainWindow();
-										}}
-									/>
+										<Action
+											title="Open on Flathub"
+											icon={Icon.Globe01}
+											shortcut={{ modifiers: ["cmd"], key: "o" }}
+											onAction={async () => {
+												await open(`https://flathub.org/apps/${app.app_id}`);
+												await showToast({
+													style: Toast.Style.Success,
+													title: "Opening on Flathub",
+													message: app.name,
+												});
+												await closeMainWindow();
+											}}
+										/>
 										<Action.CopyToClipboard
 											title="Copy Install Command"
 											content={`flatpak install flathub ${app.app_id}`}
