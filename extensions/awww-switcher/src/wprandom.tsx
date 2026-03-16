@@ -2,9 +2,11 @@ import { showToast, Toast, getPreferenceValues } from "@vicinae/api";
 import { getImagesFromPath, Image } from "./utils/image";
 import { omniCommand } from "./utils/hyprland";
 import { WindowManagement as wm } from "@vicinae/api";
+import untildify from "untildify";
 
 export default async function RandomWallpaper() {
   const path: string = getPreferenceValues().wallpaperPath;
+  const pathExpanded: string = untildify(path);
   const awwwTransition: string = getPreferenceValues().transitionType || "fade";
   const awwwSteps: number = parseInt(getPreferenceValues().transitionSteps) || 90;
   const awwwDuration: number = parseInt(getPreferenceValues().transitionDuration) || 3;
@@ -46,7 +48,7 @@ export default async function RandomWallpaper() {
     );
 
     const monitorNames = isWMSupported ? monitors.map((m) => m.name) : [];
-    const wallpapers: Image[] = await getImagesFromPath(path);
+    const wallpapers: Image[] = await getImagesFromPath(pathExpanded);
 
     if (wallpapers.length === 0) {
       await showToast({

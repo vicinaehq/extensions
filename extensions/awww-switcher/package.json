@@ -332,7 +332,8 @@
   "dependencies": {
     "@vicinae/api": "^0.16.2",
     "image-size": "^2.0.2",
-    "jimp": "^1.6.0"
+    "jimp": "^1.6.0",
+    "untildify": "^6.0.0"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
