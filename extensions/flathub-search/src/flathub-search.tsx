@@ -1,4 +1,4 @@
-import { PersistQueryClientProvider, useIsRestoring } from "@tanstack/react-query-persist-client";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import {
 	Action,
 	ActionPanel,
@@ -195,7 +195,13 @@ function AppListItem({
 	);
 }
 
-function FlathubSearchContent({ fallbackText }: { fallbackText?: string }) {
+function FlathubSearchContent({
+	fallbackText,
+	isRestoring,
+}: {
+	fallbackText?: string;
+	isRestoring: boolean;
+}) {
 	const [searchText, setSearchText] = useState(fallbackText || "");
 	const [showingDetail, setShowingDetail] = useState(false);
 	const debouncedSearch = useDebounce(searchText, SEARCH_DEBOUNCE_MS);
@@ -210,10 +216,11 @@ function FlathubSearchContent({ fallbackText }: { fallbackText?: string }) {
 
 	const showingSearch = debouncedSearch.trim().length > 0;
 	const displayed = showingSearch ? searchResults : popularApps;
-	// Use isFetching for search so the spinner shows during keepPreviousData transitions
-	const isLoading = showingSearch
-		? loadingSearch || fetchingSearch
-		: loadingPopular;
+	// Use isFetching for search so the spinner shows during keepPreviousData transitions.
+	// isRestoring suppresses the empty-state flash while the persisted cache is being hydrated.
+	const isLoading =
+		isRestoring ||
+		(showingSearch ? loadingSearch || fetchingSearch : loadingPopular);
 	const toggleDetail = () => setShowingDetail((prev) => !prev);
 
 	return (
@@ -257,12 +264,18 @@ function FlathubSearchContent({ fallbackText }: { fallbackText?: string }) {
 }
 
 export default function FlathubSearch(props: LaunchProps) {
+	const [isRestored, setIsRestored] = useState(false);
+
 	return (
 		<PersistQueryClientProvider
 			client={queryClient}
 			persistOptions={{ persister, maxAge: PERSIST_MAX_AGE }}
+			onSuccess={() => setIsRestored(true)}
 		>
-			<FlathubSearchContent fallbackText={props.fallbackText} />
+			<FlathubSearchContent
+				fallbackText={props.fallbackText}
+				isRestoring={!isRestored}
+			/>
 		</PersistQueryClientProvider>
 	);
 }
