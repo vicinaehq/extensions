@@ -1,5 +1,5 @@
 import { showToast, Toast, getPreferenceValues } from "@vicinae/api";
-import { getImagesFromPath, Image } from "./utils/image";
+import { getImagesFromPath, Image, processImage } from "./utils/image";
 import { omniCommand } from "./utils/hyprland";
 import { WindowManagement as wm } from "@vicinae/api";
 import { LocalStorage as storage } from "@vicinae/api";
@@ -48,7 +48,7 @@ export default async function RandomWallpaper() {
     );
 
     const monitorNames = isWMSupported ? monitors.map((m) => m.name) : [];
-    const wallpapers: Image[] = await getImagesFromPath(pathExpanded);
+    const wallpapers: string[] = await getImagesFromPath(path);
 
     if (wallpapers.length === 0) {
       await showToast({
@@ -107,11 +107,12 @@ export default async function RandomWallpaper() {
 
     const randomIndex = await getRandonmWallpaperIndex();
     const selectedWallpaper = wallpapers[randomIndex];
-    const isWide = selectedWallpaper.width / selectedWallpaper.height;
+    const wallpaperInfo = await processImage(selectedWallpaper);
+    const isWide = wallpaperInfo.width / wallpaperInfo.height;
 
     if (isWMSupported && isWide > 1.8 && monitorNames.includes(leftMonitorName) && monitorNames.includes(rightMonitorName)) {
       omniCommand(
-        selectedWallpaper.fullpath,
+        selectedWallpaper,
         `${leftMonitorName}|${rightMonitorName}`,
         awwwTransition,
         awwwSteps,
@@ -124,7 +125,7 @@ export default async function RandomWallpaper() {
       );
     } else {
       omniCommand(
-        selectedWallpaper.fullpath,
+        selectedWallpaper,
         "ALL",
         awwwTransition,
         awwwSteps,
@@ -138,8 +139,8 @@ export default async function RandomWallpaper() {
     }
 
     await showToast({
-      title: `Choose '${selectedWallpaper.name}' as wallpaper`,
-      message: `Set '${selectedWallpaper.name}' as wallpaper`,
+      title: `Choose '${wallpaperInfo.name}' as wallpaper`,
+      message: `Set '${wallpaperInfo.name}' as wallpaper`,
       style: Toast.Style.Success,
     });
   } catch (error) {

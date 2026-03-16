@@ -46,7 +46,7 @@ export const getImagesFromPath = async (path: string): Promise<string[]> => {
   return imagesPaths.map((img) => _path.join(path, img));
 };
 
-const processImage = async (path: string): Promise<Image> => {
+export const processImage = async (path: string): Promise<Image> => {
   try {
     const buffer = await new Promise<Buffer>((resolve, reject) => {
       const stream = createReadStream(path, { highWaterMark: 32768 });
@@ -105,7 +105,7 @@ const getWallpapersHash = async (path: string): Promise<string> => {
         return `${img}:${stats.mtimeMs}`; // filename + last modified timestamp
       })
     );
-    const hash = createHash("md5").update(fileSignatures.sort().join("\n")).digest("hex");
+    const hash = createHash("md5").update(imagesPaths.sort().join("\n")).digest("hex");
     console.timeEnd("🚀 TOTAL HASH SPEED");
     console.log("---");
     return hash;
