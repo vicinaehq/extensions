@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import {
 	type FlathubApp,
+	hasFlatpakHandler,
 	PERSIST_MAX_AGE,
 	persister,
 	queryClient,
@@ -123,9 +124,11 @@ function AppDetail({ app }: { app: FlathubApp }) {
 
 function AppActions({
 	app,
+	canInstall,
 	onToggleDetail,
 }: {
 	app: FlathubApp;
+	canInstall: boolean;
 	onToggleDetail: () => void;
 }) {
 	return (
@@ -137,17 +140,19 @@ function AppActions({
 				shortcut={{ modifiers: ["cmd"], key: "d" }}
 			/>
 			<ActionPanel.Section>
-				<Action
-					title="Install"
-					icon={Icon.Download}
-					shortcut={{ modifiers: ["ctrl"], key: "i" }}
-					onAction={async () => {
-						await open(
-							`flatpak+https://dl.flathub.org/repo/appstream/${app.app_id}.flatpakref`,
-						);
-						await closeMainWindow();
-					}}
-				/>
+				{canInstall && (
+					<Action
+						title="Install"
+						icon={Icon.Download}
+						shortcut={{ modifiers: ["ctrl"], key: "i" }}
+						onAction={async () => {
+							await open(
+								`flatpak+https://dl.flathub.org/repo/appstream/${app.app_id}.flatpakref`,
+							);
+							await closeMainWindow();
+						}}
+					/>
+				)}
 				<Action
 					title="Open on Flathub"
 					icon={Icon.Globe01}
@@ -191,10 +196,12 @@ function AppActions({
 
 function AppListItem({
 	app,
+	canInstall,
 	showingDetail,
 	onToggleDetail,
 }: {
 	app: FlathubApp;
+	canInstall: boolean;
 	showingDetail: boolean;
 	onToggleDetail: () => void;
 }) {
@@ -210,7 +217,13 @@ function AppListItem({
 					: []
 			}
 			detail={<AppDetail app={app} />}
-			actions={<AppActions app={app} onToggleDetail={onToggleDetail} />}
+			actions={
+				<AppActions
+					app={app}
+					canInstall={canInstall}
+					onToggleDetail={onToggleDetail}
+				/>
+			}
 		/>
 	);
 }
@@ -241,6 +254,7 @@ function FlathubSearchContent({
 	const isLoading =
 		isRestoring ||
 		(showingSearch ? loadingSearch || fetchingSearch : loadingPopular);
+	const canInstall = hasFlatpakHandler();
 	const toggleDetail = () => setShowingDetail((prev) => !prev);
 
 	return (
@@ -262,6 +276,7 @@ function FlathubSearchContent({
 						<AppListItem
 							key={app.app_id}
 							app={app}
+							canInstall={canInstall}
 							showingDetail={showingDetail}
 							onToggleDetail={toggleDetail}
 						/>
@@ -273,6 +288,7 @@ function FlathubSearchContent({
 						<AppListItem
 							key={app.app_id}
 							app={app}
+							canInstall={canInstall}
 							showingDetail={showingDetail}
 							onToggleDetail={toggleDetail}
 						/>

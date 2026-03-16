@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import type {
 	PersistedClient,
@@ -38,9 +39,25 @@ export type FlathubSearchResponse = {
 	hits: FlathubApp[];
 };
 
+export function hasFlatpakHandler(): boolean {
+	try {
+		const result = execSync(
+			"xdg-mime query default x-scheme-handler/flatpak+https",
+			{
+				encoding: "utf8",
+				stdio: ["ignore", "pipe", "ignore"],
+			},
+		).trim();
+		return result.length > 0;
+	} catch {
+		return false;
+	}
+}
+
 const FLATHUB_SEARCH_URL = "https://flathub.org/api/v2/search";
 const FLATHUB_APP_DETAIL_URL = "https://flathub.org/api/v2/appstream";
 const PERSIST_KEY = "flathub-query-v1";
+
 export const PERSIST_MAX_AGE = ms("24h");
 export const POPULAR_LIMIT = 20;
 export const SEARCH_DEBOUNCE_MS = ms("500ms");
