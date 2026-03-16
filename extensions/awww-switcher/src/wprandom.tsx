@@ -3,6 +3,7 @@ import { getImagesFromPath, Image, processImage } from "./utils/image";
 import { omniCommand } from "./utils/hyprland";
 import { WindowManagement as wm } from "@vicinae/api";
 import { LocalStorage as storage } from "@vicinae/api";
+import untildify from "untildify";
 
 export default async function RandomWallpaper() {
   const path: string = getPreferenceValues().wallpaperPath;
@@ -48,7 +49,7 @@ export default async function RandomWallpaper() {
     );
 
     const monitorNames = isWMSupported ? monitors.map((m) => m.name) : [];
-    const wallpapers: string[] = await getImagesFromPath(path);
+    const wallpapers: string[] = await getImagesFromPath(pathExpanded);
 
     if (wallpapers.length === 0) {
       await showToast({

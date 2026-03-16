@@ -5,7 +5,7 @@ import { WindowManagement as wm } from "@vicinae/api";
 import { omniCommand } from "./utils/hyprland";
 import { createHash } from "node:crypto";
 import { Metadata } from "@vicinae/api/dist/api/components/metadata";
-
+import untildify from "untildify";
 // test
 
 export default function DisplayGrid() {
@@ -52,8 +52,8 @@ export default function DisplayGrid() {
     });
 
     Promise.all([
-      getImagesFromPath(path),
-      getImagesMetadata(path),
+      getImagesFromPath(pathExpanded),
+      getImagesMetadata(pathExpanded),
     ]).then(([images, metadata]) => {
       setWallpapers(images);
       setWallpapersMetadata(metadata);
