@@ -1,4 +1,4 @@
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { PersistQueryClientProvider, useIsRestoring } from "@tanstack/react-query-persist-client";
 import {
 	Action,
 	ActionPanel,
@@ -37,6 +37,42 @@ function useDebounce<T>(value: T, delay: number): T {
 	return debounced;
 }
 
+type Screenshot = NonNullable<FlathubApp["screenshots"]>[number];
+
+function buildDetailMarkdown(
+	screenshots: Screenshot[],
+	app: FlathubApp,
+	displayApp: FlathubApp,
+): string {
+	if (screenshots.length === 0) {
+		return app.icon
+			? `<img src="${app.icon}" alt="${app.name}" style="width: 128px; height: auto;" />\n\n## ${displayApp.name}\n\n${displayApp.description || displayApp.summary}`
+			: `# ${displayApp.name}\n\n${displayApp.description || displayApp.summary}`;
+	}
+
+	// Show up to 3 screenshots using larger images (624-752px) for better visibility.
+	// Flathub typically provides: 112px (@1x/@2x), 224px, 624px, 752px, and original.
+	// Convert WebP to PNG — Vicinae doesn't support WebP.
+	return screenshots
+		.slice(0, 3)
+		.map((screenshot, idx) => {
+			const largeImg = screenshot.sizes.find((s) => {
+				const width = parseInt(s.width, 10);
+				return width >= 624 && width <= 752;
+			});
+			const imgUrl =
+				largeImg?.src || screenshot.sizes[screenshot.sizes.length - 1]?.src;
+			if (!imgUrl) return null;
+			const pngUrl = imgUrl.replace(/\.webp$/, ".png");
+			const caption = screenshot.caption
+				? `\n\n<p style="text-align: center;"><em>${screenshot.caption}</em></p>`
+				: "";
+			return `<img src="${pngUrl}" alt="Screenshot ${idx + 1}" style="width: 100%; height: auto;" />${caption}`;
+		})
+		.filter((s): s is string => s !== null)
+		.join("\n\n---\n\n");
+}
+
 function AppDetail({ app }: { app: FlathubApp }) {
 	const { data: fullApp, isLoading } = useAppDetails(app);
 
@@ -45,42 +81,9 @@ function AppDetail({ app }: { app: FlathubApp }) {
 	const screenshots = displayApp.screenshots || [];
 	const latestRelease = displayApp.releases?.[0];
 
-	// Create markdown with screenshots using HTML img tags and PNG format (not WebP)
-	let markdown = "";
-
-	if (isLoading) {
-		markdown = "Loading app details...";
-	} else if (screenshots.length > 0) {
-		// Show up to 3 screenshots - use larger images for better visibility
-		markdown = screenshots
-			.slice(0, 3)
-			.map((screenshot, idx) => {
-				// Use larger images (624-752px) for better detail
-				// Flathub typically provides: 112px (@1x/@2x), 224px, 624px, 752px, and original
-				const largeImg = screenshot.sizes.find((s) => {
-					const width = parseInt(s.width, 10);
-					return width >= 624 && width <= 752;
-				});
-				// Fallback to largest available
-				const imgUrl =
-					largeImg?.src || screenshot.sizes[screenshot.sizes.length - 1]?.src;
-				if (!imgUrl) return null;
-				// Convert WebP to PNG (Vicinae doesn't support WebP)
-				const pngUrl = imgUrl.replace(/\.webp$/, ".png");
-				const caption = screenshot.caption
-					? `\n\n<p style="text-align: center;"><em>${screenshot.caption}</em></p>`
-					: "";
-				// Stack images vertically with separators
-				return `<img src="${pngUrl}" alt="Screenshot ${idx + 1}" style="width: 100%; height: auto;" />${caption}`;
-			})
-			.filter((s): s is string => s !== null)
-			.join("\n\n---\n\n");
-	} else {
-		// Fallback: Show app icon and description
-		markdown = app.icon
-			? `<img src="${app.icon}" alt="${app.name}" style="width: 128px; height: auto;" />\n\n## ${displayApp.name}\n\n${displayApp.description || displayApp.summary}`
-			: `# ${displayApp.name}\n\n${displayApp.description || displayApp.summary}`;
-	}
+	const markdown = isLoading
+		? "Loading app details..."
+		: buildDetailMarkdown(screenshots, app, displayApp);
 
 	return (
 		<List.Item.Detail
