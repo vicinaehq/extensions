@@ -46,7 +46,7 @@ export default function Command() {
                     ))}
                 </List.Section>
             )}
-            <List.EmptyView icon={Icon.Document} title="No Matching Projects" description="Try a different search term." />
+            <List.EmptyView icon={Icon.BlankDocument} title="No Matching Projects" description="Try a different search term." />
         </List>
     );
 }
