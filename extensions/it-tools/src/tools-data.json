@@ -25,6 +25,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%2013v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2012v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%208v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13.148%203.476l2.667%201.104a4%204%200%200%200%204.656%206.14l.053.132a3%203%200%200%201%200%202.296c-.497.786-.838%201.404-1.024%201.852c-.189.456-.409%201.194-.66%202.216a3%203%200%200%201-1.624%201.623c-1.048.263-1.787.483-2.216.661c-.475.197-1.092.538-1.852%201.024a3%203%200%200%201-2.296%200C10.05%2020.021%209.433%2019.68%209%2019.5c-.471-.195-1.21-.415-2.216-.66a3%203%200%200%201-1.623-1.624c-.265-1.052-.485-1.79-.661-2.216c-.198-.479-.54-1.096-1.024-1.852a3%203%200%200%201%200-2.296c.48-.744.82-1.361%201.024-1.852c.171-.413.391-1.152.66-2.216a3%203%200%200%201%201.624-1.623C7.816%204.905%208.554%204.685%209%204.5c.458-.19%201.075-.531%201.852-1.024a3%203%200%200%201%202.296%200z%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Dead pixel",
+			"path": "dead-pixel",
+			"description": "Tool to check if a pixel on your screen is dead or not.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "DMARC Report Analyzer",
 			"path": "dmarc-report-analyzer",
 			"description": "Read and display DMARC Xml Reports",
@@ -547,6 +553,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%203h10v8h-3l-4%202v-2h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4a1%201%200%200%201-1%201H6a1%201%200%200%201-1-1V6a1%201%200%200%201%201-1h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2018v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Amortization Calculator",
+			"path": "amortization-calculator",
+			"description": "Calculate loan amortization schedules with monthly payment breakdowns",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%205H7a2%202%200%200%200-2%202v12a2%202%200%200%200%202%202h10a2%202%200%200%200%202-2V7a2%202%200%200%200-2-2h-2%22%3E%3C%2Fpath%3E%3Crect%20x%3D%229%22%20y%3D%223%22%20width%3D%226%22%20height%3D%224%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M14%2011h-2.5a1.5%201.5%200%200%200%200%203h1a1.5%201.5%200%200%201%200%203H10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v1m0-8v1%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Angle Units Converter",
 			"path": "angle-converter",
 			"description": "Convert values between angle units",
@@ -649,9 +661,21 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%204l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020l3-3l-3-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%207h3a5%205%200%200%201%205%205a5%205%200%200%200%205%205h5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21%207h-5a4.978%204.978%200%200%200-2.998.998M9%2016.001A4.984%204.984%200%200%201%206%2017H3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Database Creation Builder",
+			"path": "database-builder",
+			"description": "Build SQL CREATE DATABASE queries for various databases",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v6a8%203%200%200%200%2016%200V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6a8%203%200%200%200%2016%200v-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Database Connection String Builder",
 			"path": "database-connection-string-builder",
 			"description": "Build connection string for common database",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v6a8%203%200%200%200%2016%200V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6a8%203%200%200%200%2016%200v-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Database Table Generator",
+			"path": "database-table-generator",
+			"description": "Generate SQL CREATE TABLE for common databases",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v6a8%203%200%200%200%2016%200V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6a8%203%200%200%200%2016%200v-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
@@ -673,6 +697,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%2217%22%20r%3D%223%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2217%22%20r%3D%223%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M9.15%2014.85L18%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%204l8.85%2010.85%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Gitattributes Generator",
+			"path": "gitattributes-generator",
+			"description": "Generate .gitattributes from common configuration of https://github.com/alexkaratarakis/gitattributes",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2212%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%228%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2216%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M12%2015V9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2011l-2-2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%207L9.1%205.1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10.5%2020.4l-6.9-6.9c-.781-.781-.781-2.219%200-3l6.9-6.9c.781-.781%202.219-.781%203%200l6.9%206.9c.781.781.781%202.219%200%203l-6.9%206.9c-.781.781-2.219.781-3%200z%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "GitIgnore Generator",
 			"path": "gitignore-generator",
 			"description": "Generate .gitignore for a set of common templates",
@@ -683,6 +713,12 @@
 			"path": "hex-file-converter",
 			"description": "Convert between file and hexadecimal representation",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Crect%20x%3D%229%22%20y%3D%2212%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M17%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v11a2%202%200%200%201-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2012v5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Javascript Obfuscator",
+			"path": "javascript-obfuscator",
+			"description": "Javascript code obfuscator using base64 or rot13 encoding",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%225%22%20y%3D%2211%22%20width%3D%2214%22%20height%3D%2210%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2216%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M8%2011V7a4%204%200%200%201%208%200v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Javascript Prettifier",
@@ -773,6 +809,354 @@
 			"path": "swagger-ui-tester",
 			"description": "Test Swagger Manifest",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2020h18L14.079%205.388a2.3%202.3%200%200%200-4.158%200L3%2020z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7.5%2011l2%202.5L12%2011l2%203l2.5-2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "ARPA Decoder",
+			"path": "arpa-decoder",
+			"description": "Decode IPv4/6 ARPA addresses or PTR record",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Basic auth generator",
+			"path": "basic-auth-generator",
+			"description": "Generate a base64 basic auth header from a username and password.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2017h18c.55%200%201%20.45%201%201s-.45%201-1%201H3c-.55%200-1-.45-1-1s.45-1%201-1zm-.5-4.43c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.49-.84h.95c.41%200%20.75-.34.75-.75s-.34-.75-.75-.75H5.3l.47-.82c.21-.36.09-.82-.27-1.03a.764.764%200%200%200-1.03.28L4%208.47l-.47-.82a.764.764%200%200%200-1.03-.28c-.36.21-.48.67-.27%201.03l.47.82h-.95c-.41%200-.75.34-.75.75s.34.75.75.75h.95l-.48.83c-.2.36-.08.82.28%201.02zm8%200c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.48-.83h.95c.41%200%20.75-.34.75-.75s-.34-.75-.75-.75h-.96l.47-.82a.76.76%200%200%200-.27-1.03a.746.746%200%200%200-1.02.27l-.48.82l-.47-.82a.742.742%200%200%200-1.02-.27c-.36.21-.48.67-.27%201.03l.47.82h-.96a.74.74%200%200%200-.75.74c0%20.41.34.75.75.75h.95l-.48.83c-.2.36-.08.82.28%201.02zM23%209.97c0-.41-.34-.75-.75-.75h-.95l.47-.82a.76.76%200%200%200-.27-1.03a.746.746%200%200%200-1.02.27l-.48.83l-.47-.82a.742.742%200%200%200-1.02-.27c-.36.21-.48.67-.27%201.03l.47.82h-.95a.743.743%200%200%200-.76.74c0%20.41.34.75.75.75h.95l-.48.83a.74.74%200%200%200%20.28%201.02c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.48-.83h.95c.4-.01.74-.35.74-.76z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "BIMI DNS Generator",
+			"path": "bimi-dns-generator",
+			"description": "Generate BIMI DNS TXT record",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Chmod calculator",
+			"path": "chmod-calculator",
+			"description": "Compute your chmod permissions and commands with this online chmod calculator.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v11a2%202%200%200%201-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%207h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2013h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%2017h2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "IPv4-6/IPRange/CIDR in IPRange/CIDR/IPMask",
+			"path": "cidr-in-cidr",
+			"description": "Given a CIDR/IP Range/Wildcard IP/IP Mask, tell if a given IPv4-6/Range/CIDR/Wildcard IP/IP Mask is in subnet range",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%205.83L15.17%209l1.41-1.41L12%203L7.41%207.59L8.83%209L12%205.83zm0%2012.34L8.83%2015l-1.41%201.41L12%2021l4.59-4.59L15.17%2015L12%2018.17z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Crontab generator",
+			"path": "crontab-generator",
+			"description": "Validate and generate crontab and get the human-readable description of the cron schedule.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2213%22%20r%3D%227%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M12%2010v3h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%204L4.25%206%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204l2.75%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Curl Command Generator",
+			"path": "curl-generator",
+			"description": "Generate CURL command lines",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2017v2a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2v-2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2011l5%205l5-5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%204v12%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Data Transfer Rate Calculator",
+			"path": "data-transfer-rate-converter",
+			"description": "Compute Data Transfer times, rates and amount of data",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2018v3h16V7l-8-4l-8%204v3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2014h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2011l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "DKIM DNS Generator",
+			"path": "dkim-dns-generator",
+			"description": "Generate DKIM DNS TXT record",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "DMARC DNS Generator",
+			"path": "dmarc-dns-generator",
+			"description": "Generate DMARC DNS TXT record",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "DNS Queries",
+			"path": "dns-queries",
+			"description": "Perform DNS Queries (over HTTPS)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "DNSBL Checker",
+			"path": "dnsbl-checker",
+			"description": "Check if a given IP is in any of known DNS Blacklist servers (spam block)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2018H5a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202v7.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%206l9%206l9-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2018h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2015l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "FW command line generator",
+			"path": "firewalld-generator",
+			"description": "Generate fw command lines",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M7%2018h8m4%200h2v-6a5%205%200%200%200-5-5h-1l1.5%205H21%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2018V7h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2017v-5h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%209l18-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2012V8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "FStab Generator",
+			"path": "fstab-generator",
+			"description": "Generate /etc/fstab line",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%204h10l4%204v10a2%202%200%200%201-2%202H6a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2214%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M14%204v4H8V4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "HAR Sanitizer",
+			"path": "har-sanitizer",
+			"description": "HAR Files Sanitizer",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M17%2015l4%204m0-4l-4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%206V5h11v1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2019h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%205L9%2019%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "HDD calculator",
+			"path": "hdd-calculator",
+			"description": "Storage device manufacturers report capacities in decimal form (like GB), while operating systems and other software uses binary form (GiB), although still incorrectly using the decimal unit (GiB). This tool converts decimal form capacity into various binary forms.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "HTAccess generator",
+			"path": "htaccess-generator",
+			"description": "Generate .htaccess file",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203a12%2012%200%200%200%208.5%203A12%2012%200%200%201%2012%2021A12%2012%200%200%201%203.5%206A12%2012%200%200%200%2012%203%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2211%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M12%2012v2.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Htpasswd/htaccess generator",
+			"path": "htpasswd-generator",
+			"description": "htpassword/htaccess user/password generator",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2017h18c.55%200%201%20.45%201%201s-.45%201-1%201H3c-.55%200-1-.45-1-1s.45-1%201-1zm-.5-4.43c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.49-.84h.95c.41%200%20.75-.34.75-.75s-.34-.75-.75-.75H5.3l.47-.82c.21-.36.09-.82-.27-1.03a.764.764%200%200%200-1.03.28L4%208.47l-.47-.82a.764.764%200%200%200-1.03-.28c-.36.21-.48.67-.27%201.03l.47.82h-.95c-.41%200-.75.34-.75.75s.34.75.75.75h.95l-.48.83c-.2.36-.08.82.28%201.02zm8%200c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.48-.83h.95c.41%200%20.75-.34.75-.75s-.34-.75-.75-.75h-.96l.47-.82a.76.76%200%200%200-.27-1.03a.746.746%200%200%200-1.02.27l-.48.82l-.47-.82a.742.742%200%200%200-1.02-.27c-.36.21-.48.67-.27%201.03l.47.82h-.96a.74.74%200%200%200-.75.74c0%20.41.34.75.75.75h.95l-.48.83c-.2.36-.08.82.28%201.02zM23%209.97c0-.41-.34-.75-.75-.75h-.95l.47-.82a.76.76%200%200%200-.27-1.03a.746.746%200%200%200-1.02.27l-.48.83l-.47-.82a.742.742%200%200%200-1.02-.27c-.36.21-.48.67-.27%201.03l.47.82h-.95a.743.743%200%200%200-.76.74c0%20.41.34.75.75.75h.95l-.48.83a.74.74%200%200%200%20.28%201.02c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.48-.83h.95c.4-.01.74-.35.74-.76z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Whois Checker",
+			"path": "iana-whois-checker",
+			"description": "Check whois for a domain using IANA Website",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Integers to IPv4/IPv6",
+			"path": "integers-to-ip",
+			"description": "Convert integers to IP",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Ipv4/6 CIDR to IP Range Calculator",
+			"path": "ip-cidr-to-range",
+			"description": "Calculate IP Range from a CIDR (IPv4/6)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "IP Geo Location",
+			"path": "ip-geo-location",
+			"description": "Retrieve information about an IPv4/6 address or domain location",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "IP Subnets Exclude Calculator",
+			"path": "ip-include-exclude",
+			"description": "Substract a disallowed IP Ranges/Mask/CIDR list from an allowed IP Ranges/Mask/CIDR list",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%205.83L15.17%209l1.41-1.41L12%203L7.41%207.59L8.83%209L12%205.83zm0%2012.34L8.83%2015l-1.41%201.41L12%2021l4.59-4.59L15.17%2015L12%2018.17z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "IPv4/6 Range to CIDR(s) Calculator",
+			"path": "ip-range-to-cidr",
+			"description": "Calculate CIDR(s) from an IP Range (IPv4/6)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Iptables Generator",
+			"path": "iptables-generator",
+			"description": "Generate iptables command lines",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M7%2018h8m4%200h2v-6a5%205%200%200%200-5-5h-1l1.5%205H21%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2018V7h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2017v-5h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%209l18-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2012V8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "IPv4 address converter",
+			"path": "ipv4-address-converter",
+			"description": "Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "IPv4 range expander",
+			"path": "ipv4-range-expander",
+			"description": "Given a start and an end IPv4 address, this tool calculates a valid IPv4 subnet along with its CIDR notation.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%205.83L15.17%209l1.41-1.41L12%203L7.41%207.59L8.83%209L12%205.83zm0%2012.34L8.83%2015l-1.41%201.41L12%2021l4.59-4.59L15.17%2015L12%2018.17z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "IPv4 subnet calculator",
+			"path": "ipv4-subnet-calculator",
+			"description": "Parse your IPv4 CIDR blocks and get all the info you need about your subnet.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%204.2c1.5%200%203%20.6%204.2%201.7l.8-.8C19.6%203.7%2017.8%203%2016%203s-3.6.7-5%202.1l.8.8C13%204.8%2014.5%204.2%2016%204.2zm-3.3%202.5l.8.8c.7-.7%201.6-1%202.5-1s1.8.3%202.5%201l.8-.8c-.9-.9-2.1-1.4-3.3-1.4s-2.4.5-3.3%201.4zM19%2013h-2V9h-2v4H5c-1.1%200-2%20.9-2%202v4c0%201.1.9%202%202%202h14c1.1%200%202-.9%202-2v-4c0-1.1-.9-2-2-2zm0%206H5v-4h14v4zM6%2016h2v2H6zm3.5%200h2v2h-2zm3.5%200h2v2h-2z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "IPv4 Subnets Lister",
+			"path": "ipv4-subnets-list",
+			"description": "List all possible subnets of a given CIDR",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%204.2c1.5%200%203%20.6%204.2%201.7l.8-.8C19.6%203.7%2017.8%203%2016%203s-3.6.7-5%202.1l.8.8C13%204.8%2014.5%204.2%2016%204.2zm-3.3%202.5l.8.8c.7-.7%201.6-1%202.5-1s1.8.3%202.5%201l.8-.8c-.9-.9-2.1-1.4-3.3-1.4s-2.4.5-3.3%201.4zM19%2013h-2V9h-2v4H5c-1.1%200-2%20.9-2%202v4c0%201.1.9%202%202%202h14c1.1%200%202-.9%202-2v-4c0-1.1-.9-2-2-2zm0%206H5v-4h14v4zM6%2016h2v2H6zm3.5%200h2v2h-2zm3.5%200h2v2h-2z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Ipv6 address converter",
+			"path": "ipv6-address-converter",
+			"description": "Convert an ip address into decimal, binary, hexadecimal and get infos",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Ipv6 subnet calculator",
+			"path": "ipv6-subnet-calculator",
+			"description": "Parse your IPv6 CIDR blocks and get all the info you need about your sub network.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%204.2c1.5%200%203%20.6%204.2%201.7l.8-.8C19.6%203.7%2017.8%203%2016%203s-3.6.7-5%202.1l.8.8C13%204.8%2014.5%204.2%2016%204.2zm-3.3%202.5l.8.8c.7-.7%201.6-1%202.5-1s1.8.3%202.5%201l.8-.8c-.9-.9-2.1-1.4-3.3-1.4s-2.4.5-3.3%201.4zM19%2013h-2V9h-2v4H5c-1.1%200-2%20.9-2%202v4c0%201.1.9%202%202%202h14c1.1%200%202-.9%202-2v-4c0-1.1-.9-2-2-2zm0%206H5v-4h14v4zM6%2016h2v2H6zm3.5%200h2v2h-2zm3.5%200h2v2h-2z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "IPv6 ULA generator",
+			"path": "ipv6-ula-generator",
+			"description": "Generate your own local, non-routable IP addresses for your network according to RFC4193.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2021c1.147-4.02%201.983-8.027%202-12h6c.017%203.973.853%207.98%202%2012%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%2013H17c.025%202.612.894%205.296%202%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%205a2.4%202.4%200%200%201%202-1a2.4%202.4%200%200%201%202%201a2.4%202.4%200%200%200%202%201a2.4%202.4%200%200%200%202-1a2.4%202.4%200%200%201%202-1a2.4%202.4%200%200%201%202%201%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2021h19%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Apache LogRotate Generator",
+			"path": "logrotate-generator",
+			"description": "Generate Apache .log rotation configuration",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v5m-5%206h7m-3-3l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "MAC Address Converter",
+			"path": "mac-address-converter",
+			"description": "Change the format of a MAC address and chose between different formats (EUI-48, EUI-64, IPv6)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%2213%22%20y%3D%228%22%20width%3D%228%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M18%208V5a1%201%200%200%200-1-1H4a1%201%200%200%200-1%201v12a1%201%200%200%200%201%201h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209h2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "MAC address generator",
+			"path": "mac-address-generator",
+			"description": "Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%2213%22%20y%3D%228%22%20width%3D%228%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M18%208V5a1%201%200%200%200-1-1H4a1%201%200%200%200-1%201v12a1%201%200%200%200%201%201h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209h2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "MAC address lookup",
+			"path": "mac-address-lookup",
+			"description": "Find the vendor and manufacturer of a device by its MAC address.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%2213%22%20y%3D%228%22%20width%3D%228%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M18%208V5a1%201%200%200%200-1-1H4a1%201%200%200%200-1%201v12a1%201%200%200%200%201%201h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209h2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Microphone Tester",
+			"path": "mic-tester",
+			"description": "Replay and Visualize sound from Your microphone, with added one second of delay",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%229%22%20y%3D%222%22%20width%3D%226%22%20height%3D%2211%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M5%2010a7%207%200%200%200%2014%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2021h8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "RAID Reliability Calculator",
+			"path": "mttdl-calculator",
+			"description": "Computes storage system reliability using well-known MTTDL methodology",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M20.38%208.57l-1.23%201.85a8%208%200%200%201-.22%207.58H5.07A8%208%200%200%201%2015.58%206.85l1.85-1.23A10%2010%200%200%200%203.35%2019a2%202%200%200%200%201.72%201h13.85a2%202%200%200%200%201.74-1a10%2010%200%200%200-.27-10.44zm-9.79%206.84a2%202%200%200%200%202.83%200l5.66-8.49l-8.49%205.66a2%202%200%200%200%200%202.83z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Multi link downloader",
+			"path": "multi-link-downloader",
+			"description": "The tool will asynchronously combine the contents of the provided links into a single zip file for you to download. (Requires an internet connection)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-file-download%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021h-10a2%202%200%200%201%20-2%20-2v-14a2%202%200%200%201%202%20-2h7l5%205v11a2%202%200%200%201%20-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9.5%2014.5l2.5%202.5l2.5%20-2.5%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "My IP Address",
+			"path": "my-ip",
+			"description": "Get your client IP Address (IPv4/6) using https://www.ipify.org/",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Nginx formatter",
+			"path": "nginx-formatter",
+			"description": "Format/prettify Nginx configuration files",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Option43 generator",
+			"path": "option43-generator",
+			"description": "Generate Option43 Wifi DHCP configuration",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%204.2c1.5%200%203%20.6%204.2%201.7l.8-.8C19.6%203.7%2017.8%203%2016%203s-3.6.7-5%202.1l.8.8C13%204.8%2014.5%204.2%2016%204.2zm-3.3%202.5l.8.8c.7-.7%201.6-1%202.5-1s1.8.3%202.5%201l.8-.8c-.9-.9-2.1-1.4-3.3-1.4s-2.4.5-3.3%201.4zM19%2013h-2V9h-2v4H5c-1.1%200-2%20.9-2%202v4c0%201.1.9%202%202%202h14c1.1%200%202-.9%202-2v-4c0-1.1-.9-2-2-2zm0%206H5v-4h14v4zM6%2016h2v2H6zm3.5%200h2v2h-2zm3.5%200h2v2h-2z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Password strength analyser",
+			"path": "password-strength-analyser",
+			"description": "Discover the strength of your password with this client-side-only password strength analyser and crack time estimation tool.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M17%207h5v10h-5v2a1%201%200%200%200%201%201h2v2h-2.5c-.55%200-1.5-.45-1.5-1c0%20.55-.95%201-1.5%201H12v-2h2a1%201%200%200%200%201-1V5a1%201%200%200%200-1-1h-2V2h2.5c.55%200%201.5.45%201.5%201c0-.55.95-1%201.5-1H20v2h-2a1%201%200%200%200-1%201zM2%207h11v2H4v6h9v2H2zm18%208V9h-3v6zM8.5%2012A1.5%201.5%200%200%200%207%2010.5A1.5%201.5%200%200%200%205.5%2012A1.5%201.5%200%200%200%207%2013.5A1.5%201.5%200%200%200%208.5%2012m4.5-1.11c-.61-.56-1.56-.51-2.12.11c-.56.6-.51%201.55.12%202.11c.55.52%201.43.52%202%200z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Port Numbers",
+			"path": "port-numbers",
+			"description": "Search for assigned usage of a given port and protocol",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%2012l5%205l-1.5%201.5a3.536%203.536%200%201%201-5-5L7%2012z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2012l-5-5l1.5-1.5a3.536%203.536%200%201%201%205%205L17%2012z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2021l2.5-2.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18.5%205.5L21%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2011l-2%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%2014l-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "PTR DNS Generator",
+			"path": "ptr-dns-generator",
+			"description": "Generate DNS PTR records",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Punycode Converter",
+			"path": "punycode-converter",
+			"description": "Convert international unicode domain names or emails from/to ASCII Punycode version",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "RAID Calculator",
+			"path": "raid-calculator",
+			"description": "Calculate storage capacity, fault tolerance and space efficiency of an array based on the number of disks, size, and RAID type",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v6a8%203%200%200%200%2016%200V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6a8%203%200%200%200%2016%200v-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Random port generator",
+			"path": "random-port-generator",
+			"description": "Generate random port numbers outside of the range of \"known\" ports (0-1023).",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%228%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%2218%22%20height%3D%228%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%208v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2016v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Rsync Generator",
+			"path": "rsync-generator",
+			"description": "Rsync command generator",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2018v3h16V7l-8-4l-8%204v3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2014h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2011l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "SIP Authorization",
+			"path": "sip-auth",
+			"description": "This tool helps you to verify the SIP authorization header. The tool performs all calculations in the browser and does not transmit sensitive information over the network, so feel free to use it.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2012l2%202l4-4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%203a12%2012%200%200%200%208.5%203A12%2012%200%200%201%2012%2021A12%2012%200%200%201%203.5%206A12%2012%200%200%200%2012%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "SPF DNS generator",
+			"path": "spf-dns-generator",
+			"description": "Generate SPF DNS TXT record",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Websocket tester",
+			"path": "websocket-tester",
+			"description": "Allows to test WebSocket connections",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13%203v6l4.798%205.142a4%204%200%200%201-5.441%205.86l-6.736-6.41A2%202%200%200%201%205%2012.141V3h8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7.895%2015.768C8.603%2015.047%209%2014.091%209%2013a4%204%200%200%200-4-4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Wireguard Config Generator",
+			"path": "wireguard-config-generator",
+			"description": "Generate Wireguard Server and Clients configuration files",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2014a3.5%203.5%200%200%200%205%200l4-4a3.5%203.5%200%200%200-5-5l-.5.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2010a3.5%203.5%200%200%200-5%200l-4%204a3.5%203.5%200%200%200%205%205l.5-.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "WPA PSK generator",
+			"path": "wpa-psk-generator",
+			"description": "WPA Pre-shared Key Generator to convert a WPA passphrase and SSID to the 256-bit pre-shared (\"raw\") key",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2018h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9.172%2015.172a4%204%200%200%201%205.656%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6.343%2012.343a8%208%200%200%201%2011.314%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.515%209.515c4.686-4.687%2012.284-4.687%2017%200%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "X-VR-SpamCause Decoder",
+			"path": "x-vr-spamcause-decoder",
+			"description": "Decode X-VR-SPAMCAUSE header in OVH mails",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%2212%22%20r%3D%223%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2212%22%20r%3D%223%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M7%2015h10%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "ZPOOL RAID calculator",
+			"path": "zpool-calculator",
+			"description": "Determine the usable capacity and other metrics of a ZFS storage pool and compare layouts including stripe, mirror, RAIDZ1, RAIDZ2, RAIDZ3, and dRAID.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "ZPool Cheatsheet",
+			"path": "zpool-memo",
+			"description": "OpenZFS/ZPool usage commands and info",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Zxcvbn Password Strength",
+			"path": "zxcvbn-password-strength",
+			"description": "Compute a given password strength using zxcvbn",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M17%207h5v10h-5v2a1%201%200%200%200%201%201h2v2h-2.5c-.55%200-1.5-.45-1.5-1c0%20.55-.95%201-1.5%201H12v-2h2a1%201%200%200%200%201-1V5a1%201%200%200%200-1-1h-2V2h2.5c.55%200%201.5.45%201.5%201c0-.55.95-1%201.5-1H20v2h-2a1%201%200%200%200-1%201zM2%207h11v2H4v6h9v2H2zm18%208V9h-3v6zM8.5%2012A1.5%201.5%200%200%200%207%2010.5A1.5%201.5%200%200%200%205.5%2012A1.5%201.5%200%200%200%207%2013.5A1.5%201.5%200%200%200%208.5%2012m4.5-1.11c-.61-.56-1.56-.51-2.12.11c-.56.6-.51%201.55.12%202.11c.55.52%201.43.52%202%200z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Aspect Ratio Calculator",
@@ -1057,10 +1441,22 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%204l-2%2014.5l-6%202l-6-2L4%204z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7.5%208h3v8l-2-1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16.5%208H14a.5.5%200%200%200-.5.5v3a.5.5%200%200%200%20.5.5h1.423a.5.5%200%200%201%20.495.57L15.5%2015.5l-2%20.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Screen Command Cheatsheet",
+			"path": "screen-memo",
+			"description": "Screen linux command memo",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2012v3a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1V5a1%201%200%200%201%201-1h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204h4v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209l5-5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Sed cheatsheet",
 			"path": "sed-memo",
 			"description": "sed unix command cheatsheet",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v11a2%202%200%200%201-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%209h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2013h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2017h6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Tmux Command Cheatsheet",
+			"path": "tmux-memo",
+			"description": "Tmux linux command memo",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2012v3a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1V5a1%201%200%200%201%201-1h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204h4v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209l5-5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "VIM Cheatsheet",
@@ -1075,340 +1471,10 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%204H5v16h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%204h3v16h-3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
-			"name": "Basic auth generator",
-			"path": "basic-auth-generator",
-			"description": "Generate a base64 basic auth header from a username and password.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2017h18c.55%200%201%20.45%201%201s-.45%201-1%201H3c-.55%200-1-.45-1-1s.45-1%201-1zm-.5-4.43c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.49-.84h.95c.41%200%20.75-.34.75-.75s-.34-.75-.75-.75H5.3l.47-.82c.21-.36.09-.82-.27-1.03a.764.764%200%200%200-1.03.28L4%208.47l-.47-.82a.764.764%200%200%200-1.03-.28c-.36.21-.48.67-.27%201.03l.47.82h-.95c-.41%200-.75.34-.75.75s.34.75.75.75h.95l-.48.83c-.2.36-.08.82.28%201.02zm8%200c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.48-.83h.95c.41%200%20.75-.34.75-.75s-.34-.75-.75-.75h-.96l.47-.82a.76.76%200%200%200-.27-1.03a.746.746%200%200%200-1.02.27l-.48.82l-.47-.82a.742.742%200%200%200-1.02-.27c-.36.21-.48.67-.27%201.03l.47.82h-.96a.74.74%200%200%200-.75.74c0%20.41.34.75.75.75h.95l-.48.83c-.2.36-.08.82.28%201.02zM23%209.97c0-.41-.34-.75-.75-.75h-.95l.47-.82a.76.76%200%200%200-.27-1.03a.746.746%200%200%200-1.02.27l-.48.83l-.47-.82a.742.742%200%200%200-1.02-.27c-.36.21-.48.67-.27%201.03l.47.82h-.95a.743.743%200%200%200-.76.74c0%20.41.34.75.75.75h.95l-.48.83a.74.74%200%200%200%20.28%201.02c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.48-.83h.95c.4-.01.74-.35.74-.76z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "BIMI DNS Generator",
-			"path": "bimi-dns-generator",
-			"description": "Generate BIMI DNS TXT record",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Chmod calculator",
-			"path": "chmod-calculator",
-			"description": "Compute your chmod permissions and commands with this online chmod calculator.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v11a2%202%200%200%201-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%207h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2013h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%2017h2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "IPv4-6/IPRange/CIDR in IPRange/CIDR/IPMask",
-			"path": "cidr-in-cidr",
-			"description": "Given a CIDR/IP Range/Wildcard IP/IP Mask, tell if a given IPv4-6/Range/CIDR/Wildcard IP/IP Mask is in subnet range",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%205.83L15.17%209l1.41-1.41L12%203L7.41%207.59L8.83%209L12%205.83zm0%2012.34L8.83%2015l-1.41%201.41L12%2021l4.59-4.59L15.17%2015L12%2018.17z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Crontab generator",
-			"path": "crontab-generator",
-			"description": "Validate and generate crontab and get the human-readable description of the cron schedule.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2213%22%20r%3D%227%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M12%2010v3h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%204L4.25%206%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204l2.75%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Curl Command Generator",
-			"path": "curl-generator",
-			"description": "Generate CURL command lines",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2017v2a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2v-2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2011l5%205l5-5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%204v12%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Data Transfer Rate Calculator",
-			"path": "data-transfer-rate-converter",
-			"description": "Compute Data Transfer times, rates and amount of data",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2018v3h16V7l-8-4l-8%204v3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2014h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2011l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "DKIM DNS Generator",
-			"path": "dkim-dns-generator",
-			"description": "Generate DKIM DNS TXT record",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "DMARC DNS Generator",
-			"path": "dmarc-dns-generator",
-			"description": "Generate DMARC DNS TXT record",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "DNS Queries",
-			"path": "dns-queries",
-			"description": "Perform DNS Queries (over HTTPS)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "DNSBL Checker",
-			"path": "dnsbl-checker",
-			"description": "Check if a given IP is in any of known DNS Blacklist servers (spam block)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2018H5a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202v7.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%206l9%206l9-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2018h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2015l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "FW command line generator",
-			"path": "firewalld-generator",
-			"description": "Generate fw command lines",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M7%2018h8m4%200h2v-6a5%205%200%200%200-5-5h-1l1.5%205H21%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2018V7h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2017v-5h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%209l18-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2012V8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "FStab Generator",
-			"path": "fstab-generator",
-			"description": "Generate /etc/fstab line",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%204h10l4%204v10a2%202%200%200%201-2%202H6a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2214%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M14%204v4H8V4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "HAR Sanitizer",
-			"path": "har-sanitizer",
-			"description": "HAR Files Sanitizer",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M17%2015l4%204m0-4l-4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%206V5h11v1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2019h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%205L9%2019%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "HDD calculator",
-			"path": "hdd-calculator",
-			"description": "Storage device manufacturers report capacities in decimal form (like GB), while operating systems and other software uses binary form (GiB), although still incorrectly using the decimal unit (GiB). This tool converts decimal form capacity into various binary forms.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "HTAccess generator",
-			"path": "htaccess-generator",
-			"description": "Generate .htaccess file",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203a12%2012%200%200%200%208.5%203A12%2012%200%200%201%2012%2021A12%2012%200%200%201%203.5%206A12%2012%200%200%200%2012%203%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2211%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M12%2012v2.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Htpasswd/htaccess generator",
-			"path": "htpasswd-generator",
-			"description": "htpassword/htaccess user/password generator",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M3%2017h18c.55%200%201%20.45%201%201s-.45%201-1%201H3c-.55%200-1-.45-1-1s.45-1%201-1zm-.5-4.43c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.49-.84h.95c.41%200%20.75-.34.75-.75s-.34-.75-.75-.75H5.3l.47-.82c.21-.36.09-.82-.27-1.03a.764.764%200%200%200-1.03.28L4%208.47l-.47-.82a.764.764%200%200%200-1.03-.28c-.36.21-.48.67-.27%201.03l.47.82h-.95c-.41%200-.75.34-.75.75s.34.75.75.75h.95l-.48.83c-.2.36-.08.82.28%201.02zm8%200c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.48-.83h.95c.41%200%20.75-.34.75-.75s-.34-.75-.75-.75h-.96l.47-.82a.76.76%200%200%200-.27-1.03a.746.746%200%200%200-1.02.27l-.48.82l-.47-.82a.742.742%200%200%200-1.02-.27c-.36.21-.48.67-.27%201.03l.47.82h-.96a.74.74%200%200%200-.75.74c0%20.41.34.75.75.75h.95l-.48.83c-.2.36-.08.82.28%201.02zM23%209.97c0-.41-.34-.75-.75-.75h-.95l.47-.82a.76.76%200%200%200-.27-1.03a.746.746%200%200%200-1.02.27l-.48.83l-.47-.82a.742.742%200%200%200-1.02-.27c-.36.21-.48.67-.27%201.03l.47.82h-.95a.743.743%200%200%200-.76.74c0%20.41.34.75.75.75h.95l-.48.83a.74.74%200%200%200%20.28%201.02c.36.21.82.08%201.03-.28l.47-.82l.48.83c.21.36.67.48%201.03.28c.36-.21.48-.66.28-1.02l-.48-.83h.95c.4-.01.74-.35.74-.76z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Whois Checker",
-			"path": "iana-whois-checker",
-			"description": "Check whois for a domain using IANA Website",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Integers to IPv4/IPv6",
-			"path": "integers-to-ip",
-			"description": "Convert integers to IP",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Ipv4/6 CIDR to IP Range Calculator",
-			"path": "ip-cidr-to-range",
-			"description": "Calculate IP Range from a CIDR (IPv4/6)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "IP Geo Location",
-			"path": "ip-geo-location",
-			"description": "Retrieve information about an IPv4/6 address or domain location",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "IP Subnets Exclude Calculator",
-			"path": "ip-include-exclude",
-			"description": "Substract a disallowed IP Ranges/Mask/CIDR list from an allowed IP Ranges/Mask/CIDR list",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%205.83L15.17%209l1.41-1.41L12%203L7.41%207.59L8.83%209L12%205.83zm0%2012.34L8.83%2015l-1.41%201.41L12%2021l4.59-4.59L15.17%2015L12%2018.17z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "IPv4/6 Range to CIDR(s) Calculator",
-			"path": "ip-range-to-cidr",
-			"description": "Calculate CIDR(s) from an IP Range (IPv4/6)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Iptables Generator",
-			"path": "iptables-generator",
-			"description": "Generate iptables command lines",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M7%2018h8m4%200h2v-6a5%205%200%200%200-5-5h-1l1.5%205H21%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2018V7h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2017v-5h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%209l18-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2012V8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "IPv4 address converter",
-			"path": "ipv4-address-converter",
-			"description": "Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "IPv4 range expander",
-			"path": "ipv4-range-expander",
-			"description": "Given a start and an end IPv4 address, this tool calculates a valid IPv4 subnet along with its CIDR notation.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%205.83L15.17%209l1.41-1.41L12%203L7.41%207.59L8.83%209L12%205.83zm0%2012.34L8.83%2015l-1.41%201.41L12%2021l4.59-4.59L15.17%2015L12%2018.17z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "IPv4 subnet calculator",
-			"path": "ipv4-subnet-calculator",
-			"description": "Parse your IPv4 CIDR blocks and get all the info you need about your subnet.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%204.2c1.5%200%203%20.6%204.2%201.7l.8-.8C19.6%203.7%2017.8%203%2016%203s-3.6.7-5%202.1l.8.8C13%204.8%2014.5%204.2%2016%204.2zm-3.3%202.5l.8.8c.7-.7%201.6-1%202.5-1s1.8.3%202.5%201l.8-.8c-.9-.9-2.1-1.4-3.3-1.4s-2.4.5-3.3%201.4zM19%2013h-2V9h-2v4H5c-1.1%200-2%20.9-2%202v4c0%201.1.9%202%202%202h14c1.1%200%202-.9%202-2v-4c0-1.1-.9-2-2-2zm0%206H5v-4h14v4zM6%2016h2v2H6zm3.5%200h2v2h-2zm3.5%200h2v2h-2z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "IPv4 Subnets Lister",
-			"path": "ipv4-subnets-list",
-			"description": "List all possible subnets of a given CIDR",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%204.2c1.5%200%203%20.6%204.2%201.7l.8-.8C19.6%203.7%2017.8%203%2016%203s-3.6.7-5%202.1l.8.8C13%204.8%2014.5%204.2%2016%204.2zm-3.3%202.5l.8.8c.7-.7%201.6-1%202.5-1s1.8.3%202.5%201l.8-.8c-.9-.9-2.1-1.4-3.3-1.4s-2.4.5-3.3%201.4zM19%2013h-2V9h-2v4H5c-1.1%200-2%20.9-2%202v4c0%201.1.9%202%202%202h14c1.1%200%202-.9%202-2v-4c0-1.1-.9-2-2-2zm0%206H5v-4h14v4zM6%2016h2v2H6zm3.5%200h2v2h-2zm3.5%200h2v2h-2z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Ipv6 address converter",
-			"path": "ipv6-address-converter",
-			"description": "Convert an ip address into decimal, binary, hexadecimal and get infos",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Ipv6 subnet calculator",
-			"path": "ipv6-subnet-calculator",
-			"description": "Parse your IPv6 CIDR blocks and get all the info you need about your sub network.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%204.2c1.5%200%203%20.6%204.2%201.7l.8-.8C19.6%203.7%2017.8%203%2016%203s-3.6.7-5%202.1l.8.8C13%204.8%2014.5%204.2%2016%204.2zm-3.3%202.5l.8.8c.7-.7%201.6-1%202.5-1s1.8.3%202.5%201l.8-.8c-.9-.9-2.1-1.4-3.3-1.4s-2.4.5-3.3%201.4zM19%2013h-2V9h-2v4H5c-1.1%200-2%20.9-2%202v4c0%201.1.9%202%202%202h14c1.1%200%202-.9%202-2v-4c0-1.1-.9-2-2-2zm0%206H5v-4h14v4zM6%2016h2v2H6zm3.5%200h2v2h-2zm3.5%200h2v2h-2z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "IPv6 ULA generator",
-			"path": "ipv6-ula-generator",
-			"description": "Generate your own local, non-routable IP addresses for your network according to RFC4193.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2021c1.147-4.02%201.983-8.027%202-12h6c.017%203.973.853%207.98%202%2012%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%2013H17c.025%202.612.894%205.296%202%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%205a2.4%202.4%200%200%201%202-1a2.4%202.4%200%200%201%202%201a2.4%202.4%200%200%200%202%201a2.4%202.4%200%200%200%202-1a2.4%202.4%200%200%201%202-1a2.4%202.4%200%200%201%202%201%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2021h19%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Apache LogRotate Generator",
-			"path": "logrotate-generator",
-			"description": "Generate Apache .log rotation configuration",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v5m-5%206h7m-3-3l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "MAC Address Converter",
-			"path": "mac-address-converter",
-			"description": "Change the format of a MAC address and chose between different formats (EUI-48, EUI-64, IPv6)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%2213%22%20y%3D%228%22%20width%3D%228%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M18%208V5a1%201%200%200%200-1-1H4a1%201%200%200%200-1%201v12a1%201%200%200%200%201%201h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209h2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "MAC address generator",
-			"path": "mac-address-generator",
-			"description": "Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%2213%22%20y%3D%228%22%20width%3D%228%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M18%208V5a1%201%200%200%200-1-1H4a1%201%200%200%200-1%201v12a1%201%200%200%200%201%201h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209h2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "MAC address lookup",
-			"path": "mac-address-lookup",
-			"description": "Find the vendor and manufacturer of a device by its MAC address.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%2213%22%20y%3D%228%22%20width%3D%228%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M18%208V5a1%201%200%200%200-1-1H4a1%201%200%200%200-1%201v12a1%201%200%200%200%201%201h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209h2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Microphone Tester",
-			"path": "mic-tester",
-			"description": "Replay and Visualize sound from Your microphone, with added one second of delay",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%229%22%20y%3D%222%22%20width%3D%226%22%20height%3D%2211%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M5%2010a7%207%200%200%200%2014%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2021h8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "RAID Reliability Calculator",
-			"path": "mttdl-calculator",
-			"description": "Computes storage system reliability using well-known MTTDL methodology",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M20.38%208.57l-1.23%201.85a8%208%200%200%201-.22%207.58H5.07A8%208%200%200%201%2015.58%206.85l1.85-1.23A10%2010%200%200%200%203.35%2019a2%202%200%200%200%201.72%201h13.85a2%202%200%200%200%201.74-1a10%2010%200%200%200-.27-10.44zm-9.79%206.84a2%202%200%200%200%202.83%200l5.66-8.49l-8.49%205.66a2%202%200%200%200%200%202.83z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Multi link downloader",
-			"path": "multi-link-downloader",
-			"description": "The tool will asynchronously combine the contents of the provided links into a single zip file for you to download. (Requires an internet connection)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-file-download%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021h-10a2%202%200%200%201%20-2%20-2v-14a2%202%200%200%201%202%20-2h7l5%205v11a2%202%200%200%201%20-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9.5%2014.5l2.5%202.5l2.5%20-2.5%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "My IP Address",
-			"path": "my-ip",
-			"description": "Get your client IP Address (IPv4/6) using https://www.ipify.org/",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Nginx formatter",
-			"path": "nginx-formatter",
-			"description": "Format/prettify Nginx configuration files",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Option43 generator",
-			"path": "option43-generator",
-			"description": "Generate Option43 Wifi DHCP configuration",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M16%204.2c1.5%200%203%20.6%204.2%201.7l.8-.8C19.6%203.7%2017.8%203%2016%203s-3.6.7-5%202.1l.8.8C13%204.8%2014.5%204.2%2016%204.2zm-3.3%202.5l.8.8c.7-.7%201.6-1%202.5-1s1.8.3%202.5%201l.8-.8c-.9-.9-2.1-1.4-3.3-1.4s-2.4.5-3.3%201.4zM19%2013h-2V9h-2v4H5c-1.1%200-2%20.9-2%202v4c0%201.1.9%202%202%202h14c1.1%200%202-.9%202-2v-4c0-1.1-.9-2-2-2zm0%206H5v-4h14v4zM6%2016h2v2H6zm3.5%200h2v2h-2zm3.5%200h2v2h-2z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Password strength analyser",
-			"path": "password-strength-analyser",
-			"description": "Discover the strength of your password with this client-side-only password strength analyser and crack time estimation tool.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M17%207h5v10h-5v2a1%201%200%200%200%201%201h2v2h-2.5c-.55%200-1.5-.45-1.5-1c0%20.55-.95%201-1.5%201H12v-2h2a1%201%200%200%200%201-1V5a1%201%200%200%200-1-1h-2V2h2.5c.55%200%201.5.45%201.5%201c0-.55.95-1%201.5-1H20v2h-2a1%201%200%200%200-1%201zM2%207h11v2H4v6h9v2H2zm18%208V9h-3v6zM8.5%2012A1.5%201.5%200%200%200%207%2010.5A1.5%201.5%200%200%200%205.5%2012A1.5%201.5%200%200%200%207%2013.5A1.5%201.5%200%200%200%208.5%2012m4.5-1.11c-.61-.56-1.56-.51-2.12.11c-.56.6-.51%201.55.12%202.11c.55.52%201.43.52%202%200z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Port Numbers",
-			"path": "port-numbers",
-			"description": "Search for assigned usage of a given port and protocol",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%2012l5%205l-1.5%201.5a3.536%203.536%200%201%201-5-5L7%2012z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2012l-5-5l1.5-1.5a3.536%203.536%200%201%201%205%205L17%2012z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2021l2.5-2.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18.5%205.5L21%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2011l-2%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%2014l-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Punycode Converter",
-			"path": "punycode-converter",
-			"description": "Convert international unicode domain names or emails from/to ASCII Punycode version",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "RAID Calculator",
-			"path": "raid-calculator",
-			"description": "Calculate storage capacity, fault tolerance and space efficiency of an array based on the number of disks, size, and RAID type",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v6a8%203%200%200%200%2016%200V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6a8%203%200%200%200%2016%200v-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Random port generator",
-			"path": "random-port-generator",
-			"description": "Generate random port numbers outside of the range of \"known\" ports (0-1023).",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%228%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%2218%22%20height%3D%228%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%208v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2016v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Rsync Generator",
-			"path": "rsync-generator",
-			"description": "Rsync command generator",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2018v3h16V7l-8-4l-8%204v3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2014h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2011l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "SIP Authorization",
-			"path": "sip-auth",
-			"description": "This tool helps you to verify the SIP authorization header. The tool performs all calculations in the browser and does not transmit sensitive information over the network, so feel free to use it.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2012l2%202l4-4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%203a12%2012%200%200%200%208.5%203A12%2012%200%200%201%2012%2021A12%2012%200%200%201%203.5%206A12%2012%200%200%200%2012%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "SPF DNS generator",
-			"path": "spf-dns-generator",
-			"description": "Generate SPF DNS TXT record",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Websocket tester",
-			"path": "websocket-tester",
-			"description": "Allows to test WebSocket connections",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13%203v6l4.798%205.142a4%204%200%200%201-5.441%205.86l-6.736-6.41A2%202%200%200%201%205%2012.141V3h8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7.895%2015.768C8.603%2015.047%209%2014.091%209%2013a4%204%200%200%200-4-4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Wireguard Config Generator",
-			"path": "wireguard-config-generator",
-			"description": "Generate Wireguard Server and Clients configuration files",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2014a3.5%203.5%200%200%200%205%200l4-4a3.5%203.5%200%200%200-5-5l-.5.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2010a3.5%203.5%200%200%200-5%200l-4%204a3.5%203.5%200%200%200%205%205l.5-.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "WPA PSK generator",
-			"path": "wpa-psk-generator",
-			"description": "WPA Pre-shared Key Generator to convert a WPA passphrase and SSID to the 256-bit pre-shared (\"raw\") key",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2018h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9.172%2015.172a4%204%200%200%201%205.656%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6.343%2012.343a8%208%200%200%201%2011.314%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.515%209.515c4.686-4.687%2012.284-4.687%2017%200%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "X-VR-SpamCause Decoder",
-			"path": "x-vr-spamcause-decoder",
-			"description": "Decode X-VR-SPAMCAUSE header in OVH mails",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%2212%22%20r%3D%223%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2212%22%20r%3D%223%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M7%2015h10%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "ZPOOL RAID calculator",
-			"path": "zpool-calculator",
-			"description": "Determine the usable capacity and other metrics of a ZFS storage pool and compare layouts including stripe, mirror, RAIDZ1, RAIDZ2, RAIDZ3, and dRAID.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "ZPool Cheatsheet",
-			"path": "zpool-memo",
-			"description": "OpenZFS/ZPool usage commands and info",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Zxcvbn Password Strength",
-			"path": "zxcvbn-password-strength",
-			"description": "Compute a given password strength using zxcvbn",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M17%207h5v10h-5v2a1%201%200%200%200%201%201h2v2h-2.5c-.55%200-1.5-.45-1.5-1c0%20.55-.95%201-1.5%201H12v-2h2a1%201%200%200%200%201-1V5a1%201%200%200%200-1-1h-2V2h2.5c.55%200%201.5.45%201.5%201c0-.55.95-1%201.5-1H20v2h-2a1%201%200%200%200-1%201zM2%207h11v2H4v6h9v2H2zm18%208V9h-3v6zM8.5%2012A1.5%201.5%200%200%200%207%2010.5A1.5%201.5%200%200%200%205.5%2012A1.5%201.5%200%200%200%207%2013.5A1.5%201.5%200%200%200%208.5%2012m4.5-1.11c-.61-.56-1.56-.51-2.12.11c-.56.6-.51%201.55.12%202.11c.55.52%201.43.52%202%200z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+			"name": "Zellij Command Cheatsheet",
+			"path": "zellij-memo",
+			"description": "Zellij linux command memo",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2012v3a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1V5a1%201%200%200%201%201-1h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204h4v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209l5-5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Binary Calculator",
@@ -1433,6 +1499,12 @@
 			"path": "math-ocr",
 			"description": "Convert Math Formula images to Latex",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2012h18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%203v18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16.5%204.5l3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.5%204.5l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%204v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%206h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2016h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2018h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Trigonometric/Equation Curve Visualizer",
+			"path": "trigo-viewer",
+			"description": "Visualize trigonometric or equations depending on x",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%2010h1c1%200%201%201%202.016%203.527C18%2016%2018%2017%2019%2017h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%2017c1.5%200%203-2%204-3.5s2.5-3.5%204-3.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2019c0%201.5.5%202%202%202s2-4%203-9s1.5-9%203-9s2%20.5%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2012h6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "BIP39 passphrase generator",
@@ -1549,6 +1621,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M5%2012l5%205L20%207%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Online Dictionary",
+			"path": "online-wiktionary",
+			"description": "Search words in Wiktionary",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%225%22%20y%3D%224%22%20width%3D%224%22%20height%3D%2216%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Crect%20x%3D%229%22%20y%3D%224%22%20width%3D%224%22%20height%3D%2216%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M5%208h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016h4%22%3E%3C%2Fpath%3E%3Cg%20transform%3D%22rotate(-13%2027.054%20-55.827)%22%3E%3Crect%20width%3D%224%22%20height%3D%2216%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M0%204h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M0%2012h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Phone parser and formatter",
 			"path": "phone-parser-and-formatter",
 			"description": "Parse, validate and format phone numbers. Get information about the phone number, like the country code, type, etc. Forge link to send message in WhatsApp and SMS.",
@@ -1649,6 +1727,12 @@
 			"path": "remove-exif",
 			"description": "Remove Exif from JPEG Files",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2019H5a2%202%200%200%201-2-2V7a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202v4%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2214%22%20y%3D%2214%22%20width%3D%227%22%20height%3D%225%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%209l4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2012V9h3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "SVG Previewer",
+			"path": "svg-previewer",
+			"description": "Preview SVG files",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2019H5a2%202%200%200%201-2-2V7a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202v4%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2214%22%20y%3D%2214%22%20width%3D%227%22%20height%3D%225%22%20rx%3D%221%22%3E%3C%2Frect%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Watermarker",
@@ -1846,6 +1930,12 @@
 			"name": "Html Prettifier",
 			"path": "html-prettifier",
 			"description": "Prettify HTML code",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%204l-2%2014.5l-6%202l-6-2L4%204z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.5%208h-7l.5%204h6l-.5%203.5l-2.5.75l-2.5-.75l-.1-.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "HTML to XHTML",
+			"path": "html-to-xhtml",
+			"description": "Convert HTML to strict XHTML (XML parsable, self closing tags...)",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%204l-2%2014.5l-6%202l-6-2L4%204z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.5%208h-7l.5%204h6l-.5%203.5l-2.5.75l-2.5-.75l-.1-.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
