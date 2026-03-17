@@ -1,25 +1,23 @@
 import { Action, ActionPanel, Icon, List, useNavigation } from "@vicinae/api";
-import {
-  displayNameForDevice,
-  pactl,
-  type PactlSink,
-  type PactlSinkInput,
-} from "../pactl";
+import { pactl, PactlDevice, PactlStream } from "../pactl";
 import { useAudioState } from "../hooks/useAudioState";
 import { showErrorToast } from "../ui/toasts";
+import { displayNameForDevice } from "../utils/displayNameForDevice";
 
-export function SelectOutputSink(props: {
-  sinkInput: PactlSinkInput;
+export function SelectDevice(props: {
+  stream: PactlStream;
   onOutputChange: () => Promise<void>;
+  kind: "sink" | "source";
 }) {
-  const { sinkInput, onOutputChange } = props;
+  const { stream, onOutputChange } = props;
   const { audio, isLoading } = useAudioState();
   const { pop } = useNavigation();
-  const sinks = audio?.sinks ?? [];
+  const devices =
+    props.kind === "sink" ? (audio?.sinks ?? []) : (audio?.sources ?? []);
 
-  async function selectSink(sink: PactlSink) {
+  async function selectDevice(device: PactlDevice) {
     try {
-      await pactl.moveSinkInputToSink(sinkInput.index, sink.name);
+      await pactl.setDeviceForStream(stream.index, device.name, props.kind);
       await onOutputChange();
       pop();
     } catch (e) {
@@ -27,20 +25,23 @@ export function SelectOutputSink(props: {
     }
   }
 
+  const typeLabel = props.kind === "sink" ? "Output" : "Input";
+  const icon = props.kind === "sink" ? Icon.SpeakerHigh : Icon.Microphone;
+
   return (
     <List
       isLoading={isLoading}
-      navigationTitle="Select Output Device"
-      searchBarPlaceholder="Search output devices…"
+      navigationTitle={`Select ${typeLabel} Device`}
+      searchBarPlaceholder={`Search ${typeLabel.toLowerCase()} devices…`}
     >
-      {sinks.map((sink) => {
-        const title = displayNameForDevice(sink);
-        const isCurrent = sink.index === sinkInput.sink;
+      {devices.map((device) => {
+        const title = displayNameForDevice(device);
+        const isCurrent = device.index === stream[props.kind];
         return (
           <List.Item
-            key={sink.name}
+            key={device.name}
             title={title}
-            icon={Icon.SpeakerHigh}
+            icon={icon}
             accessories={
               isCurrent
                 ? [
@@ -57,9 +58,9 @@ export function SelectOutputSink(props: {
             actions={
               <ActionPanel>
                 <Action
-                  title="Select Output"
-                  icon={Icon.SpeakerHigh}
-                  onAction={() => selectSink(sink)}
+                  title={`Select ${typeLabel}`}
+                  icon={icon}
+                  onAction={() => selectDevice(device)}
                 />
               </ActionPanel>
             }

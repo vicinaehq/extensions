@@ -1,40 +1,50 @@
-import { List, ActionPanel, Action, getPreferenceValues, Icon } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  getPreferenceValues,
+  Icon,
+  List,
+} from "@vicinae/api";
 import { useState } from "react";
-import type { RestEndpointMethodTypes } from "@octokit/rest";
-import { Octokit } from "@octokit/rest";
 
-import { useGitHubSearch } from "./hooks";
-import { getIssueFilterQuery, issueDropdownItems } from "./filters";
-import type { GitHubPreferences } from "./types";
-
-type Issue = RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["response"]["data"]["items"][0];
-
-type FilterType = "my-issues" | "assigned" | "mentioning" | "all";
+import { persister, queryClient } from "./queryClient";
+import type { FilterType, GitHubPreferences } from "./types";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { issueDropdownItems } from "./config";
+import { useDebounce } from "@uidotdev/usehooks";
+import { useGetIssues } from "./hooks/useGetIssues";
+import { useGetMyRepos } from "./hooks/useGetRepos";
 
 function Issues() {
-  const preferences = getPreferenceValues<GitHubPreferences>();
-  const [filter, setFilter] = useState<FilterType>(preferences.defaultIssueFilter || 'my-issues');
-
-  const searchIssues = async (octokit: Octokit, query: string) => {
-    const response = await octokit.search.issuesAndPullRequests({
-      q: query,
-      sort: 'updated',
-      order: 'desc',
-      per_page: parseInt(preferences.numberOfResults || '50')
-    });
-    return response.data.items;
-  };
-
-  const { data: issues, isLoading } = useGitHubSearch<Issue>(
-    searchIssues,
-    getIssueFilterQuery(filter),
-    preferences,
-    [filter]
+  return (
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister }}
+    >
+      <Command />
+    </PersistQueryClientProvider>
   );
+}
+
+const { defaultIssueFilter } = getPreferenceValues<GitHubPreferences>();
+
+function Command() {
+  const [filter, setFilter] = useState<FilterType>(defaultIssueFilter || "my");
+  const [searchText, setSearchText] = useState("");
+  const debouncedSearchText = useDebounce(searchText, 300);
+
+  const {
+    data: issues = [],
+    isLoading,
+    isFetching,
+  } = useGetIssues(filter, debouncedSearchText);
+  const { data: repos = [] } = useGetMyRepos();
 
   return (
     <List
-      isLoading={isLoading}
+      isLoading={isLoading || isFetching}
+      onSearchTextChange={setSearchText}
+      searchText={searchText}
       searchBarPlaceholder="Filter by title, number, or assignee"
       searchBarAccessory={
         <List.Dropdown
@@ -43,14 +53,31 @@ function Issues() {
           value={filter}
           onChange={(newValue) => setFilter(newValue as FilterType)}
         >
-          {issueDropdownItems.map(item => (
-            <List.Dropdown.Item key={item.value} title={item.title} value={item.value} />
+          {issueDropdownItems.map((item) => (
+            <List.Dropdown.Item
+              key={item.value}
+              title={item.title}
+              value={item.value}
+            />
           ))}
+          <List.Dropdown.Section title="Repositories">
+            {repos.map((repo) => (
+              <List.Dropdown.Item
+                key={repo.id}
+                title={repo.name}
+                icon={repo?.owner?.avatar_url}
+                value={repo.full_name}
+              />
+            ))}
+          </List.Dropdown.Section>
         </List.Dropdown>
       }
     >
       {issues.map((issue) => {
-        const repoName = issue.repository_url.replace('https://api.github.com/repos/', '');
+        const repoName = issue.repository_url.replace(
+          "https://api.github.com/repos/",
+          "",
+        );
         return (
           <List.Item
             key={issue.id}
@@ -61,11 +88,11 @@ function Issues() {
               <ActionPanel>
                 <Action.OpenInBrowser
                   title="Open in Browser"
-                  url={`https://github.com/${repoName}/issues/${issue.number}`}
+                  url={issue.html_url}
                 />
                 <Action.CopyToClipboard
                   title="Copy URL"
-                  content={`https://github.com/${repoName}/issues/${issue.number}`}
+                  content={issue.html_url}
                 />
                 <Action.CopyToClipboard
                   title="Copy Issue Number"

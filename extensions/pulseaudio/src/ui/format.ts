@@ -14,5 +14,3 @@ export function prettyValue(v: unknown): string {
     return String(v);
   }
 }
-
-

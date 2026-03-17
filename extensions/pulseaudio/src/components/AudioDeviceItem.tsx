@@ -1,12 +1,22 @@
-import { Action, ActionPanel, Icon, Keyboard, Toast, List, showToast } from "@vicinae/api";
-import { displayNameForDevice, pactl, percentFromVolume, type PactlDevice } from "../pactl";
-import { DeviceDetail } from "./DeviceDetail";
-import { SetVolumeForm } from "./SetVolumeForm";
+import {
+  Action,
+  ActionPanel,
+  Icon,
+  Keyboard,
+  List,
+  showToast,
+  Toast,
+} from "@vicinae/api";
+import { pactl, type PactlDevice } from "../pactl";
+import { detailsShortcut } from "../shortcuts";
 import { micIconForMute, speakerIconForPercentAndMute } from "../ui/audioIcons";
 import { deviceAccessories } from "../ui/deviceAccessories";
 import { clamp } from "../ui/format";
 import { showErrorToast } from "../ui/toasts";
-import { detailsShortcut } from "../shortcuts";
+import { AudioDeviceDetail } from "./AudioDeviceDetail";
+import { SetVolumeForm } from "./SetVolumeForm";
+import { percentFromVolume } from "../utils/percentFromVolume";
+import { displayNameForDevice } from "../utils/displayNameForDevice";
 
 export function AudioDeviceItem(props: {
   kind: "sink" | "source";
@@ -14,31 +24,31 @@ export function AudioDeviceItem(props: {
   defaultName?: string;
   refresh: () => Promise<void>;
   toggleDetail: () => void;
-  refreshShortcut: Keyboard.Shortcut | Keyboard.Shortcut.Common;
 }) {
-  const { kind, device, defaultName, refresh, refreshShortcut, toggleDetail } = props;
-
+  const { device, kind, defaultName, refresh, toggleDetail } = props;
   const isDefault = !!defaultName && device.name === defaultName;
   const vol = percentFromVolume(device.volume);
 
   const icon =
-    kind === "sink" ? speakerIconForPercentAndMute(vol, device.mute) : micIconForMute(device.mute);
+    kind === "sink"
+      ? speakerIconForPercentAndMute(vol, device.mute)
+      : micIconForMute(device.mute);
   const title = displayNameForDevice(device);
-  const subtitle = isDefault ? "Default" : "";
+
+  const typeLabel = kind === "sink" ? "Output" : "Input";
 
   async function setAsDefault(): Promise<void> {
     try {
-      if (kind === "sink") await pactl.setDefaultSink(device.name);
-      else await pactl.setDefaultSource(device.name);
+      await pactl.setDefaultDevice(device.name, kind);
       await showToast({
         style: Toast.Style.Success,
-        title: kind === "sink" ? "Default output updated" : "Default input updated",
+        title: `Default ${typeLabel.toLowerCase()} updated`,
         message: title,
       });
       await refresh();
     } catch (e) {
       await showErrorToast({
-        title: kind === "sink" ? "Failed to set default output" : "Failed to set default input",
+        title: `Failed to set default ${typeLabel.toLowerCase()}`,
         error: e,
       });
     }
@@ -46,8 +56,7 @@ export function AudioDeviceItem(props: {
 
   async function toggleMute(): Promise<void> {
     try {
-      if (kind === "sink") await pactl.setSinkMute(device.name, "toggle");
-      else await pactl.setSourceMute(device.name, "toggle");
+      await pactl.setDeviceMute(device.name, kind, "toggle");
       await refresh();
     } catch (e) {
       await showErrorToast({ title: "Failed to toggle mute", error: e });
@@ -57,8 +66,7 @@ export function AudioDeviceItem(props: {
   async function setVolume(next: number): Promise<void> {
     try {
       const safe = clamp(next, 0, 150);
-      if (kind === "sink") await pactl.setSinkVolume(device.name, safe);
-      else await pactl.setSourceVolume(device.name, safe);
+      await pactl.setDeviceVolume(device.name, safe, kind);
       await refresh();
     } catch (e) {
       await showErrorToast({ title: "Failed to change volume", error: e });
@@ -70,33 +78,20 @@ export function AudioDeviceItem(props: {
       <ActionPanel.Section title="Device">
         {!isDefault ? (
           <Action
-            title={kind === "sink" ? "Set as Default Output" : "Set as Default Input"}
+            title={`Set as Default ${typeLabel}`}
             icon={Icon.CheckCircle}
             onAction={setAsDefault}
           />
         ) : null}
         <Action
-          title={
-            kind === "sink"
-              ? device.mute
-                ? "Unmute Output"
-                : "Mute Output"
-              : device.mute
-                ? "Unmute Input"
-                : "Mute Input"
-          }
-          icon={
-            kind === "sink"
-              ? device.mute
-                ? Icon.SpeakerOn
-                : Icon.SpeakerOff
-              : device.mute
-                ? Icon.Microphone
-                : Icon.MicrophoneDisabled
-          }
+          title={device.mute ? `Unmute ${typeLabel}` : `Mute ${typeLabel}`}
+          icon={icon}
           onAction={toggleMute}
         />
-        <Action.CopyToClipboard title="Copy Device Name" content={device.name} />
+        <Action.CopyToClipboard
+          title="Copy Device Name"
+          content={device.name}
+        />
         <Action
           shortcut={detailsShortcut}
           title="Toggle Details"
@@ -105,14 +100,23 @@ export function AudioDeviceItem(props: {
         />
       </ActionPanel.Section>
       <ActionPanel.Section title="Volume">
-        <Action title="Increase Volume (+5%)" icon={Icon.SpeakerUp} onAction={() => setVolume((vol ?? 0) + 5)} />
-        <Action title="Decrease Volume (-5%)" icon={Icon.SpeakerDown} onAction={() => setVolume((vol ?? 0) - 5)} />
+        <Action
+          title="Increase Volume (+5%)"
+          icon={Icon.SpeakerUp}
+          onAction={() => setVolume((vol ?? 0) + 5)}
+        />
+        <Action
+          title="Decrease Volume (-5%)"
+          icon={Icon.SpeakerDown}
+          onAction={() => setVolume((vol ?? 0) - 5)}
+        />
         <Action.Push
           title="Set Volume…"
           icon={Icon.Gauge}
           target={
             <SetVolumeForm
               kind={kind}
+              type="device"
               deviceName={device.name}
               deviceTitle={title}
               currentPercent={vol}
@@ -122,7 +126,14 @@ export function AudioDeviceItem(props: {
         />
       </ActionPanel.Section>
       <ActionPanel.Section title="Other">
-        <Action title="Refresh" icon={Icon.ArrowClockwise} shortcut={refreshShortcut} onAction={refresh} />
+        <Action
+          title="Refresh"
+          icon={Icon.ArrowClockwise}
+          shortcut={
+            Keyboard.Shortcut.Common.Refresh as Keyboard.Shortcut.Common
+          }
+          onAction={refresh}
+        />
       </ActionPanel.Section>
     </ActionPanel>
   );
@@ -130,14 +141,22 @@ export function AudioDeviceItem(props: {
   return (
     <List.Item
       title={title}
-      subtitle={subtitle}
       icon={icon}
-      accessories={deviceAccessories({ isDefault, muted: device.mute, volumePercent: vol })}
-      detail={<DeviceDetail kind={kind} device={device} isDefault={isDefault} volumePercent={vol} />}
+      accessories={deviceAccessories({
+        isDefault,
+        muted: device.mute,
+        volumePercent: vol,
+      })}
+      detail={
+        <AudioDeviceDetail
+          kind={kind}
+          device={device}
+          isDefault={isDefault}
+          volumePercent={vol}
+        />
+      }
       actions={actions}
       keywords={[device.name, device.description ?? ""]}
     />
   );
 }
-
-
