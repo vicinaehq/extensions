@@ -26,9 +26,15 @@ This command needs a project directory and should be launched from the terminal 
 ## Suggested aliases for ~/.bashrc
 
 \`\`\`bash
-alias npmi='vicinae "${INSTALL_DEEPLINK}"'
-alias npmr='vicinae "${UNINSTALL_DEEPLINK}"'
-alias npmu='vicinae "${UPDATE_DEEPLINK}"'
+npmi() {
+    vicinae 'vicinae://extensions/FredrikMWold/npm-manager/npm-install?arguments={"pwd":"'"$(pwd)"'"}'
+}
+npmr() {
+    vicinae 'vicinae://extensions/FredrikMWold/npm-manager/npm-uninstall?arguments={"pwd":"'"$(pwd)"'"}'
+}
+npmu() {
+    vicinae 'vicinae://extensions/FredrikMWold/npm-manager/npm-update?arguments={"pwd":"'"$(pwd)"'"}'
+}
 \`\`\``}
     />
   );

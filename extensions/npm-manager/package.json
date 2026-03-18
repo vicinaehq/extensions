@@ -12,23 +12,23 @@
   "commands": [
     {
       "name": "npm-install",
-      "title": "Npm install",
-      "subtitle": "Npm install",
-      "description": "Npm install",
+      "title": "Install project packages",
+      "subtitle": "Install project packages",
+      "description": "Install project packages",
       "mode": "view"
     },
     {
       "name": "npm-uninstall",
-      "title": "Npm uninstall",
-      "subtitle": "Npm uninstall",
-      "description": "Npm uninstall",
+      "title": "Uninstall project packages",
+      "subtitle": "Uninstall project packages",
+      "description": "Uninstall project packages",
       "mode": "view"
     },
     {
       "name": "npm-update",
-      "title": "Npm update",
-      "subtitle": "Npm update",
-      "description": "Npm update",
+      "title": "Update project packages",
+      "subtitle": "Update project packages",
+      "description": "Update project packages",
       "mode": "view"
     }
   ],
