@@ -1,4 +1,4 @@
-import { compareVersions } from "compare-versions";
+import semver from "semver";
 
 export const fetchPackageMetadata = async (
   packageName: string,
@@ -14,10 +14,12 @@ export const fetchPackageMetadata = async (
   const data = (await res.json()) as Response;
 
   const latestVersion = data["dist-tags"].latest;
-  let hasUpdate = false;
-  try {
-    hasUpdate = compareVersions(latestVersion, version) > 0;
-  } catch (error) {}
+  const latestSemver = semver.coerce(latestVersion);
+  const currentSemver = semver.coerce(version);
+  const hasUpdate =
+    latestSemver !== null &&
+    currentSemver !== null &&
+    semver.gt(latestSemver, currentSemver);
 
   return {
     name: data.name,
