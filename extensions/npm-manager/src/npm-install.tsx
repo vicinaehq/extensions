@@ -4,6 +4,7 @@ import { useNpmSeach, type NPMPackage } from "./hooks/useNpmSeach";
 import { NpmErrorDetails } from "./components/NpmErrorDetails";
 import { NpmTerminalUsageDetails } from "./components/NpmTerminalUsageDetails";
 import { useInstallPackages } from "./hooks/useInstallPackages";
+import { PackageDetails } from "./components/PackageDetails";
 
 export default function NpmInstall(props: {
   arguments?: {
@@ -23,7 +24,11 @@ export default function NpmInstall(props: {
     clearError,
     npmCommand,
   } = useInstallPackages(pwd);
-  const { loading, npmPackages } = useNpmSeach(query, project);
+  const { loading, data } = useNpmSeach(query);
+  const npmPackages = data.map((pkg) => ({
+    ...pkg,
+    installed: project.dependencies.some((dep) => dep.name === pkg.name),
+  }));
   const isSelectedDependency = (pkgName: string) =>
     selectedDependencies.some((selected) => selected.name === pkgName);
 
@@ -107,6 +112,10 @@ const PackageListItem = ({
       icon={selected ? Icon.CheckCircle : Icon.Circle}
       accessories={[
         {
+          icon: Icon.Download,
+          text: pkg.weeklyDownloads?.toLocaleString(),
+        },
+        {
           text: {
             color: Color.Blue,
             value: pkg.version,
@@ -138,42 +147,6 @@ const PackageListItem = ({
             />
           </ActionPanel.Section>
         </ActionPanel>
-      }
-    />
-  );
-};
-
-const PackageDetails = ({ pkg }: { pkg: NPMPackage }) => {
-  return (
-    <List.Item.Detail
-      markdown={pkg.description}
-      metadata={
-        <List.Item.Detail.Metadata>
-          <List.Item.Detail.Metadata.Label
-            title="Package name"
-            text={pkg.name}
-          />
-          <List.Item.Detail.Metadata.Label title="Version" text={pkg.version} />
-          <List.Item.Detail.Metadata.Label
-            title="Weekly Downloads"
-            text={pkg.weeklyDownloads?.toLocaleString()}
-          />
-          {pkg.license && (
-            <List.Item.Detail.Metadata.Label
-              title="License"
-              text={pkg.license}
-            />
-          )}
-          <List.Item.Detail.Metadata.Separator />
-          <List.Item.Detail.Metadata.Label
-            title="Publisher name"
-            text={pkg.publisher.username}
-          />
-          <List.Item.Detail.Metadata.Label
-            title="Publisher email"
-            text={pkg.publisher.email}
-          />
-        </List.Item.Detail.Metadata>
       }
     />
   );

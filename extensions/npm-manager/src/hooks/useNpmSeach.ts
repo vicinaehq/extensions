@@ -2,14 +2,14 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { useState, useEffect } from "react";
 import type { NPMProject } from "../types";
 
-export const useNpmSeach = (query: string, project: NPMProject) => {
-  const [npmPackages, setNpmPackages] = useState<NPMPackage[]>([]);
+export const useNpmSeach = (query: string) => {
+  const [data, setData] = useState<NPMPackage[]>([]);
   const [loading, setLoading] = useState(false);
   const debouncedSearchTerm = useDebounce(query, 300);
 
   useEffect(() => {
     const abortController = new AbortController();
-    if (!debouncedSearchTerm) return setNpmPackages([]);
+    if (!debouncedSearchTerm) return setData([]);
 
     const getPackages = async () => {
       setLoading(true);
@@ -34,12 +34,9 @@ export const useNpmSeach = (query: string, project: NPMProject) => {
           username: obj.package.publisher?.username ?? "Unknown",
           email: obj.package.publisher?.email ?? "Unknown",
         },
-        installed: !!project.dependencies.some(
-          (dep) => dep.name === obj.package.name,
-        ),
       }));
 
-      setNpmPackages(packages);
+      setData(packages);
     };
 
     getPackages();
@@ -47,8 +44,8 @@ export const useNpmSeach = (query: string, project: NPMProject) => {
     return () => {
       abortController.abort();
     };
-  }, [debouncedSearchTerm, project]);
-  return { npmPackages, loading };
+  }, [debouncedSearchTerm]);
+  return { data, loading };
 };
 
 type NPMApiResponse = {
@@ -75,7 +72,6 @@ export type NPMPackage = {
   version: string;
   newVersion?: string;
   description: string;
-  installed?: boolean;
   hasUpdate?: boolean;
   dev?: boolean;
   license?: string;

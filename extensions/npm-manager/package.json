@@ -30,6 +30,13 @@
       "subtitle": "Update project packages",
       "description": "Update project packages",
       "mode": "view"
+    },
+    {
+      "name": "npm-search",
+      "title": "Search packages",
+      "subtitle": "Search packages",
+      "description": "Search packages",
+      "mode": "view"
     }
   ],
   "preferences": [],
