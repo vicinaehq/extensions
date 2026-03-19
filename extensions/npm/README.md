@@ -27,14 +27,14 @@ If `pwd` is missing, the command shows an in-app detail view with deeplink examp
 
 ### Deeplinks
 
-- `vicinae://extensions/FredrikMWold/npm-manager/npm-install`
-- `vicinae://extensions/FredrikMWold/npm-manager/npm-uninstall`
-- `vicinae://extensions/FredrikMWold/npm-manager/npm-update`
+- `vicinae://extensions/FredrikMWold/npm/npm-install`
+- `vicinae://extensions/FredrikMWold/npm/npm-uninstall`
+- `vicinae://extensions/FredrikMWold/npm/npm-update`
 
 ### Recommended aliases (`~/.bashrc`)
 
 ```bash
-alias npmi='vicinae "vicinae://extensions/FredrikMWold/npm-manager/npm-install?arguments={\"pwd\":\"$(pwd)\"}"'
-alias npmr='vicinae "vicinae://extensions/FredrikMWold/npm-manager/npm-uninstall?arguments={\"pwd\":\"$(pwd)\"}"'
-alias npmu='vicinae "vicinae://extensions/FredrikMWold/npm-manager/npm-update?arguments={\"pwd\":\"$(pwd)\"}"'
+alias npmi='vicinae "vicinae://extensions/FredrikMWold/npm/npm-install?arguments={\"pwd\":\"$(pwd)\"}"'
+alias npmr='vicinae "vicinae://extensions/FredrikMWold/npm/npm-uninstall?arguments={\"pwd\":\"$(pwd)\"}"'
+alias npmu='vicinae "vicinae://extensions/FredrikMWold/npm/npm-update?arguments={\"pwd\":\"$(pwd)\"}"'
 ```

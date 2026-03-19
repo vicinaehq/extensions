@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-  "name": "npm-manager",
-  "title": "NPM Manager",
-  "description": "An extension to manage npm packages in a project",
+  "name": "npm",
+  "title": "NPM",
+  "description": "An extenstion to manage npm packages",
   "categories": [],
   "license": "MIT",
   "author": "FredrikMWold",
