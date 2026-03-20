@@ -18,6 +18,7 @@ export const loadFromCache = async (
 ): Promise<{
   eventsByDate: Record<string, VEvent[]>;
   eventCalendars: Record<string, string>;
+  lastRefresh: Date;
 } | null> => {
   try {
     const cached = await LocalStorage.getItem(CACHE_KEY);
@@ -29,6 +30,7 @@ export const loadFromCache = async (
         return {
           eventsByDate: cacheData.eventsByDate,
           eventCalendars: cacheData.eventCalendars,
+          lastRefresh: new Date(cacheData.timestamp),
         };
       }
     }

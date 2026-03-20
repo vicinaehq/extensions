@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { LocalStorage, showToast, Toast } from "@vicinae/api";
 import { parseICS } from "node-ical";
 import type { VEvent } from "node-ical";
@@ -23,32 +23,19 @@ export function useCalendarData(refreshInterval: number) {
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [refetchTrigger, setRefetchTrigger] = useState<number>(0);
+  const [eventCalendars, setEventCalendars] = useState(new Map<string, string>());
 
-  const eventCalendarsRef = useRef(new Map<string, string>());
-
-  const fetchCalendarData = async (forceRefresh = false) => {
+  const refreshFromNetwork = async (showLoading = false) => {
     if (calendars.length === 0) {
       setEventsByDate({});
       setIsLoading(false);
       return;
     }
 
-    if (!forceRefresh) {
-      const cached = await loadFromCache(calendars);
-      if (cached) {
-        setEventsByDate(cached.eventsByDate);
-        eventCalendarsRef.current.clear();
-        for (const [key, value] of Object.entries(cached.eventCalendars)) {
-          eventCalendarsRef.current.set(key, value);
-        }
-        setIsLoading(false);
-        return;
-      }
-    }
+    if (showLoading) setIsLoading(true);
 
-    setIsLoading(true);
     const allEvents: VEvent[] = [];
-    eventCalendarsRef.current.clear();
+    const newEventCalendars = new Map<string, string>();
 
     try {
       for (const calendar of calendars) {
@@ -93,15 +80,12 @@ export function useCalendarData(refreshInterval: number) {
                   };
 
                   allEvents.push(occurrenceEvent as VEvent);
-                  eventCalendarsRef.current.set(
-                    occurrenceEvent.uid,
-                    calendar.url,
-                  );
+                  newEventCalendars.set(occurrenceEvent.uid, calendar.url);
                 }
               } else {
                 if (isFutureEvent(item)) {
                   allEvents.push(item);
-                  eventCalendarsRef.current.set(item.uid, calendar.url);
+                  newEventCalendars.set(item.uid, calendar.url);
                 }
               }
             }
@@ -125,9 +109,10 @@ export function useCalendarData(refreshInterval: number) {
       const grouped = groupEventsByDate(sortedEvents);
 
       setEventsByDate(grouped);
+      setEventCalendars(newEventCalendars);
       setLastRefresh(new Date());
 
-      await saveToCache(grouped, calendars, eventCalendarsRef.current);
+      await saveToCache(grouped, calendars, newEventCalendars);
     } catch (error) {
       console.error("Failed to fetch calendar data:", error);
       showToast({
@@ -140,13 +125,57 @@ export function useCalendarData(refreshInterval: number) {
     }
   };
 
-  useEffect(() => {
-    fetchCalendarData();
+  // Returns the effective lastRefresh time after initialization:
+  // either the cache timestamp (if fresh) or now (if a network refresh was performed).
+  const loadCacheAndRefresh = async (): Promise<Date> => {
+    if (calendars.length === 0) {
+      setEventsByDate({});
+      setIsLoading(false);
+      return new Date();
+    }
 
-    const interval = setInterval(
-      () => fetchCalendarData(false),
-      refreshInterval * 60 * 1000,
-    );
+    const cached = await loadFromCache(calendars);
+    if (cached) {
+      const cachedEventCalendars = new Map<string, string>(
+        Object.entries(cached.eventCalendars),
+      );
+      setEventsByDate(cached.eventsByDate);
+      setEventCalendars(cachedEventCalendars);
+      setLastRefresh(cached.lastRefresh);
+      setIsLoading(false);
+    }
+
+    // Only refresh from network if cache is missing or stale.
+    const cacheAge = cached ? Date.now() - cached.lastRefresh.getTime() : Infinity;
+    const refreshIntervalMs = refreshInterval * 60 * 1000;
+    if (cacheAge >= refreshIntervalMs) {
+      await refreshFromNetwork(cached === null);
+      return new Date();
+    }
+
+    return cached!.lastRefresh;
+  };
+
+  useEffect(() => {
+    const refreshIntervalMs = refreshInterval * 60 * 1000;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const startInterval = () => {
+      intervalId = setInterval(() => refreshFromNetwork(false), refreshIntervalMs);
+    };
+
+    loadCacheAndRefresh().then((lastRefreshTime) => {
+      // Schedule the first refresh to fire at the right time relative to the
+      // last successful fetch, not relative to when the extension was opened.
+      const elapsed = Date.now() - lastRefreshTime.getTime();
+      const delay = Math.max(0, refreshIntervalMs - elapsed);
+
+      timeoutId = setTimeout(() => {
+        refreshFromNetwork(false);
+        startInterval();
+      }, delay);
+    });
 
     const cacheCheckInterval = setInterval(() => {
       const currentCalendars = getCalendars();
@@ -158,7 +187,8 @@ export function useCalendarData(refreshInterval: number) {
     }, 2000);
 
     return () => {
-      clearInterval(interval);
+      if (timeoutId) clearTimeout(timeoutId);
+      if (intervalId) clearInterval(intervalId);
       clearInterval(cacheCheckInterval);
     };
   }, [refreshInterval, refetchTrigger]);
@@ -169,7 +199,7 @@ export function useCalendarData(refreshInterval: number) {
     eventsByDate,
     isLoading,
     lastRefresh,
-    eventCalendarsRef,
-    refetch: () => fetchCalendarData(true),
+    eventCalendars,
+    refetch: () => refreshFromNetwork(true),
   };
 }

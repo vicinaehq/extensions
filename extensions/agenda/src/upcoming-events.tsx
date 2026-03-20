@@ -6,7 +6,7 @@ import { UpcomingEvents } from "./components/UpcomingEvents";
 export default function Command() {
   const { refreshInterval } = usePreferences();
 
-  const { calendars, eventsByDate, isLoading, lastRefresh, eventCalendarsRef } =
+  const { calendars, eventsByDate, isLoading, lastRefresh, eventCalendars } =
     useCalendarData(refreshInterval);
 
   const { selectedCalendar, setSelectedCalendar } =
@@ -20,7 +20,7 @@ export default function Command() {
       lastRefresh={lastRefresh}
       selectedCalendar={selectedCalendar}
       onCalendarChange={setSelectedCalendar}
-      eventCalendars={eventCalendarsRef.current}
+      eventCalendars={eventCalendars}
     />
   );
 }

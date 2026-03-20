@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { validateCache, buildCacheData, CacheData } from "./cacheValidation";
-import { CACHE_DURATION, CACHE_VERSION } from "./constants";
+import { CACHE_VERSION } from "./constants";
 
 describe("cacheValidation", () => {
   describe("validateCache", () => {
@@ -47,11 +47,6 @@ describe("cacheValidation", () => {
         cacheData: { cacheVersion: CACHE_VERSION + 1 },
         expectedReason: "version mismatch",
       },
-      {
-        scenario: "expired",
-        cacheData: { timestamp: Date.now() - CACHE_DURATION - 1000 },
-        expectedReason: "expired",
-      },
     ])("given cache with $scenario", ({ cacheData, expectedReason }) => {
       it(`then returns invalid with reason "${expectedReason}"`, () => {
         const result = validateCache(
@@ -63,28 +58,12 @@ describe("cacheValidation", () => {
       });
     });
 
-    describe("given cache at exact expiration boundary", () => {
-      const now = Date.now();
-      const boundaryTimestamp = now - CACHE_DURATION;
-      const cacheData = { ...validCacheData, timestamp: boundaryTimestamp };
+    describe("given a very old cache with matching calendars", () => {
+      const oldCacheData = { ...validCacheData, timestamp: 0 };
 
       describe("when validating", () => {
-        it("then returns invalid (exclusive boundary)", () => {
-          const result = validateCache(cacheData, validCalendars as any, now);
-          expect(result.valid).toBe(false);
-          expect(result.reason).toBe("expired");
-        });
-      });
-    });
-
-    describe("given cache just before expiration", () => {
-      const now = Date.now();
-      const justBeforeExpiry = now - CACHE_DURATION + 1;
-      const cacheData = { ...validCacheData, timestamp: justBeforeExpiry };
-
-      describe("when validating", () => {
-        it("then returns valid", () => {
-          const result = validateCache(cacheData, validCalendars as any, now);
+        it("then returns valid (cache does not expire by time)", () => {
+          const result = validateCache(oldCacheData, validCalendars as any);
           expect(result.valid).toBe(true);
         });
       });
