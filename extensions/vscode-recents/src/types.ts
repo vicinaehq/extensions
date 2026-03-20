@@ -38,6 +38,7 @@ export interface VSCodeRecentData {
 }
 
 export enum VSCodeFlavour {
+    Antigravity = "Antigravity",
     Code = "Code",
     Cursor = "Cursor",
     VSCodium = "VSCodium",
@@ -53,6 +54,7 @@ export enum WindowPreference {
 export interface Preferences {
     vscodeFlavour: VSCodeFlavour;
     windowPreference: WindowPreference;
+    databaseBackend: "sqlite3" | "sqljs";
 }
 
 export interface DatabaseRow {
