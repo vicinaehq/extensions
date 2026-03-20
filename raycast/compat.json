@@ -1,0 +1,605 @@
+{
+  "translate": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "spotify-player": {
+    "status": "partial",
+    "confidence": "confirmed",
+    "needs_patch": true,
+    "notes": ["playback only works with a premium account"]
+  },
+  "visual-studio-code": {
+    "status": "full",
+    "confidence": "confirmed",
+    "needs_patch": true,
+    "notes": ["Recent Projects doesn't work due to hardcoded macos paths"]
+  },
+  "chatgpt": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "linear": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["some forms may trigger render loops"]
+  },
+  "arc": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "notion": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "github": {
+    "status": "partial",
+    "confidence": "probed"
+  },
+  "speedtest": {
+    "status": "full",
+    "confidence": "confirmed",
+    "needs_patch": true,
+    "notes": ["requires manually downloading speedtest cli to extension support dir"]
+  },
+  "obsidian": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "apple-notes": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript", "hardcoded MacOS paths to db"]
+  },
+  "google-search": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "raycast-system-monitor": {
+    "status": "partial",
+    "confidence": "confirmed",
+    "notes": ["depends on MacOS programs", "Memory, Power, Network don't work"]
+  },
+  "pomodoro": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["requires menu bar support", "timer doesn't work"]
+  },
+  "coffee": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["depends on `caffinate` program"]
+  },
+  "timers": {
+    "status": "partial",
+    "confidence": "confirmed",
+    "notes": ["depends on macos program: afplay", "requires menu bar support", "timers need https://github.com/ThatNerdSquared/timers-for-raycast/issues/42"]
+  },
+  "youtube": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["grid shows only 1 column"]
+  },
+  "cleanshotx": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["MacOS only app"]
+  },
+  "video-downloader": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "apple-reminders": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["swift code"]
+  },
+  "music": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "lorem-ipsum": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "zoom": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "json-format": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["may have a form infinite refresh bug"]
+  },
+  "gif-search": {
+    "status": "full",
+    "confidence": "confirmed",
+    "notes": []
+  },
+  "todoist": {
+    "status": "partial",
+    "confidence": "probed"
+  },
+  "emoji": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "tailwindcss": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "deepcast": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["translation works but loading hangs"]
+  },
+  "remove-paywall": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "audio-device": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["macos only", "ships with native binary"]
+  },
+  "downloads-manager": {
+    "status": "full",
+    "confidence": "confirmed",
+    "notes": ["downloads path input shows file picker instead of dir picker"]
+  },
+  "shell": {
+    "status": "full",
+    "confidence": "confirmed",
+    "notes": ["cannot open in external terminal", "applescript"]
+  },
+  "jira": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["nested actions not working"]
+  },
+  "perplexity": {
+    "status": "nothing",
+    "confidence": "probed",
+    "notes": ["preference default value issue", "perplexityApp dependency"]
+  },
+  "vscode-project-manager": {
+    "status": "full",
+    "confidence": "confirmed",
+    "needs_patch": true,
+    "notes": ["hardcoded paths"]
+  },
+  "browser-bookmarks": {
+    "status": "partial",
+    "confidence": "confirmed",
+    "needs_patch": true,
+    "notes": ["hardcoded MacOS paths, not blocking"]
+  },
+  "sips": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["MacOS programs", "applescript"]
+  },
+  "safari": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["macos only"]
+  },
+  "toothpick": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript/blueutil"]
+  },
+  "spotify-controls": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "has_equivalent": true,
+    "notes": ["applescript"]
+  },
+  "google-workspace": {
+    "status": "nothing",
+    "confidence": "probed",
+    "notes": ["oauth flow may not fully work"]
+  },
+  "ray-so": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "clean-keyboard": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["swift code"]
+  },
+  "port-manager": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "screenocr": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["depends on Apple VisionKit"]
+  },
+  "myip": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "folder-search": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "has_equivalent": true,
+    "notes": ["depends on Spotlight"]
+  },
+  "docker": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "figma-files-raycast-extension": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["grid shows only 1 column"]
+  },
+  "google-maps-search": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "quit-applications": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "wikipedia": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["Random page uses unsupported launchCommand"]
+  },
+  "cheatsheets": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "iterm": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["macos only app"]
+  },
+  "quick-event": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "things": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "messages": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "weather": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "mail": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "unsplash": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "base64": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "google-calendar": {
+    "status": "nothing",
+    "confidence": "probed",
+    "notes": ["oauth deeplink does not open in vicinae"]
+  },
+  "password-generator": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "raycast-explorer": {
+    "status": "partial",
+    "confidence": "confirmed",
+    "notes": ["themes not supported"]
+  },
+  "random": {
+    "status": "full",
+    "confidence": "confirmed",
+    "notes": ["shortcuts not working"]
+  },
+  "raycast-apple-intelligence": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["apple only"]
+  },
+  "installed-extensions": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "has_equivalent": true,
+    "notes": ["reads from raycast directory"]
+  },
+  "google-meet": {
+    "status": "partial",
+    "confidence": "confirmed",
+    "notes": ["copy to clipboard requires applescript"]
+  },
+  "svgl": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "ruler": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["swift code"]
+  },
+  "uuid-generator": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "word-count": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["text input moves cursor to start of field on every key press"]
+  },
+  "unix-timestamp": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "qrcode-generator": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "amphetamine": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "google-fonts": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "screenshot": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["depends on `screencapture` program"]
+  },
+  "curl": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["adding parameters causes infinite loop"]
+  },
+  "word-search": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "iconify": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "search-npm": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "calendar": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "vim-bro": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "search-mdn": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "raycast-timezone-converter": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["submitting custom time view with dropdown focus crashes"]
+  },
+  "http-status-codes": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "diff-checker": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "hacker-news": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "ip-geolocation": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "unicode-symbols": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "jwt-decoder": {
+    "status": "partial",
+    "confidence": "confirmed",
+    "notes": ["decoded output doesn't display", "Qt SVG rendering issue"]
+  },
+  "brave": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "zen-browser": {
+    "status": "full",
+    "confidence": "confirmed",
+    "needs_patch": true,
+    "notes": ["hardcoded profile dir, needs linux paths"]
+  },
+  "meme-generator": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "regex-tester": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "url-tools": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "can-i-use": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "tailscale": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "url-shortener": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "year-in-progress": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "browser-history": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["opening links doesn't work"]
+  },
+  "cyberchef": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "snake": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["view scrolls unexpectedly, game unplayable"]
+  },
+  "tldr": {
+    "status": "full",
+    "confidence": "confirmed",
+    "notes": ["broken upstream, cannot fetch tldr pages"]
+  },
+  "devdocs": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "stackoverflow": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "network-speed": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "has_equivalent": true,
+    "notes": ["depends on macos program: networkQuality"]
+  },
+  "ghostty": {
+    "status": "impossible",
+    "confidence": "confirmed",
+    "notes": ["applescript"]
+  },
+  "thesaurus": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "cobalt": {
+    "status": "full",
+    "confidence": "confirmed",
+    "needs_patch": true,
+    "notes": ["must set download dir", "thumbnail generation requires applescript (optional)"]
+  },
+  "raycast-icons": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "steam": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "quick-notes": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["TypeError: Cannot read properties of undefined (reading 'length')"]
+  },
+  "placeholder": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "dad-jokes": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "whois": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["output formatting issues"]
+  },
+  "keepassxc": {
+    "status": "full",
+    "confidence": "confirmed",
+    "needs_patch": true,
+    "notes": ["hardcoded cli path", "crashes upon unlocking"]
+  },
+  "dig": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "tw-colorpicker": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["list icon colors not displayed"]
+  },
+  "fancy-text": {
+    "status": "partial",
+    "confidence": "probed",
+    "notes": ["openExtensionPreferences not supported"]
+  },
+  "gitignore": {
+    "status": "nothing",
+    "confidence": "probed",
+    "notes": ["unable to refresh"]
+  },
+  "get-ssh-key": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "raycast-svgo": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "xkcd": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "pokedex": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "sentry": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "protondb": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "steamgriddb": {
+    "status": "full",
+    "confidence": "confirmed"
+  },
+  "prism-launcher": {
+    "status": "nothing",
+    "confidence": "probed"
+  },
+  "modrinth-search": {
+    "status": "full",
+    "confidence": "confirmed"
+  }
+}

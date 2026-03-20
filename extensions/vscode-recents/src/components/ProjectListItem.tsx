@@ -17,7 +17,7 @@ function getProjectIcon(type: ProjectType): Icon {
         case ProjectType.File:
             return Icon.BlankDocument;
         default:
-            return Icon.QuestionMark;
+            return Icon.QuestionMarkCircle;
     }
 }
 

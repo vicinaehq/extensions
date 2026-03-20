@@ -20,7 +20,7 @@ export function ProjectListItem({ project, onRemove }: ProjectListItemProps) {
         accessories.push({ tag: { value: "Missing", color: Color.SecondaryText } });
     }
     if (project.remote) {
-        accessories.push({ tag: project.remote.kind, icon: Icon.Globe });
+        accessories.push({ tag: project.remote.kind, icon: Icon.Globe01 });
     }
 
     return (

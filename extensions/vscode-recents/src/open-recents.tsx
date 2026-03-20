@@ -79,7 +79,11 @@ export default function Command() {
                     ))}
                 </List.Section>
             )}
-            <List.EmptyView icon={Icon.Document} title="No Recent Projects Found" description="No recent VSCode projects available." />
+            <List.EmptyView
+                icon={Icon.BlankDocument}
+                title="No Recent Projects Found"
+                description="No recent VSCode projects available."
+            />
         </List>
     );
 }

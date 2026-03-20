@@ -1,0 +1,34 @@
+name: Vicinae Extension Issue
+description: Report an issue with a Vicinae native extension
+labels: ["vicinae"]
+body:
+  - type: input
+    id: extension-name
+    attributes:
+      label: Extension name
+      description: The exact directory name under `extensions/` in this repository
+      placeholder: e.g. bluetooth
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the issue you encountered
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the issue?
+
+  - type: input
+    id: vicinae-version
+    attributes:
+      label: Vicinae version
+      placeholder: e.g. 0.5.2
+    validations:
+      required: true
