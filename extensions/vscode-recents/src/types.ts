@@ -54,6 +54,7 @@ export enum WindowPreference {
 export interface Preferences {
     vscodeFlavour: VSCodeFlavour;
     windowPreference: WindowPreference;
+    databaseBackend: "sqlite3" | "sqljs";
 }
 
 export interface DatabaseRow {

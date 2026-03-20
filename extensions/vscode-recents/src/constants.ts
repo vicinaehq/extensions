@@ -1,4 +1,7 @@
 export const RECENT_PROJECTS_KEY = "history.recentlyOpenedPathsList";
+export const RECENT_PROJECTS_QUERY = `SELECT key, value FROM ItemTable WHERE key = '${RECENT_PROJECTS_KEY}'`;
+
+export const SQL_WASM_PATH = "assets/sql-wasm.wasm";
 
 export const SQLITE3_BINARY = process.platform === "win32" ? "sqlite3.exe" : "sqlite3";
 

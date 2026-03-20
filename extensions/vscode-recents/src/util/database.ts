@@ -1,59 +1,35 @@
-import { execFile } from "node:child_process";
-import { mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
-import { promisify } from "node:util";
-import { RECENT_PROJECTS_KEY, SQLITE3_BINARY } from "../constants";
+import { getPreferenceValues } from "@vicinae/api";
+import { RECENT_PROJECTS_KEY } from "../constants";
 import { getVSCodeStateDBPath } from "../helpers";
-import type { DatabaseRow } from "../types";
-
-const execFileAsync = promisify(execFile);
-
-interface CacheEntry {
-    rows: DatabaseRow[];
-    dbPath: string;
-    mtime: number;
-}
-
-let cache: CacheEntry | null = null;
-
-async function runSqlite3(dbPath: string, sql: string): Promise<string> {
-    const { stdout } = await execFileAsync(SQLITE3_BINARY, ["-batch", "-noheader", dbPath, sql]);
-    return stdout;
-}
+import type { DatabaseRow, Preferences } from "../types";
+import { clearQueryCache, getRecentsDatabaseStrategy, isSqlite3BinaryNotFound, SQLITE3_NOT_FOUND_MESSAGE } from "./db";
 
 export async function queryRecentProjects(): Promise<DatabaseRow[]> {
     const dbPath = getVSCodeStateDBPath();
-    const mtime = statSync(dbPath).mtimeMs;
-
-    if (cache && cache.dbPath === dbPath && cache.mtime === mtime) {
-        return cache.rows;
-    }
+    const { databaseBackend } = getPreferenceValues<Preferences>();
+    const strategy = getRecentsDatabaseStrategy(databaseBackend);
 
     try {
-        const sql = `SELECT key, value FROM ItemTable WHERE key = '${RECENT_PROJECTS_KEY}'`;
-        const stdout = await runSqlite3(dbPath, sql);
-        const trimmed = stdout.trim();
-        if (!trimmed) {
-            cache = { rows: [], dbPath, mtime };
-            return [];
-        }
-        const pipeIdx = trimmed.indexOf("|");
-        const value = pipeIdx >= 0 ? trimmed.slice(pipeIdx + 1) : trimmed;
-        const rows: DatabaseRow[] = value ? [{ key: RECENT_PROJECTS_KEY, value }] : [];
-        cache = { rows, dbPath, mtime };
-        return rows;
+        return await strategy.queryRecentProjects(dbPath);
     } catch (error) {
-        throw new Error(
-            `Failed to query recents. Ensure sqlite3 is installed (e.g. sudo apt install sqlite3). ${(error as Error).message}`,
-        );
+        if (strategy.backendId === "sqlite3" && isSqlite3BinaryNotFound(error)) {
+            throw new Error(SQLITE3_NOT_FOUND_MESSAGE);
+        }
+        if (strategy.backendId === "sqlite3") {
+            throw new Error(
+                `Failed to query recents. Ensure sqlite3 is installed (e.g. sudo apt install sqlite3). ${(error as Error).message}`,
+            );
+        }
+        throw error;
     }
 }
 
 export async function removeRecentProject(projectPath: string): Promise<void> {
     const dbPath = getVSCodeStateDBPath();
-    const rows = await queryRecentProjects();
+    const { databaseBackend } = getPreferenceValues<Preferences>();
+    const strategy = getRecentsDatabaseStrategy(databaseBackend);
 
+    const rows = await queryRecentProjects();
     const row = rows.find((r) => r.key === RECENT_PROJECTS_KEY);
     if (!row?.value) {
         throw new Error("No recent projects data found");
@@ -67,6 +43,7 @@ export async function removeRecentProject(projectPath: string): Promise<void> {
     }
 
     const originalLength = recentData.entries.length;
+
     recentData.entries = recentData.entries.filter((entry) => {
         const entryPath = entry.folderUri || entry.workspace?.configPath || entry.fileUri || "";
         const decodedPath = decodeURIComponent(entryPath.replace(/^file:\/\//, ""));
@@ -79,20 +56,16 @@ export async function removeRecentProject(projectPath: string): Promise<void> {
     }
 
     const updatedValue = JSON.stringify(recentData);
-    const escapedValue = updatedValue.replace(/'/g, "''");
-    const sql = `UPDATE ItemTable SET value = '${escapedValue}' WHERE key = '${RECENT_PROJECTS_KEY}'`;
 
-    const tmpDir = mkdtempSync(path.join(tmpdir(), "vscode-recents-"));
-    const sqlPath = path.join(tmpDir, "update.sql");
     try {
-        writeFileSync(sqlPath, sql, "utf8");
-        await execFileAsync(SQLITE3_BINARY, [dbPath, `.read ${sqlPath}`]);
-        cache = null;
-    } finally {
-        try {
-            rmSync(tmpDir, { recursive: true });
-        } catch {
-            // ignore cleanup errors
+        await strategy.persistRecentsValue(dbPath, updatedValue);
+    } catch (error) {
+        if (strategy.backendId === "sqlite3" && isSqlite3BinaryNotFound(error)) {
+            throw new Error(SQLITE3_NOT_FOUND_MESSAGE);
         }
+        throw error;
     }
+
+    clearQueryCache();
+    console.log("[DEBUG] Removed project from recents:", projectPath);
 }

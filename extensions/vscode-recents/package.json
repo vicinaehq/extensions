@@ -72,6 +72,24 @@
                     "value": "Default"
                 }
             ]
+        },
+        {
+            "required": true,
+            "default": "sqljs",
+            "type": "dropdown",
+            "name": "databaseBackend",
+            "title": "Database Backend",
+            "description": "sqlite3 is faster but requires the system sqlite3 binary. sql.js works everywhere but may be slow on large databases.",
+            "data": [
+                {
+                    "title": "sqlite3 (faster, requires system binary)",
+                    "value": "sqlite3"
+                },
+                {
+                    "title": "sql.js (bundled, works everywhere)",
+                    "value": "sqljs"
+                }
+            ]
         }
     ],
     "scripts": {
@@ -81,10 +99,12 @@
         "lint": "vici lint"
     },
     "dependencies": {
-        "@vicinae/api": "^0.20.3"
+        "@vicinae/api": "^0.20.7",
+        "sql.js": "^1.14.1"
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.6",
+        "@types/sql.js": "^1.4.9",
         "typescript": "^5.9.2"
     }
 }
