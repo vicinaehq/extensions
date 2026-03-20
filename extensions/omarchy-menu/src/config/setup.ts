@@ -10,7 +10,7 @@ export const setup: MenuItem = {
     {
       id: "audio",
       name: "Audio",
-      icon: " ",
+      icon: "",
       command: "omarchy-launch-audio",
     },
     {
@@ -22,18 +22,18 @@ export const setup: MenuItem = {
     {
       id: "bluetooth",
       name: "Bluetooth",
-      icon: "󰂯 ",
+      icon: "󰂯",
       command: "omarchy-launch-bluetooth",
     },
     {
       id: "power",
       name: "Power",
-      icon: "󱐋 ",
+      icon: "󱐋",
       items: [
         {
           id: "performance",
           name: "Performance",
-          icon: "󰒓 ",
+          icon: "󰒓",
           command: "powerprofilesctl set performance",
         },
         {
@@ -45,7 +45,7 @@ export const setup: MenuItem = {
         {
           id: "power-saver",
           name: "Power Saver",
-          icon: "󰒕 ",
+          icon: "󰒕",
           command: "powerprofilesctl set power-saver",
         },
       ],
@@ -53,48 +53,48 @@ export const setup: MenuItem = {
     {
       id: "monitors",
       name: "Monitors",
-      icon: "󰍹 ",
+      icon: "󰍹",
       command: open_in_editor("~/.config/hypr/monitors.conf"),
     },
     {
       id: "keybindings",
       name: "Keybindings",
-      icon: " ",
+      icon: "",
       command: open_in_editor("~/.config/hypr/bindings.conf"),
     },
     {
       id: "input",
       name: "Input",
-      icon: " ",
+      icon: "",
       command: open_in_editor("~/.config/hypr/input.conf"),
     },
     {
       id: "defaults",
       name: "Defaults",
-      icon: " ",
+      icon: "",
       command: open_in_editor("~/.config/uwsm/default"),
     },
     {
       id: "dns",
       name: "DNS",
-      icon: "󰱔 ",
+      icon: "󰱔",
       command: present_terminal("omarchy-setup-dns"),
     },
     {
       id: "security",
       name: "Security",
-      icon: " ",
+      icon: "",
       items: [
         {
           id: "fingerprint",
           name: "Fingerprint",
-          icon: "󰈷 ",
+          icon: "󰈷",
           command: present_terminal("omarchy-setup-fingerprint"),
         },
         {
           id: "fido-2",
           name: "Fido2",
-          icon: " ",
+          icon: "",
           command: present_terminal("omarchy-setup-fido2"),
         },
       ],
@@ -102,18 +102,18 @@ export const setup: MenuItem = {
     {
       id: "config",
       name: "Config",
-      icon: " ",
+      icon: "",
       items: [
         {
           id: "hyperland",
           name: "Hyprland",
-          icon: " ",
+          icon: "",
           command: open_in_editor("~/.config/hypr/hyprland.conf"),
         },
         {
           id: "hypridle",
           name: "Hypridle",
-          icon: " ",
+          icon: "",
           command: open_in_editor(
             "~/.config/hypr/hypridle.conf && omarchy-restart-hypridle",
           ),
@@ -121,13 +121,13 @@ export const setup: MenuItem = {
         {
           id: "hyprlock",
           name: "Hyprlock",
-          icon: " ",
+          icon: "",
           command: open_in_editor("~/.config/hypr/hyprlock.conf"),
         },
         {
           id: "hyprsunset",
           name: "Hyprsunset",
-          icon: " ",
+          icon: "",
           command: open_in_editor(
             "~/.config/hypr/hyprsunset.conf && omarchy-restart-hyprsunset",
           ),
@@ -135,7 +135,7 @@ export const setup: MenuItem = {
         {
           id: "swayosd",
           name: "Swayosd",
-          icon: " ",
+          icon: "",
           command: open_in_editor(
             "~/.config/swayosd/config.toml && omarchy-restart-swayosd",
           ),
@@ -143,7 +143,7 @@ export const setup: MenuItem = {
         {
           id: "walker",
           name: "Walker",
-          icon: "󰌧 ",
+          icon: "󰌧",
           command: open_in_editor(
             "~/.config/walker/config.toml && omarchy-restart-walker",
           ),
@@ -151,7 +151,7 @@ export const setup: MenuItem = {
         {
           id: "waybar",
           name: "Waybar",
-          icon: "󰍜 ",
+          icon: "󰍜",
           command: open_in_editor(
             "~/.config/waybar/config.jsonc && omarchy-restart-waybar",
           ),
@@ -159,7 +159,7 @@ export const setup: MenuItem = {
         {
           id: "x-compose",
           name: "XCompose",
-          icon: "󰞅 ",
+          icon: "󰞅",
           command: open_in_editor("~/.XCompose && omarchy-restart-xcompose"),
         },
       ],

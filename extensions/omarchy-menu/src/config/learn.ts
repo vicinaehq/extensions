@@ -9,33 +9,33 @@ export const learn: MenuItem = {
     {
       id: "keybindings",
       name: "Keybindings",
-      icon: " ",
+      icon: "",
       command: "omarchy-menu-keybindings",
     },
     {
       id: "omarchy",
       name: "Omarchy",
-      icon: " ",
+      icon: "",
       command:
         'omarchy-launch-webapp "https://learn.omacom.io/2/the-omarchy-manual"',
     },
     {
       id: "hyprland",
       name: "Hyprland",
-      icon: " ",
+      icon: "",
       command: 'omarchy-launch-webapp "https://wiki.hypr.land/"',
     },
     {
       id: "arch",
       name: "Arch",
-      icon: "󰣇 ",
+      icon: "󰣇",
       command:
         'omarchy-launch-webapp "https://wiki.archlinux.org/title/Main_page"',
     },
     {
       id: "neovim",
       name: "Neovim",
-      icon: " ",
+      icon: "",
       command: 'omarchy-launch-webapp "https://www.lazyvim.org/keymaps"',
     },
     {
