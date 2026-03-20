@@ -1,76 +1,25 @@
 import {
-  List,
-  ActionPanel,
   Action,
-  useNavigation,
+  ActionPanel,
   closeMainWindow,
-  Detail,
+  List,
+  useNavigation,
 } from "@vicinae/api";
 import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { capitalize } from "./utils/capitalize";
 
-import { FLATTEND_MENU_ITEMS, MENU_ITEMS, MenuItem } from "./config/menu";
-import { noOmarchyEnv } from "~/config/error";
-import { useExec } from "@raycast/utils";
+import { OmarchyCheck } from "./components/OmarchyCheck";
+import { menu } from "./config/menu";
 import { useState } from "react";
-
-const findMenuItems = (
-  items: MenuItem[],
-  targetId: string,
-): MenuItem[] | undefined => {
-  for (const item of items) {
-    if (item.id === targetId) {
-      return item.items;
-    }
-    if (item.items && item.items.length > 0) {
-      const found = findMenuItems(item.items, targetId);
-      if (found) return found;
-    }
-  }
-  return undefined;
-};
+import { MenuItem } from "./config/types";
+import { flatten } from "./helpers/flatten";
 
 const Command = () => {
-  const { isLoading, error } = useExec(
-    "/bin/sh",
-    ["-c", "command -v omarchy-menu"],
-    {
-      execute: true,
-    },
-  );
-  const [query, setQuery] = useState("");
-  if (isLoading) return <List isLoading={true} />;
-  if (error) return <Detail markdown={noOmarchyEnv} />;
-
   return (
-    <List
-      navigationTitle="Omarchy Menu"
-      searchBarPlaceholder="Go..."
-      onSearchTextChange={setQuery}
-      filtering={true}
-    >
-      {query.trim() !== ""
-        ? // Show flattened list when searching
-          FLATTEND_MENU_ITEMS.map((item) => (
-            <List.Item
-              key={item.path + item.id}
-              accessories={[{ text: item.path }, { tag: item.icon }]}
-              keywords={[item.name, item.path]}
-              title={item.name}
-              actions={<ActionPanelCommand item={item} />}
-            />
-          ))
-        : // Show hierarchical list when not searching
-          MENU_ITEMS.map((item) => (
-            <List.Item
-              key={item.id}
-              title={item.name}
-              icon={item.icon}
-              actions={<ActionPanelCommand item={item} />}
-            />
-          ))}
-    </List>
+    <OmarchyCheck>
+      <DynamicList menu={menu} />
+    </OmarchyCheck>
   );
 };
 
@@ -96,67 +45,53 @@ const ActionPanelCommand = ({ item }: { item: MenuItem }) => {
       ) : (
         <Action
           title="Open"
-          onAction={() => push(<DynamicList menu={item.id} />)}
+          onAction={() => push(<DynamicList menu={item} />)}
         />
       )}
     </ActionPanel>
   );
 };
 
-const DynamicList = ({ menu }: { menu: string }) => {
-  const { push } = useNavigation();
-  const ITEMS = findMenuItems(MENU_ITEMS, menu);
-  const hasPreview = ITEMS?.some((i) => i.preview);
-
+export const DynamicList = ({ menu }: { menu: MenuItem }) => {
+  const hasPreview = menu.items?.some((i) => i.preview);
+  const [query, setQuery] = useState("");
+  console.log(menu);
   return (
     <List
-      navigationTitle={menu}
-      searchBarPlaceholder={`${capitalize(menu)}...`}
+      navigationTitle={`Omarchy ${menu.name}`}
+      searchBarPlaceholder={`${capitalize(menu.name)}...`}
       isShowingDetail={hasPreview}
+      onSearchTextChange={setQuery}
+      filtering={true}
     >
-      {ITEMS?.map((item) => {
-        if (item.command)
-          return (
-            <List.Item
-              key={item.name}
-              title={item.name}
-              accessories={[{ tag: item.icon }]}
-              detail={item.preview}
-              actions={
-                <ActionPanel title="Omarchy">
-                  <Action
-                    title="Open"
-                    onAction={async () => {
-                      await closeMainWindow();
-                      await delay(80);
-                      spawn(item.command ?? "", {
-                        shell: true,
-                        detached: true,
-                        stdio: "ignore",
-                      }).unref();
-                    }}
-                  />
-                </ActionPanel>
-              }
-            />
-          );
-
-        return (
-          <List.Item
-            key={item.name}
-            title={item.name}
-            accessories={[{ tag: item.icon }]}
-            actions={
-              <ActionPanel title="Omarchy">
-                <Action
-                  title="Open"
-                  onAction={() => push(<DynamicList menu={item.id} />)}
-                />
-              </ActionPanel>
-            }
-          />
-        );
-      })}
+      {query.trim() === ""
+        ? menu.items?.map((item) => {
+            return (
+              <List.Item
+                key={item.name}
+                title={item.name}
+                accessories={menu.icon ? [{ tag: item.icon }] : undefined}
+                icon={item.icon}
+                detail={item.preview}
+                actions={<ActionPanelCommand item={item} />}
+              />
+            );
+          })
+        : flatten(menu.items ?? []).map((item) => {
+            return (
+              <List.Item
+                key={item.path + item.id}
+                accessories={
+                  !menu.icon && item.path !== item.name
+                    ? [{ text: item.path }, { tag: item.icon }]
+                    : [{ text: item.path }]
+                }
+                keywords={[item.name, item.path]}
+                title={item.name}
+                actions={<ActionPanelCommand item={item} />}
+              />
+            );
+          })}
     </List>
   );
 };
