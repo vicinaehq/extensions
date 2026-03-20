@@ -1,4 +1,4 @@
-import { Action, ActionPanel, closeMainWindow, Icon, showInFileBrowser, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, closeMainWindow, Icon, showToast, Toast } from "@vicinae/api";
 import { VSCODE_FLAVOURS } from "../constants";
 import { ProjectEnvironment, type RecentProject, type VSCodeFlavour } from "../types";
 import { removeRecentProject } from "../util/database";
@@ -34,20 +34,17 @@ export function ProjectActions({ project, onRemove }: ProjectActionsProps) {
                 ))}
             </ActionPanel.Submenu>
             {project.environment === ProjectEnvironment.Local && (
-                <Action
+                <Action.ShowInFinder
                     icon={Icon.Folder}
-                    title="Show in File Manager"
-                    onAction={() => {
-                        closeMainWindow();
-                        showInFileBrowser(project.path);
-                    }}
-                    shortcut={{ modifiers: ["opt"], key: "enter" }}
+                    title="Show in file browser"
+                    path={project.path}
+                    shortcut={{ modifiers: ["shift"], key: "enter" }}
                 />
             )}
             <Action.CopyToClipboard
                 title="Copy Path"
                 content={project.path}
-                icon={Icon.Clipboard}
+                icon={Icon.CopyClipboard}
                 shortcut={{ modifiers: ["ctrl"], key: "c" }}
             />
             {onRemove && (
