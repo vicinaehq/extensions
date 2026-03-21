@@ -1,69 +1,41 @@
-# ProtonDB Search Extension
+# ProtonDB Search
 
-Search for Steam games and check their Linux compatibility ratings via ProtonDB directly from Vicinae.
+Search Steam games and check their Linux compatibility on ProtonDB directly in Vicinae.
 
 ## Features
 
-- **Real-time Steam Search**: Search the entire Steam catalog with instant results
-- **Featured Games**: Popular games displayed by default for quick access
-- **ProtonDB Ratings**: Automatically fetches compatibility ratings for each game
-- **Visual Tier Indicators**: Color-coded badges and emojis for quick compatibility assessment
-- **Detailed Preview**: View game details, description, and comprehensive ProtonDB statistics
-- **Comprehensive Actions**:
-  - Preview game details with ratings and description
-  - Open game on ProtonDB to see detailed compatibility reports
-  - Open game on Steam Store
-  - Copy ProtonDB URL
-  - Copy compatibility summary
+- Real-time Steam search with ProtonDB compatibility ratings
+- Featured games shown before you search
+- Detailed game view with Steam metadata, pricing, genres, and requirements
+- Persistent query cache so repeated opens load faster
+- Quick actions for ProtonDB, Steam Store, Steam app, and copy workflows
 
-## Compatibility Tiers
+## Actions
 
-Games are rated on ProtonDB based on community testing:
-
-- 🐧 **Native**: Native Linux support
-- 💎 **Platinum**: Runs perfectly out of the box
-- 🥇 **Gold**: Runs perfectly after tweaks
-- 🥈 **Silver**: Runs with minor issues
-- 🥉 **Bronze**: Runs but has significant issues
-- ❌ **Borked**: Won't run
-- ❓ **Pending**: Not yet tested / No rating available
-
-## Usage
-
-1. Open the extension in Vicinae
-2. Browse featured games or type to search for a specific game
-3. View real-time ProtonDB compatibility ratings in the list
-4. Press `Enter` to see detailed game preview with full statistics
-5. Press `Cmd+P` to open the game on ProtonDB
-6. Press `Cmd+S` to open the game on Steam
+| Action | Shortcut | Description |
+| --- | --- | --- |
+| Show Details | `⌘D` | Open the selected game's detail view |
+| Open on ProtonDB | `⌘O` | Open the ProtonDB report page in your browser |
+| Open on Steam | `⌘S` | Open the Steam Store page in your browser |
+| Open in Steam | `⌘⇧S` | Open the game directly in the Steam desktop app |
+| Copy ProtonDB URL | `⌘.` | Copy the ProtonDB app URL |
+| Copy Compatibility Info | `⌘⇧.` | Copy the current ProtonDB rating summary |
 
 ## Data Sources
 
-- **Steam Community API**: For game search results
-- **Steam Store API**: For game details and descriptions
-- **ProtonDB API**: For Linux compatibility ratings and reports
-
-## Keyboard Shortcuts
-
-- `Enter`: Show game details preview
-- `Cmd+P`: Open game on ProtonDB
-- `Cmd+S`: Open game on Steam Store
-- `Cmd+C`: Copy ProtonDB URL
-- `Cmd+Shift+I`: Copy full compatibility info (when available)
+- Steam Community search API
+- Steam Store app details API
+- ProtonDB report summaries API
 
 ## Development
 
-```bash
-# Install dependencies
+```sh
 npm install
-
-# Run in development mode
 npm run dev
-
-# Build for production
-npm run build
 ```
 
-## License
+To build the production bundle:
 
-MIT
+```sh
+npm run build
+```

@@ -1,256 +1,39 @@
-import { QueryClient, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	Action,
 	ActionPanel,
-	Cache,
 	closeMainWindow,
 	Color,
 	Detail,
 	Icon,
+	Keyboard,
 	List,
+	open,
 	showToast,
 	Toast,
 } from "@vicinae/api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
 	PersistQueryClientProvider,
-	type PersistedClient,
-	type Persister,
 } from "@tanstack/react-query-persist-client";
+import {
+	fetchFeaturedGames,
+	fetchGameDetails,
+	fetchProtonDBRating,
+	PERSIST_MAX_AGE,
+	persister,
+	queryClient,
+	SEARCH_DEBOUNCE_MS,
+	searchSteamGames,
+} from "./api";
 import type {
 	ProtonDBConfidence,
-	ProtonDBRating,
 	ProtonDBTier,
-	SteamAppDetails,
-	SteamAppDetailsResponse,
-	SteamFeaturedCategories,
-	SteamFeaturedItem,
 	SteamGame,
 	SteamGenre,
+	ProtonDBRating,
+	SteamAppDetails,
 } from "./types";
-
-const STEAM_SEARCH_URL = "https://steamcommunity.com/actions/SearchApps";
-const PROTONDB_RATING_URL = "https://www.protondb.com/api/v1/reports/summaries";
-const STEAM_APPDETAILS_URL =
-	"https://www.protondb.com/proxy/steam/api/appdetails";
-const STEAM_FEATURED_URL =
-	"https://store.steampowered.com/api/featuredcategories";
-const SEARCH_DEBOUNCE_MS = 500;
-
-// Fallback popular game IDs for when featured games API fails
-const FALLBACK_GAME_IDS = [
-	570, // Dota 2
-	730, // Counter-Strike 2
-	1172470, // Apex Legends
-	1091500, // Cyberpunk 2077
-	1086940, // Baldur's Gate 3
-	1938090, // Call of Duty
-	813780, // Age of Empires IV
-	1623730, // Palworld
-	2358720, // Black Myth: Wukong
-	271590, // GTA V
-];
-
-// Query cache configuration
-const QUERY_STALE_TIME = 12 * 60 * 60 * 1000; // 12 hours
-const PERSIST_MAX_AGE = 12 * 60 * 60 * 1000; // 12 hours
-
-const cache = new Cache();
-const PERSIST_KEY = "protondb-query-v1";
-
-const persister = {
-	persistClient: async (client: PersistedClient) => {
-		cache.set(PERSIST_KEY, JSON.stringify(client));
-	},
-	restoreClient: async () => {
-		const cached = cache.get(PERSIST_KEY);
-		if (!cached) return undefined;
-		try {
-			return JSON.parse(cached) as PersistedClient;
-		} catch {
-			cache.remove(PERSIST_KEY);
-			return undefined;
-		}
-	},
-	removeClient: async () => {
-		cache.remove(PERSIST_KEY);
-	},
-} satisfies Persister;
-
-const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			staleTime: QUERY_STALE_TIME,
-			gcTime: PERSIST_MAX_AGE,
-			refetchOnWindowFocus: false,
-			retry: 1,
-		},
-	},
-});
-
-async function searchSteamGames(query: string): Promise<SteamGame[]> {
-	const trimmed = query.trim();
-	if (!trimmed) return [];
-
-	const response = await fetch(
-		`${STEAM_SEARCH_URL}/${encodeURIComponent(trimmed)}`,
-	);
-	if (!response.ok) {
-		throw new Error(
-			`Steam search failed: ${response.status} ${response.statusText}`,
-		);
-	}
-
-	const games: SteamGame[] = await response.json();
-	return games.slice(0, 20); // Limit to 20 results
-}
-
-async function fetchGamesByIds(appIds: number[]): Promise<SteamGame[]> {
-	// Fetch all game details in parallel
-	const gameDetailsPromises = appIds.map(async (appId) => {
-		try {
-			const detailsResponse = await fetch(
-				`${STEAM_APPDETAILS_URL}?appids=${appId}`,
-			);
-			if (!detailsResponse.ok) return null;
-
-			const detailsData: SteamAppDetailsResponse = await detailsResponse.json();
-			const gameData = detailsData[appId];
-
-			if (
-				gameData?.success &&
-				gameData?.data &&
-				gameData.data.type === "game"
-			) {
-				return {
-					appid: String(appId),
-					name: gameData.data.name,
-					logo:
-						gameData.data.capsule_imagev5 || gameData.data.header_image || "",
-				};
-			}
-			return null;
-		} catch (error) {
-			console.error(`Failed to fetch game ${appId}:`, error);
-			return null;
-		}
-	});
-
-	const gameDetails = await Promise.all(gameDetailsPromises);
-	const validGames = gameDetails.filter(
-		(game): game is { appid: string; name: string; logo: string } =>
-			game !== null,
-	);
-
-	// Batch fetch icons for all games in parallel
-	const iconPromises = validGames.map(async (game) => {
-		try {
-			const searchResponse = await fetch(
-				`${STEAM_SEARCH_URL}/${encodeURIComponent(game.name)}`,
-			);
-			if (searchResponse.ok) {
-				const searchResults: SteamGame[] = await searchResponse.json();
-				const matchingGame = searchResults.find((g) => g.appid === game.appid);
-				return { appid: game.appid, icon: matchingGame?.icon || "" };
-			}
-		} catch (error) {
-			console.error(`Failed to fetch icon for ${game.name}:`, error);
-		}
-		return { appid: game.appid, icon: "" };
-	});
-
-	const icons = await Promise.all(iconPromises);
-	const iconMap = new Map(icons.map((i) => [i.appid, i.icon]));
-
-	// Combine game details with icons
-	return validGames.map((game) => ({
-		...game,
-		icon: iconMap.get(game.appid) || "",
-	}));
-}
-
-async function fetchFeaturedGames(): Promise<SteamGame[]> {
-	try {
-		const response = await fetch(STEAM_FEATURED_URL);
-		if (!response.ok) {
-			throw new Error(`Steam featured API failed: ${response.status}`);
-		}
-
-		const data: SteamFeaturedCategories = await response.json();
-		const topSellers = data.top_sellers?.items || [];
-		const specials = data.specials?.items || [];
-
-		const seenAppIds = new Set<number>();
-		const STEAM_DECK_APP_ID = 1675200;
-
-		// Combine top sellers and specials, deduplicate and filter out Steam Deck
-		const allItems = [...topSellers, ...specials];
-		const appIds = allItems
-			.map((item: SteamFeaturedItem) => item.id)
-			.filter((id: number) => {
-				if (!id || id === STEAM_DECK_APP_ID || seenAppIds.has(id)) return false;
-				seenAppIds.add(id);
-				return true;
-			})
-			.slice(0, 10);
-
-		return await fetchGamesByIds(appIds);
-	} catch (error) {
-		console.error("Failed to fetch featured games:", error);
-		showToast({
-			style: Toast.Style.Failure,
-			title: "Using fallback games",
-			message: "Could not load featured games from Steam",
-		});
-
-		// Return fallback games
-		const fallbackGames = await fetchGamesByIds(FALLBACK_GAME_IDS);
-		return fallbackGames;
-	}
-}
-
-async function fetchProtonDBRating(
-	appId: string,
-): Promise<ProtonDBRating | null> {
-	try {
-		const response = await fetch(`${PROTONDB_RATING_URL}/${appId}.json`);
-		if (!response.ok) {
-			if (response.status === 404) {
-				// Game not in ProtonDB yet
-				return null;
-			}
-			throw new Error(`ProtonDB request failed: ${response.status}`);
-		}
-
-		const rating: ProtonDBRating = await response.json();
-		return rating;
-	} catch (error) {
-		console.error(`Failed to fetch ProtonDB rating for ${appId}:`, error);
-		return null;
-	}
-}
-
-async function fetchGameDetails(
-	appId: string,
-): Promise<SteamAppDetails | null> {
-	try {
-		const response = await fetch(`${STEAM_APPDETAILS_URL}?appids=${appId}`);
-		if (!response.ok) {
-			throw new Error(`Steam API request failed: ${response.status}`);
-		}
-
-		const data: SteamAppDetailsResponse = await response.json();
-		const gameData = data[appId];
-
-		if (gameData?.success && gameData?.data) {
-			return gameData.data;
-		}
-		return null;
-	} catch (error) {
-		console.error(`Failed to fetch game details for ${appId}:`, error);
-		return null;
-	}
-}
 
 function getTierColor(tier: ProtonDBTier | undefined): Color {
 	if (!tier) return Color.SecondaryText;
@@ -354,66 +137,64 @@ function GameActions({
 }: {
 	game: SteamGame;
 	rating: ProtonDBRating | null;
-	showDetailsAction?: React.ReactNode;
+	showDetailsAction?: ReactNode;
 }) {
+	async function openExternal(target: string, title: string) {
+		await open(target);
+		await showToast({
+			style: Toast.Style.Success,
+			title,
+			message: game.name,
+		});
+		await closeMainWindow();
+	}
+
 	return (
 		<ActionPanel>
 			{showDetailsAction}
-			<Action.OpenInBrowser
+			<Action
 				title="Open on ProtonDB"
-				url={`https://www.protondb.com/app/${game.appid}`}
-				icon={Icon.Globe}
-				shortcut={
-					showDetailsAction ? { modifiers: ["cmd"], key: "p" } : undefined
+				onAction={() =>
+					openExternal(
+						`https://www.protondb.com/app/${game.appid}`,
+						"Opening on ProtonDB",
+					)
 				}
-				onOpen={async () => {
-					await showToast({
-						style: Toast.Style.Success,
-						title: "Opening on ProtonDB",
-						message: game.name,
-					});
-					await closeMainWindow();
-				}}
+				icon={Icon.Globe01}
+				shortcut={Keyboard.Shortcut.Common.Open as Keyboard.Shortcut.Common}
 			/>
-			<Action.OpenInBrowser
+			<Action
 				title="Open on Steam"
-				url={`https://store.steampowered.com/app/${game.appid}`}
+				onAction={() =>
+					openExternal(
+						`https://store.steampowered.com/app/${game.appid}`,
+						"Opening on Steam",
+					)
+				}
 				icon={Icon.Store}
 				shortcut={{ modifiers: ["cmd"], key: "s" }}
-				onOpen={async () => {
-					await showToast({
-						style: Toast.Style.Success,
-						title: "Opening on Steam",
-						message: game.name,
-					});
-					await closeMainWindow();
-				}}
 			/>
-			<Action.OpenInBrowser
+			<Action
 				title="Open in Steam"
-				url={`steam://store/${game.appid}`}
+				onAction={() =>
+					openExternal(`steam://store/${game.appid}`, "Opening in Steam app")
+				}
 				icon={Icon.AppWindow}
 				shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
-				onOpen={async () => {
-					await showToast({
-						style: Toast.Style.Success,
-						title: "Opening in Steam app",
-						message: game.name,
-					});
-					await closeMainWindow();
-				}}
 			/>
 			<ActionPanel.Section>
 				<Action.CopyToClipboard
 					title="Copy ProtonDB URL"
 					content={`https://www.protondb.com/app/${game.appid}`}
-					shortcut={{ modifiers: ["cmd"], key: "c" }}
+					shortcut={Keyboard.Shortcut.Common.Copy as Keyboard.Shortcut.Common}
 				/>
 				{rating && (
 					<Action.CopyToClipboard
 						title="Copy Compatibility Info"
 						content={`${game.name}: ${formatTierName(rating.tier)} (${rating.total} reports, ${rating.confidence} confidence)`}
-						shortcut={{ modifiers: ["cmd", "shift"], key: "i" }}
+						shortcut={
+							Keyboard.Shortcut.Common.CopyName as Keyboard.Shortcut.Common
+						}
 					/>
 				)}
 			</ActionPanel.Section>
@@ -422,27 +203,20 @@ function GameActions({
 }
 
 function GameDetail({ game }: { game: SteamGame }) {
-	const { data: rating, isLoading: loadingRating } = useQuery({
+	const { data: rating, isLoading: loadingRating } = useQuery<ProtonDBRating | null>({
 		queryKey: ["protondb-rating", game.appid],
 		queryFn: () => fetchProtonDBRating(game.appid),
 	});
 
-	const { data: gameDetails, isLoading: loadingDetails } = useQuery({
+	const { data: gameDetails, isLoading: loadingDetails } = useQuery<SteamAppDetails | null>({
 		queryKey: ["game-details", game.appid],
 		queryFn: () => fetchGameDetails(game.appid),
 		retry: 2,
-		onError: (_error) => {
-			showToast({
-				style: Toast.Style.Failure,
-				title: "Failed to load game details",
-				message: "Could not fetch information from Steam",
-			});
-		},
 	});
 
-	// Build markdown conditionally to avoid layout shift
-	// Only show image when gameDetails is loaded (has header_image)
-	const markdown = gameDetails?.header_image
+	const markdown = loadingDetails
+		? `# ${game.name}\n\nLoading game details...`
+		: gameDetails?.header_image
 		? `![${game.name}](${gameDetails.header_image})
   
 # ${game.name}
@@ -458,7 +232,6 @@ ${gameDetails?.short_description || ""}`;
 
 	return (
 		<Detail
-			isLoading={loadingDetails}
 			markdown={markdown}
 			metadata={
 				<Detail.Metadata>
@@ -663,39 +436,30 @@ function GameListItem({ game }: { game: SteamGame }) {
 	);
 }
 
-function ProtonDBSearchContent() {
+function ProtonDBSearchContent({ isRestoring }: { isRestoring: boolean }) {
 	const [searchText, setSearchText] = useState("");
 	const debouncedSearch = useDebounce(searchText, SEARCH_DEBOUNCE_MS);
 
-	// Featured games query (when no search)
 	const { data: featuredGames = [], isLoading: loadingFeatured } = useQuery({
 		queryKey: ["featured-games"],
 		queryFn: fetchFeaturedGames,
 	});
 
-	// Search query
 	const {
 		data: searchResults = [],
 		isLoading: loadingSearch,
-		isError,
-		error,
+		isFetching: fetchingSearch,
 	} = useQuery({
 		queryKey: ["steam-search", debouncedSearch],
 		queryFn: () => searchSteamGames(debouncedSearch),
 		enabled: debouncedSearch.trim().length > 0,
+		placeholderData: keepPreviousData,
 	});
-
-	if (isError && error) {
-		showToast({
-			style: Toast.Style.Failure,
-			title: "Search failed",
-			message: error instanceof Error ? error.message : "Unknown error",
-		});
-	}
 
 	const showingSearch = debouncedSearch.trim().length > 0;
 	const games = showingSearch ? searchResults : featuredGames;
-	const isLoading = showingSearch ? loadingSearch : loadingFeatured;
+	const isLoading =
+		isRestoring || (showingSearch ? loadingSearch || fetchingSearch : loadingFeatured);
 
 	return (
 		<List
@@ -735,12 +499,15 @@ function ProtonDBSearchContent() {
 }
 
 export default function ProtonDBSearch() {
+	const [isRestored, setIsRestored] = useState(false);
+
 	return (
 		<PersistQueryClientProvider
 			client={queryClient}
 			persistOptions={{ persister, maxAge: PERSIST_MAX_AGE }}
+			onSuccess={() => setIsRestored(true)}
 		>
-			<ProtonDBSearchContent />
+			<ProtonDBSearchContent isRestoring={isRestored === false} />
 		</PersistQueryClientProvider>
 	);
 }
