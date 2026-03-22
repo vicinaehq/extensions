@@ -6,6 +6,7 @@ import { omniCommand } from "./utils/hyprland";
 import { createHash } from "node:crypto";
 import { Metadata } from "@vicinae/api/dist/api/components/metadata";
 import untildify from "untildify";
+import * as _path from "path";
 // test
 
 export default function DisplayGrid() {
@@ -51,6 +52,16 @@ export default function DisplayGrid() {
       });
     });
 
+    // getImagesFromPath(pathExpanded).then((images) => {
+    //   setWallpapers(images);
+    //   setIsLoading(false);
+    // });
+    //
+    // getImagesMetadata(pathExpanded).then((metadata) => {
+    //   setWallpapersMetadata(metadata);
+    //   setIsLoading(false);
+    // });
+
     Promise.all([
       getImagesFromPath(pathExpanded),
       getImagesMetadata(pathExpanded),
@@ -85,7 +96,7 @@ export default function DisplayGrid() {
           : wallpapers.map((w) => (
             <Grid.Item
               key={w}
-              content={{ source: w }}
+              content={{ source: _path.join(pathExpanded, w) }}
               title={wallpapersMetadata[w]?.name}
               {...(preferences.showImageDetails && {
                 subtitle: `${wallpapersMetadata[w]?.width}x${wallpapersMetadata[w]?.height} • ${wallpapersMetadata[w]?.size.toFixed(2)} MB`,
@@ -98,8 +109,9 @@ export default function DisplayGrid() {
                       title={`Set '${wallpapersMetadata[w]?.name}' on All`}
                       icon={Icon.Image}
                       onAction={() => {
+                        console.log(_path.join(pathExpanded, w));
                         omniCommand(
-                          w,
+                          _path.join(pathExpanded, w),
                           "ALL",
                           awwwTransition,
                           awwwSteps,
@@ -123,7 +135,7 @@ export default function DisplayGrid() {
                             icon={Icon.ArrowsExpand}
                             onAction={() => {
                               omniCommand(
-                                w,
+                                _path.join(pathExpanded, w),
                                 `${leftMonitorName}|${rightMonitorName}`,
                                 awwwTransition,
                                 awwwSteps,
@@ -147,7 +159,7 @@ export default function DisplayGrid() {
                             icon={Icon.Monitor}
                             onAction={() => {
                               omniCommand(
-                                w,
+                                _path.join(pathExpanded, w),
                                 monitor.name,
                                 awwwTransition,
                                 awwwSteps,

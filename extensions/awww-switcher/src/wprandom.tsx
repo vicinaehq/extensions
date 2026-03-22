@@ -1,9 +1,10 @@
 import { showToast, Toast, getPreferenceValues } from "@vicinae/api";
-import { getImagesFromPath, Image, processImage } from "./utils/image";
+import { getImagesFromPath, Image, processImage, wallpaperSourceChanged } from "./utils/image";
 import { omniCommand } from "./utils/hyprland";
 import { WindowManagement as wm } from "@vicinae/api";
 import { LocalStorage as storage } from "@vicinae/api";
 import untildify from "untildify";
+import * as _path from "path";
 
 export default async function RandomWallpaper() {
   const path: string = getPreferenceValues().wallpaperPath;
@@ -83,8 +84,9 @@ export default async function RandomWallpaper() {
     async function getRandonmWallpaperIndex(): Promise<number> {
       // creates an array of values to generate random order and stores it as a string due to vicinae local storage type limitation
       let randomOrder = await getRandomOrder();
-      if (randomOrder == undefined) {
+      if (randomOrder == undefined || await wallpaperSourceChanged(pathExpanded)) {
         // when the random order doesn't exist in storage 
+        // or source directory has changed
         let randomOrderArray = generateRandomOrderArray();
         randomOrder = randomOrderArray.join(" ");
         storage.setItem("randomOrder", randomOrderArray.join(" "));
@@ -108,12 +110,13 @@ export default async function RandomWallpaper() {
 
     const randomIndex = await getRandonmWallpaperIndex();
     const selectedWallpaper = wallpapers[randomIndex];
-    const wallpaperInfo = await processImage(selectedWallpaper);
+    const selectedWallpaperPath = _path.join(pathExpanded, selectedWallpaper);
+    const wallpaperInfo = await processImage(_path.join(pathExpanded, selectedWallpaper));
     const isWide = wallpaperInfo.width / wallpaperInfo.height;
 
     if (isWMSupported && isWide > 1.8 && monitorNames.includes(leftMonitorName) && monitorNames.includes(rightMonitorName)) {
       omniCommand(
-        selectedWallpaper,
+        _path.join(pathExpanded, selectedWallpaper),
         `${leftMonitorName}|${rightMonitorName}`,
         awwwTransition,
         awwwSteps,
@@ -126,7 +129,7 @@ export default async function RandomWallpaper() {
       );
     } else {
       omniCommand(
-        selectedWallpaper,
+        _path.join(pathExpanded, selectedWallpaper),
         "ALL",
         awwwTransition,
         awwwSteps,
