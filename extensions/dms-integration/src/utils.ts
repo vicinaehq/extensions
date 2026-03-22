@@ -9,6 +9,7 @@ import {
 import { request } from "undici";
 import { EXTENSION_ICON_MAP, genericFileIcon } from "./icons";
 import { dsearch_port } from "./preferences";
+import { getErrorMessage } from "./error_handling";
 
 export const USER = process.env.USER ?? "";
 export const HOME_DIRECTORY = USER ? `/home/${USER}/` : "/home/";
@@ -136,9 +137,12 @@ export async function fetchData(
     );
     const data: Data = (await body.json()) as Data;
     return data.hits;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching data:", error);
-    showToast(Toast.Style.Failure, "Failed to fetch data");
-    return [];
+    showToast(
+      Toast.Style.Failure,
+      `Failed to fetch data: ${getErrorMessage(error)}`,
+    );
   }
+  return [];
 }

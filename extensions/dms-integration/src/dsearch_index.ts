@@ -7,6 +7,7 @@ import {
 } from "@vicinae/api";
 import { request } from "undici";
 import { dsearch_port } from "./preferences";
+import { getErrorMessage } from "./error_handling";
 
 const REINDEX_ENDPOINT = `http://localhost:${dsearch_port}/reindex`;
 const SYNC_ENDPOINT = `http://localhost:${dsearch_port}/sync`;
@@ -28,9 +29,9 @@ export default async function dsearchIndex(
       toast.style = Toast.Style.Success;
       toast.title = "Quick reindexing started successfully";
     } catch (error) {
-      toast.style = Toast.Style.Failure;
-      toast.title = "Quick reindexing failed. Check logs for details.";
       console.error("Error during quick reindexing:", error);
+      toast.style = Toast.Style.Failure;
+      toast.title = `Quick reindexing failed: ${getErrorMessage(error)}`;
     }
   } else if (props.arguments.reindex_mode === "full") {
     const toast = await showToast(
@@ -42,9 +43,9 @@ export default async function dsearchIndex(
       toast.style = Toast.Style.Success;
       toast.title = "Full reindexing started successfully";
     } catch (error) {
-      toast.style = Toast.Style.Failure;
-      toast.title = "Full reindexing failed. Check logs for details.";
       console.error("Error during full reindexing:", error);
+      toast.style = Toast.Style.Failure;
+      toast.title = `Full reindexing failed: ${getErrorMessage(error)}`; //TODO: Can get quite long...and disappears very quickly.
     }
   }
   clearSearchBar();
