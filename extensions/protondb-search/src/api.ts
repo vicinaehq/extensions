@@ -23,21 +23,6 @@ const STEAM_APPDETAILS_URL =
 const STEAM_FEATURED_URL =
   "https://store.steampowered.com/api/featuredcategories";
 
-const QUERY_ERROR_MESSAGES = new Map<string, string>([
-  [["featured-games"].join("::"), "Could not load featured games from Steam"],
-  [["steam-search"].join("::"), "Could not search Steam right now"],
-  [["game-details"].join("::"), "Could not load information from Steam"],
-  [
-    ["protondb-rating"].join("::"),
-    "Could not load ProtonDB compatibility data",
-  ],
-]);
-
-const FALLBACK_GAME_IDS = [
-  570, 730, 1172470, 1091500, 1086940, 1938090, 813780, 1623730, 2358720,
-  271590, 1245620,
-];
-
 export const SEARCH_DEBOUNCE_MS = 500;
 export const FEATURED_GAMES_COUNT = 11;
 export const REQUEST_TIMEOUT_MS = ms("10s");
@@ -54,20 +39,17 @@ const imageCache = new Cache({
 });
 
 export const imagePersister = environment.isDevelopment
-	? undefined
-	: experimental_createQueryPersister({
-		storage: {
-			getItem: (key) => imageCache.get(key) ?? null,
-			setItem: (key, value) => imageCache.set(key, value),
-			removeItem: (key) => { imageCache.remove(key); },
-		},
-		maxAge: PERSIST_MAX_AGE,
-	}).persisterFn;
-
-function getQueryErrorMessage(queryKey: ReadonlyArray<unknown>): string {
-  const scope = typeof queryKey[0] === "string" ? queryKey[0] : "";
-  return QUERY_ERROR_MESSAGES.get(scope) || "Request failed";
-}
+  ? undefined
+  : experimental_createQueryPersister({
+      storage: {
+        getItem: (key) => imageCache.get(key) ?? null,
+        setItem: (key, value) => imageCache.set(key, value),
+        removeItem: (key) => {
+          imageCache.remove(key);
+        },
+      },
+      maxAge: PERSIST_MAX_AGE,
+    }).persisterFn;
 
 function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === "AbortError";
@@ -113,41 +95,38 @@ export async function fetchImageAsDataUri(url: string): Promise<string> {
 }
 
 export const persister: Persister = environment.isDevelopment
-	? {
-		persistClient: async () => {},
-		restoreClient: async () => undefined,
-		removeClient: async () => {},
-	}
-	: {
-		persistClient: async (client: PersistedClient) => {
-			cache.set(PERSIST_KEY, JSON.stringify(client));
-		},
-		restoreClient: async () => {
-			const cached = cache.get(PERSIST_KEY);
-			if (!cached) return undefined;
+  ? {
+      persistClient: async () => {},
+      restoreClient: async () => undefined,
+      removeClient: async () => {},
+    }
+  : {
+      persistClient: async (client: PersistedClient) => {
+        cache.set(PERSIST_KEY, JSON.stringify(client));
+      },
+      restoreClient: async () => {
+        const cached = cache.get(PERSIST_KEY);
+        if (!cached) return undefined;
 
-			try {
-				return JSON.parse(cached) as PersistedClient;
-			} catch {
-				cache.remove(PERSIST_KEY);
-				return undefined;
-			}
-		},
-		removeClient: async () => {
-			cache.remove(PERSIST_KEY);
-		},
-	};
+        try {
+          return JSON.parse(cached) as PersistedClient;
+        } catch {
+          cache.remove(PERSIST_KEY);
+          return undefined;
+        }
+      },
+      removeClient: async () => {
+        cache.remove(PERSIST_KEY);
+      },
+    };
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
-    onError: (error, query) => {
+    onError: (error) => {
       showToast({
         style: Toast.Style.Failure,
         title: "Request failed",
-        message:
-          error instanceof Error
-            ? `${getQueryErrorMessage(query.queryKey)}: ${error.message}`
-            : getQueryErrorMessage(query.queryKey),
+        message: error instanceof Error ? error.message : undefined,
       });
     },
   }),
@@ -253,13 +232,7 @@ export async function fetchFeaturedGames(): Promise<SteamGame[]> {
 
     return await fetchGamesByIds(appIds);
   } catch {
-    showToast({
-      style: Toast.Style.Failure,
-      title: "Using fallback games",
-      message: "Could not load featured games from Steam",
-    });
-
-    return fetchGamesByIds(FALLBACK_GAME_IDS);
+    return [];
   }
 }
 
@@ -287,13 +260,16 @@ export async function fetchGameDetails(
   );
   const gameData = data[appId];
 
-	if (gameData?.success && gameData.data) {
-		const result = SteamAppDetailsSchema.safeParse(gameData.data);
-		if (result.success === false) {
-			console.warn(`[fetchGameDetails] Schema validation failed for appId ${appId}:`, result.error.issues);
-		}
-		return result.success ? result.data : null;
-	}
+  if (gameData?.success && gameData.data) {
+    const result = SteamAppDetailsSchema.safeParse(gameData.data);
+    if (result.success === false) {
+      console.warn(
+        `[fetchGameDetails] Schema validation failed for appId ${appId}:`,
+        result.error.issues,
+      );
+    }
+    return result.success ? result.data : null;
+  }
 
   return null;
 }
