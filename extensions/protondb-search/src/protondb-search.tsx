@@ -12,7 +12,7 @@ import {
 	showToast,
 	Toast,
 } from "@vicinae/api";
-import { useDeferredValue, useState, type ReactNode } from "react";
+import { useCallback, useDeferredValue, useRef, useState, type ReactNode } from "react";
 import {
 	PersistQueryClientProvider,
 } from "@tanstack/react-query-persist-client";
@@ -371,6 +371,7 @@ function GameListItem({ game }: { game: SteamGame }) {
 	return (
 		<List.Item
 			key={game.appid}
+			id={game.appid}
 			title={game.name}
 			icon={{ source: game.icon }}
 			accessories={accessories}
@@ -403,6 +404,25 @@ function ProtonDBSearchContent({ isRestoring }: { isRestoring: boolean }) {
 	const [searchText, setSearchText] = useState("");
 	const deferredSearch = useDeferredValue(searchText);
 
+	const prefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const prefetchGameData = useCallback((appId: string | null) => {
+		if (prefetchTimerRef.current) clearTimeout(prefetchTimerRef.current);
+		if (!appId?.trim()) return;
+
+		queryClient.prefetchQuery({
+			queryKey: ["protondb-rating", appId],
+			queryFn: () => fetchProtonDBRating(appId),
+		});
+
+		prefetchTimerRef.current = setTimeout(() => {
+			queryClient.prefetchQuery({
+				queryKey: ["game-details", appId],
+				queryFn: () => fetchGameDetails(appId),
+			});
+		}, 50);
+	}, []);
+
 	const { data: featuredGames = [], isLoading: loadingFeatured } = useQuery({
 		queryKey: ["featured-games"],
 		queryFn: fetchFeaturedGames,
@@ -429,6 +449,7 @@ function ProtonDBSearchContent({ isRestoring }: { isRestoring: boolean }) {
 			isLoading={isLoading}
 			searchBarPlaceholder="Search Steam games..."
 			onSearchTextChange={setSearchText}
+			onSelectionChange={prefetchGameData}
 		>
 			{games.length === 0 && !isLoading ? (
 				showingSearch ? (
