@@ -8,7 +8,7 @@ import {
   type Image,
 } from "@vicinae/api";
 import { useMemo, useState } from "react";
-import { ENABLE_PACK_FILTER, PACK_FILTER_ALL } from "./constants";
+import { MIN_SEARCH_LENGTH, PACK_FILTER_ALL } from "./constants";
 import { type IconEntry, useIconSearch } from "./hooks/useIconSearch";
 import { useRecentIcons } from "./hooks/useRecentIcons";
 import searchConfig from "./search-config.json";
@@ -91,28 +91,26 @@ function IconActions({
 export default function NerdFontSearch() {
   const [searchText, setSearchText] = useState("");
   const [selectedPack, setSelectedPack] = useState(PACK_FILTER_ALL);
-  const activePack = ENABLE_PACK_FILTER ? selectedPack : PACK_FILTER_ALL;
-
   // Use custom hooks for data management
   const { recentIcons, addRecent, clearRecent } = useRecentIcons();
   const { icons: searchResults, isLoading } = useIconSearch(
     searchText,
-    activePack,
+    selectedPack,
   );
 
   const displayIcons = useMemo(() => {
-    if (searchText.length === 0 && activePack === PACK_FILTER_ALL) {
+    if (searchText.length === 0 && selectedPack === PACK_FILTER_ALL) {
       return recentIcons.map((icon) => ({
         ...icon,
         keywords: [],
         markdown: "",
       }));
     }
-    if (searchText.length < 3 && activePack === PACK_FILTER_ALL) {
+    if (searchText.length < MIN_SEARCH_LENGTH && selectedPack === PACK_FILTER_ALL) {
       return [];
     }
     return searchResults;
-  }, [searchText, activePack, recentIcons, searchResults]);
+  }, [searchText, selectedPack, recentIcons, searchResults]);
 
   // Pack filter options
   const packFilterOptions = useMemo<{ value: string; label: string }[]>(() => {
@@ -133,52 +131,44 @@ export default function NerdFontSearch() {
       aspectRatio="1"
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search NerdFont Icons (min 3 characters)"
+      searchBarPlaceholder="Search NerdFont Icons"
       searchBarAccessory={
-        ENABLE_PACK_FILTER ? (
-          <Grid.Dropdown
-            tooltip="Filter by icon pack"
-            onChange={(newValue) => {
-              setSelectedPack(newValue);
-            }}
-            defaultValue={PACK_FILTER_ALL}
-          >
+        <Grid.Dropdown
+          tooltip="Filter by icon pack"
+          value={selectedPack}
+          onChange={setSelectedPack}
+        >
+          <Grid.Dropdown.Item
+            title="All icon packs"
+            value={PACK_FILTER_ALL}
+          />
+          {packFilterOptions.map((option) => (
             <Grid.Dropdown.Item
-              title="All icon packs"
-              value={PACK_FILTER_ALL}
+              key={option.value}
+              title={option.label}
+              value={option.value}
             />
-            {packFilterOptions.map((option) => (
-              <Grid.Dropdown.Item
-                key={option.value}
-                title={option.label}
-                value={option.value}
-              />
-            ))}
-          </Grid.Dropdown>
-        ) : undefined
+          ))}
+        </Grid.Dropdown>
       }
     >
       {displayIcons.length === 0 ? (
         <Grid.EmptyView
           title={
-            searchText.length > 0 && searchText.length < 3
-              ? "Keep typing..."
-              : searchText.length === 0 && activePack !== PACK_FILTER_ALL
+            searchText.length >= MIN_SEARCH_LENGTH
+              ? "No icons found"
+              : selectedPack !== PACK_FILTER_ALL
                 ? "No icons found"
-                : searchText.length >= 3
-                  ? "No icons found"
-                  : "Start searching"
+                : "Start searching"
           }
           description={
-            searchText.length > 0 && searchText.length < 3
-              ? "Enter at least 3 characters to search"
-              : searchText.length === 0 && activePack !== PACK_FILTER_ALL
+            searchText.length >= MIN_SEARCH_LENGTH
+              ? "Try a different search term or pick another icon pack"
+              : selectedPack !== PACK_FILTER_ALL
                 ? "Try selecting another icon pack"
-                : searchText.length >= 3
-                  ? "Try a different search term or pick another icon pack"
-                  : recentIcons.length > 0
-                    ? "Your recently copied icons will appear here"
-                    : "Enter at least 3 characters to search for icons"
+                : recentIcons.length > 0
+                  ? "Your recently copied icons will appear here"
+                  : "Type to search for icons"
           }
           icon={Icon.MagnifyingGlass}
         />
@@ -186,12 +176,12 @@ export default function NerdFontSearch() {
         <Grid.Section
           title={
             searchText.length === 0 &&
-            activePack === PACK_FILTER_ALL &&
+            selectedPack === PACK_FILTER_ALL &&
             recentIcons.length > 0
               ? "Recently Copied"
-              : activePack === PACK_FILTER_ALL
+              : selectedPack === PACK_FILTER_ALL
                 ? "All icon packs"
-                : (PACK_LABELS[activePack] ?? activePack.toUpperCase())
+                : (PACK_LABELS[selectedPack] ?? selectedPack.toUpperCase())
           }
           subtitle={`${displayIcons.length.toLocaleString()} icons`}
         >
