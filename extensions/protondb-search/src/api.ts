@@ -1,4 +1,5 @@
 import { QueryCache, QueryClient } from "@tanstack/react-query";
+import { experimental_createQueryPersister } from "@tanstack/query-persist-client-core";
 import type {
 	PersistedClient,
 	Persister,
@@ -49,6 +50,18 @@ export const QUERY_STALE_TIME = PERSIST_MAX_AGE;
 const cache = new Cache();
 const PERSIST_KEY = "protondb-query-v1";
 
+const IMAGE_CACHE_CAPACITY = 5 * 1024 * 1024; // 5 MB
+const imageCache = new Cache({ capacity: IMAGE_CACHE_CAPACITY, ttl: PERSIST_MAX_AGE });
+
+export const imagePersister = experimental_createQueryPersister({
+	storage: {
+		getItem: (key) => imageCache.get(key) ?? null,
+		setItem: (key, value) => imageCache.set(key, value),
+		removeItem: (key) => { imageCache.remove(key); },
+	},
+	maxAge: PERSIST_MAX_AGE,
+}).persisterFn;
+
 function getQueryErrorMessage(queryKey: ReadonlyArray<unknown>): string {
 	const scope = typeof queryKey[0] === "string" ? queryKey[0] : "";
 	return QUERY_ERROR_MESSAGES.get(scope) || "Request failed";
@@ -80,6 +93,17 @@ async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
 	}
 
 	return (await response.json()) as T;
+}
+
+export async function fetchImageAsDataUri(url: string): Promise<string> {
+	const response = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+	if (response.ok === false) {
+		throw new Error(`Image fetch failed: ${response.status}`);
+	}
+	const buffer = await response.arrayBuffer();
+	const contentType = response.headers.get("content-type") ?? "image/jpeg";
+	const base64 = Buffer.from(buffer).toString("base64");
+	return `data:${contentType};base64,${base64}`;
 }
 
 export const persister = {

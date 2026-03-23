@@ -19,7 +19,9 @@ import {
 import {
 	fetchFeaturedGames,
 	fetchGameDetails,
+	fetchImageAsDataUri,
 	fetchProtonDBRating,
+	imagePersister,
 	PERSIST_MAX_AGE,
 	persister,
 	queryClient,
@@ -177,10 +179,18 @@ function GameDetail({ game }: { game: SteamGame }) {
 		retry: 2,
 	});
 
+	const { data: imageDataUri } = useQuery<string>({
+		queryKey: ["game-image", game.appid],
+		queryFn: () => fetchImageAsDataUri(gameDetails!.header_image as string),
+		enabled: !!gameDetails?.header_image,
+		persister: imagePersister,
+	});
+
+	const headerImage = imageDataUri ?? gameDetails?.header_image;
 	const markdown = loadingDetails
 		? `# ${game.name}\n\nLoading game details...`
-		: gameDetails?.header_image
-		? `![${game.name}](${gameDetails.header_image})
+		: headerImage
+		? `![${game.name}](${headerImage})
   
 # ${game.name}
 
@@ -400,28 +410,39 @@ function GameListItem({ game }: { game: SteamGame }) {
 	);
 }
 
-function ProtonDBSearchContent({ isRestoring }: { isRestoring: boolean }) {
-	const [searchText, setSearchText] = useState("");
-	const deferredSearch = useDeferredValue(searchText);
+function usePrefetchGameData() {
+	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const prefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-	const prefetchGameData = useCallback((appId: string | null) => {
-		if (prefetchTimerRef.current) clearTimeout(prefetchTimerRef.current);
+	return useCallback((appId: string | null) => {
+		if (timerRef.current) clearTimeout(timerRef.current);
 		if (!appId?.trim()) return;
 
-		queryClient.prefetchQuery({
-			queryKey: ["protondb-rating", appId],
-			queryFn: () => fetchProtonDBRating(appId),
-		});
+		timerRef.current = setTimeout(() => {
+			queryClient.prefetchQuery({
+				queryKey: ["protondb-rating", appId],
+				queryFn: () => fetchProtonDBRating(appId),
+			});
 
-		prefetchTimerRef.current = setTimeout(() => {
 			queryClient.prefetchQuery({
 				queryKey: ["game-details", appId],
 				queryFn: () => fetchGameDetails(appId),
+			}).then(() => {
+				const details = queryClient.getQueryData<Awaited<ReturnType<typeof fetchGameDetails>>>(["game-details", appId]);
+				if (details?.header_image) {
+					queryClient.prefetchQuery({
+						queryKey: ["game-image", appId],
+						queryFn: () => fetchImageAsDataUri(details.header_image as string),
+					});
+				}
 			});
 		}, 50);
 	}, []);
+}
+
+function ProtonDBSearchContent({ isRestoring }: { isRestoring: boolean }) {
+	const [searchText, setSearchText] = useState("");
+	const deferredSearch = useDeferredValue(searchText);
+	const prefetchGameData = usePrefetchGameData();
 
 	const { data: featuredGames = [], isLoading: loadingFeatured } = useQuery({
 		queryKey: ["featured-games"],
@@ -488,7 +509,16 @@ export default function ProtonDBSearch() {
 	return (
 		<PersistQueryClientProvider
 			client={queryClient}
-			persistOptions={{ persister, maxAge: PERSIST_MAX_AGE }}
+			persistOptions={{
+				persister,
+				maxAge: PERSIST_MAX_AGE,
+				dehydrateOptions: {
+					shouldDehydrateQuery: (query) => {
+					const key = query.queryKey[0];
+					return key !== "game-image" && key !== "steam-search";
+				},
+				},
+			}}
 			onSuccess={() => setIsRestored(true)}
 		>
 			<ProtonDBSearchContent isRestoring={isRestored === false} />
