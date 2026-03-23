@@ -92,10 +92,7 @@ function formatRequirementsSection(
   function reqText(reqs: SteamRequirements | null | undefined): string {
     if (!reqs || Array.isArray(reqs)) return "";
     const raw = typeof reqs === "string" ? reqs : reqs.minimum || "";
-    const formatted = requirementsHtmlToMarkdown(raw);
-    // Discard strings that are only a "**Minimum:**" / "**Recommended:**" header with no body
-    const withoutHeaders = formatted.replace(/^\*\*(minimum|recommended):\*\*/gi, "").trim();
-    return withoutHeaders ? formatted : "";
+    return requirementsHtmlToMarkdown(raw);
   }
 
   const pc = reqText(pcReqs);
@@ -107,23 +104,46 @@ function formatRequirementsSection(
   return sections.join("\n\n");
 }
 
-function requirementsHtmlToMarkdown(html: string): string {
-  if (!html) return "";
-  return html
-    .replace(/<strong>(.*?)<\/strong>/gi, "**$1**")
-    .replace(/<li>/gi, "\n")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<[^>]+>/g, "")
+function decodeHtmlEntities(s: string): string {
+  return s
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+    .replace(/&#39;|&apos;/g, "'");
 }
+
+function requirementsHtmlToMarkdown(html: string): string {
+  if (!html) return "";
+
+  // Strip the "Minimum:" / "Recommended:" wrapper header
+  const withoutHeader = html.replace(/<strong>(minimum|recommended):<\/strong>\s*/gi, "");
+
+  // Extract key/value pairs from <strong>Key:</strong> value patterns
+  const rows: [string, string][] = [];
+  const pattern = /<strong>([^<]+):<\/strong>\s*(.*?)(?=<strong>|<\/ul>|$)/gis;
+  for (const match of withoutHeader.matchAll(pattern)) {
+    const key = decodeHtmlEntities(match[1].trim());
+    const value = decodeHtmlEntities(match[2].replace(/<[^>]+>/g, "").trim());
+    if (key && value) rows.push([key, value]);
+  }
+
+  if (rows.length === 0) {
+    // Fallback: plain text if no key/value pairs found
+    return decodeHtmlEntities(
+      withoutHeader
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<li>/gi, "\n")
+        .replace(/<[^>]+>/g, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim(),
+    );
+  }
+
+  return rows.map(([k, v]) => `**${k}:** ${v}`).join("\n\n");
+}
+
 
 function GameActions({
   game,
@@ -167,7 +187,7 @@ function GameActions({
           )
         }
         icon={Icon.Store}
-        shortcut={{ modifiers: ["cmd"], key: "s" }}
+        shortcut={Keyboard.Shortcut.Common.OpenWith as Keyboard.Shortcut.Common}
       />
       <Action
         title="Open in Steam"
@@ -175,7 +195,7 @@ function GameActions({
           openExternal(`steam://store/${game.appid}`, "Opening in Steam app")
         }
         icon={Icon.AppWindow}
-        shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
+        shortcut={{ modifiers: ["cmd", "shift"], key: "o" }}
       />
       <ActionPanel.Section>
         <Action.CopyToClipboard
@@ -187,9 +207,7 @@ function GameActions({
           <Action.CopyToClipboard
             title="Copy Compatibility Info"
             content={`${game.name}: ${formatTierName(rating.tier)} (${rating.total} reports, ${rating.confidence} confidence)`}
-            shortcut={
-              Keyboard.Shortcut.Common.CopyName as Keyboard.Shortcut.Common
-            }
+            shortcut={Keyboard.Shortcut.Common.CopyName as Keyboard.Shortcut.Common}
           />
         )}
       </ActionPanel.Section>
@@ -222,6 +240,9 @@ function GameDetail({ game }: { game: SteamGame }) {
   const requirementsSection = gameDetails
     ? formatRequirementsSection(gameDetails.pc_requirements, gameDetails.linux_requirements)
     : "";
+  const description = gameDetails?.short_description
+    ? gameDetails.short_description.split("\n").map((line) => `> ${line}`).join("\n")
+    : "";
   const markdown = loadingDetails
     ? `# ${game.name}\n\nLoading game details...`
     : headerImage
@@ -229,10 +250,10 @@ function GameDetail({ game }: { game: SteamGame }) {
 
 # ${game.name}
 
-${gameDetails?.short_description || ""}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`
+${description}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`
       : `# ${game.name}
 
-${gameDetails?.short_description || ""}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`;
+${description}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`;
 
   const formatPercentage = (score: number) => {
     return `${Math.round(score * 100)}%`;
