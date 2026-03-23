@@ -6,6 +6,9 @@ import type {
 } from "@tanstack/react-query-persist-client";
 import { Cache, showToast, Toast } from "@vicinae/api";
 import ms from "ms";
+import {
+	SteamAppDetailsSchema,
+} from "./types";
 import type {
 	ProtonDBRating,
 	SteamAppDetails,
@@ -269,7 +272,7 @@ export async function fetchGameDetails(
 	const gameData = data[appId];
 
 	if (gameData?.success && gameData.data) {
-		return gameData.data;
+		return SteamAppDetailsSchema.parse(gameData.data);
 	}
 
 	return null;

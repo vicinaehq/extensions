@@ -1,4 +1,5 @@
 // Types for ProtonDB and Steam API
+import * as z from "zod/v4/mini";
 
 export type SteamGame = {
 	appid: string;
@@ -67,66 +68,74 @@ export type SteamFeaturedCategories = {
 	[key: string]: unknown;
 };
 
-export type SteamGenre = {
-	id: string;
-	description: string;
-};
+const SteamGenreSchema = z.object({
+	id: z.string(),
+	description: z.string(),
+});
 
-export type SteamPriceOverview = {
-	currency: string;
-	initial: number;
-	final: number;
-	discount_percent: number;
-	initial_formatted: string;
-	final_formatted: string;
-};
+const SteamPriceOverviewSchema = z.object({
+	currency: z.string(),
+	initial: z.number(),
+	final: z.number(),
+	discount_percent: z.number(),
+	initial_formatted: z.string(),
+	final_formatted: z.string(),
+});
 
-export type SteamReleaseDate = {
-	coming_soon: boolean;
-	date: string;
-};
+const SteamReleaseDateSchema = z.object({
+	coming_soon: z.boolean(),
+	date: z.string(),
+});
 
-export type SteamMetacritic = {
-	score: number;
-	url: string;
-};
+const SteamMetacriticSchema = z.object({
+	score: z.number(),
+	url: z.string(),
+});
 
-export type SteamRequirements =
-	| {
-			minimum?: string;
-			recommended?: string;
-	  }
-	| string;
+const SteamRequirementsSchema = z.union([
+	z.object({
+		minimum: z.optional(z.string()),
+		recommended: z.optional(z.string()),
+	}),
+	z.string(),
+]);
 
-export type SteamAppDetails = {
-	type: string;
-	name: string;
-	steam_appid: number;
-	required_age: number;
-	is_free: boolean;
-	detailed_description: string;
-	about_the_game: string;
-	short_description: string;
-	supported_languages: string;
-	header_image: string;
-	capsule_image: string;
-	capsule_imagev5: string;
-	website?: string;
-	developers?: string[];
-	publishers?: string[];
-	price_overview?: SteamPriceOverview;
-	release_date: SteamReleaseDate;
-	platforms: {
-		windows: boolean;
-		mac: boolean;
-		linux: boolean;
-	};
-	metacritic?: SteamMetacritic;
-	genres?: SteamGenre[];
-	pc_requirements: SteamRequirements;
-	mac_requirements: SteamRequirements;
-	linux_requirements: SteamRequirements;
-};
+export const SteamAppDetailsSchema = z.object({
+	type: z.string(),
+	name: z.string(),
+	steam_appid: z.number(),
+	required_age: z.number(),
+	is_free: z.boolean(),
+	detailed_description: z.string(),
+	about_the_game: z.string(),
+	short_description: z.string(),
+	supported_languages: z.string(),
+	header_image: z.string(),
+	capsule_image: z.string(),
+	capsule_imagev5: z.string(),
+	website: z.optional(z.string()),
+	developers: z.optional(z.array(z.string())),
+	publishers: z.optional(z.array(z.string())),
+	price_overview: z.optional(SteamPriceOverviewSchema),
+	release_date: SteamReleaseDateSchema,
+	platforms: z.object({
+		windows: z.boolean(),
+		mac: z.boolean(),
+		linux: z.boolean(),
+	}),
+	metacritic: z.optional(SteamMetacriticSchema),
+	genres: z.optional(z.array(SteamGenreSchema)),
+	pc_requirements: SteamRequirementsSchema,
+	mac_requirements: SteamRequirementsSchema,
+	linux_requirements: SteamRequirementsSchema,
+});
+
+export type SteamGenre = z.infer<typeof SteamGenreSchema>;
+export type SteamPriceOverview = z.infer<typeof SteamPriceOverviewSchema>;
+export type SteamReleaseDate = z.infer<typeof SteamReleaseDateSchema>;
+export type SteamMetacritic = z.infer<typeof SteamMetacriticSchema>;
+export type SteamRequirements = z.infer<typeof SteamRequirementsSchema>;
+export type SteamAppDetails = z.infer<typeof SteamAppDetailsSchema>;
 
 export type SteamAppDetailsResponse = {
 	[appId: string]: {
