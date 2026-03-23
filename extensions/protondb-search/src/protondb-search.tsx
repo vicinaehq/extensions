@@ -125,22 +125,6 @@ function requirementsHtmlToMarkdown(html: string): string {
     .trim();
 }
 
-function stripHtmlTags(html: string): string {
-  if (!html) return "";
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
 function GameActions({
   game,
   rating,
@@ -229,7 +213,7 @@ function GameDetail({ game }: { game: SteamGame }) {
 
   const { data: imageDataUri } = useQuery<string>({
     queryKey: ["game-image", game.appid],
-    queryFn: () => fetchImageAsDataUri(gameDetails!.header_image as string),
+    queryFn: () => fetchImageAsDataUri(gameDetails?.header_image ?? ""),
     enabled: !!gameDetails?.header_image,
     persister: imagePersister,
   });
@@ -282,14 +266,10 @@ ${gameDetails?.short_description || ""}${requirementsSection ? `\n\n---\n\n${req
                 />
               )}
               {gameDetails.genres && gameDetails.genres.length > 0 && (
-                <Detail.Metadata.TagList title="Genres">
-                  {gameDetails.genres.slice(0, 5).map((genre: SteamGenre) => (
-                    <Detail.Metadata.TagList.Item
-                      key={genre.id}
-                      text={genre.description}
-                    />
-                  ))}
-                </Detail.Metadata.TagList>
+                <Detail.Metadata.Label
+                  title="Genres"
+                  text={gameDetails.genres.slice(0, 5).map((genre: SteamGenre) => genre.description).join(", ")}
+                />
               )}
               {gameDetails.price_overview && (
                 <Detail.Metadata.Label
