@@ -102,14 +102,15 @@ export default function NerdFontSearch() {
 
   const displayIcons = useMemo(() => {
     if (searchText.length === 0 && activePack === PACK_FILTER_ALL) {
-      return recentIcons.map((icon) => ({
-        ...icon,
-        keywords: [],
-        markdown: "",
-      }));
-    }
-    if (searchText.length < 3 && activePack === PACK_FILTER_ALL) {
-      return [];
+      // Show recent icons if available, otherwise show all icons
+      if (recentIcons.length > 0) {
+        return recentIcons.map((icon) => ({
+          ...icon,
+          keywords: [],
+          markdown: "",
+        }));
+      }
+      return searchResults;
     }
     return searchResults;
   }, [searchText, activePack, recentIcons, searchResults]);
@@ -163,22 +164,16 @@ export default function NerdFontSearch() {
           title={
             searchText.length > 0 && searchText.length < 3
               ? "Keep typing..."
-              : searchText.length === 0 && activePack !== PACK_FILTER_ALL
+              : searchText.length >= 3
                 ? "No icons found"
-                : searchText.length >= 3
-                  ? "No icons found"
-                  : "Start searching"
+                : "Loading icons..."
           }
           description={
             searchText.length > 0 && searchText.length < 3
               ? "Enter at least 3 characters to search"
-              : searchText.length === 0 && activePack !== PACK_FILTER_ALL
-                ? "Try selecting another icon pack"
-                : searchText.length >= 3
-                  ? "Try a different search term or pick another icon pack"
-                  : recentIcons.length > 0
-                    ? "Your recently copied icons will appear here"
-                    : "Enter at least 3 characters to search for icons"
+              : searchText.length >= 3
+                ? "Try a different search term or pick another icon pack"
+                : "Your icon library is loading. Please wait..."
           }
           icon={Icon.MagnifyingGlass}
         />

@@ -32,7 +32,9 @@ function filterIconIndex({
 
 	if (searchText.length < 3) {
 		if (selectedPack === PACK_FILTER_ALL) {
-			return [];
+			return iconIndex
+				.sort((a, b) => a.displayName.localeCompare(b.displayName))
+				.slice(0, SEARCH_RESULT_LIMIT);
 		}
 
 		return iconIndex

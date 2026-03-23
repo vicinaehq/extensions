@@ -31,7 +31,11 @@ test("pack filter behavior for short and full search terms", () => {
 		searchText: "",
 		selectedPack: PACK_FILTER_ALL,
 	});
-	assert.equal(noSearchAll.length, 0, "all-pack short search should return []");
+	assert.ok(noSearchAll.length > 0, "all-pack short search should return all icons");
+	assert.ok(
+		noSearchAll.every((a, i, arr) => i === 0 || a.displayName >= arr[i - 1].displayName),
+		"all-pack short search should return icons sorted alphabetically"
+	);
 
 	const noSearchPack = filterIconIndex({
 		iconIndex: decodedIndex,
