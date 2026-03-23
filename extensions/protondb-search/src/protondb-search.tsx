@@ -271,25 +271,25 @@ ${description}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`
               {gameDetails.release_date?.date && (
                 <Detail.Metadata.Label
                   title="Release Date"
-                  text={gameDetails.release_date.date}
+                  text={gameDetails.release_date.date.trim()}
                 />
               )}
               {gameDetails.developers && gameDetails.developers.length > 0 && (
                 <Detail.Metadata.Label
                   title="Developer"
-                  text={gameDetails.developers.join(", ")}
+                  text={gameDetails.developers.map((d) => d.trim()).join(", ")}
                 />
               )}
               {gameDetails.publishers && gameDetails.publishers.length > 0 && (
                 <Detail.Metadata.Label
                   title="Publisher"
-                  text={gameDetails.publishers.join(", ")}
+                  text={gameDetails.publishers.map((p) => p.trim()).join(", ")}
                 />
               )}
               {gameDetails.genres && gameDetails.genres.length > 0 && (
                 <Detail.Metadata.Label
                   title="Genres"
-                  text={gameDetails.genres.slice(0, 5).map((genre: SteamGenre) => genre.description).join(", ")}
+                  text={gameDetails.genres.slice(0, 5).map((genre: SteamGenre) => genre.description.trim()).join(", ")}
                 />
               )}
               {gameDetails.price_overview && (
@@ -297,8 +297,8 @@ ${description}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`
                   title="Price"
                   text={
                     gameDetails.price_overview.discount_percent > 0
-                      ? `${gameDetails.price_overview.final_formatted} (${gameDetails.price_overview.discount_percent}% off)`
-                      : gameDetails.price_overview.final_formatted
+                      ? `${gameDetails.price_overview.final_formatted.trim()} (${gameDetails.price_overview.discount_percent}% off)`
+                      : gameDetails.price_overview.final_formatted.trim()
                   }
                 />
               )}
