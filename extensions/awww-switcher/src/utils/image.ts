@@ -4,7 +4,6 @@ import * as _path from "path";
 import { imageSize } from "image-size";
 import { LocalStorage as storage } from "@vicinae/api";
 import { createHash } from "node:crypto";
-import path from "node:path";
 
 const hyprpaperSupportedFormats = ["jpg", "jpeg", "png", "webp", "gif"];
 
@@ -43,7 +42,7 @@ export const getImagesFromPath = async (path: string): Promise<string[]> => {
   const imagesPaths = await parseImagesFromPath(path);
   console.timeEnd("🚀 get Images speed");
   console.log("---");
-  return imagesPaths.map((img) => _path.join(path, img));
+  return imagesPaths;
 };
 
 export const processImage = async (path: string): Promise<Image> => {
@@ -86,12 +85,12 @@ export const processImage = async (path: string): Promise<Image> => {
   }
 };
 
-async function getPrevWallpapersHash(): Promise<string | undefined> {
-  return storage.getItem("wallpapersHash");
-}
-
 async function getMetadataFromCache(): Promise<string | undefined> {
   return storage.getItem("wallpapersMetadata") ?? "";
+}
+
+async function getPrevWallpapersHash(): Promise<string | undefined> {
+  return storage.getItem("wallpapersHash");
 }
 
 const getWallpapersHash = async (path: string): Promise<string> => {
@@ -113,6 +112,13 @@ const getWallpapersHash = async (path: string): Promise<string> => {
     console.error(e);
     throw new Error("Failed to get hash of wallpapers directory");
   }
+}
+
+export const wallpaperSourceChanged = async (path: string): Promise<boolean> => {
+  let previousWallpapersHash = await getPrevWallpapersHash();
+  const currentWallpapersHash = await getWallpapersHash(path);
+  return (currentWallpapersHash == previousWallpapersHash);
+
 }
 
 // fetch images only if the source directory signature has changed and stores both the src dir signature and the wallpapers in LocalStorage
@@ -137,7 +143,7 @@ export const getImagesMetadata = async (path: string): Promise<Record<string, Im
           await Promise.all(
             batch.map((img) => {
               const key = _path.join(path, img);
-              return processImage(key).then((value) => [key, value]);
+              return processImage(key).then((value) => [img, value]);
             })
           )
         );
