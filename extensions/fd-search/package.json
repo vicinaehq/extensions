@@ -16,10 +16,60 @@
       "subtitle": "Search entire filesystem",
       "description": "Fast fd search",
       "mode": "view",
-      "entrypoint": "src/fd-search.tsx"
+      "entrypoint": "src/fd-search.tsx",
+      "preferences": [
+        {
+          "name": "reindexAfterMinutes",
+          "type": "textfield",
+          "title": "Reindex After (Minutes)",
+          "description": "Rebuild the index when opening the extension if the current index is older than this many minutes. Values are clamped between 0.5 and 20.",
+          "default": "5",
+          "required": false
+        },
+        {
+          "name": "maxResults",
+          "type": "textfield",
+          "title": "Max Results",
+          "description": "Maximum number of search results to display. Values are clamped between 10 and 100.",
+          "default": "25",
+          "required": false
+        },
+        {
+          "name": "indexedPaths",
+          "type": "textfield",
+          "title": "Indexed Paths",
+          "description": "Semicolon-separated paths to index. Default: /home. Warning: including / can take a very long time or crash indexing.",
+          "default": "/home",
+          "required": false
+        },
+        {
+          "name": "excludePatterns",
+          "type": "textfield",
+          "title": "Exclude Patterns",
+          "description": "Semicolon-separated fd exclude patterns. Edit to remove defaults or add more exclusions.",
+          "default": ".git;node_modules;dist;build;.cache;.venv;venv;__pycache__",
+          "required": false
+        },
+        {
+          "name": "includeHiddenFiles",
+          "type": "checkbox",
+          "title": "Hidden Files",
+          "label": "Include hidden files and folders",
+          "description": "Warning: enabling hidden-file indexing can dramatically increase index size, slow indexing, or crash the extension on large systems.",
+          "default": false,
+          "required": false
+        },
+        {
+          "name": "watcherPaths",
+          "type": "textfield",
+          "title": "Watcher Paths",
+          "description": "Semicolon-separated files or folders to watch for changes. If they change, opening the extension can trigger a re-index even before the normal timer. Warning: expensive on large folders.",
+          "default": "",
+          "required": false
+        }
+      ]
     }
   ],
-  "preferences": [],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",
