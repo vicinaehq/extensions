@@ -16,8 +16,8 @@ Search Steam games and check their Linux compatibility on ProtonDB directly in V
 | --- | --- | --- |
 | Show Details | `⌘D` | Open the selected game's detail view |
 | Open on ProtonDB | `⌃O` | Open the ProtonDB report page in your browser |
-| Open on Steam | `⌘S` | Open the Steam Store page in your browser |
-| Open in Steam | `⌘⇧S` | Open the game directly in the Steam desktop app |
+| Open on Steam | `⌃⇧O` | Open the Steam Store page in your browser |
+| Open in Steam | `⌘⇧O` | Open the game directly in the Steam desktop app |
 | Copy ProtonDB URL | `⌃.` | Copy the ProtonDB app URL |
 | Copy Compatibility Info | `⌃⇧.` | Copy the current ProtonDB rating summary |
 
