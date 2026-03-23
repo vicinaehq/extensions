@@ -12,7 +12,7 @@ import {
 	showToast,
 	Toast,
 } from "@vicinae/api";
-import { useEffect, useState, type ReactNode } from "react";
+import { useDeferredValue, useState, type ReactNode } from "react";
 import {
 	PersistQueryClientProvider,
 } from "@tanstack/react-query-persist-client";
@@ -23,7 +23,6 @@ import {
 	PERSIST_MAX_AGE,
 	persister,
 	queryClient,
-	SEARCH_DEBOUNCE_MS,
 	searchSteamGames,
 } from "./api";
 import type {
@@ -79,56 +78,20 @@ function formatConfidence(confidence: ProtonDBConfidence | undefined): string {
 
 function stripHtmlTags(html: string): string {
 	if (!html) return "";
-
-	return (
-		html
-			// Handle line breaks first
-			.replace(/<br\s*\/?>/gi, "\n")
-			.replace(/<\/p>/gi, "\n\n")
-			.replace(/<\/div>/gi, "\n")
-
-			// Handle lists
-			.replace(/<\/li>/gi, "\n")
-			.replace(/<li[^>]*>/gi, "• ")
-			.replace(/<\/?[ou]l[^>]*>/gi, "\n")
-
-			// Handle headings
-			.replace(/<\/h[1-6]>/gi, "\n\n")
-			.replace(/<h[1-6][^>]*>/gi, "")
-
-			// Preserve content in emphasis tags
-			.replace(/<strong>(.*?)<\/strong>/gi, "$1")
-			.replace(/<b>(.*?)<\/b>/gi, "$1")
-			.replace(/<em>(.*?)<\/em>/gi, "$1")
-			.replace(/<i>(.*?)<\/i>/gi, "$1")
-
-			// Remove all other tags
-			.replace(/<[^>]+>/g, "")
-
-			// Decode common HTML entities
-			.replace(/&nbsp;/g, " ")
-			.replace(/&amp;/g, "&")
-			.replace(/&lt;/g, "<")
-			.replace(/&gt;/g, ">")
-			.replace(/&quot;/g, '"')
-			.replace(/&#39;/g, "'")
-			.replace(/&apos;/g, "'")
-
-			// Clean up extra whitespace
-			.replace(/\n\s*\n\s*\n/g, "\n\n") // Max 2 consecutive newlines
-			.replace(/[ \t]+/g, " ") // Multiple spaces to single space
-			.trim()
-	);
+	return html
+		.replace(/<br\s*\/?>/gi, "\n")
+		.replace(/<\/p>/gi, "\n\n")
+		.replace(/<[^>]+>/g, "")
+		.replace(/&nbsp;/g, " ")
+		.replace(/&amp;/g, "&")
+		.replace(/&lt;/g, "<")
+		.replace(/&gt;/g, ">")
+		.replace(/&quot;/g, '"')
+		.replace(/&#39;|&apos;/g, "'")
+		.replace(/\n{3,}/g, "\n\n")
+		.trim();
 }
 
-function useDebounce<T>(value: T, delay: number): T {
-	const [debounced, setDebounced] = useState(value);
-	useEffect(() => {
-		const id = setTimeout(() => setDebounced(value), delay);
-		return () => clearTimeout(id);
-	}, [value, delay]);
-	return debounced;
-}
 
 function GameActions({
 	game,
@@ -438,7 +401,7 @@ function GameListItem({ game }: { game: SteamGame }) {
 
 function ProtonDBSearchContent({ isRestoring }: { isRestoring: boolean }) {
 	const [searchText, setSearchText] = useState("");
-	const debouncedSearch = useDebounce(searchText, SEARCH_DEBOUNCE_MS);
+	const deferredSearch = useDeferredValue(searchText);
 
 	const { data: featuredGames = [], isLoading: loadingFeatured } = useQuery({
 		queryKey: ["featured-games"],
@@ -450,13 +413,13 @@ function ProtonDBSearchContent({ isRestoring }: { isRestoring: boolean }) {
 		isLoading: loadingSearch,
 		isFetching: fetchingSearch,
 	} = useQuery({
-		queryKey: ["steam-search", debouncedSearch],
-		queryFn: () => searchSteamGames(debouncedSearch),
-		enabled: debouncedSearch.trim().length > 0,
+		queryKey: ["steam-search", deferredSearch],
+		queryFn: ({ signal }) => searchSteamGames(deferredSearch, signal),
+		enabled: deferredSearch.trim().length > 0,
 		placeholderData: keepPreviousData,
 	});
 
-	const showingSearch = debouncedSearch.trim().length > 0;
+	const showingSearch = deferredSearch.trim().length > 0;
 	const games = showingSearch ? searchResults : featuredGames;
 	const isLoading =
 		isRestoring || (showingSearch ? loadingSearch || fetchingSearch : loadingFeatured);

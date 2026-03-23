@@ -58,16 +58,18 @@ function isAbortError(error: unknown): boolean {
 	return error instanceof DOMException && error.name === "AbortError";
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
+async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
 	let response: Response;
 
 	try {
 		response = await fetch(url, {
-			signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+			signal: signal
+				? AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)])
+				: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
 		});
 	} catch (error) {
 		if (isAbortError(error)) {
-			throw new Error("Request timed out");
+			throw new Error("Request timed out or was cancelled");
 		}
 
 		throw error;
@@ -123,12 +125,13 @@ export const queryClient = new QueryClient({
 	},
 });
 
-export async function searchSteamGames(query: string): Promise<SteamGame[]> {
+export async function searchSteamGames(query: string, signal?: AbortSignal): Promise<SteamGame[]> {
 	const trimmed = query.trim();
 	if (!trimmed) return [];
 
 	const games = await fetchJson<SteamGame[]>(
 		`${STEAM_SEARCH_URL}/${encodeURIComponent(trimmed)}`,
+		signal,
 	);
 	return games.slice(0, 20);
 }
