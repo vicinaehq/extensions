@@ -1,11 +1,9 @@
-import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { experimental_createQueryPersister } from "@tanstack/query-persist-client-core";
 import type {
   PersistedClient,
   Persister,
 } from "@tanstack/react-query-persist-client";
-import { Cache, environment, showToast, Toast } from "@vicinae/api";
-import ms from "ms";
+import { Cache, environment } from "@vicinae/api";
 import { SteamAppDetailsSchema } from "./types";
 import type {
   ProtonDBRating,
@@ -15,6 +13,15 @@ import type {
   SteamFeaturedItem,
   SteamGame,
 } from "./types";
+import {
+  FEATURED_GAMES_COUNT,
+  IMAGE_CACHE_CAPACITY,
+  PERSIST_KEY,
+  PERSIST_MAX_AGE,
+  REQUEST_TIMEOUT_MS,
+} from "./constants";
+
+export { PERSIST_MAX_AGE } from "./constants";
 
 const STEAM_SEARCH_URL = "https://steamcommunity.com/actions/SearchApps";
 const PROTONDB_RATING_URL = "https://www.protondb.com/api/v1/reports/summaries";
@@ -23,16 +30,7 @@ const STEAM_APPDETAILS_URL =
 const STEAM_FEATURED_URL =
   "https://store.steampowered.com/api/featuredcategories";
 
-export const SEARCH_DEBOUNCE_MS = 500;
-export const FEATURED_GAMES_COUNT = 11;
-export const REQUEST_TIMEOUT_MS = ms("10s");
-export const PERSIST_MAX_AGE = ms("12h");
-export const QUERY_STALE_TIME = PERSIST_MAX_AGE;
-
 const cache = new Cache();
-const PERSIST_KEY = "protondb-query-v1";
-
-const IMAGE_CACHE_CAPACITY = 5 * 1024 * 1024; // 5 MB
 const imageCache = new Cache({
   capacity: IMAGE_CACHE_CAPACITY,
   ttl: PERSIST_MAX_AGE,
@@ -120,25 +118,7 @@ export const persister: Persister = environment.isDevelopment
       },
     };
 
-export const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: (error) => {
-      showToast({
-        style: Toast.Style.Failure,
-        title: "Request failed",
-        message: error instanceof Error ? error.message : undefined,
-      });
-    },
-  }),
-  defaultOptions: {
-    queries: {
-      staleTime: QUERY_STALE_TIME,
-      gcTime: PERSIST_MAX_AGE,
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
+export { queryClient } from "./queryClient";
 
 export async function searchSteamGames(
   query: string,
@@ -163,17 +143,15 @@ async function fetchGamesByIds(appIds: number[]): Promise<SteamGame[]> {
         );
         const gameData = detailsData[appId];
 
-        if (
-          gameData?.success &&
-          gameData.data &&
-          gameData.data.type === "game"
-        ) {
-          return {
-            appid: String(appId),
-            name: gameData.data.name,
-            logo:
-              gameData.data.capsule_imagev5 || gameData.data.header_image || "",
-          };
+        if (gameData?.success && gameData.data) {
+          const parsed = SteamAppDetailsSchema.safeParse(gameData.data);
+          if (parsed.success && parsed.data.type === "game") {
+            return {
+              appid: String(appId),
+              name: parsed.data.name,
+              logo: parsed.data.capsule_imagev5 || parsed.data.header_image || "",
+            };
+          }
         }
 
         return null;
@@ -262,7 +240,7 @@ export async function fetchGameDetails(
 
   if (gameData?.success && gameData.data) {
     const result = SteamAppDetailsSchema.safeParse(gameData.data);
-    if (result.success === false) {
+    if (result.success === false && environment.isDevelopment) {
       console.warn(
         `[fetchGameDetails] Schema validation failed for appId ${appId}:`,
         result.error.issues,

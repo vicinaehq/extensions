@@ -3,7 +3,6 @@ import {
   Action,
   ActionPanel,
   closeMainWindow,
-  Color,
   Detail,
   Icon,
   Keyboard,
@@ -32,118 +31,19 @@ import {
   searchSteamGames,
 } from "./api";
 import type {
-  ProtonDBConfidence,
-  ProtonDBTier,
   SteamGame,
   SteamGenre,
   ProtonDBRating,
   SteamAppDetails,
-  SteamRequirements,
 } from "./types";
-
-function getTierColor(tier: ProtonDBTier | undefined): Color {
-  if (!tier) return Color.SecondaryText;
-
-  const tierColors: Record<ProtonDBTier, Color> = {
-    native: Color.Blue,
-    platinum: Color.Purple,
-    gold: Color.Yellow,
-    silver: Color.Orange,
-    bronze: Color.Orange,
-    borked: Color.Red,
-    pending: Color.SecondaryText,
-  };
-
-  return tierColors[tier] || Color.SecondaryText;
-}
-
-function getTierEmoji(tier: ProtonDBTier | undefined): string {
-  if (!tier) return "❓";
-
-  const tierEmojis: Record<ProtonDBTier, string> = {
-    native: "🐧",
-    platinum: "💎",
-    gold: "🥇",
-    silver: "🥈",
-    bronze: "🥉",
-    borked: "❌",
-    pending: "❓",
-  };
-
-  return tierEmojis[tier] || "❓";
-}
-
-function formatTierName(tier: ProtonDBTier | undefined): string {
-  if (!tier) return "Unknown";
-  return tier.charAt(0).toUpperCase() + tier.slice(1);
-}
-
-function formatConfidence(confidence: ProtonDBConfidence | undefined): string {
-  if (!confidence) return "";
-  return ` (${confidence} confidence)`;
-}
-
-function formatRequirementsSection(
-  pcReqs: SteamRequirements | null | undefined,
-  linuxReqs: SteamRequirements | null | undefined,
-): string {
-  const sections: string[] = [];
-
-  function reqText(reqs: SteamRequirements | null | undefined): string {
-    if (!reqs || Array.isArray(reqs)) return "";
-    const raw = typeof reqs === "string" ? reqs : reqs.minimum || "";
-    return requirementsHtmlToMarkdown(raw);
-  }
-
-  const pc = reqText(pcReqs);
-  if (pc) sections.push(`## System Requirements (PC)\n\n${pc}`);
-
-  const linux = reqText(linuxReqs);
-  if (linux) sections.push(`## System Requirements (Linux)\n\n${linux}`);
-
-  return sections.join("\n\n");
-}
-
-function decodeHtmlEntities(s: string): string {
-  return s
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'");
-}
-
-function requirementsHtmlToMarkdown(html: string): string {
-  if (!html) return "";
-
-  // Strip the "Minimum:" / "Recommended:" wrapper header
-  const withoutHeader = html.replace(/<strong>(minimum|recommended):<\/strong>\s*/gi, "");
-
-  // Extract key/value pairs from <strong>Key:</strong> value patterns
-  const rows: [string, string][] = [];
-  const pattern = /<strong>([^<]+):<\/strong>\s*(.*?)(?=<strong>|<\/ul>|$)/gis;
-  for (const match of withoutHeader.matchAll(pattern)) {
-    const key = decodeHtmlEntities(match[1].trim());
-    const value = decodeHtmlEntities(match[2].replace(/<[^>]+>/g, "").trim());
-    if (key && value) rows.push([key, value]);
-  }
-
-  if (rows.length === 0) {
-    // Fallback: plain text if no key/value pairs found
-    return decodeHtmlEntities(
-      withoutHeader
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/<li>/gi, "\n")
-        .replace(/<[^>]+>/g, "")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim(),
-    );
-  }
-
-  return rows.map(([k, v]) => `**${k}:** ${v}`).join("\n\n");
-}
-
+import {
+  formatConfidence,
+  formatPercentage,
+  formatRequirementsSection,
+  formatTierName,
+  getTierColor,
+  getTierEmoji,
+} from "./utils/formatters";
 
 function GameActions({
   game,
@@ -255,10 +155,6 @@ ${description}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`
 
 ${description}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`;
 
-  const formatPercentage = (score: number) => {
-    return `${Math.round(score * 100)}%`;
-  };
-
   return (
     <Detail
       markdown={markdown}
@@ -289,7 +185,7 @@ ${description}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`
               {gameDetails.genres && gameDetails.genres.length > 0 && (
                 <Detail.Metadata.Label
                   title="Genres"
-                  text={gameDetails.genres.slice(0, 5).map((genre: SteamGenre) => genre.description.trim()).join(", ")}
+                  text={gameDetails.genres.slice(0, 5).map((genre: SteamGenre) => genre.description?.trim() ?? "").filter(Boolean).join(", ")}
                 />
               )}
               {gameDetails.price_overview && (
@@ -305,7 +201,7 @@ ${description}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`
               {!gameDetails.price_overview && gameDetails.is_free && (
                 <Detail.Metadata.Label title="Price" text="Free to Play" />
               )}
-              {gameDetails.metacritic?.score && (
+              {gameDetails.metacritic?.score != null && (
                 <Detail.Metadata.Label
                   title="Metacritic Score"
                   text={`${gameDetails.metacritic.score}/100`}

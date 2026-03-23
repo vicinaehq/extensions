@@ -28,12 +28,6 @@ export type ProtonDBRating = {
 	trendingTier: ProtonDBTier;
 };
 
-export type GameWithRating = {
-	game: SteamGame;
-	rating: ProtonDBRating | null;
-	isLoadingRating: boolean;
-};
-
 // Steam API Response Types
 export type SteamFeaturedItem = {
 	id: number;
@@ -69,8 +63,8 @@ export type SteamFeaturedCategories = {
 };
 
 const SteamGenreSchema = z.looseObject({
-	id: z.string(),
-	description: z.string(),
+	id: z.optional(z.nullable(z.string())),
+	description: z.optional(z.nullable(z.string())),
 });
 
 const SteamPriceOverviewSchema = z.looseObject({
@@ -103,6 +97,7 @@ const SteamRequirementsSchema = z.union([
 
 export const SteamAppDetailsSchema = z.looseObject({
 	name: z.string(),
+	type: z.optional(z.nullable(z.string())),
 	steam_appid: z.optional(z.nullable(z.number())),
 	is_free: z.optional(z.nullable(z.boolean())),
 	short_description: z.optional(z.nullable(z.string())),
@@ -129,6 +124,6 @@ export type SteamAppDetails = z.infer<typeof SteamAppDetailsSchema>;
 export type SteamAppDetailsResponse = {
 	[appId: string]: {
 		success: boolean;
-		data?: SteamAppDetails;
+		data?: unknown;
 	};
 };
