@@ -25,8 +25,10 @@ export { PERSIST_MAX_AGE } from "./constants";
 
 const STEAM_SEARCH_URL = "https://steamcommunity.com/actions/SearchApps";
 const PROTONDB_RATING_URL = "https://www.protondb.com/api/v1/reports/summaries";
-const STEAM_APPDETAILS_URL =
+const STEAM_APPDETAILS_PROXY_URL =
   "https://www.protondb.com/proxy/steam/api/appdetails";
+const STEAM_APPDETAILS_URL =
+  "https://store.steampowered.com/api/appdetails";
 const STEAM_FEATURED_URL =
   "https://store.steampowered.com/api/featuredcategories";
 
@@ -138,9 +140,7 @@ async function fetchGamesByIds(appIds: number[]): Promise<SteamGame[]> {
   const gameDetails = await Promise.all(
     appIds.map(async (appId) => {
       try {
-        const detailsData = await fetchJson<SteamAppDetailsResponse>(
-          `${STEAM_APPDETAILS_URL}?appids=${appId}`,
-        );
+        const detailsData = await fetchAppDetailsResponse(String(appId));
         const gameData = detailsData[appId];
 
         if (gameData?.success && gameData.data) {
@@ -230,12 +230,21 @@ export async function fetchProtonDBRating(
   }
 }
 
+async function fetchAppDetailsResponse(appId: string): Promise<SteamAppDetailsResponse> {
+  const proxyData = await fetchJson<SteamAppDetailsResponse>(
+    `${STEAM_APPDETAILS_PROXY_URL}?appids=${appId}`,
+  );
+  if (proxyData[appId]?.success) return proxyData;
+
+  return fetchJson<SteamAppDetailsResponse>(
+    `${STEAM_APPDETAILS_URL}?appids=${appId}`,
+  );
+}
+
 export async function fetchGameDetails(
   appId: string,
 ): Promise<SteamAppDetails | null> {
-  const data = await fetchJson<SteamAppDetailsResponse>(
-    `${STEAM_APPDETAILS_URL}?appids=${appId}`,
-  );
+  const data = await fetchAppDetailsResponse(appId);
   const gameData = data[appId];
 
   if (gameData?.success && gameData.data) {
