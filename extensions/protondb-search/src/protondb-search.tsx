@@ -38,6 +38,7 @@ import type {
   SteamGenre,
   ProtonDBRating,
   SteamAppDetails,
+  SteamRequirements,
 } from "./types";
 
 function getTierColor(tier: ProtonDBTier | undefined): Color {
@@ -80,6 +81,48 @@ function formatTierName(tier: ProtonDBTier | undefined): string {
 function formatConfidence(confidence: ProtonDBConfidence | undefined): string {
   if (!confidence) return "";
   return ` (${confidence} confidence)`;
+}
+
+function formatRequirementsSection(
+  pcReqs: SteamRequirements | null | undefined,
+  linuxReqs: SteamRequirements | null | undefined,
+): string {
+  const sections: string[] = [];
+
+  function reqText(reqs: SteamRequirements | null | undefined): string {
+    if (!reqs || Array.isArray(reqs)) return "";
+    const raw = typeof reqs === "string" ? reqs : reqs.minimum || "";
+    const formatted = requirementsHtmlToMarkdown(raw);
+    // Discard strings that are only a "**Minimum:**" / "**Recommended:**" header with no body
+    const withoutHeaders = formatted.replace(/^\*\*(minimum|recommended):\*\*/gi, "").trim();
+    return withoutHeaders ? formatted : "";
+  }
+
+  const pc = reqText(pcReqs);
+  if (pc) sections.push(`## System Requirements (PC)\n\n${pc}`);
+
+  const linux = reqText(linuxReqs);
+  if (linux) sections.push(`## System Requirements (Linux)\n\n${linux}`);
+
+  return sections.join("\n\n");
+}
+
+function requirementsHtmlToMarkdown(html: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<strong>(.*?)<\/strong>/gi, "**$1**")
+    .replace(/<li>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function stripHtmlTags(html: string): string {
@@ -192,17 +235,20 @@ function GameDetail({ game }: { game: SteamGame }) {
   });
 
   const headerImage = imageDataUri ?? gameDetails?.header_image;
+  const requirementsSection = gameDetails
+    ? formatRequirementsSection(gameDetails.pc_requirements, gameDetails.linux_requirements)
+    : "";
   const markdown = loadingDetails
     ? `# ${game.name}\n\nLoading game details...`
     : headerImage
       ? `![${game.name}](${headerImage})
-  
+
 # ${game.name}
 
-${gameDetails?.short_description || ""}`
+${gameDetails?.short_description || ""}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`
       : `# ${game.name}
 
-${gameDetails?.short_description || ""}`;
+${gameDetails?.short_description || ""}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`;
 
   const formatPercentage = (score: number) => {
     return `${Math.round(score * 100)}%`;
@@ -323,33 +369,7 @@ ${gameDetails?.short_description || ""}`;
             </>
           )}
 
-          {gameDetails?.pc_requirements && (
-            <>
-              <Detail.Metadata.Separator />
-              <Detail.Metadata.Label
-                title="System Requirements (PC)"
-                text={stripHtmlTags(
-                  typeof gameDetails.pc_requirements === "string"
-                    ? gameDetails.pc_requirements
-                    : gameDetails.pc_requirements.minimum || "",
-                )}
-              />
-            </>
-          )}
 
-          {gameDetails?.linux_requirements &&
-            typeof gameDetails.linux_requirements === "object" &&
-            gameDetails.linux_requirements.minimum &&
-            stripHtmlTags(gameDetails.linux_requirements.minimum).length >
-              0 && (
-              <>
-                <Detail.Metadata.Separator />
-                <Detail.Metadata.Label
-                  title="System Requirements (Linux)"
-                  text={stripHtmlTags(gameDetails.linux_requirements.minimum)}
-                />
-              </>
-            )}
         </Detail.Metadata>
       }
       actions={<GameActions game={game} rating={rating} />}

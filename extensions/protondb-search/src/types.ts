@@ -68,12 +68,12 @@ export type SteamFeaturedCategories = {
 	[key: string]: unknown;
 };
 
-const SteamGenreSchema = z.object({
+const SteamGenreSchema = z.looseObject({
 	id: z.string(),
 	description: z.string(),
 });
 
-const SteamPriceOverviewSchema = z.object({
+const SteamPriceOverviewSchema = z.looseObject({
 	currency: z.string(),
 	initial: z.number(),
 	final: z.number(),
@@ -82,52 +82,41 @@ const SteamPriceOverviewSchema = z.object({
 	final_formatted: z.string(),
 });
 
-const SteamReleaseDateSchema = z.object({
+const SteamReleaseDateSchema = z.looseObject({
 	coming_soon: z.boolean(),
 	date: z.string(),
 });
 
-const SteamMetacriticSchema = z.object({
+const SteamMetacriticSchema = z.looseObject({
 	score: z.number(),
 	url: z.string(),
 });
 
 const SteamRequirementsSchema = z.union([
-	z.object({
+	z.looseObject({
 		minimum: z.optional(z.string()),
 		recommended: z.optional(z.string()),
 	}),
 	z.string(),
+	z.array(z.unknown()),
 ]);
 
-export const SteamAppDetailsSchema = z.object({
-	type: z.string(),
+export const SteamAppDetailsSchema = z.looseObject({
 	name: z.string(),
-	steam_appid: z.number(),
-	required_age: z.number(),
-	is_free: z.boolean(),
-	detailed_description: z.string(),
-	about_the_game: z.string(),
-	short_description: z.string(),
-	supported_languages: z.string(),
-	header_image: z.string(),
-	capsule_image: z.string(),
-	capsule_imagev5: z.string(),
-	website: z.optional(z.string()),
-	developers: z.optional(z.array(z.string())),
-	publishers: z.optional(z.array(z.string())),
-	price_overview: z.optional(SteamPriceOverviewSchema),
-	release_date: SteamReleaseDateSchema,
-	platforms: z.object({
-		windows: z.boolean(),
-		mac: z.boolean(),
-		linux: z.boolean(),
-	}),
-	metacritic: z.optional(SteamMetacriticSchema),
-	genres: z.optional(z.array(SteamGenreSchema)),
-	pc_requirements: SteamRequirementsSchema,
-	mac_requirements: SteamRequirementsSchema,
-	linux_requirements: SteamRequirementsSchema,
+	steam_appid: z.optional(z.nullable(z.number())),
+	is_free: z.optional(z.nullable(z.boolean())),
+	short_description: z.optional(z.nullable(z.string())),
+	header_image: z.optional(z.nullable(z.string())),
+	capsule_imagev5: z.optional(z.nullable(z.string())),
+	website: z.optional(z.nullable(z.string())),
+	developers: z.optional(z.nullable(z.array(z.string()))),
+	publishers: z.optional(z.nullable(z.array(z.string()))),
+	price_overview: z.optional(z.nullable(SteamPriceOverviewSchema)),
+	release_date: z.optional(z.nullable(SteamReleaseDateSchema)),
+	metacritic: z.optional(z.nullable(SteamMetacriticSchema)),
+	genres: z.optional(z.nullable(z.array(SteamGenreSchema))),
+	pc_requirements: z.optional(z.nullable(SteamRequirementsSchema)),
+	linux_requirements: z.optional(z.nullable(SteamRequirementsSchema)),
 });
 
 export type SteamGenre = z.infer<typeof SteamGenreSchema>;
