@@ -1,9 +1,9 @@
-import path from "path";
-import { homedir } from "os";
-import { existsSync } from "fs";
-import { type Preferences, ProjectEnvironment, ProjectType, type RecentProject } from "./types";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import path from "node:path";
 import { getPreferenceValues } from "@vicinae/api";
 import { VSCODE_STATE_PATHS } from "./constants";
+import { type Preferences, ProjectEnvironment, ProjectType, type RecentProject } from "./types";
 
 export function getVSCodeStateDBPath(): string {
     const home = homedir();
