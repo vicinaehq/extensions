@@ -227,11 +227,11 @@ export default function Command(): JSX.Element {
                     {extension.url && (
                       <List.Item.Detail.Metadata.Link title="Homepage" text={extension.url} target={extension.url} />
                     )}
-                    <List.Item.Detail.Metadata.Label title="UUID" text={extension.uuid} />
-                    <List.Item.Detail.Metadata.Label title="Status" text={extension.enabled ? "Enabled" : "Disabled"} />
-                    {extension.state && <List.Item.Detail.Metadata.Label title="State" text={extension.state} />}
-                    {extension.version && <List.Item.Detail.Metadata.Label title="Version" text={extension.version} />}
                     {extension.author && <List.Item.Detail.Metadata.Label title="Author" text={extension.author} />}
+                    <List.Item.Detail.Metadata.Label title="UUID" text={extension.uuid} />
+                    {extension.version && <List.Item.Detail.Metadata.Label title="Version" text={extension.version} />}
+                    {extension.state && <List.Item.Detail.Metadata.Label title="State" text={extension.state} />}
+                    <List.Item.Detail.Metadata.Label title="Status" text={extension.enabled ? "Enabled" : "Disabled"} />
                     {extension.settingsSchema && (
                       <List.Item.Detail.Metadata.Label title="Schema" text={extension.settingsSchema} />
                     )}
