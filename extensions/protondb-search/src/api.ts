@@ -14,7 +14,6 @@ import type {
   SteamGame,
 } from "./types";
 import {
-  FEATURED_GAMES_COUNT,
   IMAGE_CACHE_CAPACITY,
   PERSIST_KEY,
   PERSIST_MAX_AGE,
@@ -206,7 +205,6 @@ export async function fetchFeaturedGames(): Promise<SteamGame[]> {
         seenAppIds.add(id);
         return true;
       })
-      .slice(0, FEATURED_GAMES_COUNT);
 
     return await fetchGamesByIds(appIds);
   } catch {
