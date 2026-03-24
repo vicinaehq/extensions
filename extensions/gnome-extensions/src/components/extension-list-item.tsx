@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Action, ActionPanel, Clipboard, Icon, List, showToast, Toast } from "@vicinae/api";
 import useExtensionScreenshot from "../hooks/use-extension-screenshot";
+import { useExtensionIcon } from "../hooks/use-extension-icon";
 import { ExtensionListItemProps } from "../interfaces/extension-list-item-props";
 import { executeCommand } from "../utils/execute-command";
 import { ActionEnableExtension } from "./action-enable-extension";
@@ -13,16 +14,23 @@ async function openExtensionPrefs(uuid: string): Promise<boolean> {
 }
 
 export function ExtensionListItem({ extension, isShowingDetail, onToggleDetail, onReload }: ExtensionListItemProps) {
-  const { screenshot, isLoading, openScreenshot } = useExtensionScreenshot(extension.uuid);
+  const { screenshot, isLoading: isLoadingScreenshot, openScreenshot } = useExtensionScreenshot(extension.uuid);
+  const { iconPath, isLoading: isLoadingIcon } = useExtensionIcon(extension.uuid);
+
+  const icon = useMemo(() => {
+    if (isLoadingIcon) return Icon.CircleProgress;
+    if (iconPath) return iconPath;
+    return Icon.Network;
+  }, [iconPath, isLoadingIcon]);
 
   return (
     <List.Item
       key={extension.uuid}
       title={extension.name}
       subtitle={extension.description || extension.uuid}
-      icon={extension.enabled ? Icon.Checkmark : Icon.XMarkCircle}
+      icon={icon}
       accessories={extension.version ? [{ text: `v${extension.version}` }] : []}
-      detail={<ExtensionListDetail extension={extension} screenshot={screenshot} isLoadingScreenshot={isLoading} />}
+      detail={<ExtensionListDetail extension={extension} screenshot={screenshot} isLoadingScreenshot={isLoadingScreenshot} />}
       actions={(
         <ActionPanel>
           <Action
