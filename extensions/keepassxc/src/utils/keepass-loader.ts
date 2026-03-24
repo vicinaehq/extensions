@@ -1,4 +1,4 @@
-import { getApplications, getPreferenceValues, LocalStorage, Toast, showToast } from "@vicinae/api";
+import { getApplications, getPreferenceValues, LocalStorage, showToast, Toast } from "@vicinae/api";
 import { parse } from "csv-parse/sync";
 import child_process from "child_process";
 import process from "process";
@@ -6,6 +6,9 @@ import process from "process";
 interface Preference {
   database: string;
 }
+
+// eslint-disable-next-line no-unused-vars
+type RejectFn = (reason: Error) => void;
 
 /**
  * Utility function to show a toast message for CLI errors.
@@ -15,7 +18,7 @@ interface Preference {
  * Takes the error message from the CLI and shows a toast message with a human-readable description.
  * If the error is due to an invalid preference, the toast message will be "Invalid Preference: <preference name>".
  */
-const showToastCliErrors = async (e: { message: string }): void => {
+const showToastCliErrors = async (e: { message: string }): Promise<void> => {
   let invalidPreference = "";
   let toastMessage = e.message.trim();
 
@@ -52,7 +55,7 @@ class KeePassLoader {
    * Check if the folder is valid for a search
    *
    * KeePassXC's search doesn't include all folders.
-   * That function aims to replicate which folder are used.
+   * That function aims to replicate which folder is used.
    *
    * @param {string} folder - The folder to check.
    * @returns {boolean} - True if the folder is valid, false otherwise.
@@ -68,10 +71,10 @@ class KeePassLoader {
    * If the error message contains the string "Enter password to unlock", or "Maximum depth of replacement has been reached",
    * or the error message is empty, the error is ignored. Otherwise, the error is rejected.
    *
-   * @param {function} reject - The function to call with the error message.
-   * @returns {function} - A function to handle errors on the stderr stream.
+   * @param reject - The function to call with the error message.
+   * @returns A function to handle errors on the stderr stream.
    */
-  private static cliStderrErrorHandler = (reject: (reason: Error) => void) => (data: Buffer) => {
+  private static cliStderrErrorHandler = (reject: RejectFn) => (data: Buffer) => {
     if (
       -1 != data.toString().indexOf("Enter password to unlock")
       || -1 != data.toString().indexOf("Maximum depth of replacement has been reached")
@@ -92,10 +95,8 @@ class KeePassLoader {
    * @param {string} keyFile - The key file path.
    * @returns {string[]} - An array with the "-k" option and the key file path, or an empty array.
    */
-  private static convertIntoKeyFileOption = (keyFile: string) =>
-    "" != keyFile && null != keyFile
-      ? ["-k", `${keyFile}`]
-      : [];
+  private static convertIntoKeyFileOption = (keyFile: string): string[] =>
+    "" != keyFile && null != keyFile ? ["-k", `${keyFile}`] : [];
 
   /**
    * Converts a string from the KeePassXC CLI into a sorted array of strings.
@@ -191,9 +192,9 @@ class KeePassLoader {
    * @param password The password to cache.
    * @param keyFile The path to the key file to cache.
    */
-  static cacheCredentials = (password: string, keyFile = "") => {
-    LocalStorage.setItem("databasePassword", password);
-    LocalStorage.setItem("keyFile", keyFile);
+  static cacheCredentials = async (password: string, keyFile = "") => {
+    await LocalStorage.setItem("databasePassword", password);
+    await LocalStorage.setItem("keyFile", keyFile);
   };
 
   /**
@@ -204,26 +205,29 @@ class KeePassLoader {
    * @returns A Promise that resolves if the credentials are valid, and rejects otherwise.
    */
   static checkCredentials = (databasePassword: string, keyFile: string) =>
-    KeePassLoader.findApplication().then(() => new Promise<void>((resolve, reject) => {
-      const cli = this.spawn(`${this.keepassxcCli}`, [
-        "db-info",
-        ...this.convertIntoKeyFileOption(keyFile),
-        "-q",
-        `${this.database}`,
-      ]);
+    KeePassLoader.findApplication().then(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          const cli = this.spawn(`${this.keepassxcCli}`, [
+            "db-info",
+            ...this.convertIntoKeyFileOption(keyFile),
+            "-q",
+            `${this.database}`,
+          ]);
 
-      cli.stdin.write(`${databasePassword}\n`);
-      cli.stdin.end();
-      cli.on("error", reject);
-      cli.stderr.on("data", this.cliStderrErrorHandler(reject));
-      cli.on("exit", code => {
-        if (0 === code) {
-          resolve();
-        } else {
-          reject(new Error("Invalid Credentials"));
-        }
-      });
-    }));
+          cli.stdin.write(`${databasePassword}\n`);
+          cli.stdin.end();
+          cli.on("error", reject);
+          cli.stderr.on("data", this.cliStderrErrorHandler(reject));
+          cli.on("exit", code => {
+            if (0 === code) {
+              resolve();
+            } else {
+              reject(new Error("Invalid Credentials"));
+            }
+          });
+        }),
+    );
 
   /**
    * Removes the stored credentials from LocalStorage.
@@ -232,9 +236,9 @@ class KeePassLoader {
    * from LocalStorage, ensuring that the credentials are no longer stored
    * locally.
    */
-  static deleteCredentialsCache = () => {
-    LocalStorage.removeItem("databasePassword");
-    LocalStorage.removeItem("keyFile");
+  static deleteCredentialsCache = async () => {
+    await LocalStorage.removeItem("databasePassword");
+    await LocalStorage.removeItem("keyFile");
   };
 
   /**
@@ -248,40 +252,43 @@ class KeePassLoader {
    * @returns {Promise<string>} The result of the command.
    */
   static execKeepassxcCli = (options: string[]): Promise<string> =>
-    KeePassLoader.findApplication().then(() => new Promise<string>((resolve, reject) => {
-      const chuncks: Buffer[] = [];
-      const cli = this.spawn(`${this.keepassxcCli}`, options);
-      const tryResolve = () => {
-        if (ended && exited) {
-          resolve(result);
-        }
-      };
-      let ended = false;
-      let exited = false;
-      let result: string;
+    KeePassLoader.findApplication().then(
+      () =>
+        new Promise<string>((resolve, reject) => {
+          const chunks: Buffer[] = [];
+          const cli = this.spawn(`${this.keepassxcCli}`, options);
+          const tryResolve = () => {
+            if (ended && exited) {
+              resolve(result);
+            }
+          };
+          let ended = false;
+          let exited = false;
+          let result: string;
 
-      cli.stdin.write(`${this.databasePassword}\n`);
-      cli.stdin.end();
-      cli.on("error", reject);
-      cli.stderr.on("data", this.cliStderrErrorHandler(reject));
-      cli.stdout.on("data", chunck => {
-        chuncks.push(chunck);
-      });
-      cli.stdout.on("end", () => {
-        result = chuncks.join("").toString();
-        result = result.slice(0, result.length - 1);
-        ended = true;
-        tryResolve();
-      });
-      cli.on("exit", code => {
-        if (0 === code) {
-          exited = true;
-          tryResolve();
-        } else {
-          reject(new Error(`Something went wrong when accessing the database (exit code: ${code})`));
-        }
-      });
-    }));
+          cli.stdin.write(`${this.databasePassword}\n`);
+          cli.stdin.end();
+          cli.on("error", reject);
+          cli.stderr.on("data", this.cliStderrErrorHandler(reject));
+          cli.stdout.on("data", chunk => {
+            chunks.push(chunk);
+          });
+          cli.stdout.on("end", () => {
+            result = chunks.join("").toString();
+            result = result.slice(0, result.length - 1);
+            ended = true;
+            tryResolve();
+          });
+          cli.on("exit", code => {
+            if (0 === code) {
+              exited = true;
+              tryResolve();
+            } else {
+              reject(new Error(`Something went wrong when accessing the database (exit code: ${code})`));
+            }
+          });
+        }),
+    );
 
   /**
    * Load credentials from LocalStorage.
@@ -336,8 +343,8 @@ class KeePassLoader {
       "-f",
       "csv",
       `${this.database}`,
-    ]).then(entries => {
-      LocalStorage.setItem("entries", entries);
+    ]).then(async entries => {
+      await LocalStorage.setItem("entries", entries);
       return this.parseCsvEntries(entries);
     });
 
