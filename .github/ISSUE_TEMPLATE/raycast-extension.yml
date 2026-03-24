@@ -1,0 +1,46 @@
+name: Raycast Extension Compatibility Issue
+description: Report an issue with a Raycast extension running on Vicinae
+labels: ["raycast"]
+body:
+  - type: input
+    id: extension-name
+    attributes:
+      label: Extension name
+      description: The name of the Raycast extension
+      placeholder: e.g. spotify-player
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the issue you encountered
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tested-on-raycast
+    attributes:
+      label: Tested on Raycast?
+      description: Were you able to confirm that this extension works correctly on Raycast (macOS/Windows)?
+      options:
+        - "Yes, it works on Raycast"
+        - "No, it's also broken on Raycast"
+        - "I didn't test on Raycast"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the issue?
+
+  - type: input
+    id: vicinae-version
+    attributes:
+      label: Vicinae version
+      placeholder: e.g. 0.5.2
+    validations:
+      required: true

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "hyprland-monitors",
+  "title": "Hyprland Monitors",
+  "description": "A simple monitor management extension for Hyprland",
+  "categories": [],
+  "license": "MIT",
+  "author": "fredrikmwold",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "hyprland-monitors",
+      "title": "Monitor Settings",
+      "subtitle": "Customize your monitor settings",
+      "description": "Customize your monitor settings",
+      "mode": "view"
+    },
+    {
+      "name": "configure-monitors",
+      "title": "Configure active monitor",
+      "subtitle": "Configure active monitor",
+      "description": "Configure active monitor",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "hyprland-config-path",
+      "title": "Hyperland config path",
+      "type": "textfield",
+      "default": "~/.config/hypr/hyprland.conf",
+      "description": "Path to Hyprland config file",
+      "required": true
+    },
+    {
+      "name": "vicinae-monitors-config-path",
+      "title": "Vicinae Monitors config path",
+      "type": "textfield",
+      "default": "~/.config/hypr",
+      "description": "Path to folder where Vicinae will store monitor configuration",
+      "required": true
+    },
+    {
+      "name": "persist-changes",
+      "title": "Persist Changes",
+      "label": "Persist Changes",
+      "type": "checkbox",
+      "default": false,
+      "description": "Whether to persist changes to the Vicinae Monitors config",
+      "required": true
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.19.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "typescript": "^5.9.2"
+  }
+}

@@ -128,10 +128,11 @@ type ConfigDirInfo = {
 
 export async function loadJetBrainsRecentProjects(
 	homeDir: string = process.env.HOME ?? "",
+	configSubDir: string = "JetBrains",
 ): Promise<ProjectEntry[]> {
 	if (!homeDir) return [];
 
-	const configBase = path.join(homeDir, ".config/JetBrains");
+	const configBase = path.join(homeDir, ".config", configSubDir);
 	if (!(await pathExists(configBase))) return [];
 
 	let configDirs: string[];

@@ -21,20 +21,17 @@ export function ProjectActions({ project, onRemove }: ProjectActionsProps) {
                 shortcut={{ modifiers: [], key: "enter" }}
             />
             {project.environment === ProjectEnvironment.Local && (
-                <Action
+                <Action.ShowInFinder
                     icon={Icon.Folder}
-                    title="Show in File Manager"
-                    onAction={() => {
-                        closeMainWindow();
-                        showInFileBrowser(project.path);
-                    }}
+                    title="Show in file browser"
+                    path={project.path}
                     shortcut={{ modifiers: ["shift"], key: "enter" }}
                 />
             )}
             <Action.CopyToClipboard
                 title="Copy Path"
                 content={project.path}
-                icon={Icon.Clipboard}
+                icon={Icon.CopyClipboard}
                 shortcut={{ modifiers: ["ctrl"], key: "c" }}
             />
             {onRemove && (

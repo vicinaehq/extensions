@@ -9,33 +9,9 @@ import { about } from "./about";
 import { system } from "./system";
 import { MenuItem } from "./types";
 
-export { type MenuItem } from "./types";
-export type FlattenedMenuItem = MenuItem & { path: string };
-
-export const MENU_ITEMS = [
-  learn,
-  trigger,
-  style,
-  setup,
-  install,
-  remove,
-  update,
-  about,
-  system,
-];
-
-export const FLATTEND_MENU_ITEMS: FlattenedMenuItem[] = [];
-const flatten = (items: MenuItem[], path: string[] = []) => {
-  for (const item of items) {
-    const currentPath = [...path, item.name];
-    if (path.length > 0) {
-      FLATTEND_MENU_ITEMS.push({
-        ...item,
-        path: currentPath.join(" → "),
-      });
-    }
-    if (item.items && item.items.length > 0) flatten(item.items, currentPath);
-  }
+export const menu: MenuItem = {
+  id: "menu",
+  name: "Menu",
+  icon: "",
+  items: [learn, trigger, style, setup, install, remove, update, about, system],
 };
-
-flatten(MENU_ITEMS);

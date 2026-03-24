@@ -10,6 +10,7 @@ export type IdeId =
 	| "rider"
 	| "rustrover"
 	| "aqua"
+	| "android-studio"
 	| "unknown";
 
 export type ProjectEntry = {

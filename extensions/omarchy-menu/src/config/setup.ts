@@ -11,13 +11,13 @@ export const setup: MenuItem = {
       id: "audio",
       name: "Audio",
       icon: "",
-      command: "xdg-terminal-exec --app-id=com.omarchy.Wiremix -e wiremix",
+      command: "omarchy-launch-audio",
     },
     {
       id: "wifi",
       name: "Wifi",
-      icon: "",
-      command: "rfkill unblock wifi && omarchy-launch-wifi",
+      icon: " ",
+      command: "omarchy-launch-wifi",
     },
     {
       id: "bluetooth",

@@ -1,0 +1,31 @@
+{
+  "keys": [
+    {
+      "name": "displayName",
+      "weight": 0.3
+    },
+    {
+      "name": "id",
+      "weight": 0.5
+    },
+    {
+      "name": "searchTokens",
+      "weight": 0.8
+    },
+    {
+      "name": "pack",
+      "weight": 1
+    }
+  ],
+  "threshold": 0.4,
+  "location": 0,
+  "distance": 100,
+  "ignoreLocation": false,
+  "ignoreFieldNorm": false,
+  "fieldNormWeight": 1,
+  "minMatchCharLength": 2,
+  "shouldSort": true,
+  "includeScore": true,
+  "findAllMatches": false,
+  "useExtendedSearch": false
+}

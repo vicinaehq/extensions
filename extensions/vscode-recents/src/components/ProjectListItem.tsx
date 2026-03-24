@@ -11,13 +11,13 @@ interface ProjectListItemProps {
 function getProjectIcon(type: ProjectType): Icon {
     switch (type) {
         case ProjectType.Workspace:
-            return Icon.Document;
+            return Icon.BlankDocument;
         case ProjectType.Folder:
             return Icon.Folder;
         case ProjectType.File:
             return Icon.BlankDocument;
         default:
-            return Icon.QuestionMark;
+            return Icon.QuestionMarkCircle;
     }
 }
 

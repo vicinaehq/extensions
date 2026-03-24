@@ -1,0 +1,185 @@
+{
+  "name": "github",
+  "title": "GitHub",
+  "description": "Work with issues, pull requests, manage workflows, search repositories and stay on top of notifications",
+  "version": "1.0.0",
+  "author": "knoopx",
+  "license": "MIT",
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "issues",
+      "title": "My Issues",
+      "subtitle": "List your issues",
+      "description": "List issues created by you, assigned to you or mentioning you.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "issues",
+        "bugs"
+      ]
+    },
+    {
+      "name": "workflowRuns",
+      "title": "Workflow Runs",
+      "subtitle": "List your workflow runs",
+      "description": "List workflow runs created by you, assigned to you or mentioning you.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "workflow",
+        "runs"
+      ]
+    },
+    {
+      "name": "createIssue",
+      "title": "Create Issue",
+      "subtitle": "Create a new issue",
+      "description": "Create a new issue in a repository.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "issues",
+        "create",
+        "bugs"
+      ]
+    },
+    {
+      "name": "createPullRequest",
+      "title": "Create Pull Request",
+      "subtitle": "Create a new pull request",
+      "description": "Create a new pull request in a repository.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "pull requests",
+        "create",
+        "bugs"
+      ]
+    },
+    {
+      "name": "pullRequests",
+      "title": "My Pull Requests",
+      "subtitle": "List your pull requests",
+      "description": "List pull requests created by you, assigned to you or mentioning you.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "pull requests"
+      ]
+    },
+    {
+      "name": "myRepositories",
+      "title": "My Repositories",
+      "subtitle": "Search in your repositories",
+      "description": "List your public and private repositories",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "repositories",
+        "repos",
+        "code"
+      ]
+    },
+    {
+      "name": "searchRepositories",
+      "title": "Search Repositories",
+      "subtitle": "Search in repositories",
+      "description": "Search in your public or private repositories by name.",
+      "mode": "view",
+      "keywords": [
+        "github",
+        "repositories",
+        "repos",
+        "code"
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "personalAccessToken",
+      "title": "GitHub Token",
+      "description": "Your GitHub personal access token. Required scopes: notifications, repo, project, read:org, read:user.",
+      "type": "password",
+      "required": true
+    },
+    {
+      "name": "numberOfResults",
+      "title": "Number of search results",
+      "description": "For searching repositories, issues, discussions or pull requests, this is the number of results to request.",
+      "type": "textfield",
+      "default": "50",
+      "required": false
+    },
+    {
+      "name": "defaultIssueFilter",
+      "title": "Default Issue Filter",
+      "description": "The default filter to use when opening the issues command.",
+      "type": "dropdown",
+      "default": "my",
+      "required": false,
+      "data": [
+        {
+          "title": "My Issues",
+          "value": "my"
+        },
+        {
+          "title": "Assigned to Me",
+          "value": "assigned"
+        },
+        {
+          "title": "Mentioning Me",
+          "value": "mentioning"
+        },
+        {
+          "title": "All Issues",
+          "value": "all"
+        }
+      ]
+    },
+    {
+      "name": "defaultRepositoryFilter",
+      "title": "Default Repository Filter",
+      "description": "The default filter to use when opening the repositories command.",
+      "type": "dropdown",
+      "default": "my",
+      "required": false,
+      "data": [
+        {
+          "title": "All Repositories",
+          "value": "all"
+        },
+        {
+          "title": "My Repositories",
+          "value": "my"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "eslint src/ --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.1",
+    "@raycast/utils": "^2.2.2",
+    "@tanstack/query-async-storage-persister": "^5.90.22",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-persist-client": "^5.90.22",
+    "@uidotdev/usehooks": "^2.4.1",
+    "@vicinae/api": "^0.20.2",
+    "date-fns": "^3.6.0",
+    "lodash": "^4.17.21",
+    "node-fetch": "^3.3.2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.5",
+    "@types/node": "^22.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
+    "eslint": "^9.39.2",
+    "typescript": "^5.9.2"
+  }
+}

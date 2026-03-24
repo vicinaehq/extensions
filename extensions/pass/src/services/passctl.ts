@@ -3,8 +3,21 @@ import path from "path";
 import { Preferences } from "@/preferences";
 import { runCommand } from "@/services/command";
 
+export async function isGpgUnlocked(preferences: Preferences) {
+  try {
+    await runCommand(
+      "sh",
+      ["-c", "echo test | gpg --clearsign --batch --yes --pinentry-mode=error"],
+      preferences,
+    );
+    return false;
+  } catch {
+    return true;
+  }
+}
+
 export async function listPasswordEntries(
-  storePath: string
+  storePath: string,
 ): Promise<string[]> {
   const stats = await safeStat(storePath);
   if (!stats?.isDirectory()) {
@@ -17,7 +30,8 @@ export async function listPasswordEntries(
 
 export async function decryptPasswordEntry(
   entry: string,
-  preferences: Preferences
+  preferences: Preferences,
+  gpgPassword?: string,
 ): Promise<string> {
   const filePath = path.join(preferences.passwordStorePath, `${entry}.gpg`);
   const stats = await safeStat(filePath);
@@ -26,12 +40,8 @@ export async function decryptPasswordEntry(
   }
 
   const args = ["--batch", "--yes"];
-  if (preferences.gpgPassphrase) {
-    args.push(
-      "--pinentry-mode=loopback",
-      "--passphrase",
-      preferences.gpgPassphrase
-    );
+  if (gpgPassword) {
+    args.push("--pinentry-mode=loopback", "--passphrase", gpgPassword);
   }
   args.push("-d", filePath);
 

@@ -3,7 +3,9 @@
   "name": "pulseaudio",
   "title": "PulseAudio",
   "description": "PulseAudio controls in vicinae.",
-  "categories": ["System"],
+  "categories": [
+    "System"
+  ],
   "license": "MIT",
   "author": "rastsislaux",
   "contributors": [],
@@ -11,10 +13,38 @@
   "icon": "extension_icon.png",
   "commands": [
     {
-      "name": "pulseaudio",
-      "title": "Sound Settings",
-      "subtitle": "PulseAudio settings & controls",
-      "description": "Manage PulseAudio settings via vicinae.",
+      "name": "playback",
+      "title": "Playback",
+      "subtitle": "PulseAudio playback controls",
+      "description": "Manage PulseAudio playback via vicinae.",
+      "mode": "view"
+    },
+    {
+      "name": "outputDevices",
+      "title": "Output Devices",
+      "subtitle": "PulseAudio output device controls",
+      "description": "Manage PulseAudio output devices via vicinae.",
+      "mode": "view"
+    },
+    {
+      "name": "inputDevices",
+      "title": "Input Devices",
+      "subtitle": "PulseAudio input device controls",
+      "description": "Manage PulseAudio input devices via vicinae.",
+      "mode": "view"
+    },
+    {
+      "name": "recording",
+      "title": "Recording",
+      "subtitle": "PulseAudio recording controls",
+      "description": "Manage PulseAudio recording streams via vicinae.",
+      "mode": "view"
+    },
+    {
+      "name": "configuration",
+      "title": "Configuration",
+      "subtitle": "PulseAudio card configuration",
+      "description": "List PulseAudio cards and their active profiles.",
       "mode": "view"
     }
   ],
@@ -24,9 +54,10 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.18.1"
+    "@vicinae/api": "^0.20.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   }
 }

@@ -29,20 +29,20 @@ export const installMenu: MenuItem = {
     },
     {
       id: "web",
-      name: "Web",
-      icon: "󰣇",
+      name: "Web App",
+      icon: "",
       command: present_terminal("omarchy-webapp-install"),
     },
     {
       id: "tui",
       name: "TUI",
-      icon: "󰣇",
+      icon: "",
       command: present_terminal("omarchy-tui-install"),
     },
     {
       id: "service",
       name: "Service",
-      icon: "󰣇",
+      icon: "",
       items: [
         {
           id: "dropbox",
@@ -72,12 +72,18 @@ export const installMenu: MenuItem = {
           icon: "",
           command: present_terminal("omarchy-install-chromium-google-account"),
         },
+				{
+					id: "nord-vpn",
+					name: "NordVPN",
+					icon: "󱇱",
+					command: present_terminal("omarchy-install-nordvpn"),
+				},
       ],
     },
     {
       id: "install-style",
       name: "Style",
-      icon: "󰣇",
+      icon: "",
       items: [
         {
           id: "theme",
@@ -153,7 +159,7 @@ export const installMenu: MenuItem = {
     {
       id: "development",
       name: "Development",
-      icon: "󰣇",
+      icon: "󰵮",
       items: [
         {
           id: "ruby-on-rails",
@@ -223,7 +229,7 @@ export const installMenu: MenuItem = {
             },
           ],
         },
-        {
+				{
           id: "python",
           name: "Python",
           icon: "",
@@ -289,7 +295,7 @@ export const installMenu: MenuItem = {
     {
       id: "editor",
       name: "Editor",
-      icon: "󰣇",
+      icon: "",
       items: [
         {
           id: "vs-code",
@@ -336,7 +342,7 @@ export const installMenu: MenuItem = {
     {
       id: "terminal",
       name: "Terminal",
-      icon: "󰣇",
+      icon: "",
       items: [
         {
           id: "alacritty",
@@ -361,7 +367,7 @@ export const installMenu: MenuItem = {
     {
       id: "ai",
       name: "AI",
-      icon: "󰣇",
+      icon: "󱚤",
       items: [
         {
           id: "claude-code",
@@ -377,13 +383,13 @@ export const installMenu: MenuItem = {
         },
         {
           id: "openai-codex",
-          name: "OpenAI Codex",
+          name: "Codex",
           icon: "󱚤",
-          command: install("OpenAI Codex", "openai-codex-bin"),
+          command: install("Codex", "openai-codex"),
         },
         {
           id: "gemini",
-          name: "Gemini",
+          name: "Gemini CLI",
           icon: "󱚤",
           command: install("Gemini", "gemini-cli"),
         },
@@ -405,24 +411,18 @@ export const installMenu: MenuItem = {
           icon: "󱚤",
           command: install("Crush", "crush-bin"),
         },
-        {
-          id: "opencode",
-          name: "opencode",
-          icon: "󱚤",
-          command: install("opencode", "opencode"),
-        },
       ],
     },
     {
       id: "windows",
       name: "Windows",
-      icon: "󰣇",
+      icon: "󰍲",
       command: present_terminal("omarchy-windows-vm install"),
     },
     {
       id: "gaming",
       name: "Gaming",
-      icon: "󰣇",
+      icon: "",
       items: [
         {
           id: "steam",
@@ -430,6 +430,12 @@ export const installMenu: MenuItem = {
           icon: "",
           command: present_terminal("omarchy-install-steam"),
         },
+				{
+					id: "nvidia-geforce-now",
+					name: "NVIDIA GeForce NOW",
+					icon: "󰢹",
+					command: present_terminal("omarchy-install-geforce-now"),
+				},
         {
           id: "retroarch",
           name: "RetroArch [AUR]",
@@ -452,8 +458,8 @@ export const installMenu: MenuItem = {
         },
         {
           id: "xbox",
-          name: "Xbox",
-          icon: "",
+          name: "Xbox Controller [AUR]",
+          icon: "󰖺",
           command: present_terminal("omarchy-install-xbox-controllers"),
         },
       ],

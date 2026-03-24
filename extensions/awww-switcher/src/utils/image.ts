@@ -2,17 +2,19 @@ import { opendir, readdir, readFile, stat } from "fs/promises";
 import { createReadStream } from "fs";
 import * as _path from "path";
 import { imageSize } from "image-size";
+import { LocalStorage as storage } from "@vicinae/api";
+import { createHash } from "node:crypto";
 
 const hyprpaperSupportedFormats = ["jpg", "jpeg", "png", "webp", "gif"];
 
 export interface Image {
   name: string;
-  fullpath: string;
   size: number;
   width: number;
   height: number;
   birthtime: string;
 }
+
 
 const parseImagesFromPath = async (path: string): Promise<string[]> => {
   try {
@@ -35,7 +37,15 @@ const parseImagesFromPath = async (path: string): Promise<string[]> => {
   }
 };
 
-const processImage = async (path: string): Promise<Image> => {
+export const getImagesFromPath = async (path: string): Promise<string[]> => {
+  console.time("🚀 get Images speed");
+  const imagesPaths = await parseImagesFromPath(path);
+  console.timeEnd("🚀 get Images speed");
+  console.log("---");
+  return imagesPaths;
+};
+
+export const processImage = async (path: string): Promise<Image> => {
   try {
     const buffer = await new Promise<Buffer>((resolve, reject) => {
       const stream = createReadStream(path, { highWaterMark: 32768 });
@@ -56,7 +66,6 @@ const processImage = async (path: string): Promise<Image> => {
       height: dimensions.height,
       birthtime: stats.birthtime.toLocaleString(),
       size: stats.size / (1024 * 1024),
-      fullpath: path,
       name: _path.basename(path),
     };
   } catch (e) {
@@ -71,35 +80,86 @@ const processImage = async (path: string): Promise<Image> => {
       height: 1080,
       birthtime: stats.birthtime.toLocaleString(),
       size: stats.size / (1024 * 1024),
-      fullpath: path,
       name: _path.basename(path),
     };
   }
 };
 
-export const getImagesFromPath = async (path: string): Promise<Image[]> => {
+async function getMetadataFromCache(): Promise<string | undefined> {
+  return storage.getItem("wallpapersMetadata") ?? "";
+}
+
+async function getPrevWallpapersHash(): Promise<string | undefined> {
+  return storage.getItem("wallpapersHash");
+}
+
+const getWallpapersHash = async (path: string): Promise<string> => {
   try {
-    console.time("🚀 TOTAL SPEED");
+    console.time("🚀 TOTAL HASH SPEED");
     const imagesPaths = await parseImagesFromPath(path);
-    console.log(`📁 Found ${imagesPaths.length} images`);
-
-    const concurrencyLimit = 16; // 16 works for me, need feedback on slower machines
-
-    const results: Image[] = [];
-
-    for (let i = 0; i < imagesPaths.length; i += concurrencyLimit) {
-      const batch = imagesPaths.slice(i, i + concurrencyLimit);
-      const batchResults = await Promise.all(
-        batch.map((img) => processImage(_path.join(path, img))),
-      );
-      results.push(...batchResults);
-    }
-
-    console.timeEnd("🚀 TOTAL SPEED");
-    console.log("---"); // Werid buffer issue for timeend
-    return results;
+    const fileSignatures = await Promise.all(
+      imagesPaths.sort().map(async (img) => {
+        const fullPath = _path.join(path, img);
+        const stats = await stat(fullPath);
+        return `${img}:${stats.mtimeMs}`; // filename + last modified timestamp
+      })
+    );
+    const hash = createHash("md5").update(imagesPaths.sort().join("\n")).digest("hex");
+    console.timeEnd("🚀 TOTAL HASH SPEED");
+    console.log("---");
+    return hash;
   } catch (e) {
     console.error(e);
-    throw new Error("Failed to get images from provided path");
+    throw new Error("Failed to get hash of wallpapers directory");
   }
+}
+
+export const wallpaperSourceChanged = async (path: string): Promise<boolean> => {
+  let previousWallpapersHash = await getPrevWallpapersHash();
+  const currentWallpapersHash = await getWallpapersHash(path);
+  return (currentWallpapersHash == previousWallpapersHash);
+
+}
+
+// fetch images only if the source directory signature has changed and stores both the src dir signature and the wallpapers in LocalStorage
+export const getImagesMetadata = async (path: string): Promise<Record<string, Image>> => {
+  console.time("🚀 Fetch Metadata speed ");
+  let results: Record<string, Image> = {};
+  let previousWallpapersHash = await getPrevWallpapersHash();
+  const currentWallpapersHash = await getWallpapersHash(path);
+
+  if ((previousWallpapersHash == undefined) || (previousWallpapersHash != currentWallpapersHash)) {
+    storage.setItem("wallpapersHash", currentWallpapersHash!);
+    try {
+      const imagesPaths = await parseImagesFromPath(path);
+      console.log(`📁 Found ${imagesPaths.length} images`);
+
+      const concurrencyLimit = 16; // 16 works for me, need feedback on slower machines
+
+
+      for (let i = 0; i < imagesPaths.length; i += concurrencyLimit) {
+        const batch = imagesPaths.slice(i, i + concurrencyLimit);
+        const batchResults = Object.fromEntries(
+          await Promise.all(
+            batch.map((img) => {
+              const key = _path.join(path, img);
+              return processImage(key).then((value) => [img, value]);
+            })
+          )
+        );
+        Object.assign(results, batchResults);
+      }
+
+    } catch (e) {
+      console.error(e);
+      throw new Error("Failed to get images from provided path");
+    }
+    storage.setItem("wallpapersMetadata", JSON.stringify(results));
+  } else {
+    results = JSON.parse(await getMetadataFromCache() ?? "{}") as Record<string, Image>;
+  }
+
+  console.timeEnd("🚀 Fetch Metadata speed ");
+  console.log("---"); // Werid buffer issue for timeend
+  return results;
 };

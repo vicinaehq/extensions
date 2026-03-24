@@ -86,14 +86,14 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "0.17.2",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@vicinae/api": "0.20.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
-    "@types/node": "^20.16.11",
-    "@types/react": "^18.3.11",
-    "@types/react-dom": "^18.3.1",
-    "typescript": "^5.9.2"
+    "@types/node": "^25.3.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
   }
 }

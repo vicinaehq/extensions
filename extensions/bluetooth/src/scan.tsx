@@ -1,211 +1,239 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { Action, ActionPanel, Icon, List } from "@vicinae/api";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { connectToDevice, type Device, pairToDevice } from "@/bluetooth";
+import { startDiscovery, stopDiscovery } from "@/bluez";
 import {
-	Action,
-	ActionPanel,
-	Icon,
-	List,
-} from "@vicinae/api";
+	devicePropsToInfoString,
+	getBatteryLevel,
+	getDeviceProperties,
+} from "@/bluez/device";
 import {
-	pairToDevice,
-	connectToDevice,
-	Device,
-	Bluetoothctl,
-	BluetoothctlLine,
-	BluetoothctlLineType
-} from "@/bluetoothctl";
-import { BLUETOOTH_REGEX } from "@/patterns";
-import { getIconFromInfo, sortDevices, removeFromDeviceList } from "@/utils";
+	listDevices as bluezListDevices,
+	subscribeToNewDevices,
+	subscribeToRemovedDevices,
+} from "@/bluez/discovery";
+import { devicePathToMac } from "@/bluez/types";
+import {
+	getIconFromInfo,
+	humanizeBluetoothError,
+	isNameMacOnly,
+	normalizeMac,
+	removeFromDeviceList,
+	SCAN_DURATION_MS,
+	sortDevices,
+} from "@/utils";
 
-// Simplified processing function using the new parsing system
-async function processBluetoothLine(
-	line: BluetoothctlLine,
-	discovered: Map<string, string>,
-	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
-): Promise<void> {
-	switch (line.type) {
-		case BluetoothctlLineType.DeviceDeleted:
-			await handleDeletedDevice(line, discovered, setDevices);
-			break;
+const NAME_REFETCH_DELAY_MS = 2_500;
 
-		case BluetoothctlLineType.DeviceChanged:
-			await handleChangedDevice(line, discovered, setDevices);
-			break;
-
-		case BluetoothctlLineType.DeviceNew:
-			await handleNewDevice(line, discovered, setDevices);
-			break;
-
-		default:
-			break;
-	}
-}
-
-async function handleDeletedDevice(
-	line: Extract<BluetoothctlLine, { type: BluetoothctlLineType.DeviceDeleted }>,
-	discovered: Map<string, string>,
-	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
-): Promise<void> {
-	const mac = line.device.mac;
-	discovered.delete(mac);
-	removeFromDeviceList(mac, setDevices);
-}
-
-async function handleChangedDevice(
-	line: Extract<BluetoothctlLine, { type: BluetoothctlLineType.DeviceChanged }>,
-	discovered: Map<string, string>,
-	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
-): Promise<void> {
-	const mac = line.device.mac;
-	const info = await Bluetoothctl.getInfo(mac);
-	const icon = getIconFromInfo(info);
-	const nameMatch = info.match(BLUETOOTH_REGEX.deviceName);
-	const name = nameMatch ? nameMatch[1].trim() : discovered.get(mac) || line.device.name || mac;
-
-	discovered.set(mac, name);
-
-	// Check if device is connected - if so, we might want to exclude it from the scan results
-	const isConnected = BLUETOOTH_REGEX.connectedStatus.test(info);
-
-	setDevices((prev) =>
-		sortDevices(
-			prev.map((device) =>
-				device.mac === mac
-					? { ...device, name, icon, connected: isConnected, trusted: false }
-					: device
-			)
-		)
-	);
-
-	// Remove connected devices from the scan list (assuming we only want to show pairable devices)
-	if (isConnected) {
-		removeFromDeviceList(mac, setDevices);
-	}
-}
-
-async function handleNewDevice(
-	line: Extract<BluetoothctlLine, { type: BluetoothctlLineType.DeviceNew }>,
-	discovered: Map<string, string>,
-	setDevices: React.Dispatch<React.SetStateAction<Device[]>>
-): Promise<void> {
-	const mac = line.device.mac;
-	const name = line.device.name;
-
-	if (discovered.has(mac)) return;
-
-	discovered.set(mac, name);
-
+/** Background refetch of device name/icon when name was MAC-only at discovery */
+async function refetchDeviceName(
+	mac: string,
+	setDevices: React.Dispatch<React.SetStateAction<Device[]>>,
+	sortDevicesFn: (devices: Device[]) => Device[],
+) {
 	try {
-		const info = await Bluetoothctl.getInfo(mac);
+		const props = await getDeviceProperties(mac);
+		const battery = await getBatteryLevel(mac);
+		const info = props ? devicePropsToInfoString(props, battery) : "";
+		const newName = (props?.Name as string) ?? (props?.Alias as string) ?? mac;
+		const trimmed = String(newName).trim() || mac;
+		if (isNameMacOnly(trimmed, mac)) return; // Still no friendly name
 		const icon = getIconFromInfo(info);
-
-		// Only add if not already connected
-		const isConnected = BLUETOOTH_REGEX.connectedStatus.test(info);
-		if (!isConnected) {
-			setDevices((prev) =>
-				sortDevices([...prev, { mac, name, icon, connected: false, trusted: false }])
-			);
-		}
-	} catch (error) {
-		console.error(`Failed to get info for device ${mac}:`, error);
-		// Add device anyway with minimal info
 		setDevices((prev) =>
-			sortDevices([...prev, { mac, name, icon: "", connected: false, trusted: false }])
+			sortDevicesFn(
+				prev.map((d) =>
+					normalizeMac(d.mac) === normalizeMac(mac)
+						? { ...d, name: trimmed, icon }
+						: d,
+				),
+			),
 		);
+	} catch {
+		// Device may have disappeared, ignore
 	}
 }
 
 function useBluetoothScanner() {
 	const [devices, setDevices] = useState<Device[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [scanTrigger, setScanTrigger] = useState(0);
 
-	const processRef = useRef<Bluetoothctl | null>(null);
+	const discoveredRef = useRef(new Set<string>());
+	const unsubNewRef = useRef<(() => void) | null>(null);
+	const unsubRemovedRef = useRef<(() => void) | null>(null);
 	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const refetchTimeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
 
 	const removeDevice = useCallback((mac: string) => {
 		removeFromDeviceList(mac, setDevices);
 	}, []);
 
+	const rescan = useCallback(() => {
+		setScanTrigger((t) => t + 1);
+	}, []);
+
 	useEffect(() => {
-		const discovered = new Map<string, string>();
+		discoveredRef.current = new Set<string>();
+		setDevices([]);
+		setError(null);
+		setIsLoading(true);
 
 		(async () => {
-			const bt = new Bluetoothctl();
-
 			try {
-				// Load initial devices (already paired/known devices)
-				const initialDevices = await Bluetoothctl.listDevices();
-				for (const { mac, name } of initialDevices) {
-					discovered.set(mac.toLowerCase(), name);
+				// Load initial devices from BlueZ
+				const initialDevices = await bluezListDevices(false);
+				const devicesToAdd: Device[] = [];
+
+				for (const d of initialDevices) {
+					const macNorm = normalizeMac(d.mac);
+					if (discoveredRef.current.has(macNorm)) continue;
+					if (d.connected) continue;
+
+					discoveredRef.current.add(macNorm);
+					const props = await getDeviceProperties(d.mac);
+					const battery = await getBatteryLevel(d.mac);
+					const info = props ? devicePropsToInfoString(props, battery) : "";
+					const icon = getIconFromInfo(info);
+					const name =
+						(props?.Name as string) ??
+						(props?.Alias as string) ??
+						(typeof d.name === "string" ? d.name : null) ??
+						d.mac;
+					const device: Device = {
+						mac: d.mac,
+						name: String(name).trim() || d.mac,
+						icon,
+						connected: false,
+						trusted: false,
+					};
+					devicesToAdd.push(device);
 				}
 
-				// Filter out connected devices from initial scan
-				const devicesToAdd = await Promise.all(
-					Array.from(discovered.entries()).map(async ([mac, name]) => {
-						try {
-							const info = await Bluetoothctl.getInfo(mac);
-							// Skip if already connected
-							if (BLUETOOTH_REGEX.connectedStatus.test(info)) {
-								return null;
-							}
-							const icon = getIconFromInfo(info);
-							return { mac, name, icon, connected: false, trusted: false };
-						} catch (error) {
-							console.error(`Failed to get info for ${mac}:`, error);
-							return { mac, name, icon: "", connected: false, trusted: false };
-						}
-					})
-				);
+				setDevices(sortDevices(devicesToAdd));
 
-				const filteredDevices = devicesToAdd.filter(Boolean) as Device[];
-				setDevices(sortDevices(filteredDevices));
+				// Schedule delayed refetch for MAC-only devices
+				for (const device of devicesToAdd) {
+					if (isNameMacOnly(device.name, device.mac)) {
+						const t = setTimeout(() => {
+							refetchTimeoutsRef.current.delete(t);
+							refetchDeviceName(device.mac, setDevices, sortDevices);
+						}, NAME_REFETCH_DELAY_MS);
+						refetchTimeoutsRef.current.add(t);
+					}
+				}
 
-			} catch (error) {
-				console.error("Initial device scan failed:", error);
-			}
+				// Start D-Bus discovery
+				await startDiscovery();
 
-			processRef.current = bt;
+				// Subscribe to new devices
+				unsubNewRef.current = await subscribeToNewDevices(async (dev) => {
+					const macNorm = normalizeMac(dev.mac);
+					if (discoveredRef.current.has(macNorm)) return;
+					if (dev.connected) return;
 
-			// Set up the new line handler
-			const lineHandler = (line: BluetoothctlLine) => {
-				processBluetoothLine(line, discovered, setDevices);
-			};
+					discoveredRef.current.add(macNorm);
+					const props = await getDeviceProperties(dev.mac);
+					const battery = await getBatteryLevel(dev.mac);
+					const info = props ? devicePropsToInfoString(props, battery) : "";
+					const icon = getIconFromInfo(info);
+					const name =
+						(props?.Name as string) ??
+						(props?.Alias as string) ??
+						(typeof dev.name === "string" ? dev.name : null) ??
+						dev.mac;
 
-			bt.onLine(lineHandler);
-			bt.scanOn();
+					const device: Device = {
+						mac: dev.mac,
+						name: String(name).trim() || dev.mac,
+						icon,
+						connected: false,
+						trusted: false,
+					};
+					setDevices((prev) => sortDevices([...prev, device]));
 
-			// Stop scanning after 30 seconds
-			timeoutRef.current = setTimeout(() => {
-				bt.scanOff();
-				bt.removeLineHandler(lineHandler); // Clean up handler
-				bt.kill();
+					if (isNameMacOnly(device.name, device.mac)) {
+						const t = setTimeout(() => {
+							refetchTimeoutsRef.current.delete(t);
+							refetchDeviceName(device.mac, setDevices, sortDevices);
+						}, NAME_REFETCH_DELAY_MS);
+						refetchTimeoutsRef.current.add(t);
+					}
+				});
+
+				// Subscribe to removed devices
+				unsubRemovedRef.current = await subscribeToRemovedDevices((path) => {
+					const mac = devicePathToMac(path);
+					if (mac) removeFromDeviceList(mac, setDevices);
+				});
+
+				// Stop after duration
+				timeoutRef.current = setTimeout(async () => {
+					unsubNewRef.current?.();
+					unsubRemovedRef.current?.();
+					await stopDiscovery();
+					setIsLoading(false);
+				}, SCAN_DURATION_MS);
+			} catch (err) {
+				console.error("Scan failed:", err);
+				const raw = err instanceof Error ? err.message : String(err);
+				setError(humanizeBluetoothError(raw) || "Bluetooth adapter not ready");
 				setIsLoading(false);
-			}, 30000);
-
+			}
 		})();
 
 		return () => {
-			// Cleanup
-			if (timeoutRef.current) {
-				clearTimeout(timeoutRef.current);
-			}
-			if (processRef.current) {
-				processRef.current.scanOff();
-				processRef.current.kill();
-			}
+			if (timeoutRef.current) clearTimeout(timeoutRef.current);
+			for (const t of refetchTimeoutsRef.current) clearTimeout(t);
+			refetchTimeoutsRef.current.clear();
+			unsubNewRef.current?.();
+			unsubRemovedRef.current?.();
+			stopDiscovery().catch(() => {});
 			setIsLoading(false);
 		};
-	}, []); // Remove the 30000 dependency since it's a constant
+	}, [scanTrigger]);
 
-	return { devices, isLoading, removeDevice };
+	return { devices, isLoading, error, removeDevice, rescan };
 }
 
 export default function Command() {
-	const { devices, isLoading, removeDevice } = useBluetoothScanner();
+	const { devices, isLoading, error, removeDevice, rescan } =
+		useBluetoothScanner();
 
 	return (
-		<List isLoading={isLoading} searchBarPlaceholder="Scanning for Bluetooth devices...">
+		<List
+			isLoading={isLoading}
+			searchBarPlaceholder={
+				isLoading ? "Scanning for Bluetooth devices..." : "Search devices..."
+			}
+			actions={
+				!isLoading ? (
+					<ActionPanel>
+						<Action
+							title="Rescan"
+							icon={Icon.ArrowClockwise}
+							shortcut={{ modifiers: ["cmd"], key: "r" }}
+							onAction={rescan}
+						/>
+					</ActionPanel>
+				) : undefined
+			}
+		>
 			{!isLoading && devices.length === 0 && (
-				<List.EmptyView icon={Icon.Bluetooth} title="No devices found" />
+				<List.EmptyView
+					icon={Icon.Bluetooth}
+					title={error ?? "No devices found"}
+					description={error ? "Use Rescan to try again" : undefined}
+					actions={
+						<ActionPanel>
+							<Action
+								title="Rescan"
+								icon={Icon.ArrowClockwise}
+								onAction={rescan}
+							/>
+						</ActionPanel>
+					}
+				/>
 			)}
 
 			{devices.map((device) => (
@@ -226,6 +254,14 @@ export default function Command() {
 								shortcut={{ modifiers: ["ctrl"], key: "c" }}
 								onAction={connect(device, removeDevice)}
 							/>
+							<ActionPanel.Section>
+								<Action
+									title="Rescan"
+									icon={Icon.ArrowClockwise}
+									shortcut={{ modifiers: ["cmd"], key: "r" }}
+									onAction={rescan}
+								/>
+							</ActionPanel.Section>
 						</ActionPanel>
 					}
 				/>

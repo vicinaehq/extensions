@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { LocalStorage } from "@vicinae/api";
-import type { VEvent } from "node-ical";
-import { Calendar } from "../types";
+
+import { Calendar } from "../lib/types";
 
 export function useCalendarFilter(calendars: Calendar[]) {
   const [selectedCalendar, setSelectedCalendar] = useState<string>("all");

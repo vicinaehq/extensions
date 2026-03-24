@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/upcoming-events.tsx",
+    "src/manage-calendars.tsx",
+    "src/edit-calendar.tsx"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["**/*.test.ts", "vitest.setup.ts"],
+  "ignoreDependencies": ["react"]
+}

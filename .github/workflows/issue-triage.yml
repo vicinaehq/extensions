@@ -1,0 +1,33 @@
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  triage:
+    if: contains(github.event.issue.labels.*.name, 'vicinae')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            extensions
+            scripts
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Triage issue
+        run: bun scripts/triage-issue.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}

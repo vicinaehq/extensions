@@ -8,7 +8,7 @@ export const callColorGen = async (
 
   switch (ColorGen.toLowerCase()) {
     case "matugen":
-      command = `matugen image "${path}"`;
+      command = `matugen image "${path}" --source-color-index 0`;
       break;
 
     case "pywal":

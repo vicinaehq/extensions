@@ -1,0 +1,25 @@
+name: Deploy Raycast Compat
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'raycast/compat.json'
+      - '.github/workflows/deploy-raycast-compat.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload compat file
+        run: |
+          curl -f -X POST \
+            "${{ vars.STORE_BASE_URL }}/raycast/upload-compat" \
+            -H "Authorization: Bearer ${{ secrets.STORE_API_SECRET }}" \
+            -F "file=@raycast/compat.json"

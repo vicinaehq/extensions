@@ -1,0 +1,70 @@
+{
+  "dictionary": [
+    "cat",
+    "file",
+    "home",
+    "search",
+    "arrow",
+    "animal",
+    "document",
+    "house",
+    "find",
+    "direction"
+  ],
+  "icons": [
+    {
+      "id": "md-cat",
+      "pack": "md",
+      "char": "a",
+      "code": "f101",
+      "displayName": "Cat",
+      "packLabel": "Material Design",
+      "searchTokens": [0, 5]
+    },
+    {
+      "id": "md-home",
+      "pack": "md",
+      "char": "b",
+      "code": "f102",
+      "displayName": "Home",
+      "packLabel": "Material Design",
+      "searchTokens": [2, 7]
+    },
+    {
+      "id": "fa-file",
+      "pack": "fa",
+      "char": "c",
+      "code": "f103",
+      "displayName": "File",
+      "packLabel": "Font Awesome",
+      "searchTokens": [1, 6]
+    },
+    {
+      "id": "fa-search",
+      "pack": "fa",
+      "char": "d",
+      "code": "f104",
+      "displayName": "Search",
+      "packLabel": "Font Awesome",
+      "searchTokens": [3, 8]
+    },
+    {
+      "id": "dev-arrow-left",
+      "pack": "dev",
+      "char": "e",
+      "code": "f105",
+      "displayName": "Arrow Left",
+      "packLabel": "Devicons",
+      "searchTokens": [4, 9]
+    },
+    {
+      "id": "dev-arrow-right",
+      "pack": "dev",
+      "char": "f",
+      "code": "f106",
+      "displayName": "Arrow Right",
+      "packLabel": "Devicons",
+      "searchTokens": [4, 9]
+    }
+  ]
+}

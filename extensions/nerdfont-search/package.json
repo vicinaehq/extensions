@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "nerdfont-search",
+  "title": "NerdFonts",
+  "description": "utility to search and find nerdfont icons and add them to your clipboard (requires Nerd Font installed)",
+  "categories": [
+    "Developer Tools",
+    "Design Tools"
+  ],
+  "license": "MIT",
+  "author": "fbosch",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "nerdfonts-search",
+      "title": "Search NerdFont Icons",
+      "subtitle": "search for icons",
+      "description": "find icons",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.19.9",
+    "fuse.js": "^7.1.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  }
+}

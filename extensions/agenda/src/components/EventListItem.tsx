@@ -1,10 +1,10 @@
 import { Action, ActionPanel, Icon, List } from "@vicinae/api";
 import type { VEvent } from "node-ical";
-import { Calendar } from "../types";
 import { usePreferences } from "../hooks/usePreferences";
-import { getCalendarName } from "../utils/calendar";
-import { getSupportedUrls, urlHandlers } from "../utils/urls";
-import { isAllDayEvent, getDisplayStart, getDisplayEnd } from "../utils/events";
+import { getCalendarName } from "../lib/calendar";
+import { isAllDayEvent, getDisplayStart, getDisplayEnd } from "../lib/events";
+import { Calendar } from "../lib/types";
+import { getSupportedUrls, urlHandlers } from "../lib/urls";
 
 interface EventListItemProps {
   event: VEvent;
@@ -38,8 +38,8 @@ export function EventListItem({
         isShowingDetail
           ? undefined
           : isAllDay
-          ? ""
-          : `${displayStart}${displayEnd ? " - " + displayEnd : ""}`
+            ? ""
+            : `${displayStart}${displayEnd ? " - " + displayEnd : ""}`
       }
       icon={Icon.Calendar}
       accessories={
@@ -56,8 +56,15 @@ export function EventListItem({
       }
       actions={
         <ActionPanel>
+          <Action
+            icon={Icon.Eye}
+            title={isShowingDetail ? "Hide Details" : "Show Details"}
+            onAction={onToggleDetail}
+            shortcut={{ modifiers: ["ctrl"], key: "d" }}
+          />
           {event.url && (
             <Action.OpenInBrowser
+              icon={Icon.Link}
               title="Open Event in Browser"
               url={event.url}
             />
@@ -70,6 +77,7 @@ export function EventListItem({
                   return handler ? (
                     <Action.OpenInBrowser
                       key={index}
+                      icon={Icon.Link}
                       title={handler.name}
                       url={url}
                     />
@@ -77,20 +85,15 @@ export function EventListItem({
                 })}
               </ActionPanel.Section>
             )}
-          <ActionPanel.Section>
-            <Action
-              title={isShowingDetail ? "Hide Details" : "Show Details"}
-              onAction={onToggleDetail}
-              shortcut={{ modifiers: ["cmd"], key: "d" }}
-            />
-
-            {event.location && (
+          {event.location && (
+            <ActionPanel.Section>
               <Action.CopyToClipboard
+                icon={Icon.CopyClipboard}
                 title="Copy Location"
                 content={event.location}
               />
-            )}
-          </ActionPanel.Section>
+            </ActionPanel.Section>
+          )}
         </ActionPanel>
       }
       detail={

@@ -1,8 +1,8 @@
 import { Icon, List } from "@vicinae/api";
 import { useState } from "react";
 import type { VEvent } from "node-ical";
-import { Calendar } from "../types";
-import { formatDate } from "../utils/calendar";
+import { Calendar } from "../lib/types";
+import { formatDate } from "../lib/calendar";
 import { CalendarFilter } from "./CalendarFilter";
 import { EventListItem } from "./EventListItem";
 

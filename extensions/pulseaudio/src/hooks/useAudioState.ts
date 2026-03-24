@@ -16,17 +16,18 @@ export function useAudioState(client: PactlClient = pactl): {
       const state = await client.fetchAudioState();
       setAudio(state);
     } catch (e) {
-      await showErrorToast({ title: "Failed to read PulseAudio state", error: e });
+      await showErrorToast({
+        title: "Failed to read PulseAudio state",
+        error: e,
+      });
     } finally {
       setIsLoading(false);
     }
   }, [client]);
 
   useEffect(() => {
-    void refresh();
+    refresh();
   }, [refresh]);
 
   return { audio, isLoading, refresh };
 }
-
-

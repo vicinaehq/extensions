@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "zed-recents",
+  "title": "Zed Recent Projects",
+  "description": "Open Zed editor recent projects",
+  "license": "MIT",
+  "contributors": [],
+  "pastContributors": [],
+  "author": "pavle99",
+  "icon": "extension_icon.png",
+  "categories": [
+    "Productivity"
+  ],
+  "commands": [
+    {
+      "mode": "view",
+      "name": "open-recents",
+      "title": "Open Recents",
+      "subtitle": "Open a recent Zed project",
+      "description": "View and open recent Zed projects"
+    }
+  ],
+  "preferences": [
+    {
+      "required": true,
+      "default": "Default",
+      "type": "dropdown",
+      "name": "windowPreference",
+      "title": "Window Preference",
+      "description": "Whether to open projects in a new window or reuse existing window",
+      "data": [
+        {
+          "title": "New Window",
+          "value": "NewWindow"
+        },
+        {
+          "title": "Add to Current Window",
+          "value": "AddToWindow"
+        },
+        {
+          "title": "Default (new window)",
+          "value": "Default"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.6",
+    "typescript": "^5.9.3"
+  }
+}

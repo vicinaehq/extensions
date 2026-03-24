@@ -1,0 +1,82 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "wikipedia",
+  "title": "Wikipedia",
+  "description": "Search Wikipedia articles, view page details, open random or featured pages",
+  "categories": [
+    "Web",
+    "Other"
+  ],
+  "license": "MIT",
+  "author": "sei40kr",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "search-page",
+      "title": "Search Page",
+      "description": "Search Wikipedia articles by title",
+      "mode": "view"
+    },
+    {
+      "name": "open-page",
+      "title": "Open Page",
+      "description": "Open a Wikipedia page by title",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "title",
+          "type": "text",
+          "placeholder": "Title",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "random-page",
+      "title": "Random Page",
+      "description": "Open a random Wikipedia page in the browser",
+      "mode": "no-view"
+    },
+    {
+      "name": "featured-page",
+      "title": "Featured Page",
+      "description": "Open today's featured Wikipedia page in the browser",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "viewType",
+      "type": "dropdown",
+      "title": "View Type",
+      "description": "Choose between list and grid view",
+      "data": [
+        { "title": "List", "value": "list" },
+        { "title": "Grid", "value": "grid" }
+      ],
+      "default": "list",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.6",
+    "dedent": "^1.5.3",
+    "node-fetch": "^3.3.2",
+    "wikijs": "^6.4.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.47.0"
+  }
+}

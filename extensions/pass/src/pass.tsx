@@ -1,7 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Action, ActionPanel, Icon, List, Toast, showToast } from "@vicinae/api";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Action,
+  ActionPanel,
+  Form,
+  Icon,
+  List,
+  Toast,
+  showToast,
+  useNavigation,
+} from "@vicinae/api";
 import { getPreferences } from "@/preferences";
-import { listPasswordEntries, decryptPasswordEntry } from "@/services/passctl";
+import {
+  listPasswordEntries,
+  decryptPasswordEntry,
+  isGpgUnlocked,
+} from "@/services/passctl";
 import { getLastUsedPassword } from "@/storage/last-used";
 import { buildPasswordOptions } from "@/utils/password";
 import { performPasswordAction } from "@/utils/actions";
@@ -13,17 +26,21 @@ type CommandState = {
   isLoading: boolean;
   error?: string;
 };
+const preferences = getPreferences();
 
 export default function Command() {
-  const preferences = useMemo(() => getPreferences(), []);
   const [state, setState] = useState<CommandState>({
     entries: [],
     isLoading: true,
   });
 
+  const [locked, setlocked] = useState(true);
+  const { push } = useNavigation();
+
   const refresh = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: undefined }));
     try {
+      setlocked(await isGpgUnlocked(preferences));
       const [entries, lastUsed] = await Promise.all([
         listPasswordEntries(preferences.passwordStorePath),
         getLastUsedPassword(preferences.lastUsedTtlSeconds),
@@ -71,10 +88,27 @@ export default function Command() {
             icon={getEntryIcon(entry.value)}
             actions={
               <ActionPanel>
-                <Action.Push
+                <Action
                   title="View Secrets"
                   icon={Icon.Key}
-                  target={<PasswordOptionsView password={entry.value} showOtpFirst={entry.showOtpFirst} action={preferences.action} />}
+                  onAction={() => {
+                    if (!locked || preferences.gpgPassphrase) {
+                      return push(
+                        <PasswordOptionsView
+                          password={entry.value}
+                          showOtpFirst={entry.showOtpFirst}
+                          action={preferences.action}
+                          gpgPassword={preferences.gpgPassphrase}
+                        />,
+                      );
+                    }
+                    push(
+                      <PasswordEntryForm
+                        entry={entry.value}
+                        showOtpFirst={entry.showOtpFirst}
+                      />,
+                    );
+                  }}
                 />
                 <Action title="Reload" icon={Icon.RotateAntiClockwise} onAction={refresh} />
               </ActionPanel>
@@ -84,105 +118,165 @@ export default function Command() {
       )}
     </List>
   );
-
-  function PasswordOptionsView({
-    password,
-    showOtpFirst,
-    action,
-  }: {
-    password: string;
-    showOtpFirst?: boolean;
-    action: "paste" | "copy";
-  }) {
-    const [isLoading, setIsLoading] = useState(true);
-    const [options, setOptions] = useState<PasswordOption[]>([]);
-    const [error, setError] = useState<string | undefined>();
-
-    useEffect(() => {
-      let disposed = false;
-      setIsLoading(true);
-      setError(undefined);
-
-      (async () => {
-        try {
-          const plaintext = await decryptPasswordEntry(password, preferences);
-          const { options: parsed, warnings } = await buildPasswordOptions({
-            plaintext,
-            preferences,
-            prioritizeOtp: Boolean(showOtpFirst && preferences.otpAfterPassword),
-          });
-
-          if (!disposed) {
-            setOptions(parsed);
-            setIsLoading(false);
-          }
-
-          if (warnings.length > 0) {
-            await showToast({
-              style: Toast.Style.Animated,
-              title: "Partial data",
-              message: warnings.join(". "),
-            });
-          }
-        } catch (err) {
-          const message = err instanceof Error ? err.message : "Unable to decrypt entry";
-          if (!disposed) {
-            setError(message);
-            setOptions([]);
-            setIsLoading(false);
-          }
-          await showToast({ style: Toast.Style.Failure, title: "Decryption failed", message });
-        }
-      })();
-
-      return () => {
-        disposed = true;
-      };
-    }, [password, preferences, showOtpFirst]);
-
-    return (
-      <List isLoading={isLoading} searchBarPlaceholder="Select a field to copy/paste">
-        {error ? (
-          <List.EmptyView title="Unable to read entry" description={error} />
-        ) : options.length === 0 ? (
-          <List.EmptyView title="No fields found" description="The decrypted file is empty." />
-        ) : (
-          options.map((option, index) => {
-            const handleAction = () =>
-              performPasswordAction(password, option, action);
-            return (
-              <List.Item
-                key={`${option.title}-${index}`}
-                title={option.title}
-                icon={getOptionIcon(option.title)}
-                actions={
-                  <ActionPanel>
-                    <Action
-                      title={action === "paste" ? "Paste" : "Copy to Clipboard"}
-                      icon={
-                        action === "paste" ? Icon.Keyboard : Icon.CopyClipboard
-                      }
-                      onAction={handleAction}
-                    />
-                    <Action
-                      title={action === "copy" ? "Copy to Clipboard" : "Paste"}
-                      icon={
-                        action === "copy" ? Icon.CopyClipboard : Icon.Keyboard
-                      }
-                      onAction={handleAction}
-                    />
-                  </ActionPanel>
-                }
-              />
-            );
-          })
-        )}
-      </List>
-    );
-  }
 }
 
-function orderEntries(entries: string[], lastUsed?: string | null, lastUsedOption?: string | null): PasswordEntry[] {
+function PasswordOptionsView({
+  password,
+  showOtpFirst,
+  action,
+  gpgPassword,
+}: {
+  password: string;
+  showOtpFirst?: boolean;
+  action: "paste" | "copy";
+  gpgPassword?: string;
+}) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [options, setOptions] = useState<PasswordOption[]>([]);
+  const [error, setError] = useState<string | undefined>();
+
+  useEffect(() => {
+    let disposed = false;
+    setIsLoading(true);
+    setError(undefined);
+
+    (async () => {
+      try {
+        const plaintext = await decryptPasswordEntry(
+          password,
+          preferences,
+          gpgPassword,
+        );
+        const { options: parsed, warnings } = await buildPasswordOptions({
+          plaintext,
+          preferences,
+          prioritizeOtp: Boolean(showOtpFirst && preferences.otpAfterPassword),
+        });
+
+        if (!disposed) {
+          setOptions(parsed);
+          setIsLoading(false);
+        }
+
+        if (warnings.length > 0) {
+          await showToast({
+            style: Toast.Style.Animated,
+            title: "Partial data",
+            message: warnings.join(". "),
+          });
+        }
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Unable to decrypt entry";
+        if (!disposed) {
+          setError(message);
+          setOptions([]);
+          setIsLoading(false);
+        }
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "Decryption failed",
+          message,
+        });
+      }
+    })();
+
+    return () => {
+      disposed = true;
+    };
+  }, [password, preferences, showOtpFirst]);
+
+  return (
+    <List
+      isLoading={isLoading}
+      searchBarPlaceholder="Select a field to copy/paste"
+    >
+      {error ? (
+        <List.EmptyView title="Unable to read entry" description={error} />
+      ) : options.length === 0 ? (
+        <List.EmptyView
+          title="No fields found"
+          description="The decrypted file is empty."
+        />
+      ) : (
+        options.map((option, index) => {
+          const handleAction = () =>
+            performPasswordAction(password, option, action);
+          return (
+            <List.Item
+              key={`${option.title}-${index}`}
+              title={option.title}
+              icon={getOptionIcon(option.title)}
+              actions={
+                <ActionPanel>
+                  <Action
+                    title={action === "paste" ? "Paste" : "Copy to Clipboard"}
+                    icon={
+                      action === "paste" ? Icon.Keyboard : Icon.CopyClipboard
+                    }
+                    onAction={handleAction}
+                  />
+                  <Action
+                    title={action === "copy" ? "Copy to Clipboard" : "Paste"}
+                    icon={
+                      action === "copy" ? Icon.CopyClipboard : Icon.Keyboard
+                    }
+                    onAction={handleAction}
+                  />
+                </ActionPanel>
+              }
+            />
+          );
+        })
+      )}
+    </List>
+  );
+}
+
+const PasswordEntryForm = ({
+  entry,
+  showOtpFirst,
+}: {
+  entry: string;
+  showOtpFirst?: boolean;
+}) => {
+  const { push } = useNavigation();
+  return (
+    <Form
+      actions={
+        <ActionPanel>
+          <Action.SubmitForm
+            title="Unlock GPG Key"
+            onSubmit={(values) => {
+              const password = values.password?.toString() || "";
+              if (!password) return;
+              push(
+                <PasswordOptionsView
+                  password={entry}
+                  showOtpFirst={showOtpFirst}
+                  action={preferences.action}
+                  gpgPassword={password}
+                />,
+              );
+            }}
+          />
+        </ActionPanel>
+      }
+    >
+      <Form.PasswordField
+        id="password"
+        title="Password"
+        placeholder="Enter GPG passphrase"
+      />
+    </Form>
+  );
+};
+
+function orderEntries(
+  entries: string[],
+  lastUsed?: string | null,
+  lastUsedOption?: string | null,
+): PasswordEntry[] {
   const mapped = entries.map<PasswordEntry>((value) => ({ value }));
 
   if (!lastUsed) {

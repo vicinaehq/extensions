@@ -6,31 +6,36 @@ export const system: MenuItem = {
   name: "System",
   icon: Icon.Power,
   items: [
-    { id: "lock", name: "Lock", icon: "", command: "omarchy-lock-screen" },
     {
       id: "screensaver",
       name: "Screensaver",
-      icon: "",
+      icon: "󱄄",
       command: "omarchy-launch-screensaver force",
     },
+    { 
+			id: "lock",
+			name: "Lock",
+			icon: "",
+			command: "omarchy-lock-screen"
+		},
     {
       id: "suspend",
       name: "Suspend",
-      icon: "",
+      icon: "󰒲",
       command: "systemctl suspend",
     },
     {
       id: "restart",
       name: "Restart",
-      icon: "",
-      command: "omarchy-state clear re*-required && systemctl reboot --no-wall",
+      icon: "󰜉",
+      command: "omarchy-system-reboot",
     },
     {
       id: "shutdown",
       name: "Shutdown",
-      icon: "",
+      icon: "󰐥",
       command:
-        "omarchy-state clear re*-required && systemctl poweroff --no-wall",
+        "omarchy-system-shutdown",
     },
   ],
 };

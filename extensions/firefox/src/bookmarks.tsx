@@ -21,7 +21,7 @@ const folderNames = {
 function getFirefoxFolders(db: Database) {
   const folders = [];
   const statement = db.prepare(
-    `SELECT moz_bookmarks.id AS id, moz_bookmarks.parent AS parentId, moz_bookmarks.title AS title, moz_bookmarks.guid AS guid FROM moz_bookmarks WHERE moz_bookmarks.type = 2 AND moz_bookmarks.title IS NOT NULL AND moz_bookmarks.title <> '' AND moz_bookmarks.fk IS NULL;`
+    `SELECT moz_bookmarks.id AS id, moz_bookmarks.parent AS parentId, moz_bookmarks.title AS title, moz_bookmarks.guid AS guid FROM moz_bookmarks WHERE moz_bookmarks.type = 2 AND moz_bookmarks.title IS NOT NULL AND moz_bookmarks.title <> '' AND moz_bookmarks.fk IS NULL;`,
   );
   while (statement.step()) {
     const row = statement.getAsObject();
@@ -34,7 +34,7 @@ function getFirefoxFolders(db: Database) {
 function getFirefoxBookmarks(db: Database) {
   const bookmarks = [];
   const statement = db.prepare(
-    `SELECT moz_places.id AS id, moz_bookmarks.parent AS parentId, moz_bookmarks.title AS title, moz_places.url AS urlString, moz_bookmarks.dateAdded AS dateAdded FROM moz_bookmarks LEFT JOIN moz_places ON moz_bookmarks.fk = moz_places.id WHERE moz_bookmarks.type = 1 AND moz_bookmarks.title IS NOT NULL AND moz_places.url IS NOT NULL;`
+    `SELECT substr(moz_places.url, 1, CASE WHEN instr(moz_places.url, '?') > 0 AND instr(moz_places.url, '#') > 0 THEN min(instr(moz_places.url, '?'), instr(moz_places.url, '#')) - 1 WHEN instr(moz_places.url, '?') > 0 THEN instr(moz_places.url, '?') - 1 WHEN instr(moz_places.url, '#') > 0 THEN instr(moz_places.url, '#') - 1 ELSE length(moz_places.url) END) AS normalizedUrl, moz_places.url AS urlString, moz_bookmarks.title AS title, MAX(moz_bookmarks.dateAdded) AS dateAdded, GROUP_CONCAT(moz_bookmarks.parent) AS parentIds FROM moz_bookmarks LEFT JOIN moz_places ON moz_bookmarks.fk = moz_places.id WHERE moz_bookmarks.type = 1 AND moz_bookmarks.title IS NOT NULL AND moz_places.url IS NOT NULL GROUP BY normalizedUrl;`,
   );
   while (statement.step()) {
     const row = statement.getAsObject();
@@ -60,7 +60,6 @@ export default function Command() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [query, setQuery] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState("");
 
   useEffect(() => {
@@ -71,7 +70,7 @@ export default function Command() {
         if (profiles.length === 0) {
           await showErrorToast(
             "No Firefox profiles found",
-            "No Firefox profiles detected on this system."
+            "No Firefox profiles detected on this system.",
           );
         }
         setProfiles(profiles);
@@ -118,8 +117,8 @@ export default function Command() {
                   Object.hasOwn(folderNames, parent.title)
                   ? folderNames[parent.title as keyof typeof folderNames]
                   : typeof parent.title === "string"
-                  ? parent.title
-                  : ""
+                    ? parent.title
+                    : "",
               );
               parentId = parent.parentId;
             } else {
@@ -136,27 +135,37 @@ export default function Command() {
         setFolders(folders);
 
         const bookmarks = rawBookmarks.map((bookmark) => {
-          const folder = folders.find(
-            (folder) => folder.id === `${bookmark.parentId}`
-          );
           let domain = "";
+          const url = typeof bookmark.urlString === "string" ? bookmark.urlString : "";
           try {
-            if (typeof bookmark.urlString === "string") {
-              domain = new URL(bookmark.urlString).hostname;
+            if (url) {
+              domain = new URL(url).hostname;
             }
           } catch {
             // Ignore invalid URLs
           }
 
+          // Handle multiple parent IDs (comma-separated)
+          const parentIds = typeof bookmark.parentIds === "string" 
+            ? bookmark.parentIds.split(",") 
+            : [];
+          
+          // Find folders for this bookmark (may be in multiple folders)
+          const bookmarkFolders = parentIds
+            .map(parentId => folders.find(folder => folder.id === parentId))
+            .filter(Boolean);
+          
+          const folderNames = bookmarkFolders
+            .map(folder => folder.title)
+            .join(", ");
+
           return {
-            id: `${bookmark.id}`,
+            id: url, // Use URL as unique ID since we're grouping by URL
             title: typeof bookmark.title === "string" ? bookmark.title : "",
-            url:
-              typeof bookmark.urlString === "string" ? bookmark.urlString : "",
-            folder: folder ? folder.title : "",
+            url,
+            folder: folderNames,
             domain,
-            dateAdded:
-              typeof bookmark.dateAdded === "number" ? bookmark.dateAdded : 0,
+            dateAdded: typeof bookmark.dateAdded === "number" ? bookmark.dateAdded : 0,
           };
         });
         // Sort by dateAdded descending (most recent first)
@@ -184,7 +193,6 @@ export default function Command() {
     <List
       isLoading={isLoading}
       searchBarPlaceholder="Search Firefox bookmarks"
-      onSearchTextChange={setQuery}
       searchBarAccessory={
         <List.Dropdown tooltip="Folder" onChange={setSelectedFolderId}>
           <List.Dropdown.Item icon={Icon.Globe} title="All" value="" />
@@ -199,23 +207,18 @@ export default function Command() {
         </List.Dropdown>
       }
     >
-      {folderBookmarks
-        .filter((item) =>
-          item.title.toLowerCase().includes(query.toLowerCase())
-        )
-        .slice(0, 100)
-        .map((item) => (
-          <List.Item
-            key={item.id}
-            icon={Icon.Bookmark}
-            title={item.title}
-            subtitle={item.domain ?? ""}
-            accessories={
-              item.folder ? [{ icon: Icon.Folder, tag: item.folder }] : []
-            }
-            actions={createCommonActions(item.url)}
-          />
-        ))}
+      {folderBookmarks.map((item) => (
+        <List.Item
+          key={item.id}
+          icon={Icon.Bookmark}
+          title={item.title}
+          subtitle={item.url}
+          accessories={
+            item.folder ? [{ icon: Icon.Folder, tag: item.folder }] : []
+          }
+          actions={createCommonActions(item.url)}
+        />
+      ))}
       <List.EmptyView
         title="No Firefox bookmarks found"
         description="No bookmarks available in Firefox."

@@ -10,11 +10,127 @@ import {
   Toast,
 } from "@vicinae/api";
 import { useCallback, useEffect, useState } from "react";
-import type { StockData, Preferences } from "./types";
+import type { StockData, Preferences, YahooSearchResult } from "./types";
 import { fetchStockData } from "./api";
 import { formatPrice, generateSparkline, getColorForChange } from "./utils";
 import { StockDetail } from "./stock-detail";
 import { SPARKLINE_WIDTH } from "./constants";
+import { useStockSearch } from "./hooks";
+
+function StockListItem({
+  stock,
+  showingDetail,
+  selectedRange,
+  toggleDetails,
+}: {
+  stock: StockData;
+  showingDetail: boolean;
+  selectedRange: string;
+  toggleDetails: () => void;
+}) {
+  return (
+    <List.Item
+      key={stock.meta.symbol}
+      title={stock.meta.symbol}
+      subtitle={stock.meta.longName || stock.meta.shortName || "N/A"}
+      accessories={
+        !showingDetail
+          ? [
+              {
+                text: {
+                  value: formatPrice(
+                    stock.currentPrice,
+                    stock.meta.currency,
+                  ).padStart(10),
+                  color: getColorForChange(stock.change),
+                },
+              },
+              {
+                tag: {
+                  value: `${
+                    stock.changePercent >= 0 ? "+" : ""
+                  }${stock.changePercent.toFixed(2)}%`,
+                  color: getColorForChange(stock.change),
+                },
+              },
+              ...(stock.sparklineData && stock.sparklineData.length > 0
+                ? [
+                    {
+                      tag: {
+                        value: generateSparkline(
+                          stock.sparklineData,
+                          SPARKLINE_WIDTH,
+                        ),
+                        color: Color.SecondaryText,
+                      },
+                      tooltip: `${selectedRange} price chart`,
+                    },
+                  ]
+                : []),
+            ]
+          : []
+      }
+      detail={
+        <List.Item.Detail metadata={<StockDetail stock={stock} />} />
+      }
+      actions={
+        <ActionPanel>
+          <Action
+            title={showingDetail ? "Hide Details" : "Show Details"}
+            icon={showingDetail ? Icon.EyeDisabled : Icon.Eye}
+            onAction={toggleDetails}
+          />
+          <Action.OpenInBrowser
+            title="Open in TradingView"
+            icon={Icon.BarChart}
+            url={`https://www.tradingview.com/chart/?symbol=${stock.meta.symbol}`}
+          />
+          <Action.OpenInBrowser
+            title="Open in Yahoo Finance"
+            icon={Icon.Globe}
+            url={`https://finance.yahoo.com/quote/${stock.meta.symbol}`}
+          />
+        </ActionPanel>
+      }
+    />
+  );
+}
+
+function SearchResultPlaceholder({
+  result,
+}: {
+  result: YahooSearchResult;
+}) {
+  return (
+    <List.Item
+      key={result.symbol}
+      title={result.symbol}
+      subtitle={result.longname || result.shortname || ""}
+      accessories={[
+        ...(result.exchDisp
+          ? [{ tag: { value: result.exchDisp, color: Color.SecondaryText } }]
+          : []),
+        ...(result.typeDisp
+          ? [{ tag: { value: result.typeDisp, color: Color.SecondaryText } }]
+          : []),
+      ]}
+      actions={
+        <ActionPanel>
+          <Action.OpenInBrowser
+            title="Open in TradingView"
+            icon={Icon.BarChart}
+            url={`https://www.tradingview.com/chart/?symbol=${result.symbol}`}
+          />
+          <Action.OpenInBrowser
+            title="Open in Yahoo Finance"
+            icon={Icon.Globe}
+            url={`https://finance.yahoo.com/quote/${result.symbol}`}
+          />
+        </ActionPanel>
+      }
+    />
+  );
+}
 
 export default function Command() {
   const preferences = getPreferenceValues<Preferences>();
@@ -36,6 +152,14 @@ export default function Command() {
     setSelectedRangeState(range);
     LocalStorage.setItem("stocks-selected-range", range);
   }, []);
+
+  const {
+    searchText,
+    handleSearchTextChange,
+    suggestions,
+    searchStockData,
+    isSearching,
+  } = useStockSearch(selectedRange);
 
   const loadStocks = async () => {
     setLoading(true);
@@ -115,11 +239,15 @@ export default function Command() {
     setShowingDetail(!showingDetail);
   }, [showingDetail]);
 
+  const isShowingSearch = searchText.trim().length > 0;
+
   return (
     <List
-      isLoading={loading}
+      isLoading={loading || isSearching}
       searchBarPlaceholder="Search stocks..."
       isShowingDetail={showingDetail}
+      onSearchTextChange={handleSearchTextChange}
+      throttle
       searchBarAccessory={
         <List.Dropdown
           tooltip="Select time range"
@@ -136,78 +264,50 @@ export default function Command() {
         </List.Dropdown>
       }
     >
-      <List.Section
-        title="Stocks"
-        subtitle={`Last updated: ${lastRefresh.toLocaleTimeString()}`}
-      >
-        {stocks.map((stock) => (
-          <List.Item
-            key={stock.meta.symbol}
-            title={stock.meta.symbol}
-            subtitle={stock.meta.longName || stock.meta.shortName || "N/A"}
-            accessories={
-              !showingDetail
-                ? [
-                    {
-                      text: {
-                        value: formatPrice(
-                          stock.currentPrice,
-                          stock.meta.currency,
-                        ).padStart(10),
-                        color: getColorForChange(stock.change),
-                      },
-                    },
-
-                    {
-                      tag: {
-                        value: `${
-                          stock.changePercent >= 0 ? "+" : ""
-                        }${stock.changePercent.toFixed(2)}%`,
-                        color: getColorForChange(stock.change),
-                      },
-                    },
-                    ...(stock.sparklineData && stock.sparklineData.length > 0
-                      ? [
-                          {
-                            tag: {
-                              value: generateSparkline(
-                                stock.sparklineData,
-                                SPARKLINE_WIDTH,
-                              ),
-                              color: Color.SecondaryText,
-                            },
-                            tooltip: `${selectedRange} price chart`,
-                          },
-                        ]
-                      : []),
-                  ]
-                : []
-            }
-            detail={
-              <List.Item.Detail metadata={<StockDetail stock={stock} />} />
-            }
-            actions={
-              <ActionPanel>
-                <Action
-                  title={showingDetail ? "Hide Details" : "Show Details"}
-                  icon={showingDetail ? Icon.EyeDisabled : Icon.Eye}
-                  onAction={toggleDetails}
-                />
-                <Action.OpenInBrowser
-                  title="Open in TradingView"
-                  icon={Icon.BarChart}
-                  url={`https://www.tradingview.com/chart/?symbol=${stock.meta.symbol}`}
-                />
-                <Action.OpenInBrowser
-                  title="Open in Yahoo Finance"
-                  icon={Icon.Globe}
-                  url={`https://finance.yahoo.com/quote/${stock.meta.symbol}`}
-                />
-              </ActionPanel>
-            }
+      {isShowingSearch ? (
+        suggestions.length === 0 && !isSearching ? (
+          <List.EmptyView
+            title="No Results Found"
+            description="Try a different search term"
+            icon={Icon.MagnifyingGlass}
           />
-        ))}
-      </List.Section>
+        ) : (
+          <List.Section title="Search Results">
+            {suggestions.map((result) => {
+              const stockData = searchStockData.get(result.symbol);
+              return stockData ? (
+                <StockListItem
+                  key={result.symbol}
+                  stock={stockData}
+                  showingDetail={showingDetail}
+                  selectedRange={selectedRange}
+                  toggleDetails={toggleDetails}
+                />
+              ) : (
+                <SearchResultPlaceholder
+                  key={result.symbol}
+                  result={result}
+                />
+              );
+            })}
+          </List.Section>
+        )
+      ) : (
+        <List.Section
+          title="Watchlist"
+          subtitle={`Last updated: ${lastRefresh.toLocaleTimeString()}`}
+        >
+          {stocks.map((stock) => (
+            <StockListItem
+              key={stock.meta.symbol}
+              stock={stock}
+              showingDetail={showingDetail}
+              selectedRange={selectedRange}
+              toggleDetails={toggleDetails}
+            />
+          ))}
+        </List.Section>
+      )}
     </List>
   );
 }

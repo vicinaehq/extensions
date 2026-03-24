@@ -16,6 +16,7 @@ const IDE_PREFIXES: Record<IdeId, string[]> = {
 	rider: ["jetbrains-rider-"],
 	rustrover: ["jetbrains-rustrover-"],
 	aqua: ["jetbrains-aqua-"],
+	"android-studio": ["jetbrains-studio-"],
 	unknown: [],
 };
 
