@@ -1,8 +1,20 @@
+import { access } from "node:fs/promises";
+import { join } from "node:path";
 import { GnomeExtension } from "../interfaces/gnome-extension";
 import { executeCommand } from "../utils/execute-command";
 import { getExtensionInfo } from "../utils/get-extension-info";
 import { getSettingsSchema } from "../utils/get-settings-schema";
 import { getNameFromUuid } from "../utils/get-name-from-uuid";
+
+async function hasPrefsFile(path?: string): Promise<boolean> {
+  if (!path) return false;
+  try {
+    await access(join(path, "prefs.js"));
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function parseSimpleList(output: string): string[] {
   return output
@@ -27,7 +39,10 @@ export async function extensionList(): Promise<GnomeExtension[]> {
 
   for (const uuid of allUuids) {
     const info = await getExtensionInfo(uuid);
-    const settingsSchema = await getSettingsSchema(info.path);
+    const [settingsSchema, hasPrefs] = await Promise.all([
+      getSettingsSchema(info.path),
+      hasPrefsFile(info.path),
+    ]);
     extensions.push({
       uuid,
       name: info.name || getNameFromUuid(uuid),
@@ -39,6 +54,7 @@ export async function extensionList(): Promise<GnomeExtension[]> {
       url: info.url,
       state: info.state,
       settingsSchema,
+      hasPrefs,
     });
   }
 
