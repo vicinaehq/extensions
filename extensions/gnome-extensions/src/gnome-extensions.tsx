@@ -1,7 +1,9 @@
-import React, { useCallback, useEffect, useState, JSX } from "react";
-import { Action, ActionPanel, getPreferenceValues, Icon, List, open, showToast, Toast, Clipboard } from "@vicinae/api";
+import React, { JSX, useCallback, useEffect, useState } from "react";
+import { Action, ActionPanel, Clipboard, getPreferenceValues, Icon, List, open, showToast, Toast } from "@vicinae/api";
 import { exec } from "child_process";
 import { promisify } from "node:util";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 const execAsync = promisify(exec);
 
@@ -15,6 +17,7 @@ interface GnomeExtension {
   path?: string;
   url?: string;
   state?: string;
+  settingsSchema?: string;
 }
 
 interface Preferences {
@@ -87,6 +90,19 @@ async function getExtensionInfo(uuid: string): Promise<Partial<GnomeExtension>> 
   return info;
 }
 
+async function getSettingsSchema(path?: string): Promise<string | undefined> {
+  if (!path) return undefined;
+
+  try {
+    const metadataPath = join(path, "metadata.json");
+    const content = await readFile(metadataPath, "utf-8");
+    const metadata = JSON.parse(content);
+    return metadata["settings-schema"];
+  } catch {
+    return undefined;
+  }
+}
+
 async function listExtensions(): Promise<GnomeExtension[]> {
   const enabledResult = await executeCommand("gnome-extensions list --enabled");
   const disabledResult = await executeCommand("gnome-extensions list --disabled");
@@ -103,6 +119,7 @@ async function listExtensions(): Promise<GnomeExtension[]> {
 
   for (const uuid of allUuids) {
     const info = await getExtensionInfo(uuid);
+    const settingsSchema = await getSettingsSchema(info.path);
     extensions.push({
       uuid,
       name: info.name || getNameFromUuid(uuid),
@@ -113,6 +130,7 @@ async function listExtensions(): Promise<GnomeExtension[]> {
       path: info.path,
       url: info.url,
       state: info.state,
+      settingsSchema,
     });
   }
 
@@ -131,11 +149,6 @@ async function disableExtension(uuid: string): Promise<boolean> {
 
 async function openExtensionPrefs(uuid: string): Promise<boolean> {
   const { error } = await executeCommand(`gnome-extensions prefs "${uuid}"`);
-  return !error;
-}
-
-async function openExtensionSettings(uuid: string): Promise<boolean> {
-  const { error } = await executeCommand(`gnome-extensions open "${uuid}"`);
   return !error;
 }
 
@@ -219,6 +232,9 @@ export default function Command(): JSX.Element {
                     {extension.state && <List.Item.Detail.Metadata.Label title="State" text={extension.state} />}
                     {extension.version && <List.Item.Detail.Metadata.Label title="Version" text={extension.version} />}
                     {extension.author && <List.Item.Detail.Metadata.Label title="Author" text={extension.author} />}
+                    {extension.settingsSchema && (
+                      <List.Item.Detail.Metadata.Label title="Schema" text={extension.settingsSchema} />
+                    )}
                     {extension.path && <List.Item.Detail.Metadata.Label title="Path" text={extension.path} />}
                   </List.Item.Detail.Metadata>
                 )}
@@ -277,11 +293,6 @@ export default function Command(): JSX.Element {
                   />
                 )}
                 <Action title="Preferences" icon={Icon.Cog} onAction={() => openExtensionPrefs(extension.uuid)} />
-                <Action
-                  title="Open Settings"
-                  icon={Icon.AppWindow}
-                  onAction={() => openExtensionSettings(extension.uuid)}
-                />
                 <Action
                   title="Copy UUID"
                   icon={Icon.CopyClipboard}
