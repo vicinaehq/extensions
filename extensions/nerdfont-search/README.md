@@ -15,8 +15,8 @@ Search Nerd Font icons in Vicinae and copy glyph values in multiple formats.
 
 ## Commands
 
-| Command | Description | Mode |
-| --- | --- | --- |
+| Command            | Description                                  | Mode |
+| ------------------ | -------------------------------------------- | ---- |
 | `nerdfonts-search` | Search Nerd Font icons and copy glyph values | View |
 
 ## Preferences
@@ -55,8 +55,6 @@ node --import tsx --test test/*.test.ts
 ## Search Index
 
 The extension bootstraps its icon index at runtime from Nerd Fonts upstream data and caches the serialized index locally.
-
-There are no generated search index JSON assets committed or required for build.
 
 ## Notes
 

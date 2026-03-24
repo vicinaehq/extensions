@@ -1,4 +1,4 @@
-import { PACK_FILTER_ALL, SEARCH_RESULT_LIMIT } from "./constants";
+import { MIN_SEARCH_LENGTH, PACK_FILTER_ALL, SEARCH_RESULT_LIMIT } from "./constants";
 import type { IconIndex } from "./schemas/icon-data";
 
 const SCORE_EPSILON = 0.000001;
@@ -30,7 +30,7 @@ function filterIconIndex({
 		return [];
 	}
 
-	if (searchText.length < 3) {
+	if (searchText.length < MIN_SEARCH_LENGTH) {
 		if (selectedPack === PACK_FILTER_ALL) {
 			return [];
 		}
