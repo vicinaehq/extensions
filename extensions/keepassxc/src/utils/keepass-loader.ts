@@ -44,6 +44,7 @@ class KeePassLoader {
   private static database: string;
   private static databasePassword: string;
   private static keepassxcCli: string | undefined;
+  private static keepassxcCliArgs: string[] = [];
   private static keyFile: string;
   private static spawn = child_process.spawn;
   static {
@@ -176,10 +177,19 @@ class KeePassLoader {
       const apps = installedApplications.filter(application => "KeePassXC" == application.name);
 
       if (0 < apps.length) {
-        // The flatpak/snap/appImage version should be supported later
-        // apps[0].path.includes('flatpak')
-        // this.keepassxcCli = "/usr/bin/flatpak run --branch=stable --command=keepassxc-cli org.keepassxc.KeePassXC";
-        this.keepassxcCli = "keepassxc-cli";
+        if (apps[0].path.includes("flatpak")) {
+          this.keepassxcCli = "flatpak";
+          this.keepassxcCliArgs = ["run", "--branch=stable", "--command=keepassxc-cli", "org.keepassxc.KeePassXC"];
+        } else if (apps[0].path.endsWith(".AppImage")) {
+          this.keepassxcCli = apps[0].path;
+          this.keepassxcCliArgs = ["keepassxc-cli"];
+        } else if (apps[0].path.includes("/snap/")) {
+          this.keepassxcCli = "/snap/bin/keepassxc-cli";
+          this.keepassxcCliArgs = [];
+        } else {
+          this.keepassxcCli = "keepassxc-cli";
+          this.keepassxcCliArgs = [];
+        }
       }
     } else {
       new Error(`KeePassXC not found: ${process.platform}`);
@@ -209,6 +219,7 @@ class KeePassLoader {
       () =>
         new Promise<void>((resolve, reject) => {
           const cli = this.spawn(`${this.keepassxcCli}`, [
+            ...this.keepassxcCliArgs,
             "db-info",
             ...this.convertIntoKeyFileOption(keyFile),
             "-q",
@@ -256,7 +267,7 @@ class KeePassLoader {
       () =>
         new Promise<string>((resolve, reject) => {
           const chunks: Buffer[] = [];
-          const cli = this.spawn(`${this.keepassxcCli}`, options);
+          const cli = this.spawn(`${this.keepassxcCli}`, [...this.keepassxcCliArgs, ...options]);
           const tryResolve = () => {
             if (ended && exited) {
               resolve(result);
