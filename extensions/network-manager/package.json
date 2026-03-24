@@ -23,7 +23,8 @@
     "build": "vici build",
     "dev": "vici develop",
     "format": "biome format --write src",
-    "lint": "vici lint"
+    "lint": "vici lint",
+    "release:sync": "bash ./scripts/sync-release.sh"
   },
   "dependencies": {
     "@vicinae/api": "^0.20.8"
