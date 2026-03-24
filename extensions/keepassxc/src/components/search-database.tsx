@@ -13,7 +13,7 @@ import {
   open,
   showHUD,
   showToast,
-  Toast
+  Toast,
 } from "@vicinae/api";
 import { getFavicon } from "@raycast/utils";
 import { KeePassLoader, showToastCliErrors } from "../utils/keepass-loader";
@@ -21,7 +21,6 @@ import { arrayToEntry, processPlaceholders } from "../utils/placeholder-processo
 import { getTOTPCode } from "../utils/totp";
 import { isValidUrl } from "../utils/url-checker";
 import { useAccessories } from "../utils/use-accessories";
-import ImageLike = Image.ImageLike;
 
 // eslint-disable-next-line no-undef
 const preferences: ExtensionPreferences = getPreferenceValues();
@@ -105,16 +104,19 @@ export default function SearchDatabase({ setIsUnlocked }: SearchDatabaseParams):
   const [isShowingDetail, setIsShowingDetail] = useState(false);
   const accessories = useAccessories();
 
-  const errorHandler = (e: { message: string }) => {
+  const errorHandler = async (e: { message: string }) => {
     setIsUnlocked(false);
-    showToastCliErrors(e);
+    await showToastCliErrors(e);
   };
 
-  const entryFavicon = useCallback((icon: string): ImageLike | undefined => {
+  const entryFavicon = useCallback((icon: string): Image.ImageLike | undefined => {
     if (userInterfaceFavicon) {
-      return isValidUrl(icon)
-        ? getFavicon(icon, { fallback: Icon.QuestionMarkCircle })
-        : { source: Icon.QuestionMarkCircle, tintColor: Color.SecondaryText };
+      if (isValidUrl(icon)) {
+        // @ts-expect-error eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        return getFavicon(icon, { fallback: Icon.QuestionMarkCircle });
+      }
+
+      return { source: Icon.QuestionMarkCircle, tintColor: Color.SecondaryText };
     }
 
     return undefined;
@@ -156,7 +158,8 @@ export default function SearchDatabase({ setIsUnlocked }: SearchDatabaseParams):
             key={i}
             title={title}
             icon={entryFavicon(url)}
-            subtitle={{ value: username, tooltip: "Username" }}
+            subtitle={username}
+            // @ts-expect-error eslint-disable-next-line @typescript-eslint/ban-ts-comment
             accessories={accessories(isShowingDetail, keePassEntry)}
             detail={(
               <List.Item.Detail
@@ -183,6 +186,7 @@ export default function SearchDatabase({ setIsUnlocked }: SearchDatabaseParams):
                 <ActionPanel.Section title="Copy">
                   <Action
                     title="Copy Password"
+                    shortcut={{ modifiers: ["ctrl"], key: "c" }}
                     onAction={async () => {
                       if ("" === password) {
                         await showToast(Toast.Style.Failure, "Error", "No Password Set");

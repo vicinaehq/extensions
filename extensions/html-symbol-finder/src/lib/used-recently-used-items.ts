@@ -1,6 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
-
 import { LocalStorage } from "@vicinae/api";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -40,7 +39,7 @@ const useStateAndLocalStorage = <T, _ = void>(
   const setStateAndLocalStorage = useCallback((updater) => {
     setState((state) => {
       const newValue = typeof updater === "function" ? updater(state) : updater;
-      LocalStorage.setItem(key, JSON.stringify(newValue));
+      LocalStorage.setItem(key, JSON.stringify(newValue)).then(null);
       return newValue;
     });
   }, []);
