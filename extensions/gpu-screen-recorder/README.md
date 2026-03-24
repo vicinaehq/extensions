@@ -8,7 +8,7 @@ A Vicinae extension for controlling [GPU Screen Recorder](https://git.dec05eba.c
 ## Commands
 ### Main Control Panel
 The main command provides a unified control panel with all settings.
-### Quick Commands
+### Commands
 - **Start Recording** - Begin standard screen recording
 - **Stop Recording** - Stop active recording and save
 - **Toggle Recording** - Start/stop recording (mode-aware)
@@ -16,9 +16,7 @@ The main command provides a unified control panel with all settings.
 - **Stop Instant Replay** - Stop instant replay mode
 - **Save Instant Replay** - Save the current buffer to file (Ctrl+S when in instant replay)
 ## Screenshots
-> TODO: Add screenshot of main control panel
 > ![Main Control Panel](assets/main-view-screenshot.png)
-> TODO: Add screenshot of quick commands
 > ![Quick Commands](assets/commands-screenshot.png)
 
 ## Requirements
