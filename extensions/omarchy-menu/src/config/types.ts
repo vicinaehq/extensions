@@ -8,3 +8,5 @@ export type MenuItem = {
   items?: MenuItem[];
   preview?: ReactNode;
 };
+
+export type FlattenedMenuItem = MenuItem & { path: string };

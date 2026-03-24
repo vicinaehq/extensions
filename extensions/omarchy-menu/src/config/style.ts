@@ -3,35 +3,42 @@ import { open_in_editor } from "~/helpers/actions";
 import { themes_list, fonts_list } from "~/helpers/menu-generators";
 import { MenuItem } from "./types";
 
+export const theme: MenuItem = {
+  id: "theme",
+  name: "Theme",
+  icon: "󰸌 ",
+  items: themes_list(),
+};
+
 export const style: MenuItem = {
   id: "style",
   name: "Style",
   icon: Icon.Wand,
   items: [
-    { id: "theme", name: "Theme", icon: "󰸌 ", items: themes_list() },
+    theme,
     { id: "font", name: "Font", icon: " ", items: fonts_list() },
     {
       id: "background",
       name: "Background",
-      icon: " ",
-			command: "omarchy-theme-bg-next"
+      icon: "",
+      command: "omarchy-theme-bg-next",
     },
     {
       id: "hyprland",
       name: "Hyprland",
-      icon: " ",
+      icon: "",
       command: open_in_editor("~/.config/hypr/looknfeel.conf"),
     },
     {
       id: "screensaver",
       name: "Screensaver",
-      icon: "󱄄 ",
+      icon: "󱄄",
       command: open_in_editor("~/.config/omarchy/branding/screensaver.txt"),
     },
     {
       id: "about",
       name: "About",
-      icon: " ",
+      icon: "",
       command: open_in_editor("~/.config/omarchy/branding/about.txt"),
     },
   ],
