@@ -8,10 +8,9 @@ import { saveToCache, loadFromCache } from "../lib/cache";
 import {
   sortEvents,
   groupEventsByDate,
-  convertRruleDate,
   calendarsChanged,
   isFutureEvent,
-  createOccurrenceUid,
+  processCalendarEvents,
 } from "../lib/eventProcessing";
 import { CACHE_KEY } from "../lib/constants";
 
@@ -47,49 +46,11 @@ export function useCalendarData(refreshInterval: number) {
 
           const icsData = await response.text();
           const parsed = parseICS(icsData);
+          const { events: calEvents, eventCalendars: calEventCalendars } =
+            processCalendarEvents(parsed, calendar.url);
 
-          for (const key in parsed) {
-            const item = parsed[key];
-            if (item.type === "VEVENT") {
-              if (item.rrule) {
-                const rangeStart = new Date();
-                const rangeEnd = new Date();
-                rangeEnd.setMonth(rangeEnd.getMonth() + 1);
-
-                const occurrences = item.rrule.between(
-                  rangeStart,
-                  rangeEnd,
-                  true,
-                );
-
-                for (const occurrenceStart of occurrences) {
-                  const occurrenceStartDate = convertRruleDate(
-                    new Date(occurrenceStart),
-                  ) as typeof item.start;
-                  const durationMs = item.end.getTime() - item.start.getTime();
-                  const occurrenceEndDate = new Date(
-                    occurrenceStartDate.getTime() + durationMs,
-                  ) as typeof item.end;
-
-                  const occurrenceEvent = {
-                    ...item,
-                    start: occurrenceStartDate,
-                    end: occurrenceEndDate,
-                    uid: createOccurrenceUid(item.uid, occurrenceStartDate),
-                    recurrenceId: occurrenceStartDate,
-                  };
-
-                  allEvents.push(occurrenceEvent as VEvent);
-                  newEventCalendars.set(occurrenceEvent.uid, calendar.url);
-                }
-              } else {
-                if (isFutureEvent(item)) {
-                  allEvents.push(item);
-                  newEventCalendars.set(item.uid, calendar.url);
-                }
-              }
-            }
-          }
+          for (const event of calEvents) allEvents.push(event);
+          for (const [uid, url] of calEventCalendars) newEventCalendars.set(uid, url);
         } catch (error) {
           console.error(
             `Failed to fetch calendar from ${calendar.url}:`,
@@ -139,7 +100,17 @@ export function useCalendarData(refreshInterval: number) {
       const cachedEventCalendars = new Map<string, string>(
         Object.entries(cached.eventCalendars),
       );
-      setEventsByDate(cached.eventsByDate);
+
+      // Filter out events that have passed since the cache was saved so the
+      // list is accurate immediately, before the network refresh completes.
+      const now = new Date();
+      const filteredEventsByDate: Record<string, VEvent[]> = {};
+      for (const [date, events] of Object.entries(cached.eventsByDate)) {
+        const upcoming = events.filter((e) => isFutureEvent(e, now));
+        if (upcoming.length > 0) filteredEventsByDate[date] = upcoming;
+      }
+
+      setEventsByDate(filteredEventsByDate);
       setEventCalendars(cachedEventCalendars);
       setLastRefresh(cached.lastRefresh);
       setIsLoading(false);
