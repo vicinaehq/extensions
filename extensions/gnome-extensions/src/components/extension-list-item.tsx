@@ -30,7 +30,7 @@ export function ExtensionListItem({ extension, isShowingDetail, onToggleDetail, 
             icon={Icon.Info01}
             onAction={onToggleDetail}
           />
-          {extension.settingsSchema && (
+          {extension.hasPrefs && (
             <Action title="Preferences" icon={Icon.Cog} onAction={() => openExtensionPrefs(extension.uuid)} />
           )}
           {screenshot && (
