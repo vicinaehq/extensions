@@ -11,8 +11,8 @@
 To use this extension, you will need:
 
 - Installed [KeePassXC](https://keepassxc.org)
-- The `keepassxc-cli` HAVE TO be in the $PATH (Mostly in `/usr/bin` or in `/usr/local/bin`)
 - A `.kdbx` file that contains entries
+- The `keepassxc-cli` HAVE TO be in the $PATH (Mostly in `/usr/bin` or in `/usr/local/bin`) if the KeePassXC is not installed from `snap`, `AppImage` or `flatpak`
 
 # Installation
 
