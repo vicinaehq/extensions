@@ -33,17 +33,17 @@
         {
           "title": "All",
           "value": "all"
-        },
+        }
       ],
       "default": "all"
-    },
+    }
   ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.20.5",
+    "@vicinae/api": "^0.20.5"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
