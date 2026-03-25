@@ -79,7 +79,7 @@ export async function buildPasswordOptions({
       if (data != "" && pref != undefined) {
         if (pref.type == "otp" && data.startsWith("otpauth")) {
           const code = await deriveOtpCode(data, preferences);
-          const index = prioritizeOtp ? 0 : Math.min(1, options.length);
+          const index = prioritizeOtp ? 0 : options.length;
 
           options.splice(index, 0, ({
             title: pref.key,
