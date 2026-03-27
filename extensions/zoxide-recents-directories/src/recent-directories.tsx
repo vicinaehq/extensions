@@ -1,9 +1,23 @@
-import { open, Cache, Clipboard, getPreferenceValues, List, Icon, ActionPanel, Action, showToast, Toast, getApplications, Application, } from "@vicinae/api";
+import {
+  open,
+  Cache,
+  Clipboard,
+  getPreferenceValues,
+  List,
+  Icon,
+  ActionPanel,
+  Action,
+  showToast,
+  Toast,
+  getApplications,
+  Application,
+  Color,
+} from "@vicinae/api";
 import { useEffect, useState } from "react";
 import { execa } from "execa";
 import path from "path";
 import { homedir } from "os";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 
 export default function Directories() {
   const cache = new Cache();
@@ -15,16 +29,19 @@ export default function Directories() {
   );
   const application = getPreferenceValues().application;
   const alternativeApplication = getPreferenceValues().alternativeApplication;
-
   const [isLoading, setIsLoading] = useState(true);
   const [dirs, setDirs] = useState<string[]>(() => {
     if (cache.isEmpty) return [];
-    const strData =
-      (gitProjects ? cache.get("gitProjects") : cache.get("directories")) ??
-      "[]";
+    const strData = cache.get("directories") ?? "[]";
+    return JSON.parse(strData);
+  });
+  const [projects, setProjects] = useState<Record<string, string>>(() => {
+    if (cache.isEmpty) return [];
+    const strData = cache.get("gitProjects") ?? "[]";
     return JSON.parse(strData);
   });
 
+  const src = gitProjects ? Object.keys(projects) : dirs;
   const [apps, setApps] = useState<Application[]>(() => {
     if (cache.isEmpty) return [];
     const strData = cache.get("apps") ?? "[]";
@@ -44,19 +61,37 @@ export default function Directories() {
     }
   }
 
-  async function getGitProjects(): Promise<string[]> {
+  function getCurrentBranch(directory: string): string {
+    try {
+      const head = readFileSync(
+        path.join(directory, ".git", "HEAD"),
+        "utf8",
+      ).trim();
+      // HEAD contains "ref: refs/heads/main" when on a branch
+      return head.startsWith("ref: refs/heads/")
+        ? head.replace("ref: refs/heads/", "")
+        : head.slice(0, 7); // detached HEAD, show short commit hash
+    } catch {
+      return "";
+    }
+  }
+
+  async function getGitProjects(): Promise<Record<string, string>> {
+    const repositories: Record<string, string> = {};
     const directories = await getDirectories();
-    const filtered = directories.filter((directory) =>
-      existsSync(path.join(directory, ".git")),
-    );
-    cache.set("gitProjects", JSON.stringify(filtered));
-    return filtered;
+    directories
+      .filter((directory) => existsSync(path.join(directory, ".git")))
+      .forEach((directory) => {
+        repositories[directory] = getCurrentBranch(directory);
+      });
+    cache.set("gitProjects", JSON.stringify(repositories));
+    return repositories;
   }
 
   useEffect(() => {
     if (gitProjects) {
-      getGitProjects().then((directories) => {
-        setDirs(directories);
+      getGitProjects().then((projects) => {
+        setProjects(projects);
         setIsLoading(false);
       });
     } else {
@@ -101,12 +136,15 @@ export default function Directories() {
         </List.Dropdown>
       }
     >
-      {dirs.map((dir) => (
+      {src.map((dir) => (
         <List.Item
           key={dir}
           icon={Icon.Folder}
           title={dir.split("/").pop() || ""}
           subtitle={dir}
+          accessories={
+            dir in projects ? [{ tag:  { value: `${projects[dir]}`, color: Color.Green }  , icon: Icon.Git }] : []
+          }
           actions={
             <ActionPanel>
               <Action
@@ -115,7 +153,7 @@ export default function Directories() {
               />
               {alternativeApplication && (
                 <Action
-                title={`Open with ${alternativeApp}`}
+                  title={`Open with ${alternativeApp}`}
                   shortcut={{ modifiers: ["shift"], key: "enter" }}
                   onAction={() => openProject(dir, alternativeApplication)}
                 />
