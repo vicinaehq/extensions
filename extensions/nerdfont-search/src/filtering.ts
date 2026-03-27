@@ -20,11 +20,15 @@ function filterIconIndex({
 	fuseInstance,
 	searchText,
 	selectedPack,
+	packIndex,
 }: {
 	iconIndex: IconIndex[];
-	fuseInstance: { search: (query: string) => Array<{ score?: number; item: IconIndex }> } | null;
+	fuseInstance: {
+		search: (query: string) => Array<{ score?: number; item: IconIndex }>;
+	} | null;
 	searchText: string;
 	selectedPack: string;
+	packIndex?: Map<string, IconIndex[]> | null;
 }): IconIndex[] {
 	if (iconIndex.length === 0) {
 		return [];
@@ -32,12 +36,16 @@ function filterIconIndex({
 
 	if (searchText.length < 3) {
 		if (selectedPack === PACK_FILTER_ALL) {
-			return [];
+			return iconIndex.slice(0, SEARCH_RESULT_LIMIT);
+		}
+
+		if (packIndex) {
+			const packIcons = packIndex.get(selectedPack);
+			return packIcons ? packIcons.slice(0, SEARCH_RESULT_LIMIT) : [];
 		}
 
 		return iconIndex
 			.filter((icon) => icon.pack === selectedPack)
-			.sort((a, b) => a.displayName.localeCompare(b.displayName))
 			.slice(0, SEARCH_RESULT_LIMIT);
 	}
 
@@ -48,7 +56,9 @@ function filterIconIndex({
 	let searchResults = fuseInstance.search(searchText);
 
 	if (selectedPack !== PACK_FILTER_ALL) {
-		searchResults = searchResults.filter((result) => result.item.pack === selectedPack);
+		searchResults = searchResults.filter(
+			(result) => result.item.pack === selectedPack,
+		);
 	}
 
 	return sortFuseResultsByScoreThenId(searchResults)

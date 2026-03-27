@@ -11,7 +11,7 @@ const indexData = require("./fixtures/icon-index.fixture.json");
 const decodedIndex = indexData.icons.map((icon) => ({
 	...icon,
 	searchTokens: icon.searchTokens.map((idx) => indexData.dictionary[idx]),
-}));
+})).sort((a, b) => a.displayName.localeCompare(b.displayName));
 
 const fuse = new Fuse(decodedIndex, fuseOptions);
 const PACK_FILTER_ALL = "all";
