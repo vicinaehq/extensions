@@ -12,6 +12,7 @@ import {
 let fuseInstance: Fuse<IconIndex> | null = null;
 let cachedIconIndex: IconIndex[] | null = null;
 let iconIndexLoadPromise: Promise<IconIndex[]> | null = null;
+let packIndex: Map<string, IconIndex[]> | null = null;
 const cache = new Cache();
 
 const NERD_FONTS_VERSION = "3.4.0";
@@ -106,7 +107,9 @@ function buildSearchTokens({
 	return Array.from(searchTokens);
 }
 
-function buildSerializedIconIndex(glyphnames: Record<string, { char: string; code: string }>) {
+function buildSerializedIconIndex(
+	glyphnames: Record<string, { char: string; code: string }>,
+) {
 	const tokenSet = new Set<string>();
 	const entries: Array<SerializedIconIndex & { rawTokens: string[] }> = [];
 
@@ -145,7 +148,9 @@ function buildSerializedIconIndex(glyphnames: Record<string, { char: string; cod
 	}
 
 	const dictionary = Array.from(tokenSet);
-	const tokenToIndex = new Map(dictionary.map((token, index) => [token, index]));
+	const tokenToIndex = new Map(
+		dictionary.map((token, index) => [token, index]),
+	);
 
 	return {
 		dictionary,
@@ -161,10 +166,15 @@ function buildSerializedIconIndex(glyphnames: Record<string, { char: string; cod
 async function fetchAndBuildIconIndex() {
 	const response = await fetch(GLYPHNAMES_URL);
 	if (!response.ok) {
-		throw new Error(`Failed to fetch glyphnames: ${response.status} ${response.statusText}`);
+		throw new Error(
+			`Failed to fetch glyphnames: ${response.status} ${response.statusText}`,
+		);
 	}
 
-	const source = (await response.json()) as Record<string, { char: string; code: string }>;
+	const source = (await response.json()) as Record<
+		string,
+		{ char: string; code: string }
+	>;
 	const glyphnames = Object.fromEntries(
 		Object.entries(source).filter(([key]) => key !== "METADATA"),
 	) as Record<string, { char: string; code: string }>;
@@ -195,6 +205,18 @@ async function loadIconIndex(): Promise<IconIndex[]> {
 		...icon,
 		searchTokens: icon.searchTokens.map((idx) => dictionary[idx]),
 	}));
+
+	decodedIndex.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+	packIndex = new Map();
+	for (const icon of decodedIndex) {
+		let arr = packIndex.get(icon.pack);
+		if (!arr) {
+			arr = [];
+			packIndex.set(icon.pack, arr);
+		}
+		arr.push(icon);
+	}
 
 	fuseInstance = new Fuse(decodedIndex, FUSE_OPTIONS);
 
@@ -230,5 +252,14 @@ function getFuseInstance() {
 	return fuseInstance;
 }
 
-export { ensureIconIndexLoaded, getCachedIconIndex, getFuseInstance };
+function getPackIndex() {
+	return packIndex;
+}
+
+export {
+	ensureIconIndexLoaded,
+	getCachedIconIndex,
+	getFuseInstance,
+	getPackIndex,
+};
 export type { IconIndex };

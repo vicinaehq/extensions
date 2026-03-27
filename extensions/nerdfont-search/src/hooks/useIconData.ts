@@ -3,54 +3,56 @@ import {
 	ensureIconIndexLoaded,
 	getCachedIconIndex,
 	getFuseInstance,
+	getPackIndex,
 	type IconIndex,
 } from "../icon-index-store";
 
 export function useIconData() {
-  const [iconIndex, setIconIndex] = useState<IconIndex[]>(
-    () => getCachedIconIndex() ?? [],
-  );
-  const [isLoading, setIsLoading] = useState(getCachedIconIndex() === null);
+	const [iconIndex, setIconIndex] = useState<IconIndex[]>(
+		() => getCachedIconIndex() ?? [],
+	);
+	const [isLoading, setIsLoading] = useState(getCachedIconIndex() === null);
 
-  useEffect(() => {
-    const cached = getCachedIconIndex();
-    if (cached) {
-      setIconIndex(cached);
-      setIsLoading(false);
-      return;
-    }
+	useEffect(() => {
+		const cached = getCachedIconIndex();
+		if (cached) {
+			setIconIndex(cached);
+			setIsLoading(false);
+			return;
+		}
 
-    let cancelled = false;
+		let cancelled = false;
 
-    setIsLoading(true);
+		setIsLoading(true);
 
-    ensureIconIndexLoaded()
-      .then((data) => {
-        if (cancelled) {
-          return;
-        }
+		ensureIconIndexLoaded()
+			.then((data) => {
+				if (cancelled) {
+					return;
+				}
 
-        setIconIndex(data);
-        setIsLoading(false);
-      })
-      .catch(() => {
-        if (cancelled) {
-          return;
-        }
+				setIconIndex(data);
+				setIsLoading(false);
+			})
+			.catch(() => {
+				if (cancelled) {
+					return;
+				}
 
-        setIsLoading(false);
-      });
+				setIsLoading(false);
+			});
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
-  return {
-    iconIndex,
-    isLoading,
-    fuseInstance: getFuseInstance(),
-  };
+	return {
+		iconIndex,
+		isLoading,
+		fuseInstance: getFuseInstance(),
+		packIndex: getPackIndex(),
+	};
 }
 
 export type { IconIndex };
