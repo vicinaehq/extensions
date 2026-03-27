@@ -19,7 +19,7 @@ import { useEffect, useState } from "react";
 import { execa } from "execa";
 import path from "path";
 import { homedir } from "os";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, statSync } from "fs";
 
 export default function Directories() {
   const cache = new Cache();
@@ -57,8 +57,19 @@ export default function Directories() {
       cache.set("directories", JSON.stringify(directories));
       return directories;
     } catch (e) {
-      console.log("ERROR : ", e);
-      showToast({ title: e.message, style: Toast.Style.Failure });
+      if (e.code === "ENOENT") {
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "zoxide not found",
+          message: "Please install zoxide",
+        });
+      } else {
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to query zoxide",
+          message: e.message,
+        });
+      }
       return [];
     }
   }
@@ -74,7 +85,7 @@ export default function Directories() {
         ? head.replace("ref: refs/heads/", "")
         : head.slice(0, 7); // detached HEAD, show short commit hash
     } catch {
-      return "";
+      return ""; // silent broken repos errors, this will show a tag with git but without the branch name
     }
   }
 
@@ -82,7 +93,11 @@ export default function Directories() {
     const repositories: Record<string, string> = {};
     const directories = await getDirectories();
     directories
-      .filter((directory) => existsSync(path.join(directory, ".git")))
+      .filter(
+        (directory) =>
+          existsSync(path.join(directory, ".git")) &&
+          statSync(directory).isDirectory(),
+      )
       .forEach((directory) => {
         repositories[directory] = getCurrentBranch(directory);
       });
@@ -91,17 +106,14 @@ export default function Directories() {
   }
 
   useEffect(() => {
-    if (gitProjects) {
       getGitProjects().then((projects) => {
         setProjects(projects);
         setIsLoading(false);
       });
-    } else {
       getDirectories().then((directories) => {
         setDirs(directories);
         setIsLoading(false);
       });
-    }
     getApplications(homedir()).then((apps) => {
       setApps(apps);
       cache.set("apps", JSON.stringify(apps));
@@ -129,6 +141,7 @@ export default function Directories() {
     <List
       isLoading={isLoading}
       searchBarPlaceholder="Search recent directories or projects"
+      navigationTitle={`${src.length} entries`}
       searchBarAccessory={
         <List.Dropdown
           tooltip="Sort By"
