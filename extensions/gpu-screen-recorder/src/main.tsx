@@ -399,13 +399,13 @@ export default function MainView() {
           <Form.Dropdown.Item title="──── Audio Devices ────" value="__divider__" />
         )}
         {audioDevices.map((device) => (
-          <Form.Dropdown.Item key={device.id} value={device.id} title={device.name} />
+          <Form.Dropdown.Item key={device.id} value={"device:" + device.id} title={device.name} />
         ))}
         {appAudio.length > 0 && (
           <>
             <Form.Dropdown.Item title="──── Applications ────" value="__divider2__" />
             {appAudio.map((app) => (
-              <Form.Dropdown.Item key={app.id} value={app.id} title={app.name} />
+              <Form.Dropdown.Item key={app.id} value={"app:" + app.id} title={app.name} />
             ))}
           </>
         )}

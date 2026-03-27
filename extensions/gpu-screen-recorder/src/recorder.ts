@@ -129,7 +129,7 @@ export async function buildInstantReplayCommand(options: RecorderOptions): Promi
   const outputDir = `"${options.saveLocation}"`;
   const gsr = getGsrPath(options.gsrPath);
 
-  return `${gsr} -w ${target} ${sizeArg} -c mp4 -q ${options.quality} ${audioArg} -f 60 -r ${options.bufferSize} -df no -ro ${outputDir}`;
+  return `${gsr} -w ${target} ${sizeArg} -c mp4 -q ${options.quality} ${audioArg} -f 60 -r ${options.bufferSize} -df no -o ${outputDir}`;
 }
 
 export interface AudioDevice {
