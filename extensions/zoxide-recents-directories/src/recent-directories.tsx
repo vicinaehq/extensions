@@ -12,6 +12,8 @@ import {
   getApplications,
   Application,
   Color,
+  closeMainWindow,
+  PopToRootType,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import { execa } from "execa";
@@ -110,6 +112,10 @@ export default function Directories() {
     try {
       await open(projectPath, app);
       await execa("zoxide", ["add", projectPath]); // increments zoxide score of selected entry
+      closeMainWindow({
+        clearRootSearch: true,
+        popToRootType: PopToRootType.Immediate,
+      });
     } catch (error) {
       await showToast({
         style: Toast.Style.Failure,
@@ -143,7 +149,14 @@ export default function Directories() {
           title={dir.split("/").pop() || ""}
           subtitle={dir}
           accessories={
-            dir in projects ? [{ tag:  { value: `${projects[dir]}`, color: Color.Green }  , icon: Icon.Git }] : []
+            dir in projects
+              ? [
+                  {
+                    tag: { value: `${projects[dir]}`, color: Color.Green },
+                    icon: Icon.Git,
+                  },
+                ]
+              : []
           }
           actions={
             <ActionPanel>
