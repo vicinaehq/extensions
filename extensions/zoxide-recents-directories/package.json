@@ -20,7 +20,7 @@
   ],
   "preferences": [
     {
-      "name": "default-filter",
+      "name": "defaultFilter",
       "title": "Default view",
       "description": "Wether to show all directories or git directories only",
       "required": true,
@@ -36,6 +36,20 @@
         }
       ],
       "default": "all"
+    },
+    {
+      "name": "application",
+      "title": "Application",
+      "description": "Application to open directories with [Enter]",
+      "type": "appPicker",
+      "required": true
+    },
+    {
+      "name": "alternativeApplication",
+      "title": "Alternative Application",
+      "description": "Alternative application to open directories with [Shift + Enter]",
+      "type": "appPicker",
+      "required": false
     }
   ],
   "scripts": {
@@ -43,7 +57,8 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.20.5"
+    "@vicinae/api": "^0.20.5",
+    "execa": "^9.6.1"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

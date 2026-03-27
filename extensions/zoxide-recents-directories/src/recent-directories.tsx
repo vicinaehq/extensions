@@ -2,6 +2,7 @@ import { open, Cache, Clipboard, getPreferenceValues, List, Icon, ActionPanel, A
 import { useEffect, useState } from 'react';
 import { execa } from "execa";
 import path from 'path';
+import { homedir } from 'os';
 
 export default function Directories() {
 	const cache = new Cache();
@@ -12,11 +13,15 @@ export default function Directories() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [dirs, setDirs] = useState<string[]>(() => {
 		if (cache.isEmpty) return [];
-		const strData = (gitProjects ? cache.get("gitProjects") : cache.get("directories")) ?? "";
+		const strData = (gitProjects ? cache.get("gitProjects") : cache.get("directories")) ?? "[]";
 		return JSON.parse(strData);
 	});
-	// Load apps once, not per-render
-	const [apps, setApps] = useState<Application[]>([]);
+
+	const [apps, setApps] = useState<Application[]>(() => {
+		if (cache.isEmpty) return [];
+		const strData = (cache.get("apps")) ?? "[]";
+		return JSON.parse(strData);
+	});
 
 	async function getDirectories(): Promise<string[]> {
 		try {
@@ -60,7 +65,10 @@ export default function Directories() {
 				setIsLoading(false);
 			})
 		};
-		getApplications().then((apps) => (setApps(apps)));
+		getApplications(homedir()).then((apps) => {
+			setApps(apps);
+			cache.set("apps", JSON.stringify(apps));
+		});
 	}, []);
 
 	async function openProject(projectPath: string, app: string) {
@@ -113,7 +121,7 @@ export default function Directories() {
 									key={app.id}
 									title={`Open with ${app.name}`}
 									icon={app.icon}
-									onAction={() => openProject(dir, app.path)}
+									onAction={() => { openProject(dir, app.path); console.log(app.name) }}
 								/>
 							))}
 						</ActionPanel>
