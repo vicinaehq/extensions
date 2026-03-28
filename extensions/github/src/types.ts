@@ -27,3 +27,5 @@ export type WorkflowJob =
   RestEndpointMethodTypes["actions"]["listJobsForWorkflowRun"]["response"]["data"]["jobs"][number];
 export type Issue =
   RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["response"]["data"]["items"][number];
+export type PullRequest =
+  RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["response"]["data"]["items"][number];
