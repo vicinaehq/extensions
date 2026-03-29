@@ -1,0 +1,85 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "ollama-translate",
+  "title": "Ollama Translate",
+  "description": "Translate text using local language models - privacy-focused translation powered by AI",
+  "version": "1.0.0",
+  "categories": [
+    "Communication"
+  ],
+  "keywords": [
+    "translation",
+    "ollama",
+    "language",
+    "ai",
+    "local",
+    "privacy"
+  ],
+  "license": "MIT",
+  "author": "AdityaRahmad",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "translate",
+      "title": "Translate",
+      "subtitle": "Interactive translation",
+      "description": "Translate text with full UI - select languages, models, and view results",
+      "mode": "view"
+    },
+    {
+      "name": "instant-copy",
+      "title": "Instant Copy",
+      "subtitle": "Translate clipboard → copy",
+      "description": "Translate clipboard text and copy result automatically",
+      "mode": "no-view"
+    },
+    {
+      "name": "instant-paste",
+      "title": "Instant Paste",
+      "subtitle": "Translate clipboard → paste",
+      "description": "Translate clipboard text and paste to active app",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "ollamaHost",
+      "title": "Ollama Host",
+      "description": "The URL of your Ollama server",
+      "type": "textfield",
+      "default": "http://localhost:11434",
+      "required": false
+    },
+    {
+      "name": "defaultModel",
+      "title": "Default Model",
+      "description": "Default Ollama model to use for translation",
+      "type": "textfield",
+      "default": "gemma3:1b",
+      "required": false
+    },
+    {
+      "name": "defaultTargetLang",
+      "title": "Default Target Language",
+      "description": "Default target language code (e.g., id, en, es)",
+      "type": "textfield",
+      "default": "en",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
