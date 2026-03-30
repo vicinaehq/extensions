@@ -1,0 +1,37 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "ai-multi-search",
+  "title": "AI Multi-Search",
+  "description": "A unified search hub for quickly querying Gemini, Perplexity, ChatGPT, and Grok in one place.",
+  "categories": [
+    "Web"
+  ],
+  "license": "MIT",
+  "author": "YsraelBaruk",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "ai-search",
+      "title": "AI Search",
+      "subtitle": "Select a model and start your query",
+      "description": "Opens a search interface allowing you to choose your AI provider and redirects your query to their platform.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.9"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "typescript": "^5.9.2"
+  }
+}

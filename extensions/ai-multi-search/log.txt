@@ -1,0 +1,26 @@
+
+> dev
+> vici develop
+
+[34minfo[39m[0m[0m - Generating extension types...
+[34minfo[39m[0m[0m - entrypoints [src/ai-search.tsx]
+[32mready[39m[0m[0m - Extension built in 15ms 🚀
+[90m2026-03-30T23:32:25.020Z[39m[0m[0m - [31mReact.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.[39m[0m[0m
+[90m2026-03-30T23:32:25.037Z[39m[0m[0m - [31mReact.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.[39m[0m[0m
+[90m2026-03-30T23:32:25.039Z[39m[0m[0m - [31mReact.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.[39m[0m[0m
+[90m2026-03-30T23:32:25.039Z[39m[0m[0m - [31mReact.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.[39m[0m[0m
+[90m2026-03-30T23:32:25.039Z[39m[0m[0m - [31mReact.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.[39m[0m[0m
+[90m2026-03-30T23:32:25.039Z[39m[0m[0m - [31mReact.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.[39m[0m[0m
+[90m2026-03-30T23:32:25.039Z[39m[0m[0m - [31mReact.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.[39m[0m[0m
+[90m2026-03-30T23:32:25.039Z[39m[0m[0m - [31mReact.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.[39m[0m[0m
+[90m2026-03-30T23:32:25.039Z[39m[0m[0m - [31mErrorBoundary: Error boundaries should implement getDerivedStateFromError(). In that method, return a state update to display an error message or fallback UI.[39m[0m[0m
+[35mevent[39m[0m[0m - changed file src/ai-search.tsx
+[34minfo[39m[0m[0m - entrypoints [src/ai-search.tsx]
+[32mready[39m[0m[0m - Extension built in 7ms 🚀
+[35mevent[39m[0m[0m - changed file src/ai-search.tsx
+[34minfo[39m[0m[0m - entrypoints [src/ai-search.tsx]
+[32mready[39m[0m[0m - Extension built in 5ms 🚀
+[35mevent[39m[0m[0m - changed file src/ai-search.tsx
+[34minfo[39m[0m[0m - entrypoints [src/ai-search.tsx]
+[32mready[39m[0m[0m - Extension built in 5ms 🚀
+[34minfo[39m[0m[0m - Shutting down...

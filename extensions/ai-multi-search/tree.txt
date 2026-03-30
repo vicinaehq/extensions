@@ -1,0 +1,12 @@
+.
+├── assets
+│   └── extension_icon.png
+├── node_modules
+├── package.json
+├── package-lock.json
+├── README.md
+├── src
+│   └── ai-search.tsx
+├── tree.txt
+├── tsconfig.json
+└── vicinae-env.d.ts
