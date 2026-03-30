@@ -1,8 +1,6 @@
-# Vicinae Extension
+# AI Multi Search
 
-Congratulations on generating your new Vicinae extension!
-
-You can install the required dependencies and run your extension in development mode like so:
+A unified search hub for quickly querying Claude, Perplexity, ChatGPT, and Grok in one place.
 
 ```bash
 npm install
