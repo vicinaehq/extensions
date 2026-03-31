@@ -1,6 +1,5 @@
 import { List, ActionPanel, Action, Icon } from "@vicinae/api";
 import { useState } from "react";
-import { set } from "zod";
 
 const grok = "../assets/icons/grok.png";
 const plerplexity = "../assets/icons/plerplexity.png";
