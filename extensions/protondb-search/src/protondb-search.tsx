@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   Action,
   ActionPanel,
+  Color,
   closeMainWindow,
   Detail,
   Icon,
@@ -37,12 +38,11 @@ import type {
   SteamAppDetails,
 } from "./types";
 import {
-  formatConfidence,
-  formatPercentage,
+  formatScore,
   formatRequirementsSection,
   formatTierName,
+  getScoreColor,
   getTierColor,
-  getTierEmoji,
 } from "./utils/formatters";
 
 function GameActions({
@@ -234,7 +234,10 @@ ${description}${requirementsSection ? `\n\n---\n\n${requirementsSection}` : ""}`
               />
               <Detail.Metadata.Label
                 title="Score"
-                text={formatPercentage(rating.score)}
+                text={{
+                  value: formatScore(rating.score),
+                  color: getScoreColor(rating.score),
+                }}
               />
               <Detail.Metadata.Separator />
               <Detail.Metadata.Label
@@ -280,24 +283,32 @@ function GameListItem({ game }: { game: SteamGame }) {
     queryFn: () => fetchProtonDBRating(game.appid),
   });
 
-  const tierText = !rating
-    ? ""
-    : `${getTierEmoji(rating.tier)} ${formatTierName(rating.tier)}${formatConfidence(rating.confidence)}`;
+  const accessories: List.Item.Accessory[] = [];
 
-  const accessories = [
-    {
-      text: tierText,
-      ...(rating && {
+  if (rating) {
+    accessories.push({
+      tag: {
+        value: formatTierName(rating.tier),
+        color: getTierColor(rating.tier),
+      },
+    });
+
+    accessories.push({
+      tag: {
+        value: formatScore(rating.score),
+        color: getScoreColor(rating.score),
+      },
+    });
+
+    if (rating.total > 0) {
+      accessories.push({
+        icon: Icon.SpeechBubble,
         tag: {
-          value: formatTierName(rating.tier),
-          color: getTierColor(rating.tier),
+          value: String(rating.total),
+          color: Color.Blue,
         },
-      }),
-    },
-  ];
-
-  if (rating && rating.total > 0) {
-    accessories.push({ text: `${rating.total} reports` });
+      });
+    }
   }
 
   return (

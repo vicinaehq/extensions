@@ -1,5 +1,5 @@
 import { Color } from "@vicinae/api";
-import type { ProtonDBConfidence, ProtonDBTier, SteamRequirements } from "../types";
+import type { ProtonDBTier, SteamRequirements } from "../types";
 
 export function getTierColor(tier: ProtonDBTier | undefined): Color {
   if (!tier) return Color.SecondaryText;
@@ -17,34 +17,20 @@ export function getTierColor(tier: ProtonDBTier | undefined): Color {
   return tierColors[tier];
 }
 
-export function getTierEmoji(tier: ProtonDBTier | undefined): string {
-  if (!tier) return "❓";
-
-  const tierEmojis: Record<ProtonDBTier, string> = {
-    native: "🐧",
-    platinum: "💎",
-    gold: "🥇",
-    silver: "🥈",
-    bronze: "🥉",
-    borked: "❌",
-    pending: "❓",
-  };
-
-  return tierEmojis[tier];
-}
-
 export function formatTierName(tier: ProtonDBTier | undefined): string {
   if (!tier) return "Unknown";
   return tier.charAt(0).toUpperCase() + tier.slice(1);
 }
 
-export function formatPercentage(score: number): string {
-  return `${Math.round(score * 100)}%`;
+export function getScoreColor(score: number): Color {
+  if (score < 0.3) return Color.Red;
+  if (score < 0.5) return Color.Orange;
+  if (score < 0.7) return Color.Yellow;
+  return Color.Green;
 }
 
-export function formatConfidence(confidence: ProtonDBConfidence | undefined): string {
-  if (!confidence) return "";
-  return ` (${confidence} confidence)`;
+export function formatScore(score: number): string {
+  return score.toFixed(2);
 }
 
 function decodeHtmlEntities(s: string): string {
