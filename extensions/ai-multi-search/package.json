@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "ai-multi-search",
   "title": "AI Multi-Search",
-  "description": "A unified search hub for quickly querying Gemini, Perplexity, ChatGPT, and Grok in one place.",
+  "description": "A unified search hub for quickly querying Claude, Perplexity, ChatGPT, and Grok in one place.",
   "categories": [
     "Web"
   ],

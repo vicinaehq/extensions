@@ -1,9 +1,8 @@
 import { List, ActionPanel, Action, Icon } from "@vicinae/api";
 import { useState } from "react";
-import { set } from "zod";
 
 const grok = "../assets/icons/grok.png";
-const plerplexity = "../assets/icons/plerplexity.png";
+const perplexity = "../assets/icons/perplexity.png";
 
 function formatSearchUrl(url: string, searchText: string): string {
   return url.replace("SEARCH_TERM", encodeURIComponent(searchText));
@@ -26,7 +25,7 @@ export default function Command() {
     {
       name: "Perplexity",
       url: `https://www.perplexity.ai/search?q=SEARCH_TERM`,
-      icon: plerplexity,
+      icon: perplexity,
     },
     {
       name: "Grok",
