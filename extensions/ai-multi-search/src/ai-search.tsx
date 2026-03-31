@@ -1,8 +1,8 @@
 import { List, ActionPanel, Action, Icon } from "@vicinae/api";
 import { useState } from "react";
 
-const grok = "../assets/icons/grok.png";
-const perplexity = "../assets/icons/perplexity.png";
+const grok = { source: "../assets/icons/grok.png"};
+const perplexity = { source: "../assets/icons/perplexity.png"};
 
 function formatSearchUrl(url: string, searchText: string): string {
   return url.replace("SEARCH_TERM", encodeURIComponent(searchText));
