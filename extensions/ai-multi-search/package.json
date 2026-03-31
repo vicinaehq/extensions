@@ -15,7 +15,7 @@
     {
       "name": "ai-search",
       "title": "AI Search",
-      "subtitle": "Select a model and start your query",
+      "subtitle": "Select a provider AI and start your query",
       "description": "Opens a search interface allowing you to choose your AI provider and redirects your query to their platform.",
       "mode": "view"
     }
