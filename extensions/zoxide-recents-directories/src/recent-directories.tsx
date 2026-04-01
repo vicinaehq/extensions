@@ -106,14 +106,14 @@ export default function Directories() {
   }
 
   useEffect(() => {
-      getGitProjects().then((projects) => {
-        setProjects(projects);
-        setIsLoading(false);
-      });
-      getDirectories().then((directories) => {
-        setDirs(directories);
-        setIsLoading(false);
-      });
+    getGitProjects().then((projects) => {
+      setProjects(projects);
+      setIsLoading(false);
+    });
+    getDirectories().then((directories) => {
+      setDirs(directories);
+      setIsLoading(false);
+    });
     getApplications(homedir()).then((apps) => {
       setApps(apps);
       cache.set("apps", JSON.stringify(apps));
@@ -141,7 +141,7 @@ export default function Directories() {
     <List
       isLoading={isLoading}
       searchBarPlaceholder="Search recent directories or projects"
-      navigationTitle={`${src.length} entries`}
+      navigationTitle="zoxide entries"
       searchBarAccessory={
         <List.Dropdown
           tooltip="Sort By"
