@@ -18,10 +18,10 @@
 			"mode": "no-view"
 		},
 		{
-			"name": "background",
-			"title": "Background",
-			"description": "Change desktop background and lock screen",
-			"keywords": ["wallpaper", "desktop", "lock screen", "slideshow"],
+			"name": "appearance",
+			"title": "Appearance",
+			"description": "Change background and accent color",
+			"keywords": ["wallpaper", "desktop", "lock screen", "slideshow", "background"],
 			"mode": "no-view"
 		},
 		{
