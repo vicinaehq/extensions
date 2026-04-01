@@ -1,7 +1,7 @@
 # Noctalia Shell Wallpaper Selector Vicinae Extension
 
 This is a simple extension made by myself to easily change your noctalia-shell wallpaper.
-This project is straightforward, light and does not have any hard dependencies. 
+This project is straightforward, light and does not have any hard dependencies besides the Vicinae API. 
 
 I believe that this extension could be easily adapted to other wallpaper providers such as hyprpaper.
 
