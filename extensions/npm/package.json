@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "npm",
+  "title": "NPM",
+  "description": "An extenstion to manage npm packages",
+  "categories": [],
+  "license": "MIT",
+  "author": "FredrikMWold",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "NPM.png",
+  "commands": [
+    {
+      "name": "npm-install",
+      "title": "Install project packages",
+      "subtitle": "Install project packages",
+      "description": "Install project packages",
+      "mode": "view"
+    },
+    {
+      "name": "npm-uninstall",
+      "title": "Uninstall project packages",
+      "subtitle": "Uninstall project packages",
+      "description": "Uninstall project packages",
+      "mode": "view"
+    },
+    {
+      "name": "npm-update",
+      "title": "Update project packages",
+      "subtitle": "Update project packages",
+      "description": "Update project packages",
+      "mode": "view"
+    },
+    {
+      "name": "npm-search",
+      "title": "Search packages",
+      "subtitle": "Search packages",
+      "description": "Search packages",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@uidotdev/usehooks": "^2.4.1",
+    "@vicinae/api": "^0.20.7",
+    "find-up": "^8.0.0",
+    "package-manager-detector": "^1.6.0",
+    "semver": "^7.7.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.8",
+    "@types/semver": "^7.7.1",
+    "typescript": "^5.9.3"
+  }
+}
