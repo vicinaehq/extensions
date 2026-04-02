@@ -183,6 +183,7 @@ export default function SearchDatabase({ setIsUnlocked }: SearchDatabaseParams):
                 <ActionPanel.Section title="Copy">
                   <Action
                     title="Copy Password"
+                    shortcut={{ modifiers: ["ctrl"], key: "c" }}
                     onAction={async () => {
                       if ("" === password) {
                         await showToast(Toast.Style.Failure, "Error", "No Password Set");
