@@ -1,0 +1,62 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "git-editor",
+  "title": "Git Editor",
+  "description": "Allows for using vicinae as your git editor",
+  "categories": [],
+  "license": "MIT",
+  "author": "FredrikMWold",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "git-editor-icon.png",
+  "commands": [
+    {
+      "name": "git-commit",
+      "title": "Git commit",
+      "subtitle": "Git commit",
+      "description": "Git commit",
+      "mode": "view"
+    },
+    {
+      "name": "git-sequence",
+      "title": "Git sequence",
+      "subtitle": "Git sequence",
+      "description": "Git sequence",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "required": true,
+      "name": "commitType",
+      "type": "dropdown",
+      "title": "Commit Type",
+      "default": "conventional",
+      "data": [
+        {
+          "value": "conventional",
+          "title": "Conventional Commits"
+        },
+        {
+          "value": "simple",
+          "title": "Simple"
+        }
+      ],
+      "description": "Choose the commit message format"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.19.0",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "typescript": "^5.9.2"
+  }
+}
