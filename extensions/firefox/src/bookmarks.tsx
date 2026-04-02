@@ -5,9 +5,11 @@ import { Database } from "sql.js";
 import {
   createCommonActions,
   getFirefoxProfiles,
+  getStoredFirefoxProfile,
   initDatabase,
   Profile,
   showErrorToast,
+  setStoredFirefoxProfile,
 } from "./utils";
 
 const folderNames = {
@@ -54,9 +56,14 @@ type Bookmark = {
 };
 type Folder = { id: string; icon: string; title: string };
 
+const ALL_FOLDERS_VALUE = "folder:";
+const PROFILE_VALUE_PREFIX = "profile:";
+const FOLDER_VALUE_PREFIX = "folder:";
+
 export default function Command() {
-  const [, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentProfile, setCurrentProfile] = useState("");
+  const [selectedDropdownValue, setSelectedDropdownValue] = useState("");
   const [folders, setFolders] = useState<Folder[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,6 +74,13 @@ export default function Command() {
       setIsLoading(true);
       try {
         const { profiles, defaultProfile } = await getFirefoxProfiles();
+        const storedProfile = await getStoredFirefoxProfile();
+        const selectedProfile =
+          profiles.find((profile) => profile.path === storedProfile)?.path ??
+          defaultProfile;
+        const dropdownValue = selectedProfile
+          ? `${PROFILE_VALUE_PREFIX}${selectedProfile}`
+          : ALL_FOLDERS_VALUE;
         if (profiles.length === 0) {
           await showErrorToast(
             "No Firefox profiles found",
@@ -74,15 +88,36 @@ export default function Command() {
           );
         }
         setProfiles(profiles);
-        setCurrentProfile(defaultProfile);
+        setCurrentProfile(selectedProfile);
+        setSelectedDropdownValue(dropdownValue);
+        void setStoredFirefoxProfile(selectedProfile);
       } catch (error) {
         await showErrorToast("Error loading profiles", String(error));
         setProfiles([]);
         setCurrentProfile("");
+        setSelectedDropdownValue(ALL_FOLDERS_VALUE);
       }
       setIsLoading(false);
     })();
   }, []);
+
+  const handleDropdownChange = (value: string) => {
+    setSelectedDropdownValue(value);
+
+    if (value.startsWith(PROFILE_VALUE_PREFIX)) {
+      const nextProfile = value.slice(PROFILE_VALUE_PREFIX.length);
+      if (nextProfile !== currentProfile) {
+        setCurrentProfile(nextProfile);
+        setSelectedFolderId("");
+        void setStoredFirefoxProfile(nextProfile);
+      }
+      return;
+    }
+
+    if (value.startsWith(FOLDER_VALUE_PREFIX)) {
+      setSelectedFolderId(value.slice(FOLDER_VALUE_PREFIX.length));
+    }
+  };
 
   useEffect(() => {
     if (!currentProfile) return;
@@ -194,16 +229,32 @@ export default function Command() {
       isLoading={isLoading}
       searchBarPlaceholder="Search Firefox bookmarks"
       searchBarAccessory={
-        <List.Dropdown tooltip="Folder" onChange={setSelectedFolderId}>
-          <List.Dropdown.Item icon={Icon.Globe} title="All" value="" />
-          {folders.map((folder) => (
-            <List.Dropdown.Item
-              key={folder.id}
-              icon={folder.icon}
-              title={folder.title}
-              value={folder.id}
-            />
-          ))}
+        <List.Dropdown
+          tooltip="Filters"
+          value={selectedDropdownValue}
+          onChange={handleDropdownChange}
+        >
+          <List.Dropdown.Section title="Profile">
+            {profiles.map((profile) => (
+              <List.Dropdown.Item
+                key={profile.path}
+                icon={Icon.Person}
+                title={profile.name || profile.path}
+                value={`${PROFILE_VALUE_PREFIX}${profile.path}`}
+              />
+            ))}
+          </List.Dropdown.Section>
+          <List.Dropdown.Section title="Folder">
+            <List.Dropdown.Item icon={Icon.Globe} title="All" value={ALL_FOLDERS_VALUE} />
+            {folders.map((folder) => (
+              <List.Dropdown.Item
+                key={folder.id}
+                icon={folder.icon}
+                title={folder.title}
+                value={`${FOLDER_VALUE_PREFIX}${folder.id}`}
+              />
+            ))}
+          </List.Dropdown.Section>
         </List.Dropdown>
       }
     >
