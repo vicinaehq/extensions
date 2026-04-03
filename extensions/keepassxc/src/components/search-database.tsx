@@ -183,6 +183,7 @@ export default function SearchDatabase({ setIsUnlocked }: SearchDatabaseParams):
                 <ActionPanel.Section title="Copy">
                   <Action
                     title="Copy Password"
+                    shortcut={{ modifiers: ["ctrl"], key: "p" }}
                     onAction={async () => {
                       if ("" === password) {
                         await showToast(Toast.Style.Failure, "Error", "No Password Set");
@@ -230,7 +231,7 @@ export default function SearchDatabase({ setIsUnlocked }: SearchDatabaseParams):
                   <Action
                     title="Paste Password"
                     icon={Icon.BlankDocument}
-                    shortcut={{ modifiers: ["ctrl", "shift"], key: "c" }}
+                    shortcut={{ modifiers: ["ctrl", "shift"], key: "p" }}
                     onAction={async () => {
                       if ("" === password) {
                         await showToast(Toast.Style.Failure, "Error", "No Password Set");
