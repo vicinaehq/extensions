@@ -6,7 +6,7 @@ export const isAllDayEvent = (start: Date, end: Date): boolean => {
     end.getHours() === 0 &&
     end.getMinutes() === 0 &&
     end.getSeconds() === 0 &&
-    end.getTime() - start.getTime() === 24 * 60 * 60 * 1000
+    end > start
   );
 };
 
