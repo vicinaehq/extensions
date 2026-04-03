@@ -76,10 +76,12 @@ async function walkStore(root: string, relative = ""): Promise<string[]> {
       const fullPath = path.join(dir, dirent.name);
       const linkStats = await fs.stat(fullPath);
       if (!linkStats.isFile()) continue;
-      entries.push(normalizeEntryName(dirent.name.slice(0, -4)));
+      const fileRelative = relative
+        ? path.join(relative, dirent.name)
+        : dirent.name;
+      entries.push(normalizeEntryName(fileRelative.slice(0, -4)));
     }
   }
-  console.log(entries);
   return entries;
 }
 
