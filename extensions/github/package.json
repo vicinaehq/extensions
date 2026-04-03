@@ -162,7 +162,8 @@
     "lint": "eslint src/ --ext .ts,.tsx"
   },
   "dependencies": {
-    "@octokit/rest": "^22.0.1",
+    "@octokit/request-error": "^7.0.0",
+    "@octokit/rest": "^22.0.0",
     "@raycast/utils": "^2.2.2",
     "@tanstack/query-async-storage-persister": "^5.90.22",
     "@tanstack/react-query": "^5.90.21",
