@@ -1,22 +1,23 @@
-import { showToast, Toast, Clipboard } from "@vicinae/api";
+import { showToast, Toast } from "@vicinae/api";
 import { execSync } from "child_process";
 import { useState } from "react";
-import { getPackageJson } from "../utils/getPackageJson";
+import { getInstalledPackages } from "../utils/getPackageJson";
 import type { PackageManager } from "../utils/getPackageManager";
-import type { NPMProject } from "../types";
+import type { Package } from "../types";
 import { usePackageManger } from "./usePackageManger";
 
-export const useUninstallPackages = (pwd: string) => {
-  const [project, setProject] = useState<NPMProject>(getPackageJson(pwd));
-  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
-    [],
-  );
+export const useUninstallPackages = (pwd?: string) => {
+  const [selectedPackages, setSelectedPackages] = useState<Package[]>([]);
   const [error, setError] = useState<string>("");
   const { packageManager } = usePackageManger(pwd);
+  const [packages, setPackages] = useState<Package[]>(() =>
+    getInstalledPackages(packageManager, pwd),
+  );
 
   const npmCommand = buildUninstallCommand(
     packageManager,
-    selectedDependencies,
+    selectedPackages,
+    !pwd,
   );
 
   const uninstallPackages = async () => {
@@ -43,14 +44,15 @@ export const useUninstallPackages = (pwd: string) => {
       title: `Successfully uninstalled packages`,
       style: Toast.Style.Success,
     });
-    setProject(getPackageJson(pwd));
-    setSelectedDependencies([]);
+    setPackages(getInstalledPackages(packageManager, pwd));
+    setSelectedPackages([]);
   };
 
-  const onSelectDependency = (dependency: string) => {
-    setSelectedDependencies((prev) => {
-      if (!prev.includes(dependency)) return [...prev, dependency];
-      return prev.filter((dep) => dep !== dependency);
+  const onSelectDependency = (dependency: Package) => {
+    setSelectedPackages((prev) => {
+      if (!prev.find((dep) => dep.name === dependency.name))
+        return [...prev, dependency];
+      return prev.filter((dep) => dep.name !== dependency.name);
     });
   };
 
@@ -60,8 +62,8 @@ export const useUninstallPackages = (pwd: string) => {
     uninstallPackages,
     npmCommand,
     error,
-    project,
-    selectedDependencies,
+    packages,
+    selectedPackages,
     onSelectDependency,
     clearError,
   };
@@ -69,14 +71,15 @@ export const useUninstallPackages = (pwd: string) => {
 
 const buildUninstallCommand = (
   packageManager: PackageManager,
-  dependencies: string[],
+  dependencies: Package[],
+  global = false,
 ) => {
   switch (packageManager) {
     case "pnpm":
-      return `pnpm remove ${dependencies.join(" ")}`;
+      return `pnpm remove ${dependencies.map((dep) => dep.name).join(" ")} ${global ? "-g" : ""}`;
     case "bun":
-      return `bun remove ${dependencies.join(" ")}`;
+      return `bun remove ${dependencies.map((dep) => dep.name).join(" ")} ${global ? "-g" : ""}`;
     case "npm":
-      return `npm uninstall ${dependencies.join(" ")}`;
+      return `npm uninstall ${dependencies.map((dep) => dep.name).join(" ")} ${global ? "-g" : ""}`;
   }
 };

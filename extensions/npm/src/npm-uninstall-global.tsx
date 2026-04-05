@@ -1,36 +1,23 @@
 import { Action, ActionPanel, Color, Icon, List } from "@vicinae/api";
-import semver from "semver";
 import { NpmErrorDetails } from "./components/NpmErrorDetails";
-import { NpmTerminalUsageDetails } from "./components/NpmTerminalUsageDetails";
-import { useGetVersionUpdate } from "./hooks/useGetVersionUpdate";
-import { useUpdatePackages } from "./hooks/useUpdatePackages";
-import type { Package } from "./types";
+import { useUninstallPackages } from "./hooks/useUninstallPackages";
+import { Package } from "./types";
 
-export default function NpmUpdate(props: {
-  arguments?: {
-    pwd: string;
-  };
-}) {
-  const pwd = props?.arguments?.pwd;
-  if (!pwd) return <NpmTerminalUsageDetails />;
-
+export default function NpmUninstallGlobal() {
   const {
+    npmCommand,
     packages,
-    updatePackages,
-    selectedDependencies,
-    selectedDevDependencies,
+    uninstallPackages,
+    onSelectDependency,
+    selectedPackages,
     error,
     clearError,
-    onSelectDependency,
-    onSelectDevDependency,
-    npmCommand,
-  } = useUpdatePackages(pwd);
-
+  } = useUninstallPackages();
   if (error) {
     return <NpmErrorDetails error={error} clear={clearError} />;
   }
   return (
-    <List>
+    <List searchBarPlaceholder="Filter npm packages...">
       <List.Section title="Dependencies">
         {packages
           .filter((dep) => !dep.dev)
@@ -38,10 +25,12 @@ export default function NpmUpdate(props: {
             <DependencyListItem
               key={dep.name}
               dep={dep}
-              selected={selectedDependencies.includes(dep.name)}
-              updatePackage={updatePackages}
-              onSelect={(name) => onSelectDependency(name)}
               npmCommand={npmCommand}
+              onSelect={onSelectDependency}
+              selected={selectedPackages.some(
+                (selected) => selected.name === dep.name,
+              )}
+              uninstallPackages={uninstallPackages}
             />
           ))}
       </List.Section>
@@ -52,10 +41,12 @@ export default function NpmUpdate(props: {
             <DependencyListItem
               key={dep.name}
               dep={dep}
-              updatePackage={updatePackages}
-              onSelect={(name) => onSelectDevDependency(name)}
-              selected={selectedDevDependencies.includes(dep.name)}
               npmCommand={npmCommand}
+              onSelect={onSelectDependency}
+              selected={selectedPackages.some(
+                (selected) => selected.name === dep.name,
+              )}
+              uninstallPackages={uninstallPackages}
             />
           ))}
       </List.Section>
@@ -65,19 +56,17 @@ export default function NpmUpdate(props: {
 
 const DependencyListItem = ({
   dep,
-  updatePackage,
   selected,
   onSelect,
+  uninstallPackages,
   npmCommand,
 }: {
   dep: Package;
-  updatePackage: () => void;
   selected: boolean;
-  onSelect: (dependency: string) => void;
+  onSelect: (dependency: Package) => void;
+  uninstallPackages: () => void;
   npmCommand: string;
 }) => {
-  const { hasUpdate, versionData } = useGetVersionUpdate(dep);
-  if (!hasUpdate) return;
   return (
     <List.Item
       key={dep.name}
@@ -86,8 +75,8 @@ const DependencyListItem = ({
       accessories={[
         {
           text: {
-            value: `${semver.coerce(dep.version)} → ${versionData?.newVersion}`,
-            color: Color.Orange,
+            color: Color.Blue,
+            value: dep.version,
           },
         },
       ]}
@@ -97,19 +86,17 @@ const DependencyListItem = ({
             title={selected ? "Deselect" : "Select"}
             icon={selected ? Icon.Circle : Icon.CheckCircle}
             onAction={() => {
-              onSelect(dep.name);
+              onSelect(dep);
             }}
           />
           <Action
-            title="Update packages"
-            icon={Icon.Download}
-            onAction={() => {
-              updatePackage();
-            }}
+            title="Uninstall package"
+            icon={Icon.Trash}
+            onAction={() => uninstallPackages()}
           />
           <ActionPanel.Section>
             <Action.CopyToClipboard
-              title="Copy npm update command"
+              title="Copy npm uninstall command"
               content={npmCommand}
             />
           </ActionPanel.Section>

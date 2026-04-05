@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { fetchPackageMetadata } from "../api/fetchPackageMetadata";
-import type { Dependency } from "../types";
+import type { Package } from "../types";
 
-export const useGetVersionUpdate = (npmPackage: Dependency) => {
+export const useGetVersionUpdate = (npmPackage: Package) => {
   const [loading, setLoading] = useState(false);
   const [versionData, setVersionData] = useState<{
     name: string;

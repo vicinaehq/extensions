@@ -1,13 +1,12 @@
 import { showToast, Toast } from "@vicinae/api";
 import { execSync } from "child_process";
 import { useState } from "react";
-import { getPackageJson } from "../utils/getPackageJson";
 import type { PackageManager } from "../utils/getPackageManager";
-import type { NPMProject } from "../types";
+import type { Package } from "../types";
 import { usePackageManger } from "./usePackageManger";
+import { getInstalledPackages } from "../utils/getPackageJson";
 
 export const useUpdatePackages = (pwd: string) => {
-  const [project, setProject] = useState<NPMProject>(getPackageJson(pwd));
   const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
     [],
   );
@@ -16,6 +15,9 @@ export const useUpdatePackages = (pwd: string) => {
   >([]);
   const [error, setError] = useState<string>("");
   const { packageManager } = usePackageManger(pwd);
+  const [packages, setPackages] = useState<Package[]>(() =>
+    getInstalledPackages(packageManager, pwd),
+  );
 
   const npmCommand = buildUpdateCommand(
     packageManager,
@@ -47,7 +49,7 @@ export const useUpdatePackages = (pwd: string) => {
       title: `Successfully updated packages`,
       style: Toast.Style.Success,
     });
-    setProject(getPackageJson(pwd));
+    setPackages(getInstalledPackages(packageManager, pwd));
     setSelectedDependencies([]);
     setSelectedDevDependencies([]);
   };
@@ -71,7 +73,7 @@ export const useUpdatePackages = (pwd: string) => {
   return {
     updatePackages,
     error,
-    project,
+    packages,
     selectedDependencies,
     selectedDevDependencies,
     onSelectDependency,

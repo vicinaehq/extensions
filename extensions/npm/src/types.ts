@@ -1,9 +1,8 @@
-export type NPMProject = {
-  dependencies: Dependency[];
-};
+import { PackageManager } from "./utils/getPackageManager";
 
-export type Dependency = {
+export type Package = {
   name: string;
   version: string;
-  dev: boolean;
+  dev?: boolean;
+  global: boolean;
 };
