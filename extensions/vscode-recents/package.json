@@ -44,6 +44,10 @@
         {
           "title": "Visual Studio Code (Insiders)",
           "value": "Code - Insiders"
+        },
+        {
+          "title": "Antigravity",
+          "value": "Antigravity"
         }
       ]
     },
