@@ -47,7 +47,7 @@
     },
     {
       "name": "otpAfterPassword",
-      "label": "otpAfterPassword",
+      "label": "OTP After Password",
       "type": "checkbox",
       "title": "Prioritize OTP After Password",
       "description": "When you just copied a password, show OTP entries at the top next time",
@@ -79,6 +79,13 @@
           "value": "copy"
         }
       ]
+    },
+    {
+      "name": "fileSchema",
+      "type": "textfield",
+      "title": "File Schema",
+      "description": "Schema of underlying gpg files",
+      "required": false
     }
   ],
   "scripts": {
