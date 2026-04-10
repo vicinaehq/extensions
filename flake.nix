@@ -31,6 +31,7 @@
       nixpkgs,
       systems,
       vicinae,
+      ...
     }:
     let
       inherit (nixpkgs) lib;
