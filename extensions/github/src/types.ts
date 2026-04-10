@@ -15,6 +15,8 @@ export type FilterType = "my" | "assigned" | "mentioning";
 
 export type Repository =
   RestEndpointMethodTypes["repos"]["listForAuthenticatedUser"]["response"]["data"][number];
+export type RepositoryDetails =
+  RestEndpointMethodTypes["repos"]["get"]["response"]["data"];
 export type Assignee =
   RestEndpointMethodTypes["issues"]["listAssignees"]["response"]["data"][number];
 export type Label =

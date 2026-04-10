@@ -5,7 +5,8 @@ import { octokit } from "../api/githubClient";
 import { Assignee, Branch, Issue, Repository } from "../types";
 
 export const usePullRequestForm = () => {
-  const [repo, setRepo] = useState<Repository | null>(null);
+  const [repo, setRepoState] = useState<Repository | null>(null);
+  const [baseRepo, setBaseRepoState] = useState<Repository | null>(null);
   const [fromBranch, setFromBranch] = useState<Branch | null>(null);
   const [toBranch, setToBranch] = useState<Branch | null>(null);
   const [linkedIssue, setLinkedIssue] = useState<Issue | null>(null);
@@ -16,9 +17,29 @@ export const usePullRequestForm = () => {
   const [assignee, setAssignee] = useState<Assignee | null>(null);
   const [errors, setErrors] = useState<PullRequestScehmaError | null>(null);
 
-  const handleCreatePr = async () => {
+  const setRepo = (nextRepo: Repository | null) => {
+    setRepoState(nextRepo);
+    setBaseRepoState(null);
+    setFromBranch(null);
+    setToBranch(null);
+    setLinkedIssue(null);
+    setAssignee(null);
+    setErrors(null);
+  };
+
+  const setBaseRepo = (nextBaseRepo: Repository | null) => {
+    setBaseRepoState(nextBaseRepo);
+    setFromBranch(null);
+    setToBranch(null);
+    setLinkedIssue(null);
+    setAssignee(null);
+    setErrors(null);
+  };
+
+  const handleCreatePr = async (resolvedBaseRepo?: Repository | null) => {
     const validatedPr = prSchema.safeParse({
       repo,
+      baseRepo: resolvedBaseRepo || baseRepo || repo,
       fromBranch,
       toBranch,
       draft,
@@ -35,24 +56,37 @@ export const usePullRequestForm = () => {
     }
 
     setErrors(null);
-    const [owner, repoName] = validatedPr.data.repo.full_name.split("/");
+    const [baseOwner, baseRepoName] =
+      validatedPr.data.baseRepo.full_name.split("/");
+    const isCrossRepoPr =
+      validatedPr.data.repo.full_name !== validatedPr.data.baseRepo.full_name;
 
     const loadingToast = await showToast(
       Toast.Style.Animated,
       "Creating pull request...",
     );
 
+    const linkedIssueReference = `${validatedPr.data.baseRepo.full_name}#${validatedPr.data.linkedIssue?.number}`;
     const linkedIssueText = validatedPr.data.autoClose
-      ? `Closes #${validatedPr.data.linkedIssue?.number}`
-      : `Related to #${validatedPr.data.linkedIssue?.number}`;
+      ? `Closes ${linkedIssueReference}`
+      : `Related to ${linkedIssueReference}`;
+
+    const head = isCrossRepoPr
+      ? `${validatedPr.data.repo.owner.login}:${validatedPr.data.fromBranch.name}`
+      : validatedPr.data.fromBranch.name;
 
     try {
       const prResponse = await octokit.pulls.create({
-        owner,
-        repo: repoName,
+        owner: baseOwner,
+        repo: baseRepoName,
         title: validatedPr.data.title.trim(),
         body: `${validatedPr.data.description || ""}${validatedPr.data.linkedIssue ? `\n\n${linkedIssueText}` : ""}`,
-        head: validatedPr.data.fromBranch.name,
+        head,
+        ...(isCrossRepoPr &&
+        validatedPr.data.repo.owner.login ===
+          validatedPr.data.baseRepo.owner.login
+          ? { head_repo: validatedPr.data.repo.name }
+          : {}),
         base: validatedPr.data.toBranch.name,
         draft: validatedPr.data.draft,
       });
@@ -60,8 +94,8 @@ export const usePullRequestForm = () => {
       if (validatedPr.data.assignee) {
         try {
           await octokit.issues.addAssignees({
-            owner,
-            repo: repoName,
+            owner: baseOwner,
+            repo: baseRepoName,
             issue_number: prResponse.data.number,
             assignees: [validatedPr.data.assignee.login],
           });
@@ -82,6 +116,8 @@ export const usePullRequestForm = () => {
   return {
     repo,
     setRepo,
+    baseRepo,
+    setBaseRepo,
     fromBranch,
     setFromBranch,
     toBranch,
@@ -107,8 +143,22 @@ const prSchema = z.object({
   repo: z.object(
     {
       full_name: z.templateLiteral([z.string(), "/", z.string()]),
+      name: z.string().min(1),
+      owner: z.object({
+        login: z.string().min(1),
+      }),
     },
     "Repository is required",
+  ),
+  baseRepo: z.object(
+    {
+      full_name: z.templateLiteral([z.string(), "/", z.string()]),
+      name: z.string().min(1),
+      owner: z.object({
+        login: z.string().min(1),
+      }),
+    },
+    "Base repository is required",
   ),
   fromBranch: z.object(
     {
