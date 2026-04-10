@@ -3,6 +3,9 @@
   "name": "firefox",
   "title": "Firefox",
   "description": "Firefox integration",
+  "categories": [
+    "Web"
+  ],
   "icon": "extension-icon.svg",
   "author": "knoopx",
   "license": "MIT",
