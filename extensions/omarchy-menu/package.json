@@ -17,6 +17,36 @@
       "title": "Omarchy Menu",
       "description": "Go to a specific omarchy page",
       "mode": "view"
+    },
+    {
+      "name": "capture",
+      "title": "Omarchy Capture",
+      "description": "Go to the capture menu",
+      "mode": "view"
+    },
+    {
+      "name": "share",
+      "title": "Omarchy Share",
+      "description": "Go to the share menu",
+      "mode": "view"
+    },
+    {
+      "name": "theme",
+      "title": "Omarchy Theme",
+      "description": "Go to the theme menu",
+      "mode": "view"
+    },
+    {
+      "name": "toggle",
+      "title": "Omarchy Toggle",
+      "description": "Go to the toggle menu",
+      "mode": "view"
+    },
+    {
+      "name": "system",
+      "title": "Omarchy System",
+      "description": "Go to the system menu",
+      "mode": "view"
     }
   ],
   "scripts": {
@@ -27,15 +57,15 @@
     "format:fix": "prettier --write ."
   },
   "dependencies": {
-    "@raycast/utils": "^2.2.2",
-    "@vicinae/api": "^0.18.3"
+    "@raycast/utils": "^2.2.3",
+    "@vicinae/api": "^0.20.7"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.1.1",
-    "@types/node": "^24.10.0",
-    "@types/react": "^19.2.2",
-    "eslint": "^9.39.1",
-    "prettier": "^3.6.2",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "eslint": "^10.1.0",
+    "prettier": "^3.8.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }

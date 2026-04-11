@@ -15,6 +15,8 @@ export type FilterType = "my" | "assigned" | "mentioning";
 
 export type Repository =
   RestEndpointMethodTypes["repos"]["listForAuthenticatedUser"]["response"]["data"][number];
+export type RepositoryDetails =
+  RestEndpointMethodTypes["repos"]["get"]["response"]["data"];
 export type Assignee =
   RestEndpointMethodTypes["issues"]["listAssignees"]["response"]["data"][number];
 export type Label =
@@ -26,4 +28,6 @@ export type WorkflowRun =
 export type WorkflowJob =
   RestEndpointMethodTypes["actions"]["listJobsForWorkflowRun"]["response"]["data"]["jobs"][number];
 export type Issue =
+  RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["response"]["data"]["items"][number];
+export type PullRequest =
   RestEndpointMethodTypes["search"]["issuesAndPullRequests"]["response"]["data"]["items"][number];

@@ -9,10 +9,14 @@ import { ZED_EXECUTABLE } from "./constants";
 
 const KNOWN_ZED_PATHS = [
     join(homedir(), ".local", "bin", "zed"),
-    "/usr/local/bin/zed",
     "/usr/bin/zed",
+    "/usr/local/bin/zed",
+    "/usr/bin/zeditor",
+    "/usr/local/bin/zeditor",
+    "/usr/bin/zedit",
+    "/usr/local/bin/zedit",
     join(homedir(), ".local", "zed.app", "bin", "zed"),
-];
+]; // See https://zed.dev/docs/linux#community for possible binary names
 
 export async function openProject(project: RecentProject): Promise<void> {
     const resolvedPath = await resolveExecutable();
@@ -76,7 +80,11 @@ function execInShell(cmd: string): Promise<string> {
 function spawnDetached(cmd: string, args: string[]): Promise<void> {
     return new Promise((resolve, reject) => {
         const { NODE_ENV, ...env } = process.env;
-        const child = spawn(cmd, args, { detached: true, stdio: "ignore", env });
+        const child = spawn(cmd, args, {
+            detached: true,
+            stdio: "ignore",
+            env,
+        });
         child.once("error", reject);
         child.once("spawn", () => {
             child.unref();

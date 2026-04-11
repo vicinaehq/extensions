@@ -6,6 +6,11 @@
 
     systems.url = "github:nix-systems/default";
 
+    flake-compat = {
+      url = "github:NixOS/flake-compat";
+      flake = false;
+    };
+
     vicinae = {
       url = "github:vicinaehq/vicinae";
       inputs = {
@@ -26,6 +31,7 @@
       nixpkgs,
       systems,
       vicinae,
+      ...
     }:
     let
       inherit (nixpkgs) lib;

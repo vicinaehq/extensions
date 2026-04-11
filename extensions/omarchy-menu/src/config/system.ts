@@ -9,7 +9,7 @@ export const system: MenuItem = {
     {
       id: "screensaver",
       name: "Screensaver",
-      icon: "󱄄 ",
+      icon: "󱄄",
       command: "omarchy-launch-screensaver force",
     },
     { 
@@ -21,19 +21,19 @@ export const system: MenuItem = {
     {
       id: "suspend",
       name: "Suspend",
-      icon: "󰒲 ",
+      icon: "󰒲",
       command: "systemctl suspend",
     },
     {
       id: "restart",
       name: "Restart",
-      icon: "󰜉 ",
+      icon: "󰜉",
       command: "omarchy-system-reboot",
     },
     {
       id: "shutdown",
       name: "Shutdown",
-      icon: "󰐥 ",
+      icon: "󰐥",
       command:
         "omarchy-system-shutdown",
     },

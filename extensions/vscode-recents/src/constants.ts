@@ -12,6 +12,7 @@ export const VSCODE_EXECUTABLES: Record<string, string> = {
     Cursor: "cursor",
     VSCodium: "codium",
     "Code - Insiders": "code-insiders",
+    Antigravity: "antigravity",
 };
 
 export const VSCODE_STATE_PATHS = {
