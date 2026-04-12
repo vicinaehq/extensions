@@ -1,6 +1,27 @@
 import { Action, ActionPanel, Detail, Icon } from "@vicinae/api";
-import { spawn } from "node:child_process";
+import { exec, spawn } from "node:child_process";
+import { access, constants } from "node:fs/promises";
+import { join } from "node:path";
+import util from "node:util";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+const execp = util.promisify(exec);
+
+/** Search PATH for an executable by name, verifying it exists and is executable via fs.access. */
+async function findExecutable(name: string): Promise<string | null> {
+  const pathEnv = process.env.PATH ?? "";
+  const dirs = pathEnv.split(":");
+  for (const dir of dirs) {
+    const candidate = join(dir, name);
+    try {
+      await access(candidate, constants.X_OK);
+      return candidate;
+    } catch {
+      // not found or not executable in this directory, continue
+    }
+  }
+  return null;
+}
 
 type Phase = "starting" | "ping" | "download" | "upload" | "done" | "error";
 
@@ -23,14 +44,11 @@ interface SpeedState {
   serverLocation: string;
   shareUrl: string;
   errorMessage: string;
+  installHint: string;
 }
 
 function bwToMbps(bytesPerSec: number): number {
   return (bytesPerSec * 8) / 1_000_000;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
 }
 
 function formatMetric(value: number | null, digits = 1, suffix = ""): string {
@@ -38,131 +56,51 @@ function formatMetric(value: number | null, digits = 1, suffix = ""): string {
   return `${value.toFixed(digits)}${suffix}`;
 }
 
-function getRatingEmoji(mbps: number, type: "download" | "upload"): string {
-  const t = type === "download" ? [10, 25, 100, 500] : [5, 10, 50, 200];
-  if (mbps >= t[3]!) return "🚀";
-  if (mbps >= t[2]!) return "⚡";
-  if (mbps >= t[1]!) return "✅";
-  if (mbps >= t[0]!) return "🐢";
-  return "🔴";
+function formatServer(server: string, location: string): string {
+  return server ? `${server}${location ? ` (${location})` : ""}` : "—";
 }
 
-function getPingEmoji(ms: number): string {
-  if (ms <= 2) return "WOhooow";
-  if (ms < 10) return "🚀";
-  if (ms < 30) return "✅";
-  if (ms < 60) return "🟡";
-  if (ms < 100) return "🟠";
-  return "🔴";
-}
+// ─── Package manager detection ────────────────────────────────────────────────
 
-function pickScale(value: number): number {
-  const steps = [25, 50, 100, 200, 300, 500, 750, 1000, 1500, 2000];
-  return steps.find((s) => value <= s * 0.92) ?? 2500;
-}
+const PACKAGE_MANAGERS: Array<{ cmd: string; install: string }> = [
+  { cmd: "paru", install: "paru -S ookla-speedtest-bin" },
+  { cmd: "yay", install: "yay -S ookla-speedtest-bin" },
+  { cmd: "brew", install: "brew tap teamookla/speedtest && brew install speedtest" },
+  {
+    cmd: "apt",
+    install: "sudo apt-get install curl\ncurl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash\nsudo apt-get install speedtest",
+  },
+  {
+    cmd: "yum",
+    install: "curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.rpm.sh | sudo bash\nsudo yum install speedtest",
+  },
+  {
+    cmd: "dnf",
+    install: "curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.rpm.sh | sudo bash\nsudo yum install speedtest",
+  },
+];
 
-// ─── Bar Chart SVG ────────────────────────────────────────────────────────────
-
-function buildBarChartSvg(state: SpeedState): string {
-  const W = 220;
-  const H = 255;
-
-  // Bar geometry
-  const bW = 72;
-  const b1x = 14;   // download bar left edge
-  const b2x = 110;  // upload bar left edge
-  const bTop = 22;
-  const bBot = 205;
-  const bH = bBot - bTop; // 183 px
-
-  // Values to display (live during test, final when done)
-  const dlVal = state.finalDownload ?? state.downloadBandwidth;
-  const ulVal = state.finalUpload ?? state.uploadBandwidth;
-
-  // Shared Y-scale: pick based on the largest seen value
-  const maxSeen = Math.max(dlVal ?? 0, ulVal ?? 0, 1);
-  const scale = pickScale(maxSeen);
-
-  // Fill heights (clamped)
-  const dlH = dlVal !== null ? clamp((dlVal / scale) * bH, 0, bH) : 0;
-  const ulH = ulVal !== null ? clamp((ulVal / scale) * bH, 0, bH) : 0;
-  const dlY = bBot - dlH;
-  const ulY = bBot - ulH;
-
-  // Phase label
-  const phaseMap: Record<Phase, string> = {
-    starting: "Starting...",
-    ping: "Measuring ping...",
-    download: "Testing download...",
-    upload: "Testing upload...",
-    done: "Test complete",
-    error: "Test failed",
-  };
-
-  const DL = "#3b82f6";       // blue-500
-  const DL_DIM = "#1d4ed8";   // blue-700 (darker shade for gradient bottom)
-  const UL = "#e879f9";       // fuchsia-400
-  const UL_DIM = "#a21caf";   // fuchsia-700
-  const TRACK = "#1e293b";
-  const cx1 = b1x + bW / 2;
-  const cx2 = b2x + bW / 2;
-
-  const parts: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`,
-    `<defs>`,
-    `  <linearGradient id="dlg" x1="0" y1="0" x2="0" y2="1">`,
-    `    <stop offset="0%" stop-color="${DL}"/>`,
-    `    <stop offset="100%" stop-color="${DL_DIM}"/>`,
-    `  </linearGradient>`,
-    `  <linearGradient id="ulg" x1="0" y1="0" x2="0" y2="1">`,
-    `    <stop offset="0%" stop-color="${UL}"/>`,
-    `    <stop offset="100%" stop-color="${UL_DIM}"/>`,
-    `  </linearGradient>`,
-    `  <clipPath id="dlclip">`,
-    `    <rect x="${b1x}" y="${bTop}" width="${bW}" height="${bH}" rx="5"/>`,
-    `  </clipPath>`,
-    `  <clipPath id="ulclip">`,
-    `    <rect x="${b2x}" y="${bTop}" width="${bW}" height="${bH}" rx="5"/>`,
-    `  </clipPath>`,
-    `</defs>`,
-
-    // Phase label
-    `<text x="${W / 2}" y="16" text-anchor="middle" fill="#64748b" font-size="11" font-family="ui-sans-serif,sans-serif">${phaseMap[state.phase]}</text>`,
-
-
-    // ── Download bar ──
-    // Track
-    `<rect x="${b1x}" y="${bTop}" width="${bW}" height="${bH}" rx="5" fill="${TRACK}"/>`,
-    // Fill (clipped so it stays within rounded track)
-    dlH > 0
-      ? `<rect x="${b1x}" y="${dlY.toFixed(1)}" width="${bW}" height="${(dlH + 6).toFixed(1)}" fill="url(#dlg)" clip-path="url(#dlclip)"/>`
-      : "",
-    // Value text (always shown at top of track)
-    `<text x="${cx1}" y="${bTop + 20}" text-anchor="middle" fill="#f8fafc" font-size="18" font-weight="700" font-family="ui-monospace,monospace">${formatMetric(dlVal, 1)}</text>`,
-    `<text x="${cx1}" y="${bTop + 33}" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="ui-sans-serif,sans-serif">Mbps</text>`,
-    // Label below
-    `<text x="${cx1}" y="${bBot + 16}" text-anchor="middle" fill="${DL}" font-size="12" font-weight="600" font-family="ui-sans-serif,sans-serif">⬇ Download</text>`,
-
-    // ── Upload bar ──
-    // Track
-    `<rect x="${b2x}" y="${bTop}" width="${bW}" height="${bH}" rx="5" fill="${TRACK}"/>`,
-    // Fill
-    ulH > 0
-      ? `<rect x="${b2x}" y="${ulY.toFixed(1)}" width="${bW}" height="${(ulH + 6).toFixed(1)}" fill="url(#ulg)" clip-path="url(#ulclip)"/>`
-      : "",
-    // Value text
-    `<text x="${cx2}" y="${bTop + 20}" text-anchor="middle" fill="#f8fafc" font-size="18" font-weight="700" font-family="ui-monospace,monospace">${formatMetric(ulVal, 1)}</text>`,
-    `<text x="${cx2}" y="${bTop + 33}" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="ui-sans-serif,sans-serif">Mbps</text>`,
-    // Label below
-    `<text x="${cx2}" y="${bBot + 16}" text-anchor="middle" fill="${UL}" font-size="12" font-weight="600" font-family="ui-sans-serif,sans-serif">⬆ Upload</text>`,
-
-    `</svg>`,
-  ];
-
-  return parts.filter(Boolean).join("\n");
+async function detectInstallCmd(): Promise<string> {
+  const results = await Promise.allSettled(
+    PACKAGE_MANAGERS.map(async ({ cmd, install }) => {
+      const { stdout } = await execp(`bash -lc "command -v ${cmd} 2>/dev/null"`);
+      if (!stdout.trim()) throw new Error("not found");
+      return install;
+    })
+  );
+  for (const r of results) {
+    if (r.status === "fulfilled") return r.value;
+  }
+  return "# See install guide: https://www.speedtest.net/apps/cli";
 }
 
 // ─── Markdown ─────────────────────────────────────────────────────────────────
+
+const CLI_LINK = "https://www.speedtest.net/apps/cli";
+
+function installBlock(hint: string): string {
+  return `\`\`\`\n${hint || `# See: ${CLI_LINK}`}\n\`\`\`\n\n[Other platforms / manual install](${CLI_LINK})`;
+}
 
 function buildMarkdown(state: SpeedState): string {
   if (state.phase === "error") {
@@ -171,100 +109,45 @@ function buildMarkdown(state: SpeedState): string {
       state.errorMessage.includes("ENOENT") ||
       state.errorMessage.includes("command not found");
     if (notFound) {
-      return `# Speedtest CLI Not Found\n\nInstall it with:\n\`\`\`\nparu -S ookla-speedtest-bin\n\`\`\``;
+      return `# Speedtest CLI Not Found\n\nInstall Ookla's speedtest CLI:\n\n${installBlock(state.installHint)}`;
+    }
+    if (state.errorMessage.includes("Wrong speedtest binary")) {
+      return `# Wrong Speedtest Binary\n\nA \`speedtest\` command was found but it's not Ookla's CLI.\n\nInstall the correct one:\n\n${installBlock(state.installHint)}`;
     }
     return `# Speedtest Failed\n\n\`\`\`\n${state.errorMessage}\n\`\`\`\n\nPress **⌘R** to run it again.`;
   }
 
-  const chartImg = `data:image/svg+xml;utf8,${encodeURIComponent(buildBarChartSvg(state))}`;
   const title = state.phase === "done" ? "# Speedtest Results" : "# Speedtest Running";
 
-  const connParts: string[] = [];
-  if (state.isp) connParts.push(`**ISP:** ${state.isp}`);
-  if (state.server) connParts.push(`**Server:** ${state.server}${state.serverLocation ? ` (${state.serverLocation})` : ""}`);
-  const connLine = connParts.join(" · ");
+  const dlVal = state.finalDownload ?? state.downloadBandwidth;
+  const ulVal = state.finalUpload ?? state.uploadBandwidth;
 
-  const pingLine =
-    state.ping !== null
-      ? `Ping **${formatMetric(state.ping, 1, " ms")}** ${getPingEmoji(state.ping)} · Jitter **${formatMetric(state.jitter, 1, " ms")}**`
-      : state.phase === "ping"
-        ? `Measuring ping...`
-        : "";
+  const cell = (value: string | null, activePhase: Phase): string => {
+    if (value !== null) return value;
+    return state.phase === activePhase ? "_measuring..._" : "—";
+  };
 
-  const shareLine = state.shareUrl ? `\n[Open Result on Speedtest.net](${state.shareUrl})` : "";
+  const latencyIqm = [
+    state.downloadLatencyIqm !== null ? `DL ${state.downloadLatencyIqm.toFixed(1)} ms` : null,
+    state.uploadLatencyIqm !== null ? `UL ${state.uploadLatencyIqm.toFixed(1)} ms` : null,
+  ].filter((v): v is string => v !== null).join(" / ") || "—";
 
-  return [
-    title,
-    "",
-    `![Speed Chart](${chartImg})`,
-    "",
-    pingLine,
-    connLine,
-    shareLine,
-  ]
-    .filter((l) => l !== null)
-    .join("\n");
-}
+  const rows = [
+    `| Metric | Value |`,
+    `| --- | --- |`,
+    `| ISP | ${state.isp || "—"} |`,
+    `| Server | ${formatServer(state.server, state.serverLocation)} |`,
+    `| Ping | ${cell(state.ping !== null ? formatMetric(state.ping, 1, " ms") : null, "ping")} |`,
+    `| Download | ${cell(dlVal !== null ? formatMetric(dlVal, 2, " Mbps") : null, "download")} |`,
+    `| Upload | ${cell(ulVal !== null ? formatMetric(ulVal, 2, " Mbps") : null, "upload")} |`,
+    `| Jitter | ${formatMetric(state.jitter, 1, " ms")} |`,
+    `| Latency IQM | ${latencyIqm} |`,
+    state.packetLoss !== null ? `| Packet Loss | ${state.packetLoss}% |` : null,
+  ].filter((r): r is string => r !== null);
 
-// ─── Metadata panel ───────────────────────────────────────────────────────────
+  const shareLine = state.shareUrl ? `\n[View Result on Speedtest.net](${state.shareUrl})` : "";
 
-function buildMetadata(state: SpeedState) {
-  return (
-    <Detail.Metadata>
-      <Detail.Metadata.Label
-        title="Ping"
-        text={formatMetric(state.ping, 1, " ms")}
-        icon={Icon.Signal3}
-      />
-      <Detail.Metadata.Label
-        title="Jitter"
-        text={formatMetric(state.jitter, 1, " ms")}
-        icon={Icon.Dot}
-      />
-      <Detail.Metadata.Separator />
-      <Detail.Metadata.Label
-        title="Download"
-        text={formatMetric(
-          state.phase === "done" ? state.finalDownload : state.downloadBandwidth,
-          2,
-          " Mbps",
-        )}
-        icon={Icon.ArrowDown}
-      />
-      <Detail.Metadata.Label
-        title="Upload"
-        text={formatMetric(
-          state.phase === "done" ? state.finalUpload : state.uploadBandwidth,
-          2,
-          " Mbps",
-        )}
-        icon={Icon.ArrowUp}
-      />
-      {state.packetLoss !== null ? (
-        <Detail.Metadata.Label title="Packet Loss" text={`${state.packetLoss}%`} icon={Icon.Minus} />
-      ) : null}
-      {(state.downloadLatencyIqm !== null || state.uploadLatencyIqm !== null) ? (
-        <Detail.Metadata.TagList title="Latency IQM">
-          {state.downloadLatencyIqm !== null ? (
-            <Detail.Metadata.TagList.Item text={`DL ${state.downloadLatencyIqm.toFixed(1)} ms`} />
-          ) : null}
-          {state.uploadLatencyIqm !== null ? (
-            <Detail.Metadata.TagList.Item text={`UL ${state.uploadLatencyIqm.toFixed(1)} ms`} />
-          ) : null}
-        </Detail.Metadata.TagList>
-      ) : null}
-      <Detail.Metadata.Separator />
-      <Detail.Metadata.Label title="ISP" text={state.isp || "—"} icon={Icon.Network} />
-      <Detail.Metadata.Label
-        title="Server"
-        text={state.server ? `${state.server}${state.serverLocation ? ` (${state.serverLocation})` : ""}` : "—"}
-        icon={Icon.Globe}
-      />
-      {state.shareUrl ? (
-        <Detail.Metadata.Link title="Result" text="Open Speedtest Result" target={state.shareUrl} />
-      ) : null}
-    </Detail.Metadata>
-  );
+  return [title, "", ...rows, shareLine].filter(Boolean).join("\n");
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -288,23 +171,56 @@ const INITIAL: SpeedState = {
   serverLocation: "",
   shareUrl: "",
   errorMessage: "",
+  installHint: "",
 };
 
 export default function RunSpeedtest() {
   const [state, setState] = useState<SpeedState>(INITIAL);
   const procRef = useRef<ReturnType<typeof spawn> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const runTest = useCallback(() => {
+  const runTest = useCallback(async () => {
     procRef.current?.kill();
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     let cur: SpeedState = { ...INITIAL };
     setState(cur);
 
+    // Step 1: Check if the speedtest binary exists in PATH (without executing it)
+    const speedtestPath = await findExecutable("speedtest");
+    if (!speedtestPath) {
+      const installHint = await detectInstallCmd();
+      setState({ ...cur, phase: "error", errorMessage: "speedtest command not found in PATH", installHint });
+      return;
+    }
+
+    // Step 2: Verify it's Ookla's speedtest (not the python-based one)
+    try {
+      const { stdout: version } = await execp(`"${speedtestPath}" --version 2>&1`);
+      if (!version.toLowerCase().includes("ookla")) {
+        const installHint = await detectInstallCmd();
+        setState({ ...cur, phase: "error", errorMessage: "Wrong speedtest binary found.", installHint });
+        return;
+      }
+    } catch {
+      const installHint = await detectInstallCmd();
+      setState({ ...cur, phase: "error", errorMessage: "Wrong speedtest binary found.", installHint });
+      return;
+    }
+
     let lineBuffer = "";
     let stderrBuffer = "";
 
-    const proc = spawn("speedtest", ["--format=jsonl", "--accept-license", "--accept-gdpr"]);
+    const proc = spawn(speedtestPath, ["--format=jsonl", "--accept-license", "--accept-gdpr"]);
     procRef.current = proc;
+
+    timeoutRef.current = setTimeout(() => {
+      if (cur.phase !== "done" && cur.phase !== "error") {
+        proc.kill();
+        cur = { ...cur, phase: "error", errorMessage: "Speedtest timed out after 30 seconds." };
+        setState({ ...cur });
+      }
+    }, 30_000);
 
     proc.stdout.on("data", (chunk: Buffer) => {
       lineBuffer += chunk.toString();
@@ -392,16 +308,18 @@ export default function RunSpeedtest() {
     });
 
     proc.stderr.on("data", (chunk: Buffer) => {
-      stderrBuffer += chunk.toString();
+      if (stderrBuffer.length < 8192) stderrBuffer += chunk.toString();
     });
 
     proc.on("error", (err) => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       cur = { ...cur, phase: "error", errorMessage: err.message };
       setState({ ...cur });
     });
 
     proc.on("close", (code) => {
-      if (code !== 0 && cur.phase !== "done") {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (cur.phase !== "done" && cur.phase !== "error") {
         cur = {
           ...cur,
           phase: "error",
@@ -416,13 +334,13 @@ export default function RunSpeedtest() {
     runTest();
     return () => {
       procRef.current?.kill();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [runTest]);
 
   return (
     <Detail
       markdown={buildMarkdown(state)}
-      metadata={buildMetadata(state)}
       actions={
         <ActionPanel>
           <Action
