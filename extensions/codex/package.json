@@ -1,0 +1,77 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "codex",
+  "title": "Codex",
+  "description": "Chat with ChatGPT Codex in Vicinae using local Codex CLI auth, attachments, and session management.",
+  "categories": [
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "author": "ESHAYAT102",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "codex",
+      "title": "Chat",
+      "subtitle": "Codex",
+      "description": "Chat with ChatGPT Codex",
+      "mode": "view"
+    },
+    {
+      "name": "sessions",
+      "title": "Sessions",
+      "subtitle": "Codex",
+      "description": "Browse, enter, archive, unarchive, or permanently delete Codex sessions",
+      "mode": "view"
+    },
+    {
+      "name": "models",
+      "title": "Models",
+      "subtitle": "Codex",
+      "description": "Choose default model from locally available Codex models",
+      "mode": "view"
+    },
+    {
+      "name": "thinking",
+      "title": "Thinking",
+      "subtitle": "Codex",
+      "description": "Choose default thinking level: low, medium, high, or xhigh",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "openaiModel",
+      "title": "Model",
+      "description": "Default Codex model for new requests.",
+      "type": "textfield",
+      "placeholder": "gpt-5.4",
+      "default": "gpt-5.4",
+      "required": true
+    },
+    {
+      "name": "systemPrompt",
+      "title": "Prompt Prefix",
+      "description": "Optional instruction prepended to each Codex request.",
+      "type": "textfield",
+      "placeholder": "You are ChatGPT Codex...",
+      "default": "You are ChatGPT Codex. Answer clearly and helpfully. Read attached local files directly when needed. Do not modify files unless user explicitly asks for edits.",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.13"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
