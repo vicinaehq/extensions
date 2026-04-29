@@ -1,0 +1,70 @@
+{
+  "$schema": "https://www.vicinae.com/schemas/extension.json",
+  "name": "bitwarden",
+  "title": "Bitwarden",
+  "description": "Search, create, and manage Bitwarden vault items via the rbw CLI. Supports self-hosted Bitwarden / Vaultwarden.",
+  "icon": "icon.png",
+  "author": "asm0dey",
+  "license": "MIT",
+  "categories": ["Productivity", "Security"],
+  "commands": [
+    { "name": "search", "title": "Search Vault", "description": "Search and act on vault items", "mode": "view" },
+    { "name": "authenticator", "title": "Authenticator", "description": "Browse TOTP codes", "mode": "view" },
+    { "name": "generate-password", "title": "Generate Password", "description": "Open the password generator", "mode": "view" },
+    { "name": "generate-password-quick", "title": "Generate Password (Quick)", "description": "Generate and copy a password", "mode": "no-view" },
+    { "name": "create-login", "title": "Create Login", "description": "Create a login item", "mode": "view" },
+    { "name": "sync-vault", "title": "Sync Vault", "description": "Pull latest vault state from the Bitwarden server", "mode": "no-view" },
+    { "name": "lock-vault", "title": "Lock Vault", "description": "Lock the vault", "mode": "no-view" },
+    { "name": "logout-vault", "title": "Log Out", "description": "Log out of Bitwarden", "mode": "no-view" }
+  ],
+  "preferences": [
+    { "name": "clientId", "title": "API Client ID", "type": "password", "required": true, "description": "Bitwarden API client ID (Settings → Security → Keys)" },
+    { "name": "clientSecret", "title": "API Client Secret", "type": "password", "required": true, "description": "Bitwarden API client secret" },
+    { "name": "cliPath", "title": "Path to rbw CLI", "type": "textfield", "required": false, "default": "rbw", "description": "Leave empty to use $PATH" },
+    { "name": "serverUrl", "title": "Self-hosted Server URL", "type": "textfield", "required": false, "default": "", "description": "e.g. https://vault.example.com" },
+    { "name": "serverCertsPath", "title": "Self-signed CA Bundle Path", "type": "textfield", "required": false, "default": "", "description": "Path to a PEM file with your CA chain. Injected as SSL_CERT_FILE for rbw." },
+    { "name": "syncOnLaunch", "title": "Sync on Launch", "type": "checkbox", "required": false, "default": true, "label": "Sync vault on first launch", "description": "Run `rbw sync` after the first unlock of each session" },
+    { "name": "fetchFavicons", "title": "Fetch Favicons", "type": "checkbox", "required": false, "default": true, "label": "Show favicons for login items", "description": "Display favicons next to login items" },
+    { "name": "repromptIgnoreDuration", "title": "Reprompt Grace Window", "type": "dropdown", "required": false, "default": "0", "description": "How long to skip the master-password reprompt for sensitive items after a successful prompt",
+      "data": [
+        { "title": "Always reprompt", "value": "0" },
+        { "title": "30 seconds", "value": "30000" },
+        { "title": "1 minute", "value": "60000" },
+        { "title": "5 minutes", "value": "300000" },
+        { "title": "15 minutes", "value": "900000" },
+        { "title": "Never during session", "value": "never" }
+      ]
+    },
+    { "name": "windowActionOnCopy", "title": "Window Action on Copy", "type": "dropdown", "required": false, "default": "close", "description": "What Vicinae should do after copying a value to the clipboard",
+      "data": [
+        { "title": "Close window", "value": "close" },
+        { "title": "Keep window open", "value": "keepOpen" }
+      ]
+    },
+    { "name": "shouldCacheVaultItems", "title": "Cache Vault Items", "type": "checkbox", "required": false, "default": true, "label": "Cache non-sensitive fields locally", "description": "Encrypted local cache of names/URIs/folders for fast list rendering. Sensitive fields (passwords, notes, cards, identity) are never cached." }
+  ],
+  "dependencies": {
+    "@vicinae/api": "^0.20.14",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "eslint": "^9.39.0",
+    "globals": "^17.3.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.21.0",
+    "vitest": "^3.2.0"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  }
+}
