@@ -1,40 +1,68 @@
-import { showToast, Toast } from "@vicinae/api";
-import { getRecorderStatus, stopRecording } from "./recorder";
+import {
+	showToast,
+	Toast,
+	getPreferenceValues,
+	closeMainWindow,
+	open,
+	showInFileBrowser,
+} from "@vicinae/api";
+import {
+	getRecorderStatus,
+	stopRecording,
+	getOutputPathFromProcess,
+	getLatestFileInDirectory,
+} from "./recorder";
+
+interface Preferences {
+	"open-after-stop-recording": boolean;
+}
 
 export default async function StopRecording() {
-  const status = await getRecorderStatus();
+	const status = await getRecorderStatus();
 
-  if (status === "idle") {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Not recording",
-      message: "No active recording to stop",
-    });
-    return;
-  }
+	if (status === "idle") {
+		await showToast({
+			style: Toast.Style.Failure,
+			title: "Not active",
+			message: "No recording or instant replay to stop",
+		});
+		return;
+	}
 
-  if (status === "instant-replay") {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Instant Replay is active",
-      message: "This command only stops recording, not Instant Replay",
-    });
-    return;
-  }
+	const outputInfo = await getOutputPathFromProcess();
+	const result = await stopRecording();
 
-  const result = await stopRecording();
-
-  if (result.success) {
-    await showToast({
-      style: Toast.Style.Success,
-      title: "Recording stopped",
-      message: "Recording saved",
-    });
-  } else {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Failed to stop recording",
-      message: result.error,
-    });
-  }
+	if (result.success) {
+		const preferences = getPreferenceValues<Preferences>();
+		if (preferences["open-after-stop-recording"] && outputInfo) {
+			if (status === "recording") {
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+				const latestFile = await getLatestFileInDirectory(outputInfo.directory);
+				if (latestFile) {
+					await showInFileBrowser(latestFile);
+				} else {
+					await open(outputInfo.directory);
+				}
+			} else {
+				await open(outputInfo.directory);
+			}
+			await closeMainWindow();
+		} else {
+			await showToast({
+				style: Toast.Style.Success,
+				title:
+					status === "recording"
+						? "Recording stopped"
+						: "Instant Replay stopped",
+				message:
+					status === "recording" ? "Recording saved" : "Instant replay stopped",
+			});
+		}
+	} else {
+		await showToast({
+			style: Toast.Style.Failure,
+			title: "Failed to stop",
+			message: result.error,
+		});
+	}
 }

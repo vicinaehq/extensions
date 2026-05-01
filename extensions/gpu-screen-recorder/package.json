@@ -35,9 +35,9 @@
     },
     {
       "name": "stop-recording",
-      "title": "Stop Recording",
-      "subtitle": "Stop screen recording",
-      "description": "Stop the active screen recording",
+      "title": "Stop",
+      "subtitle": "Stop recording or instant replay",
+      "description": "Stop the active recording or instant replay buffer",
       "mode": "no-view"
     },
     {
@@ -48,13 +48,6 @@
       "mode": "no-view"
     },
     {
-      "name": "stop-instant-replay",
-      "title": "Stop Instant Replay",
-      "subtitle": "Stop instant replay buffer",
-      "description": "Stop the instant replay buffer",
-      "mode": "no-view"
-    },
-    {
       "name": "save-instant-replay",
       "title": "Save Instant Replay",
       "subtitle": "Save last N seconds",
@@ -62,7 +55,26 @@
       "mode": "no-view"
     }
   ],
-  "preferences": [],
+  "preferences": [
+    {
+      "name": "open-after-save-replay",
+      "type": "checkbox",
+      "title": "After Saving Replay",
+      "description": "Open the clip after saving an instant replay",
+      "label": "Open Clip",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "open-after-stop-recording",
+      "type": "checkbox",
+      "title": "After Stopping Recording",
+      "description": "Open the output directory after stopping a recording or instant replay",
+      "label": "Open Output Directory",
+      "default": false,
+      "required": false
+    }
+  ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",
