@@ -1,0 +1,155 @@
+{
+  "name": "bitwarden",
+  "title": "Bitwarden",
+  "description": "Keyboard-driven access to your Bitwarden vault. Search and copy passwords, usernames, and TOTP codes directly from the launcher.",
+  "author": "edmogeor",
+  "icon": "extension_icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edmogeor/vicinae-bitwarden"
+  },
+  "categories": [
+    "Security"
+  ],
+  "version": "0.1.0",
+  "license": "MIT",
+  "preferences": [
+    {
+      "name": "serverRegion",
+      "title": "Server Region",
+      "description": "The Bitwarden instance your vault lives on",
+      "type": "dropdown",
+      "required": true,
+      "default": "bitwarden.com",
+      "data": [
+        {
+          "title": "bitwarden.com (US)",
+          "value": "bitwarden.com"
+        },
+        {
+          "title": "bitwarden.eu (EU)",
+          "value": "bitwarden.eu"
+        },
+        {
+          "title": "Self-hosted",
+          "value": "self-hosted"
+        }
+      ]
+    },
+    {
+      "name": "customServerUrl",
+      "title": "Custom Server URL",
+      "description": "Required when Server Region is set to Self-hosted. Example: https://vault.example.com",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "https://vault.example.com"
+    },
+    {
+      "name": "apiClientId",
+      "title": "API Client ID",
+      "description": "Your personal API key client_id from the Bitwarden web vault (Settings → Security → View API key)",
+      "type": "textfield",
+      "required": true
+    },
+    {
+      "name": "apiClientSecret",
+      "title": "API Client Secret",
+      "description": "Your personal API key client_secret from the Bitwarden web vault",
+      "type": "password",
+      "required": true
+    },
+    {
+      "name": "passwordLength",
+      "title": "Password Length",
+      "description": "Number of characters for generated passwords",
+      "type": "textfield",
+      "required": false,
+      "default": "20",
+      "placeholder": "20"
+    },
+    {
+      "name": "passwordUppercase",
+      "title": "Include Uppercase (A-Z)",
+      "description": "Add uppercase letters to generated passwords",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enabled"
+    },
+    {
+      "name": "passwordLowercase",
+      "title": "Include Lowercase (a-z)",
+      "description": "Add lowercase letters to generated passwords",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enabled"
+    },
+    {
+      "name": "passwordNumbers",
+      "title": "Include Numbers (0-9)",
+      "description": "Add digits to generated passwords",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enabled"
+    },
+    {
+      "name": "passwordSymbols",
+      "title": "Include Symbols (!@#$)",
+      "description": "Add special characters to generated passwords",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enabled"
+    }
+  ],
+  "commands": [
+    {
+      "name": "search-vault",
+      "title": "Search Vault",
+      "description": "Search your Bitwarden vault and copy credentials",
+      "mode": "view"
+    },
+    {
+      "name": "create-item",
+      "title": "Create Item",
+      "description": "Add a new Login, Card, Identity, or Secure Note to your vault",
+      "mode": "view"
+    },
+    {
+      "name": "logout",
+      "title": "Log Out",
+      "description": "Log out of Bitwarden, clearing your stored API key session",
+      "mode": "no-view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,jsx,json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.19.9"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.5"
+  }
+}
