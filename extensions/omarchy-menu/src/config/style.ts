@@ -1,13 +1,20 @@
 import { Icon } from "@vicinae/api";
-import { open_in_editor } from "~/helpers/actions";
-import { themes_list, fonts_list } from "~/helpers/menu-generators";
 import { MenuItem } from "./types";
+import { open_in_editor } from "../helpers/actions";
+import { themes_list, fonts_list } from "../helpers/menu-generators";
 
 export const theme: MenuItem = {
   id: "theme",
   name: "Theme",
-  icon: "󰸌 ",
+  icon: "󰸌",
   items: themes_list(),
+};
+
+export const unlock: MenuItem = {
+  id: "unlock",
+  name: "Unlock",
+  icon: "󰟵",
+  items: themes_list(true),
 };
 
 export const style: MenuItem = {
@@ -16,7 +23,8 @@ export const style: MenuItem = {
   icon: Icon.Wand,
   items: [
     theme,
-    { id: "font", name: "Font", icon: " ", items: fonts_list() },
+    unlock,
+    { id: "font", name: "Font", icon: "", items: fonts_list() },
     {
       id: "background",
       name: "Background",

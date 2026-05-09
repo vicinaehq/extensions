@@ -1,14 +1,15 @@
 import { Icon } from "@vicinae/api";
+
+import { MenuItem } from "./types";
 import {
   terminal,
   present_terminal,
-  install,
   install_and_launch,
   install_font,
+  install,
   install_terminal,
   aur_install_and_launch,
-} from "~/helpers/actions";
-import { MenuItem } from "./types";
+} from "../helpers/actions";
 
 export const installMenu: MenuItem = {
   id: "install",
@@ -72,12 +73,18 @@ export const installMenu: MenuItem = {
           icon: "",
           command: present_terminal("omarchy-install-chromium-google-account"),
         },
-				{
-					id: "nord-vpn",
-					name: "NordVPN",
-					icon: "󱇱",
-					command: present_terminal("omarchy-install-nordvpn"),
-				},
+        {
+          id: "once",
+          name: "ONCE",
+          icon: "󰏖",
+          command: present_terminal("omarchy-install-once"),
+        },
+        {
+          id: "nord-vpn",
+          name: "NordVPN",
+          icon: "󱇱",
+          command: present_terminal("omarchy-install-nordvpn"),
+        },
       ],
     },
     {
@@ -95,7 +102,7 @@ export const installMenu: MenuItem = {
           id: "background",
           name: "Background",
           icon: "",
-          command: "nautilus ~/.config/omarchy/current/theme/backgrounds",
+          command: "omarchy-theme-bg-install",
         },
         {
           id: "install-font",
@@ -110,6 +117,16 @@ export const installMenu: MenuItem = {
                 "Meslo LG Mono",
                 "ttf-meslo-nerd",
                 "MesloLGL Nerd Font",
+              ),
+            },
+            {
+              id: "casadia",
+              name: "Cascadia",
+              icon: "",
+              command: install_font(
+                "Cascadia Mono",
+                "ttf-cascadia-mono-nerd",
+                "CaskaydiaMono Nerd Font",
               ),
             },
             {
@@ -143,13 +160,13 @@ export const installMenu: MenuItem = {
               ),
             },
             {
-              id: "commit-mono",
-              name: "Commit Monot",
+              id: "iosevka",
+              name: "Iosevka",
               icon: "",
               command: install_font(
-                "Commit Mono",
-                "otf-commit-mono-nerd",
-                "CommitMono Nerd Font",
+                "Iosevka",
+                "ttf-iosevka-nerd",
+                "Iosevka Nerd Font Mono",
               ),
             },
           ],
@@ -229,7 +246,7 @@ export const installMenu: MenuItem = {
             },
           ],
         },
-				{
+        {
           id: "python",
           name: "Python",
           icon: "",
@@ -289,6 +306,12 @@ export const installMenu: MenuItem = {
           name: "Clojure",
           icon: "",
           command: present_terminal("omarchy-install-dev-env clojure"),
+        },
+        {
+          id: "scala",
+          name: "Scala",
+          icon: "",
+          command: present_terminal("omarchy-install-dev-env scala"),
         },
       ],
     },
@@ -351,6 +374,12 @@ export const installMenu: MenuItem = {
           command: install_terminal("alacritty"),
         },
         {
+          id: "foot",
+          name: "Foot",
+          icon: "",
+          command: install_terminal("foot"),
+        },
+        {
           id: "ghostty",
           name: "Ghostty",
           icon: "",
@@ -365,39 +394,64 @@ export const installMenu: MenuItem = {
       ],
     },
     {
+      id: "browser",
+      name: "Browser",
+      icon: "",
+      items: [
+        {
+          id: "chrome",
+          name: "Chrome",
+          icon: "",
+          command: present_terminal("omarchy-install-browser chrome"),
+        },
+        {
+          id: "edge",
+          name: "Edge",
+          icon: "󰇩",
+          command: present_terminal("omarchy-install-browser edge"),
+        },
+        {
+          id: "brave-origin",
+          name: "Brave Origin",
+          icon: "󰖟",
+          command: present_terminal("omarchy-install-browser brave-origin"),
+        },
+        {
+          id: "brave",
+          name: "Brave",
+          icon: "󰖟",
+          command: present_terminal("omarchy-install-browser brave"),
+        },
+        {
+          id: "firefox",
+          name: "Firefox",
+          icon: "󰈹",
+          command: present_terminal("omarchy-install-browser firefox"),
+        },
+        {
+          id: "zen",
+          name: "Zen",
+          icon: "󰈹",
+          command: present_terminal("omarchy-install-browser zen"),
+        },
+      ],
+    },
+    {
       id: "ai",
       name: "AI",
       icon: "󱚤",
       items: [
         {
-          id: "claude-code",
-          name: "Claude Code",
-          icon: "󱚤",
-          command: install("Claude Code", "claude-code"),
+          id: "dictation",
+          name: "Dictation",
+          icon: "",
+          command: present_terminal("omarchy-voxtype-install"),
         },
         {
-          id: "cursor-cli",
-          name: "Cursor CLI",
-          icon: "󱚤",
-          command: install("Cursor CLI", "cursor-cli"),
-        },
-        {
-          id: "openai-codex",
-          name: "Codex",
-          icon: "󱚤",
-          command: install("Codex", "openai-codex"),
-        },
-        {
-          id: "gemini",
-          name: "Gemini CLI",
-          icon: "󱚤",
-          command: install("Gemini", "gemini-cli"),
-        },
-        {
-          id: "lm-studio",
-          name: "LM Studio",
-          icon: "󱚤",
-          command: install("LM Studio", "lmstudio"),
+          id: "studio",
+          name: "Studio",
+          icon: "",
+          command: install("LM Studio", "lmstudio-bin"),
         },
         {
           id: "ollama",
@@ -430,12 +484,12 @@ export const installMenu: MenuItem = {
           icon: "",
           command: present_terminal("omarchy-install-steam"),
         },
-				{
-					id: "nvidia-geforce-now",
-					name: "NVIDIA GeForce NOW",
-					icon: "󰢹",
-					command: present_terminal("omarchy-install-geforce-now"),
-				},
+        {
+          id: "nvidia-geforce-now",
+          name: "NVIDIA GeForce NOW",
+          icon: "󰢹",
+          command: present_terminal("omarchy-install-geforce-now"),
+        },
         {
           id: "retroarch",
           name: "RetroArch [AUR]",
@@ -461,6 +515,30 @@ export const installMenu: MenuItem = {
           name: "Xbox Controller [AUR]",
           icon: "󰖺",
           command: present_terminal("omarchy-install-xbox-controllers"),
+        },
+        {
+          id: "xbox-cloud",
+          name: "Xbox Cloud Gaming",
+          icon: "",
+          command: present_terminal("omarchy-install-gaming-xbox-cloud"),
+        },
+        {
+          id: "lutris",
+          name: "Lutris",
+          icon: "",
+          command: present_terminal("omarchy-install-gaming-lutris"),
+        },
+        {
+          id: "heroic",
+          name: "Heroic",
+          icon: "󱓟",
+          command: present_terminal("omarchy-install-gaming-heroic"),
+        },
+        {
+          id: "moonlight",
+          name: "Moonlight",
+          icon: "󰍹",
+          command: present_terminal("omarchy-install-gaming-moonlight"),
         },
       ],
     },
