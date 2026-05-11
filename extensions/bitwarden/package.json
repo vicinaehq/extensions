@@ -1,0 +1,247 @@
+{
+  "name": "bitwarden",
+  "title": "Bitwarden",
+  "description": "Keyboard-driven access to your Bitwarden vault. Search and copy passwords, usernames, and TOTP codes directly from the launcher.",
+  "author": "edmogeor",
+  "icon": "extension_icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edmogeor/vicinae-bitwarden"
+  },
+  "categories": [
+    "Security"
+  ],
+  "version": "0.3.0",
+  "license": "MIT",
+  "preferences": [
+    {
+      "name": "serverRegion",
+      "title": "Server Region",
+      "description": "The Bitwarden instance your vault lives on",
+      "type": "dropdown",
+      "required": true,
+      "default": "bitwarden.com",
+      "data": [
+        {
+          "title": "bitwarden.com (US)",
+          "value": "bitwarden.com"
+        },
+        {
+          "title": "bitwarden.eu (EU)",
+          "value": "bitwarden.eu"
+        },
+        {
+          "title": "Self-hosted",
+          "value": "self-hosted"
+        }
+      ]
+    },
+    {
+      "name": "customServerUrl",
+      "title": "Custom Server URL",
+      "description": "Required when Server Region is set to Self-hosted. Example: https://vault.example.com",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "https://vault.example.com"
+    },
+    {
+      "name": "customCertPath",
+      "title": "Custom CA Certificate Path",
+      "description": "Path to a custom CA certificate bundle for self-hosted servers using a private CA. Example: /etc/ssl/certs/my-ca.pem",
+      "type": "file",
+      "required": false
+    },
+    {
+      "name": "bitwardenApiClientId",
+      "title": "API Client ID",
+      "description": "Your personal API key client_id from the Bitwarden web vault (Settings → Security → View API key)",
+      "type": "textfield",
+      "required": true
+    },
+    {
+      "name": "bitwardenApiClientSecret",
+      "title": "API Client Secret",
+      "description": "Your personal API key client_secret from the Bitwarden web vault",
+      "type": "textfield",
+      "required": true
+    },
+    {
+      "name": "autoLockTimeout",
+      "title": "Auto-Lock Timeout",
+      "description": "Automatically lock the vault after this period of inactivity",
+      "type": "dropdown",
+      "required": false,
+      "default": "21600",
+      "data": [
+        {
+          "title": "Never",
+          "value": "0"
+        },
+        {
+          "title": "15 minutes",
+          "value": "900"
+        },
+        {
+          "title": "30 minutes",
+          "value": "1800"
+        },
+        {
+          "title": "1 hour",
+          "value": "3600"
+        },
+        {
+          "title": "2 hours",
+          "value": "7200"
+        },
+        {
+          "title": "6 hours",
+          "value": "21600"
+        },
+        {
+          "title": "12 hours",
+          "value": "43200"
+        },
+        {
+          "title": "24 hours",
+          "value": "86400"
+        }
+      ]
+    },
+    {
+      "name": "downloadDir",
+      "title": "Download Directory",
+      "description": "Directory where attached files will be saved. Defaults to ~/Downloads if empty.",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "/home/user/Downloads"
+    },
+    {
+      "name": "passwordLength",
+      "title": "Password Length",
+      "description": "Number of characters for generated passwords",
+      "type": "textfield",
+      "required": false,
+      "default": "20",
+      "placeholder": "20"
+    },
+    {
+      "name": "passwordUppercase",
+      "title": "Add uppercase letters to generated passwords",
+      "description": "When enabled, generated passwords will include A-Z characters",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Include Uppercase"
+    },
+    {
+      "name": "passwordLowercase",
+      "title": "Add lowercase letters to generated passwords",
+      "description": "When enabled, generated passwords will include a-z characters",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Include Lowercase"
+    },
+    {
+      "name": "passwordNumbers",
+      "title": "Add digits to generated passwords",
+      "description": "When enabled, generated passwords will include 0-9 characters",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Include Numbers"
+    },
+    {
+      "name": "passwordSymbols",
+      "title": "Add special characters to generated passwords",
+      "description": "When enabled, generated passwords will include !@#$%^&* characters",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Include Symbols"
+    }
+  ],
+  "commands": [
+    {
+      "name": "search-vault",
+      "title": "Search Vault",
+      "description": "Search your Bitwarden vault and copy credentials",
+      "mode": "view"
+    },
+    {
+      "name": "create-item",
+      "title": "Create Item",
+      "description": "Add a new Login, Card, Identity, or Secure Note to your vault",
+      "mode": "view"
+    },
+    {
+      "name": "logout",
+      "title": "Log Out",
+      "description": "Log out of Bitwarden, clearing your stored API key session",
+      "mode": "no-view"
+    },
+    {
+      "name": "search-totp",
+      "title": "Search TOTP Codes",
+      "description": "Search accounts that have TOTP set up and copy verification codes",
+      "mode": "view"
+    },
+    {
+      "name": "generate-password",
+      "title": "Generate Password",
+      "description": "Generate a random password using your configured settings and copy it to clipboard",
+      "mode": "no-view"
+    },
+    {
+      "name": "search-sends",
+      "title": "Search Sends",
+      "description": "Search your Bitwarden Sends and copy links or text",
+      "mode": "view"
+    },
+    {
+      "name": "create-send",
+      "title": "Create Send",
+      "description": "Create a new Send to share text or files securely",
+      "mode": "view"
+    },
+    {
+      "name": "receive-send",
+      "title": "Receive Send",
+      "description": "Receive a Send from a URL in your clipboard — copies text or downloads files",
+      "mode": "no-view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,jsx,json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.19.9",
+    "better-sqlite3": "^12.9.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.0.0",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.0.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.5"
+  }
+}
