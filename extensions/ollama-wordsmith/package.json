@@ -1,0 +1,159 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "ollama-wordsmith",
+  "title": "Ollama WordSmith",
+  "description": "Translate, summarize, explain, enhance, and look up text using local LLMs via Ollama — private, offline, and free",
+  "icon": "extension-icon.png",
+  "author": "AdityaZxxx",
+  "license": "MIT",
+  "categories": [
+    "Productivity",
+    "Developer Tools"
+  ],
+  "commands": [
+    {
+      "name": "translate",
+      "title": "Translate",
+      "subtitle": "Ollama WordSmith",
+      "description": "Translate text to your target language using a local Ollama model",
+      "mode": "view"
+    },
+    {
+      "name": "summarize",
+      "title": "Summarize",
+      "subtitle": "Ollama WordSmith",
+      "description": "Summarize text concisely using a local Ollama model",
+      "mode": "view"
+    },
+    {
+      "name": "explain",
+      "title": "Explain",
+      "subtitle": "Ollama WordSmith",
+      "description": "Analyze and explain text using a local Ollama model",
+      "mode": "view"
+    },
+    {
+      "name": "enhance",
+      "title": "Enhance",
+      "subtitle": "Ollama WordSmith",
+      "description": "Rewrite text in a selected style using a local Ollama model",
+      "mode": "view"
+    },
+    {
+      "name": "dictionary",
+      "title": "Dictionary",
+      "subtitle": "Ollama WordSmith",
+      "description": "Look up words and short phrases with definitions, pronunciation, examples, and etymology using a local Ollama model",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "ollamaUrl",
+      "type": "textfield",
+      "title": "Ollama URL",
+      "description": "The URL of your Ollama instance",
+      "default": "http://localhost:11434",
+      "placeholder": "http://localhost:11434",
+      "required": true
+    },
+    {
+      "name": "defaultModel",
+      "type": "textfield",
+      "title": "Default Model",
+      "description": "Default Ollama model to use (e.g. translategemma, gemma4, llama3). Can be changed per-mode in-app.",
+      "default": "translategemma:latest",
+      "placeholder": "translategemma:latest",
+      "required": true
+    },
+    {
+      "name": "targetLanguage",
+      "type": "dropdown",
+      "title": "Target Language",
+      "description": "Default language to translate to. Can be changed in-app.",
+      "default": "English",
+      "required": true,
+      "data": [
+        { "title": "Afrikaans", "value": "Afrikaans" },
+        { "title": "Amharic", "value": "Amharic" },
+        { "title": "Arabic", "value": "Arabic" },
+        { "title": "Bengali", "value": "Bengali" },
+        { "title": "Bulgarian", "value": "Bulgarian" },
+        { "title": "Burmese", "value": "Burmese" },
+        { "title": "Catalan", "value": "Catalan" },
+        { "title": "Chinese", "value": "Chinese" },
+        { "title": "Croatian", "value": "Croatian" },
+        { "title": "Czech", "value": "Czech" },
+        { "title": "Danish", "value": "Danish" },
+        { "title": "Dutch", "value": "Dutch" },
+        { "title": "English", "value": "English" },
+        { "title": "Estonian", "value": "Estonian" },
+        { "title": "Filipino", "value": "Filipino" },
+        { "title": "Finnish", "value": "Finnish" },
+        { "title": "French", "value": "French" },
+        { "title": "Georgian", "value": "Georgian" },
+        { "title": "German", "value": "German" },
+        { "title": "Greek", "value": "Greek" },
+        { "title": "Gujarati", "value": "Gujarati" },
+        { "title": "Hausa", "value": "Hausa" },
+        { "title": "Hebrew", "value": "Hebrew" },
+        { "title": "Hindi", "value": "Hindi" },
+        { "title": "Hungarian", "value": "Hungarian" },
+        { "title": "Indonesian", "value": "Indonesian" },
+        { "title": "Italian", "value": "Italian" },
+        { "title": "Japanese", "value": "Japanese" },
+        { "title": "Kannada", "value": "Kannada" },
+        { "title": "Khmer", "value": "Khmer" },
+        { "title": "Korean", "value": "Korean" },
+        { "title": "Lithuanian", "value": "Lithuanian" },
+        { "title": "Malay", "value": "Malay" },
+        { "title": "Malayalam", "value": "Malayalam" },
+        { "title": "Marathi", "value": "Marathi" },
+        { "title": "Mongolian", "value": "Mongolian" },
+        { "title": "Nepali", "value": "Nepali" },
+        { "title": "Norwegian", "value": "Norwegian" },
+        { "title": "Pashto", "value": "Pashto" },
+        { "title": "Persian", "value": "Persian" },
+        { "title": "Polish", "value": "Polish" },
+        { "title": "Portuguese", "value": "Portuguese" },
+        { "title": "Punjabi", "value": "Punjabi" },
+        { "title": "Romanian", "value": "Romanian" },
+        { "title": "Russian", "value": "Russian" },
+        { "title": "Serbian", "value": "Serbian" },
+        { "title": "Spanish", "value": "Spanish" },
+        { "title": "Swahili", "value": "Swahili" },
+        { "title": "Swedish", "value": "Swedish" },
+        { "title": "Tamil", "value": "Tamil" },
+        { "title": "Telugu", "value": "Telugu" },
+        { "title": "Thai", "value": "Thai" },
+        { "title": "Traditional Chinese", "value": "Traditional Chinese" },
+        { "title": "Turkish", "value": "Turkish" },
+        { "title": "Ukrainian", "value": "Ukrainian" },
+        { "title": "Urdu", "value": "Urdu" },
+        { "title": "Vietnamese", "value": "Vietnamese" },
+        { "title": "Yoruba", "value": "Yoruba" },
+        { "title": "Zulu", "value": "Zulu" }
+      ]
+    },
+    {
+      "name": "maxHistorySize",
+      "type": "textfield",
+      "title": "Max History Size",
+      "description": "Maximum number of history entries to keep",
+      "default": "50",
+      "placeholder": "50",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.11"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
