@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-05-13
+
+### Fixed
+
+- Send URLs were missing the encryption key segment, making shared links unusable — `accessId/key` now correctly included
+- File sends now download to the configured Downloads directory instead of the process working directory
+- File browser opens to the downloaded file's location for both sends and attachments
+- Attachment downloads now use Vicinae's `showInFileBrowser` instead of a raw `xdg-open` call
+- Friendly error toasts for send receive failures: not found, access limit reached, expired, and password-protected
+- Deprecation warning lines (`trace-deprecation`) now filtered from error messages alongside existing `[DEP0]` and `DeprecationWarning` filters
+
+### Changed
+
+- "Receive Send" command renamed to "Receive Send from Clipboard" for clarity
+- Success toasts replace HUD notifications for text copy and file download; window stays open after receiving
+- Text content no longer shown in the success toast when copying received text
+
+### Performance
+
+- Send list loads cached data instantly on mount, no longer blocked by CLI gate checks or network sync
+- Send encryption keys fetched from OS keychain only on copy, not during list display
+
 ## [0.3.0] - 2026-05-13
 
 ### Added
