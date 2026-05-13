@@ -666,8 +666,8 @@ describe('receiveSend', () => {
     );
   });
 
-  it('returns file result when output directory is provided', async () => {
-    mockExec(mockExecFile, '/home/user/Downloads/file.pdf\n');
+  it('returns file result when stdout starts with "Saved"', async () => {
+    mockExec(mockExecFile, 'Saved /home/user/Downloads/file.pdf\n');
 
     const result = await bw.receiveSend(
       'https://vault.bitwarden.com/#/send/abc',

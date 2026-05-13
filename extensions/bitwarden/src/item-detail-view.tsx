@@ -4,13 +4,11 @@ import {
   Clipboard,
   Detail,
   Icon,
+  showInFileBrowser,
   showToast,
   Toast,
   useNavigation,
 } from '@vicinae/api';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-import { dirname } from 'node:path';
 import { useEffect, useState } from 'react';
 import * as bw from './bw-executor';
 import type { Session } from './bw-executor';
@@ -24,8 +22,6 @@ import {
 import type { BwField, BwItem } from './bitwarden-types';
 import { ItemType } from './bitwarden-types';
 import EditItem from './edit-item';
-
-const exec = promisify(execFile);
 
 function resolveFetchValue(fetchKind: string, item: BwItem): string | undefined {
   switch (fetchKind) {
@@ -416,7 +412,7 @@ export default function ItemDetailView({
                         title: 'Downloaded',
                         message: att.fileName,
                       });
-                      exec('xdg-open', [dirname(path)]).catch(() => {});
+                      showInFileBrowser(path).catch(() => {});
                     } catch (err) {
                       await showToast({
                         style: Toast.Style.Failure,

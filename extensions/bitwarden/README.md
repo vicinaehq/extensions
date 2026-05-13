@@ -124,7 +124,7 @@ List and search your Sends — text or file shares. Filter by name (case-insensi
 
 Create a new Text or File Send. Set a name, content, optional password, deletion and expiration dates, max access count, and privacy options. The Send link is copied to your clipboard on creation.
 
-### Receive Send
+### Receive Send from Clipboard
 
 Reads a Send URL from your clipboard and receives it — no vault session required. Text Sends are copied to your clipboard; File Sends download to your configured Download Directory. Password-protected Sends are surfaced with clear guidance.
 

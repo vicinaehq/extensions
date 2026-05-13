@@ -36,6 +36,7 @@ function makeSend(overrides: Partial<BwSend> = {}): BwSend {
   return {
     id: 'send-1',
     accessId: 'abc123',
+    key: 'def456',
     name: 'Test Send',
     notes: null,
     type: SendType.Text,
@@ -133,8 +134,8 @@ describe('getSendActions', () => {
 
 describe('sendAccessUrl', () => {
   it('builds URL from server config', () => {
-    const url = sendAccessUrl(makeSend({ accessId: 'abc123' }));
-    expect(url).toBe('https://bitwarden.com/#/send/abc123');
+    const url = sendAccessUrl(makeSend({ accessId: 'abc123', key: 'def456' }));
+    expect(url).toBe('https://bitwarden.com/#/send/abc123/def456');
   });
 });
 

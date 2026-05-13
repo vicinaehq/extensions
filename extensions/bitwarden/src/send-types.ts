@@ -8,6 +8,7 @@ export type SendTypeValue = (typeof SendType)[keyof typeof SendType];
 export interface BwSend {
   id: string;
   accessId: string;
+  key: string;
   name: string;
   notes: string | null;
   type: SendTypeValue;

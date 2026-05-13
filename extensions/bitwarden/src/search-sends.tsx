@@ -21,6 +21,8 @@ import {
   deleteSendWithConfirm,
   filterSends,
   getSendActions,
+  resolveSendUrl,
+  SEND_LINK_ACTION_LABEL,
   sendAccessUrl,
   sendActionIcon,
   sendIcon,
@@ -33,7 +35,7 @@ import { castGateSetter, renderGate, useGateEffects } from './unlock-gate';
 import type { GateUIState } from './unlock-gate';
 import EditSend from './edit-send';
 
-function SendCopyActions({ actions }: { actions: SendAction[] }) {
+function SendCopyActions({ actions, send }: { actions: SendAction[]; send: BwSend }) {
   return (
     <>
       {actions.map((action) => (
@@ -42,7 +44,9 @@ function SendCopyActions({ actions }: { actions: SendAction[] }) {
           title={action.label}
           icon={sendActionIcon(action)}
           onAction={async () => {
-            await Clipboard.copy(action.value);
+            const value =
+              action.label === SEND_LINK_ACTION_LABEL ? await resolveSendUrl(send) : action.value;
+            await Clipboard.copy(value);
             await showToast({
               style: Toast.Style.Success,
               title: 'Copied',
@@ -87,13 +91,14 @@ export default function SearchSends() {
   }, [session]);
 
   useEffect(() => {
-    if (state.kind !== 'loading') return;
-    void (async () => {
-      const cached = await loadCachedSends();
+    void loadCachedSends().then((cached) => {
       if (cached) setSends(cached);
-      await loadSends();
-      setState({ kind: 'list' });
-    })();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (state.kind !== 'loading') return;
+    void loadSends().then(() => setState({ kind: 'list' }));
   }, [state.kind]);
 
   const handleSync = useCallback(async () => {
@@ -103,10 +108,18 @@ export default function SearchSends() {
   const gateRender = renderGate(state, handleUnlock, handleLogin);
   if (gateRender) return gateRender;
 
-  if (state.kind === 'checking-bw' || state.kind === 'logging-in' || state.kind === 'loading') {
+  if ((state.kind === 'checking-bw' || state.kind === 'loading') && sends.length === 0) {
     return (
       <List isLoading>
         <List.EmptyView title="Loading..." />
+      </List>
+    );
+  }
+
+  if (state.kind === 'logging-in') {
+    return (
+      <List isLoading>
+        <List.EmptyView title="Logging in..." />
       </List>
     );
   }
@@ -115,6 +128,7 @@ export default function SearchSends() {
 
   return (
     <List
+      isLoading={state.kind === 'loading'}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search sends by name..."
       throttle
@@ -184,7 +198,7 @@ function renderSendActions(
 
   return (
     <>
-      <SendCopyActions actions={actions} />
+      <SendCopyActions actions={actions} send={send} />
       <Action
         title="View Details"
         icon={Icon.Eye}
@@ -209,11 +223,15 @@ function SendDetailView({
   onDeleted: () => void;
 }) {
   const { pop, push } = useNavigation();
-  const url = sendAccessUrl(send);
+  const [url, setUrl] = useState(sendAccessUrl(send));
   const textContent = send.text?.text ?? '';
   const notesSection = send.notes ? `## Notes\n${send.notes}` : '';
   const separator = textContent && notesSection ? '\n---\n' : '';
   const markdown = [textContent, separator, notesSection].filter(Boolean).join('');
+
+  useEffect(() => {
+    void resolveSendUrl(send).then(setUrl);
+  }, [send.id]);
 
   const handleDelete = async () => {
     await deleteSendWithConfirm(send, session, async () => {
@@ -257,7 +275,7 @@ function SendDetailView({
       }
       actions={
         <ActionPanel>
-          <SendCopyActions actions={sendActions} />
+          <SendCopyActions actions={sendActions} send={send} />
           {session && (
             <>
               <Action
