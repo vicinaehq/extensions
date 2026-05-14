@@ -113,6 +113,7 @@ function defaultLifecycle() {
         params.setFaviconMap({});
         params.setState({ kind: 'vault', items, folders });
         params.setVault(items, folders);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
     },
   );

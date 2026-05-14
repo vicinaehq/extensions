@@ -73,7 +73,7 @@ export default function SearchSends() {
   const [searchText, setSearchText] = useState('');
   const { push } = useNavigation();
 
-  const { handleLogin, handleUnlock } = useGateEffects({
+  const { handleLogin, handleUnlock, clearGateError } = useGateEffects({
     session,
     state,
     loginIfNeeded,
@@ -121,13 +121,14 @@ export default function SearchSends() {
         });
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.kind]);
 
   const handleSync = useCallback(async () => {
     setState({ kind: 'loading' });
   }, []);
 
-  const gateRender = renderGate(state, handleUnlock, handleLogin);
+  const gateRender = renderGate(state, handleUnlock, handleLogin, clearGateError);
   if (gateRender) return gateRender;
 
   if ((state.kind === 'checking-bw' || state.kind === 'loading') && sends.length === 0) {
@@ -254,6 +255,7 @@ export function SendDetailView({
 
   useEffect(() => {
     void resolveSendUrl(send).then(setUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [send.id]);
 
   const handleDelete = async () => {

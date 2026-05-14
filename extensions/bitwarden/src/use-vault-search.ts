@@ -45,8 +45,8 @@ export function useVaultSearch(preFilter?: (items: BwItem[]) => BwItem[]) {
     setFaviconMap,
   });
 
-  const vaultItems = state.kind === 'vault' ? state.items : [];
-  const vaultFolders = state.kind === 'vault' ? state.folders : [];
+  const vaultItems = useMemo(() => (state.kind === 'vault' ? state.items : []), [state]);
+  const vaultFolders = useMemo(() => (state.kind === 'vault' ? state.folders : []), [state]);
   const totpSecrets = useTotpSecrets();
 
   const handleCopyTotp = useCallback(
@@ -79,7 +79,11 @@ export function useVaultSearch(preFilter?: (items: BwItem[]) => BwItem[]) {
   const filtered = useMemo(() => filterItems(displayItems, searchText), [displayItems, searchText]);
   const grouped = useMemo(() => groupByFolder(filtered, vaultFolders), [filtered, vaultFolders]);
 
-  const gateRender = renderGate(state, handleUnlock, handleLogin);
+  const clearGateError = useCallback(() => {
+    setState({ kind: 'needs-unlock' });
+  }, []);
+
+  const gateRender = renderGate(state, handleUnlock, handleLogin, clearGateError);
 
   const isLoading =
     state.kind === 'checking-bw' ||

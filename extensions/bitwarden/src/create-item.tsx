@@ -79,7 +79,7 @@ export default function CreateItem() {
   const [nameError, setNameError] = useState<string | undefined>();
   const fieldIdRef = useRef(0);
 
-  const { handleLogin, handleUnlock } = useGateEffects({
+  const { handleLogin, handleUnlock, clearGateError } = useGateEffects({
     session,
     state,
     loginIfNeeded,
@@ -100,7 +100,7 @@ export default function CreateItem() {
         // Folder list is optional — form still works without it
       }
     })();
-  }, [session, state.kind]);
+  }, [session, state.kind, folders.length]);
 
   const handleSubmit = useCallback(
     async (values: Form.Values) => {
@@ -149,7 +149,7 @@ export default function CreateItem() {
     [session, selectedType, customFields, attachmentPaths],
   );
 
-  const gateRender = renderFormGate(state, handleUnlock, handleLogin);
+  const gateRender = renderFormGate(state, handleUnlock, handleLogin, clearGateError);
   if (gateRender) return gateRender;
 
   return (

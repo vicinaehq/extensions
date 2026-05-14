@@ -1,13 +1,9 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
-import { secretStore, secretLookup, secretClear } from './secret-store';
+import { secretStore, secretLookup } from './secret-store';
 import { safeJsonParse } from './json-utils';
 import { logError } from './log';
-
-const exec = promisify(execFile);
 
 const ACCOUNT = 'api-creds';
 
@@ -43,10 +39,6 @@ export async function getApiCredentials(): Promise<{
     logError('apiCreds.lookup', err);
     return null;
   }
-}
-
-async function deleteApiCredentials(): Promise<void> {
-  await secretClear(ACCOUNT);
 }
 
 export async function clearApiCredentialsFromDisk(): Promise<void> {

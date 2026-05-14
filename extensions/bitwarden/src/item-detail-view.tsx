@@ -294,6 +294,7 @@ export default function ItemDetailView({
         setIsLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.id, session]);
 
   const totpInfo = useMemo(() => {

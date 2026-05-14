@@ -89,15 +89,27 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
         }
       }
 
+      const noUsableCache = !cached || staleCache;
+      const optimistic = !session && noUsableCache;
+      if (optimistic) {
+        setState({ kind: 'needs-unlock' });
+      }
+
       const gate = await checkBwGate(session);
       switch (gate.kind) {
         case 'bw-not-installed':
         case 'secret-tool-not-installed':
-        case 'logging-in':
           setState({ kind: gate.kind });
           return;
+        case 'logging-in':
+          if (optimistic) {
+            void handleLogin();
+          } else {
+            setState({ kind: gate.kind });
+          }
+          return;
         case 'needs-unlock':
-          if (!cached || staleCache) setState({ kind: 'needs-unlock' });
+          if (noUsableCache) setState({ kind: 'needs-unlock' });
           return;
         case 'error':
           setState({
@@ -120,13 +132,14 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
           await handleSyncError(err, clearSession, setState, 'Session expired');
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!session) return;
     if (state.kind !== 'needs-unlock') return;
     setState({ kind: 'loading' });
-  }, [session, state.kind]);
+  }, [session, state.kind, setState]);
 
   useEffect(() => {
     if (!session) return;
@@ -139,6 +152,8 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
         logError('vault-lifecycle.backgroundSync', err);
       }
     })();
+    // Intentionally only re-runs on session change, not state.kind/syncVault.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   useEffect(() => {
@@ -158,7 +173,7 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
     return () => {
       mounted = false;
     };
-  }, [state]);
+  }, [state, setFaviconMap]);
 
   useEffect(() => {
     if (!session) return;
@@ -175,10 +190,10 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
         if (!cached) await handleSyncError(err, clearSession, setState);
       }
     })();
-  }, [session, state.kind]);
+  }, [session, state.kind, setVault, syncVault, clearSession, setState]);
 
   useEffect(() => {
     if (state.kind !== 'logging-in') return;
     void handleLogin();
-  }, [state.kind]);
+  }, [state.kind, handleLogin]);
 }

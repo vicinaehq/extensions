@@ -43,6 +43,7 @@ export default function EditSend({ send, session, onSaved }: EditSendProps) {
       setFullSend(resolved);
       setIsLoading(false);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [send.id, session]);
 
   const handleSubmit = useCallback(
@@ -83,6 +84,7 @@ export default function EditSend({ send, session, onSaved }: EditSendProps) {
       onSaved();
       await popToRoot();
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [send.id, send.name, session, onSaved]);
 
   if (isLoading || !fullSend) {

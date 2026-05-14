@@ -14,7 +14,6 @@ import * as bw from './bw-executor';
 import { showFailureToast } from './item-utils';
 import type { BwFolder, BwItem } from './bitwarden-types';
 import { ItemType } from './bitwarden-types';
-import type { ItemTypeValue } from './bitwarden-types';
 import {
   CARD_BRANDS,
   digitsOnly,
@@ -168,6 +167,7 @@ export default function EditItem({ item, session, onSaved }: EditItemProps) {
         // Folder list is optional
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.id, session]);
 
   const handleSubmit = useCallback(

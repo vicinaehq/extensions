@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Form, showToast, Toast } from '@vicinae/api';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { BwNotInstalled, SecretToolNotInstalled } from './bw-not-installed';
 import { VaultError } from './vault-error';
@@ -90,34 +90,56 @@ interface UnlockGateDeps {
 }
 
 export function useUnlockGate(deps: UnlockGateDeps) {
+  const {
+    loginIfNeeded,
+    loginError,
+    unlock,
+    onUnlockStart,
+    onUnlockReady,
+    onUnlockError,
+    onLoginReady,
+    onLoginError,
+  } = deps;
+
   const handleLogin = useCallback(async () => {
     try {
-      await deps.loginIfNeeded();
-      deps.onLoginReady();
+      await loginIfNeeded();
+      onLoginReady();
     } catch {
-      const message = deps.loginError ?? 'Login failed — check preferences';
-      deps.onLoginError(message);
+      const message = loginError ?? 'Login failed — check preferences';
+      onLoginError(message);
       showToast({
         style: Toast.Style.Failure,
         title: 'Login failed',
-        message: deps.loginError ?? 'Check your API key in preferences',
+        message: loginError ?? 'Check your API key in preferences',
       });
     }
-  }, [deps.loginIfNeeded, deps.loginError, deps.onLoginReady, deps.onLoginError]);
+  }, [loginIfNeeded, loginError, onLoginReady, onLoginError]);
 
   const handleUnlock = useCallback(
     async (values: Form.Values) => {
-      deps.onUnlockStart();
+      onUnlockStart();
+      const password = String(values.password ?? '');
       try {
-        const password = String(values.password ?? '');
-        await deps.unlock(password);
-        deps.onUnlockReady();
+        await unlock(password);
+        onUnlockReady();
       } catch (err) {
         const message = getErrorMessage(err);
-        deps.onUnlockError(message);
+        if (message.toLowerCase().includes('not logged in')) {
+          try {
+            await loginIfNeeded();
+            await unlock(password);
+            onUnlockReady();
+            return;
+          } catch (retryErr) {
+            onUnlockError(getErrorMessage(retryErr));
+            return;
+          }
+        }
+        onUnlockError(message);
       }
     },
-    [deps.unlock, deps.onUnlockStart, deps.onUnlockReady, deps.onUnlockError],
+    [unlock, loginIfNeeded, onUnlockStart, onUnlockReady, onUnlockError],
   );
 
   return { handleLogin, handleUnlock };
@@ -135,6 +157,7 @@ export function renderGate(
   state: GateState,
   handleUnlock: (values: Form.Values) => Promise<void>,
   handleLogin?: () => void,
+  onClearError?: () => void,
 ): React.ReactElement | null {
   if (state.kind === 'error') {
     return (
@@ -147,7 +170,7 @@ export function renderGate(
   }
   const gateError =
     state.kind === 'needs-unlock' || state.kind === 'login-failed' ? state.error : undefined;
-  return renderUnlockGate(state.kind, gateError, handleUnlock, handleLogin);
+  return renderUnlockGate(state.kind, gateError, handleUnlock, handleLogin, onClearError);
 }
 
 /**
@@ -158,8 +181,9 @@ export function renderFormGate(
   state: GateState,
   handleUnlock: (values: Form.Values) => Promise<void>,
   handleLogin?: () => void,
+  onClearError?: () => void,
 ): React.ReactElement | null {
-  const gate = renderGate(state, handleUnlock, handleLogin);
+  const gate = renderGate(state, handleUnlock, handleLogin, onClearError);
   if (gate) return gate;
   if (state.kind === 'checking-bw' || state.kind === 'logging-in') {
     return (
@@ -176,6 +200,7 @@ export function renderUnlockGate(
   error: string | undefined,
   onUnlock: (values: Form.Values) => Promise<void>,
   onRetryLogin?: () => void,
+  onClearError?: () => void,
 ) {
   if (kind === 'bw-not-installed') return <BwNotInstalled />;
 
@@ -205,6 +230,9 @@ export function renderUnlockGate(
           id="password"
           title="Master Password"
           error={kind === 'needs-unlock' ? error : undefined}
+          onChange={
+            kind === 'needs-unlock' && error && onClearError ? () => onClearError() : undefined
+          }
         />
       </Form>
     );
@@ -239,6 +267,7 @@ export function castGateSetter<T extends { kind: string }>(
 
 export function useGateEffects(params: UseGateEffectsParams) {
   const { session, state, loginIfNeeded, loginError, unlock, setState, readyKind } = params;
+  const optimisticRef = useRef(false);
 
   const { handleLogin, handleUnlock } = useUnlockGate({
     loginIfNeeded,
@@ -247,15 +276,37 @@ export function useGateEffects(params: UseGateEffectsParams) {
     ...createUnlockCallbacks(setState, () => setState({ kind: readyKind })),
   });
 
+  const clearGateError = useCallback(() => {
+    setState({ kind: 'needs-unlock' });
+  }, [setState]);
+
   useEffect(() => {
     void (async () => {
+      if (!session) {
+        optimisticRef.current = true;
+        setState({ kind: 'needs-unlock' });
+      }
+
       const gate = await checkBwGate(session);
       switch (gate.kind) {
         case 'bw-not-installed':
         case 'secret-tool-not-installed':
-        case 'logging-in':
-        case 'needs-unlock':
           setState({ kind: gate.kind });
+          return;
+        case 'logging-in':
+          if (optimisticRef.current) {
+            void loginIfNeeded().catch(() => {
+              setState({
+                kind: 'login-failed',
+                error: loginError ?? 'Login failed — check preferences',
+              });
+            });
+          } else {
+            setState({ kind: gate.kind });
+          }
+          return;
+        case 'needs-unlock':
+          if (!optimisticRef.current) setState({ kind: gate.kind });
           return;
         case 'ready':
           setState({ kind: readyKind });
@@ -265,18 +316,19 @@ export function useGateEffects(params: UseGateEffectsParams) {
           return;
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!session) return;
     if (state.kind !== 'needs-unlock') return;
     setState({ kind: readyKind });
-  }, [session, state.kind]);
+  }, [session, state.kind, readyKind, setState]);
 
   useEffect(() => {
     if (state.kind !== 'logging-in') return;
     void handleLogin();
-  }, [state.kind]);
+  }, [state.kind, handleLogin]);
 
-  return { handleLogin, handleUnlock };
+  return { handleLogin, handleUnlock, clearGateError };
 }

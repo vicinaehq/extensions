@@ -41,7 +41,7 @@ export default function CreateSend() {
   const [textError, setTextError] = useState<string | undefined>();
   const [fileError, setFileError] = useState<string | undefined>();
 
-  const { handleLogin, handleUnlock } = useGateEffects({
+  const { handleLogin, handleUnlock, clearGateError } = useGateEffects({
     session,
     state,
     loginIfNeeded,
@@ -96,7 +96,7 @@ export default function CreateSend() {
     [session, selectedType],
   );
 
-  const gateRender = renderFormGate(state, handleUnlock, handleLogin);
+  const gateRender = renderFormGate(state, handleUnlock, handleLogin, clearGateError);
   if (gateRender) return gateRender;
 
   return (

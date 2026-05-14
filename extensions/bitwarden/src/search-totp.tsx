@@ -71,6 +71,7 @@ export default function SearchTotp() {
 
   const win = currentWindow(now);
   const countdown = countdownFor(now);
+  const vaultItemCount = state.kind === 'vault' ? state.items.length : 0;
 
   // Fetch only the items that can't be computed locally (Steam/unparseable).
   useEffect(() => {
@@ -113,7 +114,10 @@ export default function SearchTotp() {
     return () => {
       cancelled = true;
     };
-  }, [session, win, state.kind === 'vault' ? state.items.length : 0, totpSecrets, retryNonce]);
+    // cliCache and handleSync intentionally excluded: cliCache would cause a
+    // re-fetch loop, and handleSync is only invoked from the error retry path.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, win, vaultItemCount, totpSecrets, retryNonce, setError]);
 
   if (gateRender) return gateRender;
 

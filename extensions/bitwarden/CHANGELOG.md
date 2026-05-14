@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-05-14
+
+### Fixed
+
+- Master password field now accepts subsequent attempts after a wrong password — the field error is cleared on the next keystroke instead of silently blocking submission.
+
+### Changed
+
+- Logged-out cold open paints the master password form immediately instead of waiting on `bw status` (~500ms+ of CLI startup). If the CLI turns out to be unauthenticated, the unlock retries once after `loginIfNeeded` so the user sees no error.
+- Reopening a command after Log Out no longer flashes a "Loading…" screen between the optimistic password form and the post-login form.
+
+### Added
+
+- New issue templates (Bug, Feature, Question) with log-collection guidance, and a `SUPPORT.md` surfaced on the new-issue chooser.
+
 ## [0.4.1] - 2026-05-14
 
 ### Added

@@ -191,7 +191,6 @@ describe('useVaultLifecycle', () => {
     it.each([
       'bw-not-installed' as const,
       'secret-tool-not-installed' as const,
-      'logging-in' as const,
       'needs-unlock' as const,
     ])('sets %s state', async (kind) => {
       mockCheckBwGate.mockResolvedValue({ kind });
@@ -203,6 +202,36 @@ describe('useVaultLifecycle', () => {
       await waitFor(() => {
         expect(setState).toHaveBeenCalledWith({ kind });
       });
+    });
+
+    it('logging-in: optimistic path triggers handleLogin without yanking the form', async () => {
+      mockCheckBwGate.mockResolvedValue({ kind: 'logging-in' });
+      mockLoadCachedVault.mockResolvedValue(null);
+      const setState = vi.fn<SetUIState>();
+      const handleLogin = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+
+      const params = makeParams({ setState, handleLogin });
+      renderHook(() => useVaultLifecycle(params));
+
+      await waitFor(() => {
+        expect(handleLogin).toHaveBeenCalled();
+      });
+      expect(setState).not.toHaveBeenCalledWith({ kind: 'logging-in' });
+    });
+
+    it('logging-in: non-optimistic path (cache present) still sets logging-in state', async () => {
+      mockCheckBwGate.mockResolvedValue({ kind: 'logging-in' });
+      mockLoadCachedVault.mockResolvedValue({ items, folders });
+      const setState = vi.fn<SetUIState>();
+      const handleLogin = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+
+      const params = makeParams({ setState, handleLogin });
+      renderHook(() => useVaultLifecycle(params));
+
+      await waitFor(() => {
+        expect(setState).toHaveBeenCalledWith({ kind: 'logging-in' });
+      });
+      expect(handleLogin).not.toHaveBeenCalled();
     });
 
     it('suppresses needs-unlock when cache exists (shows stale data)', async () => {

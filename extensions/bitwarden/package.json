@@ -11,7 +11,7 @@
   "categories": [
     "Security"
   ],
-  "version": "0.4.1",
+  "version": "0.4.2",
   "license": "MIT",
   "preferences": [
     {
@@ -214,14 +214,21 @@
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",
-    "lint": "vici lint",
+    "lint": "npm run lint:manifest && npm run lint:eslint",
+    "lint:manifest": "vici lint",
+    "lint:eslint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,ts,tsx,jsx,json,md,yml,yaml}": [
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,md,yml,yaml}": [
       "prettier --write"
     ]
   },
@@ -232,17 +239,22 @@
     "pngjs": "^7.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20.0.0",
     "@types/pngjs": "^6.0.5",
     "@types/react": "^19.0.0",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.6.0",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.59.3",
     "vitest": "^4.1.5"
   }
 }

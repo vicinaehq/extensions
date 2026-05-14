@@ -1,6 +1,6 @@
 import { Form, Icon, showToast, Toast } from '@vicinae/api';
 import type { Image } from '@vicinae/api';
-import { BwItem, BwFolder, ItemType } from './bitwarden-types';
+import { BwItem, ItemType } from './bitwarden-types';
 import type { ItemTypeValue } from './bitwarden-types';
 import type { CreateItemPayload, ItemAction } from './bw-executor';
 import * as bw from './bw-executor';
