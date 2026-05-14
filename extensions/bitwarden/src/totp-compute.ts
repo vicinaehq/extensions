@@ -1,4 +1,5 @@
 import * as OTPAuth from 'otpauth';
+import { logError } from './log';
 
 export function isSteamSecret(secret: string | null | undefined): boolean {
   return !!secret && secret.startsWith('steam://');
@@ -21,7 +22,8 @@ export function computeLocalTotp(secret: string, timestamp: number): LocalTotp |
       remainingMs: totp.remaining({ timestamp }),
       periodSec: totp.period,
     };
-  } catch {
+  } catch (err) {
+    logError('totp.compute', err);
     return null;
   }
 }

@@ -11,6 +11,7 @@ import {
 } from '@vicinae/api';
 import { useCallback, useEffect, useState } from 'react';
 import * as bw from './bw-executor';
+import { getErrorMessage } from './bw-executor';
 import { showFailureToast } from './item-utils';
 import type { BwSend } from './send-types';
 import type { SendAction } from './send-types';
@@ -58,7 +59,11 @@ function SendCopyActions({ actions, send }: { actions: SendAction[]; send: BwSen
   );
 }
 
-type UIState = GateUIState | { kind: 'loading' } | { kind: 'list' };
+type UIState =
+  | GateUIState
+  | { kind: 'loading' }
+  | { kind: 'list' }
+  | { kind: 'error'; title: string; message: string; retry?: () => void };
 
 // fallow-ignore-next-line unused-export
 export default function SearchSends() {
@@ -78,15 +83,16 @@ export default function SearchSends() {
     readyKind: 'loading',
   });
 
-  const loadSends = useCallback(async () => {
-    if (!session) return;
+  const loadSends = useCallback(async (): Promise<{ ok: true } | { ok: false; error: string }> => {
+    if (!session) return { ok: true };
     try {
       await bw.sync(session);
       const result = await bw.listSends(session);
       setSends(result);
       await saveCachedSends(result);
+      return { ok: true };
     } catch (err) {
-      await showFailureToast(err, 'Failed to load sends');
+      return { ok: false, error: getErrorMessage(err) };
     }
   }, [session]);
 
@@ -98,7 +104,23 @@ export default function SearchSends() {
 
   useEffect(() => {
     if (state.kind !== 'loading') return;
-    void loadSends().then(() => setState({ kind: 'list' }));
+    void loadSends().then((result) => {
+      if (result.ok) {
+        setState({ kind: 'list' });
+        return;
+      }
+      if (sends.length > 0) {
+        void showFailureToast(new Error(result.error), 'Failed to refresh sends');
+        setState({ kind: 'list' });
+      } else {
+        setState({
+          kind: 'error',
+          title: 'Failed to load sends',
+          message: result.error,
+          retry: () => setState({ kind: 'loading' }),
+        });
+      }
+    });
   }, [state.kind]);
 
   const handleSync = useCallback(async () => {

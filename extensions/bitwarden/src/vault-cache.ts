@@ -2,6 +2,7 @@ import { LocalStorage } from '@vicinae/api';
 import { secretStore, secretLookup, secretClear } from './secret-store';
 import { BwItem, BwFolder } from './bitwarden-types';
 import type { BwSend } from './send-types';
+import { logError } from './log';
 
 const CACHE_KEY = 'vicinae-bitwarden-cache';
 
@@ -89,7 +90,8 @@ export async function loadCachedVault(): Promise<{ items: BwItem[]; folders: BwF
     const cached: CachedVault = JSON.parse(raw);
     if (Date.now() - cached.timestamp > CACHE_TTL) return null;
     return { items: cached.items, folders: cached.folders };
-  } catch {
+  } catch (err) {
+    logError('vault-cache.loadVault', err);
     return null;
   }
 }
@@ -135,7 +137,8 @@ export async function loadTotpSecrets(): Promise<Record<string, string>> {
     const raw = await secretLookup(TOTP_SECRETS_KEY);
     if (!raw) return {};
     return JSON.parse(raw);
-  } catch {
+  } catch (err) {
+    logError('vault-cache.loadTotpSecrets', err);
     return {};
   }
 }
@@ -157,7 +160,8 @@ export async function loadSendKeys(): Promise<Record<string, string>> {
     const raw = await secretLookup(SENDS_SECRET_KEY);
     if (!raw) return {};
     return JSON.parse(raw);
-  } catch {
+  } catch (err) {
+    logError('vault-cache.loadSendKeys', err);
     return {};
   }
 }
@@ -173,7 +177,8 @@ export async function loadCachedSends(): Promise<BwSend[] | null> {
     const cached: CachedSends = JSON.parse(raw);
     if (Date.now() - cached.timestamp > SENDS_CACHE_TTL) return null;
     return cached.sends;
-  } catch {
+  } catch (err) {
+    logError('vault-cache.loadSends', err);
     return null;
   }
 }

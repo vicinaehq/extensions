@@ -21,6 +21,10 @@ export function useVaultSearch(preFilter?: (items: BwItem[]) => BwItem[]) {
     setState({ kind: 'vault', items, folders });
   }, []);
 
+  const setError = useCallback((title: string, message: string, retry?: () => void) => {
+    setState({ kind: 'error', title, message, retry });
+  }, []);
+
   const { handleLogin, handleUnlock } = useUnlockGate({
     loginIfNeeded,
     loginError,
@@ -108,5 +112,6 @@ export function useVaultSearch(preFilter?: (items: BwItem[]) => BwItem[]) {
     sortedSections,
     filtered,
     grouped,
+    setError,
   };
 }

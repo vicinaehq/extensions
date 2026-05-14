@@ -44,6 +44,19 @@ vi.mock('../bw-not-installed', () => ({
     React.createElement('div', { 'data-testid': 'secret-tool-not-installed' }, 'Install libsecret'),
 }));
 
+vi.mock('../vault-error', () => ({
+  VaultError: ({ title, message, retry }: { title: string; message: string; retry?: () => void }) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'vault-error' },
+      React.createElement('strong', null, title),
+      React.createElement('span', null, message),
+      retry
+        ? React.createElement('button', { 'data-testid': 'action', onClick: retry }, 'Retry')
+        : null,
+    ),
+}));
+
 vi.mock('../bw-executor', () => ({
   getErrorMessage: (err: unknown) => (err instanceof Error ? err.message : String(err)),
 }));
@@ -140,7 +153,7 @@ describe('renderUnlockGate', () => {
     expect(screen.getByTestId('password')).toBeTruthy();
   });
 
-  it('renders login-failed form with error text', () => {
+  it('renders login-failed via VaultError with error text', () => {
     render(renderUnlockGate('login-failed', 'Invalid API key', vi.fn()));
     expect(screen.getByText('Login failed')).toBeTruthy();
     expect(screen.getByText('Invalid API key')).toBeTruthy();
@@ -151,14 +164,14 @@ describe('renderUnlockGate', () => {
     expect(screen.getByText('Check your API key in extension preferences')).toBeTruthy();
   });
 
-  it('renders Retry Login button when onRetryLogin is provided', () => {
+  it('renders Retry button when onRetryLogin is provided', () => {
     const onRetry = vi.fn();
     render(renderUnlockGate('login-failed', 'Auth error', vi.fn(), onRetry));
     expect(screen.getByTestId('action')).toBeTruthy();
-    expect(screen.getByText('Retry Login')).toBeTruthy();
+    expect(screen.getByText('Retry')).toBeTruthy();
   });
 
-  it('does not show Retry Login button when onRetryLogin is not provided', () => {
+  it('does not show Retry button when onRetryLogin is not provided', () => {
     render(renderUnlockGate('login-failed', 'Auth error', vi.fn()));
     expect(screen.queryByTestId('action')).toBeNull();
   });

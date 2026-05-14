@@ -16,11 +16,13 @@ import { basename, join } from 'node:path';
 import * as bw from './bw-executor';
 import { getErrorMessage } from './bw-executor';
 import { getDownloadDir, getPreferences } from './preferences';
-import { showFailureToast } from './item-utils';
+import { VaultError } from './vault-error';
+import { logError } from './log';
 
 type UIState =
   | { kind: 'working' }
   | { kind: 'password'; url: string; retry?: boolean }
+  | { kind: 'error'; url: string; message: string }
   | { kind: 'done' };
 
 function getDownloadDirectory(): string {
@@ -146,9 +148,7 @@ export default function ReceiveSend() {
         await popToRoot();
         return;
       }
-      await showFailureToast(err, 'Failed to receive send');
-      setState({ kind: 'done' });
-      await popToRoot();
+      setState({ kind: 'error', url, message: getErrorMessage(err) });
     }
   }, []);
 
@@ -157,7 +157,9 @@ export default function ReceiveSend() {
       let url = '';
       try {
         url = (await Clipboard.readText()).trim();
-      } catch {}
+      } catch (err) {
+        logError('receive-send.clipboard', err);
+      }
       if (!url) {
         await showToast({ style: Toast.Style.Failure, title: 'No Send URL in clipboard' });
         await popToRoot();
@@ -166,6 +168,19 @@ export default function ReceiveSend() {
       await attempt(url);
     })();
   }, [attempt]);
+
+  if (state.kind === 'error') {
+    return (
+      <VaultError
+        title="Failed to receive send"
+        message={state.message}
+        retry={() => {
+          setState({ kind: 'working' });
+          void attempt(state.url);
+        }}
+      />
+    );
+  }
 
   if (state.kind !== 'password') {
     return <Form isLoading />;

@@ -1,17 +1,56 @@
 import { useEffect } from 'react';
 import { showToast, Toast } from '@vicinae/api';
-import { showFailureToast } from './item-utils';
-import { loadCachedVault } from './vault-cache';
+import { getErrorMessage } from './bw-executor';
+import { logError } from './log';
+import { loadCachedVault, loadTotpSecrets } from './vault-cache';
 import { extractHostname, loadFaviconCache, resolveFavicons } from './favicons';
 import { checkBwGate } from './unlock-gate';
 import type { GateUIState } from './unlock-gate';
 import { ItemType } from './bitwarden-types';
 import type { BwFolder, BwItem } from './bitwarden-types';
 
+function isAuthError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('not logged in') ||
+    lower.includes('session') ||
+    lower.includes('locked') ||
+    lower.includes('invalid master password') ||
+    lower.includes('unauthorized')
+  );
+}
+
 export type UIState =
   | GateUIState
   | { kind: 'loading' }
-  | { kind: 'vault'; items: BwItem[]; folders: BwFolder[] };
+  | { kind: 'vault'; items: BwItem[]; folders: BwFolder[] }
+  | { kind: 'error'; title: string; message: string; retry?: () => void };
+
+function hasTotpItem(items: BwItem[]): boolean {
+  return items.some(
+    (i) => i.type === ItemType.Login && i.login?.totp !== null && i.login?.totp !== undefined,
+  );
+}
+
+async function handleSyncError(
+  err: unknown,
+  clearSession: () => Promise<void>,
+  setState: React.Dispatch<React.SetStateAction<UIState>>,
+  authErrorText?: string,
+): Promise<void> {
+  const message = getErrorMessage(err);
+  if (isAuthError(message)) {
+    await clearSession();
+    setState({ kind: 'needs-unlock', error: authErrorText ?? message });
+  } else {
+    setState({
+      kind: 'error',
+      title: 'Failed to load vault',
+      message,
+      retry: () => setState({ kind: 'loading' }),
+    });
+  }
+}
 
 interface VaultLifecycleParams {
   session: string | null;
@@ -42,8 +81,12 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
       setFaviconMap(map);
 
       const cached = await loadCachedVault();
+      let staleCache = false;
       if (cached) {
-        setVault(cached.items, cached.folders);
+        staleCache = hasTotpItem(cached.items) && Object.keys(await loadTotpSecrets()).length === 0;
+        if (!staleCache) {
+          setVault(cached.items, cached.folders);
+        }
       }
 
       const gate = await checkBwGate(session);
@@ -54,7 +97,15 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
           setState({ kind: gate.kind });
           return;
         case 'needs-unlock':
-          if (!cached) setState({ kind: 'needs-unlock' });
+          if (!cached || staleCache) setState({ kind: 'needs-unlock' });
+          return;
+        case 'error':
+          setState({
+            kind: 'error',
+            title: gate.title,
+            message: gate.message,
+            retry: () => setState({ kind: 'loading' }),
+          });
           return;
         case 'ready':
           break;
@@ -63,11 +114,10 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
       try {
         await syncVault(session!);
         await showToast({ style: Toast.Style.Success, title: 'Vault synced' });
-      } catch {
-        if (!cached) {
-          await clearSession();
-          setState({ kind: 'needs-unlock', error: 'Session expired' });
-        }
+      } catch (err) {
+        logError('vault-lifecycle.initialSync', err);
+        if (!cached || staleCache)
+          await handleSyncError(err, clearSession, setState, 'Session expired');
       }
     })();
   }, []);
@@ -85,8 +135,8 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
       try {
         await syncVault(session);
         await showToast({ style: Toast.Style.Success, title: 'Vault synced' });
-      } catch {
-        // Cache already showing — silent fail
+      } catch (err) {
+        logError('vault-lifecycle.backgroundSync', err);
       }
     })();
   }, [session]);
@@ -121,11 +171,8 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
       try {
         await syncVault(session);
       } catch (err) {
-        if (!cached) {
-          const message = await showFailureToast(err, 'Failed to load vault');
-          await clearSession();
-          setState({ kind: 'needs-unlock', error: message });
-        }
+        logError('vault-lifecycle.cachedSync', err);
+        if (!cached) await handleSyncError(err, clearSession, setState);
       }
     })();
   }, [session, state.kind]);

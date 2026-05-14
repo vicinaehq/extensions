@@ -2,6 +2,7 @@ import { Action, ActionPanel, Form, showToast, Toast } from '@vicinae/api';
 import { useCallback, useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { BwNotInstalled, SecretToolNotInstalled } from './bw-not-installed';
+import { VaultError } from './vault-error';
 import * as bw from './bw-executor';
 import { getErrorMessage } from './bw-executor';
 import { checkSecretToolInstalled } from './secret-store';
@@ -15,15 +16,15 @@ export type GateUIState =
   | { kind: 'needs-unlock'; error?: string }
   | { kind: 'unlocking' };
 
-export async function checkBwGate(
-  session: string | null,
-): Promise<
+export type GateResult =
   | { kind: 'bw-not-installed' }
   | { kind: 'secret-tool-not-installed' }
   | { kind: 'logging-in' }
   | { kind: 'needs-unlock' }
   | { kind: 'ready' }
-> {
+  | { kind: 'error'; title: string; message: string };
+
+export async function checkBwGate(session: string | null): Promise<GateResult> {
   const [installed, stInstalled, statusResult] = await Promise.allSettled([
     bw.checkInstalled(),
     checkSecretToolInstalled(),
@@ -38,7 +39,15 @@ export async function checkBwGate(
     return { kind: 'secret-tool-not-installed' };
   }
 
-  if (statusResult.status === 'fulfilled' && statusResult.value.status === 'unauthenticated') {
+  if (statusResult.status === 'rejected') {
+    return {
+      kind: 'error',
+      title: 'Bitwarden CLI failed to start',
+      message: getErrorMessage(statusResult.reason),
+    };
+  }
+
+  if (statusResult.value.status === 'unauthenticated') {
     return { kind: 'logging-in' };
   }
 
@@ -117,6 +126,9 @@ export function useUnlockGate(deps: UnlockGateDeps) {
 interface GateState {
   kind: string;
   error?: string;
+  title?: string;
+  message?: string;
+  retry?: () => void;
 }
 
 export function renderGate(
@@ -124,6 +136,15 @@ export function renderGate(
   handleUnlock: (values: Form.Values) => Promise<void>,
   handleLogin?: () => void,
 ): React.ReactElement | null {
+  if (state.kind === 'error') {
+    return (
+      <VaultError
+        title={state.title ?? 'Something went wrong'}
+        message={state.message ?? ''}
+        retry={state.retry}
+      />
+    );
+  }
   const gateError =
     state.kind === 'needs-unlock' || state.kind === 'login-failed' ? state.error : undefined;
   return renderUnlockGate(state.kind, gateError, handleUnlock, handleLogin);
@@ -162,18 +183,11 @@ export function renderUnlockGate(
 
   if (kind === 'login-failed') {
     return (
-      <Form
-        actions={
-          <ActionPanel>
-            {onRetryLogin && <Action title="Retry Login" onAction={onRetryLogin} />}
-          </ActionPanel>
-        }
-      >
-        <Form.Description
-          title="Login failed"
-          text={error ?? 'Check your API key in extension preferences'}
-        />
-      </Form>
+      <VaultError
+        title="Login failed"
+        message={error ?? 'Check your API key in extension preferences'}
+        retry={onRetryLogin}
+      />
     );
   }
 
@@ -199,19 +213,27 @@ export function renderUnlockGate(
   return null;
 }
 
+interface GateSetterPayload {
+  kind: string;
+  error?: string;
+  title?: string;
+  message?: string;
+  retry?: () => void;
+}
+
 interface UseGateEffectsParams {
   session: string | null;
   state: { kind: string };
   loginIfNeeded: () => Promise<void>;
   loginError: string | null;
   unlock: (password: string) => Promise<string>;
-  setState: (value: { kind: string; error?: string }) => void;
+  setState: (value: GateSetterPayload) => void;
   readyKind: string;
 }
 
 export function castGateSetter<T extends { kind: string }>(
   setState: Dispatch<SetStateAction<T>>,
-): (value: { kind: string; error?: string }) => void {
+): (value: GateSetterPayload) => void {
   return (value) => setState(value as T);
 }
 
@@ -237,6 +259,9 @@ export function useGateEffects(params: UseGateEffectsParams) {
           return;
         case 'ready':
           setState({ kind: readyKind });
+          return;
+        case 'error':
+          setState({ kind: 'error', title: gate.title, message: gate.message });
           return;
       }
     })();

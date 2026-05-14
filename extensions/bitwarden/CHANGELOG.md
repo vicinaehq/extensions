@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-05-14
+
+### Added
+
+- Fatal startup errors now surface through a dedicated `VaultError` screen with redacted logging, instead of leaving the user with a blank list.
+
+### Fixed
+
+- Attachment downloads reject path-traversal in filenames returned by the CLI; broadened error logging around the download path.
+
+### Changed
+
+- Simplified `friendlyMessage` helper; `.claude/` is now gitignored.
+
 ## [0.4.0] - 2026-05-13
 
 ### Added

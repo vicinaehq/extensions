@@ -454,6 +454,64 @@ describe('getErrorMessage', () => {
     expect(bw.getErrorMessage('plain string')).toBe('plain string');
     expect(bw.getErrorMessage(null)).toBe('null');
   });
+
+  it('redacts URL fragments to protect Send keys', () => {
+    const err = new Error(
+      'Failed to receive send https://send.bitwarden.com/#/abc123/secretkey456',
+    );
+    expect(bw.getErrorMessage(err)).toBe('Failed to receive send https://send.bitwarden.com/#…');
+  });
+
+  it('leaves URLs without fragments untouched', () => {
+    const err = new Error('Cannot reach https://vault.example.com/api');
+    expect(bw.getErrorMessage(err)).toBe('Cannot reach https://vault.example.com/api');
+  });
+
+  it('replaces home directory with ~', () => {
+    const home = process.env.HOME ?? '';
+    if (!home || home === '/') return;
+    const err = new Error(`Cannot read ${home}/Documents/file.pdf`);
+    expect(bw.getErrorMessage(err)).toBe('Cannot read ~/Documents/file.pdf');
+  });
+
+  it('masks email addresses', () => {
+    const err = new Error('User user@example.com is locked out');
+    expect(bw.getErrorMessage(err)).toBe('User <email> is locked out');
+  });
+
+  it('redacts JSON.parse snippets that quote the failing input', () => {
+    const err = new Error('"JBSWY3DPEHPK3PXP" is not valid JSON');
+    expect(bw.getErrorMessage(err)).toBe('"<redacted>" is not valid JSON');
+  });
+
+  it('redacts modern V8 JSON.parse error format', () => {
+    const err = new Error(
+      `Unexpected token 'J', "JBSWY3DPEHPK3PXP" is not valid JSON at position 0`,
+    );
+    expect(bw.getErrorMessage(err)).toContain('<redacted>');
+    expect(bw.getErrorMessage(err)).not.toContain('JBSWY3DPEHPK3PXP');
+  });
+
+  it('redacts legacy V8 JSON.parse error format', () => {
+    const err = new Error('Unexpected token X in JSON at position 12');
+    expect(bw.getErrorMessage(err)).toBe('Unexpected token <redacted> in JSON at position 12');
+  });
+
+  it('redacts credential-like query string params', () => {
+    const err = new Error('GET https://example.com/api?token=abc123xyz&user=alice failed');
+    const out = bw.getErrorMessage(err);
+    expect(out).toContain('token=<redacted>');
+    expect(out).toContain('user=alice');
+    expect(out).not.toContain('abc123xyz');
+  });
+
+  it('redacts multiple credential params and variants', () => {
+    const err = new Error('url=https://x.com/?access_token=AAA&api_key=BBB&password=CCC');
+    const out = bw.getErrorMessage(err);
+    expect(out).not.toContain('AAA');
+    expect(out).not.toContain('BBB');
+    expect(out).not.toContain('CCC');
+  });
 });
 
 // ---------------------------------------------------------------------------

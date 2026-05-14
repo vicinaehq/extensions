@@ -1,9 +1,11 @@
 import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
-import { join } from 'node:path';
+import { basename, resolve as resolvePath, sep } from 'node:path';
 import { BwError, BwFolder, BwItem, ItemTypeValue } from './bitwarden-types';
 import type { BwSend, CreateSendPayload } from './send-types';
 import { getDownloadDir, getPreferences } from './preferences';
+import { redactSensitive } from './redact';
+import { logError } from './log';
 
 const exec = promisify(execFile);
 
@@ -55,8 +57,8 @@ function bwEnv(): NodeJS.ProcessEnv {
     if (prefs.customCertPath) {
       env.NODE_EXTRA_CA_CERTS = prefs.customCertPath;
     }
-  } catch {
-    // Preferences not available
+  } catch (err) {
+    logError('bw.env', err);
   }
   return env;
 }
@@ -64,7 +66,8 @@ function bwEnv(): NodeJS.ProcessEnv {
 function parseJson<T>(stdout: string): T {
   try {
     return JSON.parse(stdout) as T;
-  } catch {
+  } catch (err) {
+    logError('bw.parseJson', err);
     throw new BwError('Failed to parse `bw` output as JSON', 'PARSE_ERROR');
   }
 }
@@ -113,38 +116,34 @@ export function getErrorMessage(err: unknown): string {
       .join('\n')
       .trim();
     const raw = cleaned || err.message;
-    return friendlyMessage(raw);
+    return redactSensitive(friendlyMessage(raw));
   }
-  return friendlyMessage(String(err));
+  return redactSensitive(friendlyMessage(String(err)));
 }
+
+const FRIENDLY_MESSAGES: ReadonlyArray<readonly [readonly string[], string]> = [
+  [
+    ['incorrect client_secret', 'incorrect clientid'],
+    'Invalid API credentials — check your Client ID and Client Secret in extension preferences.',
+  ],
+  [['invalid master password'], 'Incorrect master password.'],
+  [['not logged in'], 'Not logged in.'],
+  [
+    ['econnrefused', 'enotfound', 'getaddrinfo', 'econnreset'],
+    'Cannot reach Bitwarden server — check your connection and server URL.',
+  ],
+  [
+    ['two-factor', 'two step'],
+    'Two-step login is required but the CLI does not support it for API key logins.',
+  ],
+  [['timed out', 'etimedout'], 'Request timed out — the Bitwarden server did not respond in time.'],
+  [['rate limit', '429'], 'Too many requests — wait a moment and try again.'],
+];
 
 function friendlyMessage(raw: string): string {
   const lower = raw.toLowerCase();
-  if (lower.includes('incorrect client_secret') || lower.includes('incorrect clientid')) {
-    return 'Invalid API credentials — check your Client ID and Client Secret in extension preferences.';
-  }
-  if (lower.includes('invalid master password')) {
-    return 'Incorrect master password.';
-  }
-  if (lower.includes('not logged in')) {
-    return 'Not logged in.';
-  }
-  if (
-    lower.includes('econnrefused') ||
-    lower.includes('enotfound') ||
-    lower.includes('getaddrinfo') ||
-    lower.includes('econnreset')
-  ) {
-    return 'Cannot reach Bitwarden server — check your connection and server URL.';
-  }
-  if (lower.includes('two-factor') || lower.includes('two step')) {
-    return 'Two-step login is required but the CLI does not support it for API key logins.';
-  }
-  if (lower.includes('timed out') || lower.includes('etimedout')) {
-    return 'Request timed out — the Bitwarden server did not respond in time.';
-  }
-  if (lower.includes('rate limit') || lower.includes('429')) {
-    return 'Too many requests — wait a moment and try again.';
+  for (const [needles, msg] of FRIENDLY_MESSAGES) {
+    if (needles.some((n) => lower.includes(n))) return msg;
   }
   return raw;
 }
@@ -177,7 +176,8 @@ export async function checkInstalled(): Promise<boolean> {
   try {
     await exec('bw', ['--version'], { timeout: 5000 });
     return true;
-  } catch {
+  } catch (err) {
+    logError('bw.checkInstalled', err);
     return false;
   }
 }
@@ -398,8 +398,8 @@ export async function logout(): Promise<void> {
 export async function lock(session: Session): Promise<void> {
   try {
     await execBw(['lock'], { timeout: 10000, env: sessionEnv(session) });
-  } catch {
-    // Lock failures are non-fatal — the session is cleared client-side regardless
+  } catch (err) {
+    logError('bw.lock', err);
   }
 }
 
@@ -446,7 +446,26 @@ export async function downloadAttachment(
   } catch {
     downloadDir = `${process.env.HOME ?? '/tmp'}/Downloads`;
   }
-  const outPath = join(downloadDir, fileName);
+  const safeName = basename(fileName);
+  if (!safeName || safeName === '.' || safeName === '..' || safeName.startsWith('.')) {
+    logError('bw.downloadAttachment.unsafeFilename', new Error(`unsafe filename: ${fileName}`));
+    throw new BwError(
+      `Refusing to download attachment with unsafe filename: ${fileName}`,
+      'UNSAFE_FILENAME',
+    );
+  }
+  const dirRoot = resolvePath(downloadDir);
+  const outPath = resolvePath(dirRoot, safeName);
+  if (outPath !== dirRoot + sep + safeName) {
+    logError(
+      'bw.downloadAttachment.unsafeFilename',
+      new Error(`escapes download dir: ${fileName}`),
+    );
+    throw new BwError(
+      `Refusing to download attachment outside download directory: ${fileName}`,
+      'UNSAFE_FILENAME',
+    );
+  }
   try {
     await execBw(['get', 'attachment', attachmentId, '--itemid', itemId, '--output', outPath], {
       timeout: 30000,

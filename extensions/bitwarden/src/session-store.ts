@@ -1,6 +1,7 @@
 import { getAutoLockSeconds, getPreferences } from './preferences';
 import { secretStore, secretLookup, secretClear } from './secret-store';
 import { safeJsonParse } from './json-utils';
+import { logError } from './log';
 
 // fallow-ignore-next-line unused-export
 export { checkSecretToolInstalled } from './secret-store';
@@ -28,7 +29,8 @@ export async function getSession(): Promise<string | null> {
       return null;
     }
     return parsed.token;
-  } catch {
+  } catch (err) {
+    logError('session.get', err);
     return null;
   }
 }

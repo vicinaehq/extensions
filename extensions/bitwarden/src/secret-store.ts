@@ -1,10 +1,20 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { spawnWait } from './spawn-stdin';
+import { logError } from './log';
 
 const exec = promisify(execFile);
 
 const SERVICE = 'vicinae-bitwarden';
+
+function isNodeError(err: unknown): err is { code: string | number } & Error {
+  return err instanceof Error && 'code' in err;
+}
+
+function isExpectedSecretMiss(err: unknown): boolean {
+  if (!isNodeError(err)) return false;
+  return err.code === 'ENOENT' || err.code === 1 || err.code === '1';
+}
 
 export async function secretLookup(account: string): Promise<string | null> {
   try {
@@ -15,7 +25,8 @@ export async function secretLookup(account: string): Promise<string | null> {
     );
     const raw = stdout.trim();
     return raw || null;
-  } catch {
+  } catch (err) {
+    if (!isExpectedSecretMiss(err)) logError('secret.lookup', err, { account });
     return null;
   }
 }
@@ -33,16 +44,12 @@ export async function secretClear(account: string): Promise<void> {
     await exec('secret-tool', ['clear', 'service', SERVICE, 'account', account], {
       timeout: 5000,
     });
-  } catch {
-    // Non-fatal
+  } catch (err) {
+    if (!isExpectedSecretMiss(err)) logError('secret.clear', err, { account });
   }
 }
 
 let installed: boolean | null = null;
-
-function isNodeError(err: unknown): err is { code: string } & Error {
-  return err instanceof Error && 'code' in err;
-}
 
 export async function checkSecretToolInstalled(): Promise<boolean> {
   if (installed !== null) return installed;

@@ -161,6 +161,12 @@ async function submitForm(values: Record<string, unknown>) {
   await submit(values);
 }
 
+async function renderEditForm(sendOverrides: Partial<BwSend> = {}) {
+  mockBw.getSend.mockResolvedValue(makeSend(sendOverrides));
+  render(React.createElement(EditSend, { send: makeSend(), session: 'token', onSaved: vi.fn() }));
+  await waitFor(() => screen.getByTestId('submit-save-changes'));
+}
+
 describe('EditSend', () => {
   it('renders a loading placeholder before the full send resolves', async () => {
     mockBw.getSend.mockReturnValue(new Promise(() => {}));
@@ -190,18 +196,14 @@ describe('EditSend', () => {
   });
 
   it('rejects submit when name is empty', async () => {
-    mockBw.getSend.mockResolvedValue(makeSend());
-    render(React.createElement(EditSend, { send: makeSend(), session: 'token', onSaved: vi.fn() }));
-    await waitFor(() => screen.getByTestId('submit-save-changes'));
+    await renderEditForm();
     await submitForm({ name: '   ', textContent: 'still here' });
 
     expect(mockBw.editSend).not.toHaveBeenCalled();
   });
 
   it('rejects submit when text content is empty for a Text send', async () => {
-    mockBw.getSend.mockResolvedValue(makeSend());
-    render(React.createElement(EditSend, { send: makeSend(), session: 'token', onSaved: vi.fn() }));
-    await waitFor(() => screen.getByTestId('submit-save-changes'));
+    await renderEditForm();
     await submitForm({ name: 'ok', textContent: '   ' });
 
     expect(mockBw.editSend).not.toHaveBeenCalled();
@@ -230,10 +232,8 @@ describe('EditSend', () => {
   });
 
   it('surfaces a failure toast when bw.editSend throws', async () => {
-    mockBw.getSend.mockResolvedValue(makeSend());
     mockBw.editSend.mockRejectedValue(new Error('save broke'));
-    render(React.createElement(EditSend, { send: makeSend(), session: 'token', onSaved: vi.fn() }));
-    await waitFor(() => screen.getByTestId('submit-save-changes'));
+    await renderEditForm();
     await submitForm({ name: 'ok', textContent: 'ok' });
 
     expect(mockShowToast).toHaveBeenCalledWith(

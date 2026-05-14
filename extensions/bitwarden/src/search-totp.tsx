@@ -1,6 +1,7 @@
 import { Action, ActionPanel, Icon, List } from '@vicinae/api';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as bw from './bw-executor';
+import { getErrorMessage } from './bw-executor';
 import { formatTotp, itemIcon, itemSubtitle } from './item-utils';
 import { useVaultSearch } from './use-vault-search';
 import type { BwItem } from './bitwarden-types';
@@ -55,10 +56,13 @@ export default function SearchTotp() {
     gateRender,
     isLoading,
     sortedSections,
+    setError,
   } = useVaultSearch(totpItems);
 
   const [now, setNow] = useState(() => Date.now());
   const [cliCache, setCliCache] = useState<Record<string, CachedCode>>({});
+  const errorRaisedRef = useRef(false);
+  const [retryNonce, setRetryNonce] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -90,7 +94,17 @@ export default function SearchTotp() {
             ...prev,
             [id]: { code, window: currentWindow(Date.now()) },
           }));
-        } catch {}
+        } catch (err) {
+          if (cancelled || errorRaisedRef.current) continue;
+          errorRaisedRef.current = true;
+          cancelled = true;
+          setError('Unable to load TOTP codes', getErrorMessage(err), () => {
+            errorRaisedRef.current = false;
+            setCliCache({});
+            setRetryNonce((n) => n + 1);
+            void handleSync();
+          });
+        }
       }
     };
     void Promise.all(
@@ -99,7 +113,7 @@ export default function SearchTotp() {
     return () => {
       cancelled = true;
     };
-  }, [session, win, state.kind === 'vault' ? state.items.length : 0, totpSecrets]);
+  }, [session, win, state.kind === 'vault' ? state.items.length : 0, totpSecrets, retryNonce]);
 
   if (gateRender) return gateRender;
 

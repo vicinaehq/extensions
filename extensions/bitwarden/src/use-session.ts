@@ -10,6 +10,7 @@ import {
   clearApiCredentialsFromDisk,
 } from './api-credential-store';
 import { clearCachedSends, clearCachedVault, clearSendKeys, clearTotpSecrets } from './vault-cache';
+import { logError } from './log';
 
 interface SessionState {
   session: Session | null;
@@ -88,8 +89,9 @@ export function useSession(): SessionState {
 
         try {
           await storeApiCredentials(prefClientId, prefClientSecret);
-        } catch {
+        } catch (err) {
           // Migration failure is non-fatal — login already succeeded
+          logError('useSession.credentialMigration', err);
         }
       }
 
@@ -115,8 +117,9 @@ export function useSession(): SessionState {
     await clearCachedSends();
     setSession(null);
     if (session) {
-      void bw.lock(session).catch(() => {
+      void bw.lock(session).catch((err) => {
         // Non-fatal — session already cleared client-side
+        logError('useSession.lock', err);
       });
     }
   }, [session]);

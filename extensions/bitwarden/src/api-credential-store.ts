@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import Database from 'better-sqlite3';
 import { secretStore, secretLookup, secretClear } from './secret-store';
 import { safeJsonParse } from './json-utils';
+import { logError } from './log';
 
 const exec = promisify(execFile);
 
@@ -38,7 +39,8 @@ export async function getApiCredentials(): Promise<{
     const raw = await secretLookup(ACCOUNT);
     if (!raw) return null;
     return parseJsonRecord(raw);
-  } catch {
+  } catch (err) {
+    logError('apiCreds.lookup', err);
     return null;
   }
 }
@@ -63,7 +65,7 @@ export async function clearApiCredentialsFromDisk(): Promise<void> {
       writeFileSync(settingsPath, updated, 'utf-8');
     }
   } catch (err) {
-    console.warn('Failed to clear API credentials from settings.json:', err);
+    logError('apiCreds.clearSettings', err);
   }
 
   try {
@@ -74,6 +76,6 @@ export async function clearApiCredentialsFromDisk(): Promise<void> {
     ).run();
     db.close();
   } catch (err) {
-    console.warn('Failed to clear API credentials from vicinae.db:', err);
+    logError('apiCreds.clearDb', err);
   }
 }
