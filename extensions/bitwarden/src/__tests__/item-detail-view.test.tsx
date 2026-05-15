@@ -37,9 +37,16 @@ vi.mock('../totp-compute', () => ({
   isSteamSecret: () => false,
 }));
 
-vi.mock('../item-utils', () => ({
+vi.mock('../item-form', () => ({
   buildItemDetailMarkdown: (item: BwItem) => (item.notes ? item.notes : ''),
+}));
+
+vi.mock('../item-list', () => ({
   formatTotp: (code: string) => `${code.slice(0, 3)} ${code.slice(3)}`,
+  itemTypeLabel: () => 'Login',
+}));
+
+vi.mock('../item-actions', () => ({
   itemActions: (item: BwItem): ItemAction[] => {
     const actions: ItemAction[] = [];
     if (item.login?.username) actions.push({ label: 'Copy Username', value: item.login.username });
@@ -48,7 +55,6 @@ vi.mock('../item-utils', () => ({
       actions.push({ label: 'Copy Verification Code', value: '', fetchKind: 'totp' });
     return actions;
   },
-  itemTypeLabel: () => 'Login',
   actionIcon: () => undefined,
 }));
 

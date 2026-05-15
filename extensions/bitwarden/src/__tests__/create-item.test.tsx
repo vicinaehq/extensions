@@ -122,7 +122,7 @@ vi.mock('../use-session', () => ({
   useSession: () => mockUseSession,
 }));
 
-vi.mock('../item-utils', () => ({
+vi.mock('../item-form', () => ({
   toCreatePayload: vi.fn((values: Record<string, string>, type: number) => ({
     type,
     name: values.name ?? '',
@@ -139,6 +139,9 @@ vi.mock('../item-utils', () => ({
     return result;
   }),
   uploadAttachments: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../toast', () => ({
   showFailureToast: async (_err: unknown, title: string) =>
     mockShowToast({ style: 'failure', title }),
 }));

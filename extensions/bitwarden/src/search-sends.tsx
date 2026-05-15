@@ -12,7 +12,7 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import * as bw from './bw-executor';
 import { getErrorMessage } from './bw-executor';
-import { showFailureToast } from './item-utils';
+import { showFailureToast } from './toast';
 import type { BwSend } from './send-types';
 import type { SendAction } from './send-types';
 import {

@@ -12,13 +12,9 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import * as bw from './bw-executor';
 import type { Session } from './bw-executor';
-import {
-  buildItemDetailMarkdown,
-  formatTotp,
-  itemActions as getItemActions,
-  itemTypeLabel,
-  actionIcon,
-} from './item-utils';
+import { buildItemDetailMarkdown } from './item-form';
+import { formatTotp, itemTypeLabel } from './item-list';
+import { itemActions as getItemActions, actionIcon } from './item-actions';
 import type { BwField, BwItem } from './bitwarden-types';
 import { ItemType } from './bitwarden-types';
 import EditItem from './edit-item';
@@ -300,7 +296,7 @@ export default function ItemDetailView({
   const totpInfo = useMemo(() => {
     const resolved = fullItem ?? item;
     if (resolved.type !== ItemType.Login || !resolved.login?.totp) return null;
-    const secret = resolved.login.totp || totpSecrets[item.id] || '';
+    const secret = resolved.login?.totp || totpSecrets[item.id] || '';
     const probe = secret && !isSteamSecret(secret) ? computeLocalTotp(secret, Date.now()) : null;
     return { secret, probe };
   }, [fullItem, item, totpSecrets]);

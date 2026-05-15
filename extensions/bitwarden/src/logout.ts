@@ -1,6 +1,6 @@
 import { showToast, Toast } from '@vicinae/api';
 import * as bw from './bw-executor';
-import { showFailureToast } from './item-utils';
+import { showFailureToast } from './toast';
 import { deleteSession } from './session-store';
 import { clearCachedSends, clearCachedVault, clearSendKeys, clearTotpSecrets } from './vault-cache';
 

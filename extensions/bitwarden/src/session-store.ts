@@ -1,6 +1,5 @@
 import { getAutoLockSeconds, getPreferences } from './preferences';
 import { secretStore, secretLookup, secretClear } from './secret-store';
-import { safeJsonParse } from './json-utils';
 import { logError } from './log';
 
 // fallow-ignore-next-line unused-export
@@ -12,15 +11,26 @@ interface SessionPayload {
   timestamp: number;
 }
 
+function parseSessionPayload(raw: string): SessionPayload | null {
+  let obj: unknown;
+  try {
+    obj = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (typeof obj !== 'object' || obj === null) return null;
+  const record = obj as Record<string, unknown>;
+  if (typeof record.token !== 'string') return null;
+  if (typeof record.timestamp !== 'number') return null;
+  return { token: record.token, timestamp: record.timestamp };
+}
+
 export async function getSession(): Promise<string | null> {
   try {
     const raw = await secretLookup(ACCOUNT);
     if (!raw) return null;
 
-    const parsed = safeJsonParse<{ token: string; timestamp: number }>(raw, {
-      strings: ['token'],
-      numbers: ['timestamp'],
-    });
+    const parsed = parseSessionPayload(raw);
     if (!parsed) return null;
 
     const timeout = getAutoLockSeconds(getPreferences());

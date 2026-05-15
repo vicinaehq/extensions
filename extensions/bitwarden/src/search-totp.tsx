@@ -2,17 +2,14 @@ import { Action, ActionPanel, Icon, List } from '@vicinae/api';
 import { useEffect, useRef, useState } from 'react';
 import * as bw from './bw-executor';
 import { getErrorMessage } from './bw-executor';
-import { formatTotp, itemIcon, itemSubtitle } from './item-utils';
+import { formatTotp, hasTotp, itemSubtitle } from './item-list';
+import { itemIcon } from './item-icons';
 import { useVaultSearch } from './use-vault-search';
 import type { BwItem } from './bitwarden-types';
-import { ItemType } from './bitwarden-types';
 import { computeLocalTotp, isSteamSecret } from './totp-compute';
 
 function totpItems(items: BwItem[]): BwItem[] {
-  return items.filter(
-    (item) =>
-      item.type === ItemType.Login && item.login?.totp !== null && item.login?.totp !== undefined,
-  );
+  return items.filter(hasTotp);
 }
 
 const WINDOW_MS = 30_000;
@@ -87,7 +84,7 @@ export default function SearchTotp() {
       while (!cancelled) {
         const i = cursor++;
         if (i >= cliStale.length) return;
-        const id = cliStale[i];
+        const id = cliStale[i]!;
         try {
           const code = await bw.getTotp(id, session);
           if (cancelled) return;

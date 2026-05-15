@@ -88,14 +88,23 @@ vi.mock('../vault-cache', () => ({
   loadTotpSecrets: vi.fn().mockResolvedValue({}),
 }));
 
-vi.mock('../item-utils', () => ({
+vi.mock('../item-form', () => ({
   buildItemDetailMarkdown: () => '',
+}));
+
+vi.mock('../item-list', () => ({
   filterItems: (items: unknown[]) => items,
-  itemActions: () => [],
   groupByFolder: () => new Map(),
-  itemIcon: () => 'key',
   itemSubtitle: () => undefined,
   itemTypeLabel: () => 'Login',
+}));
+
+vi.mock('../item-actions', () => ({
+  itemActions: () => [],
+}));
+
+vi.mock('../item-icons', () => ({
+  itemIcon: () => 'key',
 }));
 
 vi.mock('../use-session', () => ({

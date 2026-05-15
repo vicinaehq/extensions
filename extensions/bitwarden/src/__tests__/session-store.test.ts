@@ -126,8 +126,8 @@ describe('setSession', () => {
       expect.objectContaining({ stdio: ['pipe', 'ignore', 'ignore'] }),
     );
 
-    const child = mockSpawn.mock.results[0].value;
-    const writtenData = child.stdin.write.mock.calls[0][0];
+    const child = mockSpawn.mock.results[0]!.value;
+    const writtenData = child.stdin.write.mock.calls[0]![0];
     const parsed = JSON.parse(writtenData);
     expect(parsed.token).toBe('my-session-token');
     expect(parsed.timestamp).toBeGreaterThanOrEqual(before);

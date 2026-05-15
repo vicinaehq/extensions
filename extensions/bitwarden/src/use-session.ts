@@ -12,6 +12,16 @@ import {
 import { clearCachedSends, clearCachedVault, clearSendKeys, clearTotpSecrets } from './vault-cache';
 import { logError } from './log';
 
+function requireApiCreds(
+  clientId: string | undefined,
+  clientSecret: string | undefined,
+): { clientId: string; clientSecret: string } {
+  if (!clientId || !clientSecret) {
+    throw new Error('No API credentials configured');
+  }
+  return { clientId, clientSecret };
+}
+
 interface SessionState {
   session: Session | null;
   unlock: (masterPassword: string) => Promise<Session>;
@@ -77,18 +87,12 @@ export function useSession(): SessionState {
           });
         }
       } else {
-        if (!prefClientId || !prefClientSecret) {
-          throw new Error('No API credentials configured');
-        }
+        const { clientId, clientSecret } = requireApiCreds(prefClientId, prefClientSecret);
 
-        await bw.login({
-          clientId: prefClientId,
-          clientSecret: prefClientSecret,
-          serverUrl,
-        });
+        await bw.login({ clientId, clientSecret, serverUrl });
 
         try {
-          await storeApiCredentials(prefClientId, prefClientSecret);
+          await storeApiCredentials(clientId, clientSecret);
         } catch (err) {
           // Migration failure is non-fatal — login already succeeded
           logError('useSession.credentialMigration', err);

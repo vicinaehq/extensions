@@ -18,9 +18,12 @@ vi.mock('../bw-executor', () => ({
   getErrorMessage: mockBw.getErrorMessage,
 }));
 
-vi.mock('../item-utils', () => ({
+vi.mock('../toast', () => ({
   showFailureToast: async (_err: unknown, title: string) =>
     mockShowToast({ style: 'failure', title }),
+}));
+
+vi.mock('../item-form', () => ({
   readFormValues: (values: Record<string, unknown>) => {
     const out: Record<string, string> = {};
     for (const [k, v] of Object.entries(values)) out[k] = String(v ?? '');

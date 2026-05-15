@@ -4,10 +4,10 @@ import type { Image } from '@vicinae/api';
 import { SendType } from './send-types';
 import type { BwSend, CreateSendPayload, SendAction, SendTypeValue } from './send-types';
 import * as bw from './bw-executor';
-import { showFailureToast } from './item-utils';
+import { showFailureToast } from './toast';
 import { buildIcon } from './item-icons';
 import { getPreferences, getServerUrl } from './preferences';
-import { trimToNull } from './item-utils';
+import { trimToNull } from './item-form';
 import { loadSendKeys } from './vault-cache';
 
 export const SEND_LINK_ACTION_LABEL = 'Copy Send Link' as const;
@@ -88,7 +88,8 @@ export function sendAccessUrl(send: BwSend): string {
     const serverUrl = getServerUrl(prefs);
     base = serverUrl.replace(/\/+$/, '');
   } catch {
-    // fall back to default
+    // getPreferences() may throw until the user has configured the extension;
+    // fall back to the default Bitwarden cloud URL so sends are usable early.
   }
   return `${base}/#/send/${send.accessId}/${send.key}`;
 }
@@ -136,6 +137,13 @@ export const HOURS_OPTIONS = [
 
 export const EDIT_HOURS_OPTIONS = [{ value: '-1', title: 'Keep existing' }, ...HOURS_OPTIONS];
 
+function parseDateFromHours(formValues: Record<string, string>, field: string): string | null {
+  const value = formValues[field];
+  if (!value || value === '0' || value === '-1') return null;
+  const hours = Number(value) || 0;
+  return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+}
+
 export function toSendPayload(
   formValues: Record<string, string>,
   type: SendTypeValue,
@@ -148,25 +156,8 @@ export function toSendPayload(
     if (!isNaN(raw)) maxAccessCount = raw;
   }
 
-  let deletionDate: string | null = null;
-  if (
-    formValues.deletionHours &&
-    formValues.deletionHours !== '0' &&
-    formValues.deletionHours !== '-1'
-  ) {
-    const hours = Number(formValues.deletionHours) || 0;
-    deletionDate = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
-  }
-
-  let expirationDate: string | null = null;
-  if (
-    formValues.expirationHours &&
-    formValues.expirationHours !== '0' &&
-    formValues.expirationHours !== '-1'
-  ) {
-    const hours = Number(formValues.expirationHours) || 0;
-    expirationDate = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
-  }
+  const deletionDate = parseDateFromHours(formValues, 'deletionHours');
+  const expirationDate = parseDateFromHours(formValues, 'expirationHours');
 
   const text =
     type === SendType.Text

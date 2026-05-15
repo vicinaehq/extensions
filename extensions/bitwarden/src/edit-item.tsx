@@ -11,17 +11,14 @@ import {
 } from '@vicinae/api';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as bw from './bw-executor';
-import { showFailureToast } from './item-utils';
+import { logError } from './log';
+import { showFailureToast } from './toast';
 import type { BwFolder, BwItem } from './bitwarden-types';
 import { ItemType } from './bitwarden-types';
-import {
-  CARD_BRANDS,
-  digitsOnly,
-  itemTypeLabel,
-  toCreatePayload,
-  uploadAttachments,
-} from './item-utils';
+import { CARD_BRANDS, toCreatePayload, uploadAttachments } from './item-form';
+import { itemTypeLabel } from './item-list';
 import CustomFieldsSection, { type CustomField } from './custom-fields-section';
+import { useCardFields } from './use-card-fields';
 
 interface EditItemProps {
   item: BwItem;
@@ -124,9 +121,7 @@ export default function EditItem({ item, session, onSaved }: EditItemProps) {
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [attachmentPaths, setAttachmentPaths] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
-  const [expMonth, setExpMonth] = useState('');
-  const [expYear, setExpYear] = useState('');
-  const [cardCode, setCardCode] = useState('');
+  const { expMonth, setExpMonth, expYear, setExpYear, cardCode, setCardCode } = useCardFields();
   const [nameError, setNameError] = useState<string | undefined>();
   const fieldIdRef = useRef(0);
 
@@ -135,7 +130,8 @@ export default function EditItem({ item, session, onSaved }: EditItemProps) {
       let resolved: BwItem;
       try {
         resolved = await bw.getItem(item.id, session);
-      } catch {
+      } catch (err) {
+        logError('editItem.getItem', err);
         resolved = item;
       }
 
@@ -163,8 +159,8 @@ export default function EditItem({ item, session, onSaved }: EditItemProps) {
 
       try {
         setFolders(await bw.listFolders(session));
-      } catch {
-        // Folder list is optional
+      } catch (err) {
+        logError('editItem.listFolders', err);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -298,9 +294,9 @@ export default function EditItem({ item, session, onSaved }: EditItemProps) {
           expMonth,
           expYear,
           cardCode,
-          (v) => setExpMonth(digitsOnly(v)),
-          (v) => setExpYear(digitsOnly(v)),
-          (v) => setCardCode(digitsOnly(v)),
+          setExpMonth,
+          setExpYear,
+          setCardCode,
         )}
 
       {item.type === ItemType.Identity &&

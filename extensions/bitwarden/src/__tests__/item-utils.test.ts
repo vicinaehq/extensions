@@ -72,19 +72,11 @@ vi.mock('@vicinae/api', () => ({
 
 import { BwFolder, BwItem, ItemType } from '../bitwarden-types';
 import { CreateItemPayload, ItemAction } from '../bw-executor';
-import {
-  buildItemDetailMarkdown,
-  clearCachedVault,
-  filterItems,
-  itemActions,
-  groupByFolder,
-  itemIcon,
-  itemSubtitle,
-  itemTypeLabel,
-  loadCachedVault,
-  saveCachedVault,
-  toCreatePayload,
-} from '../item-utils';
+import { buildItemDetailMarkdown, toCreatePayload } from '../item-form';
+import { filterItems, groupByFolder, itemSubtitle, itemTypeLabel } from '../item-list';
+import { itemActions } from '../item-actions';
+import { clearCachedVault, loadCachedVault, saveCachedVault } from '../vault-cache';
+import { itemIcon } from '../item-icons';
 import { clearFaviconCache, loadFaviconCache, resolveFavicons } from '../favicons';
 
 // Expected data URI for the 24-byte test PNG used by createFetchMock and readFileSync mock
@@ -149,7 +141,7 @@ describe('filterItems', () => {
   it('matches by full name', () => {
     const result = filterItems(items, 'Bank Account');
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('3');
+    expect(result[0]!.id).toBe('3');
   });
 });
 
@@ -947,7 +939,7 @@ describe('resolveFavicons', () => {
     const persistCalls = mockSetItem.mock.calls.filter(
       (c) => c[0] === 'vicinae-bitwarden-favicons',
     );
-    const lastPersisted = JSON.parse(persistCalls[persistCalls.length - 1][1]);
+    const lastPersisted = JSON.parse(persistCalls[persistCalls.length - 1]![1]!);
     expect(lastPersisted).toHaveProperty('a.com');
     expect(lastPersisted).not.toHaveProperty('b.com');
 

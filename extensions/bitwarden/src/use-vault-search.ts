@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Clipboard, showToast, Toast } from '@vicinae/api';
 import * as bw from './bw-executor';
-import { showFailureToast } from './item-utils';
-import { filterItems, groupByFolder } from './item-utils';
+import { showFailureToast } from './toast';
+import { filterItems, groupByFolder } from './item-list';
 import { useSession } from './use-session';
 import { createUnlockCallbacks, renderGate, useUnlockGate } from './unlock-gate';
 import { useVaultSync } from './use-vault-sync';
@@ -53,16 +53,17 @@ export function useVaultSearch(preFilter?: (items: BwItem[]) => BwItem[]) {
     async (id: string, cachedCode?: string) => {
       if (!session) return;
       try {
-        let totp = cachedCode;
-        if (!totp) {
-          const item = vaultItems.find((i) => i.id === id);
-          const secret = item?.login?.totp || totpSecrets[id] || '';
-          if (secret && !isSteamSecret(secret)) {
-            totp = computeLocalTotp(secret, Date.now())?.code ?? undefined;
-          }
+        if (cachedCode) {
+          await Clipboard.copy(cachedCode);
+          await showToast({ style: Toast.Style.Success, title: 'Copied TOTP' });
+          return;
         }
-        if (!totp) totp = await bw.getTotp(id, session);
-        await Clipboard.copy(totp);
+        const item = vaultItems.find((i) => i.id === id);
+        const secret = item ? item.login?.totp || totpSecrets[id] || '' : '';
+        const localCode =
+          secret && !isSteamSecret(secret) ? computeLocalTotp(secret, Date.now())?.code : undefined;
+        const code = localCode ?? (await bw.getTotp(id, session));
+        await Clipboard.copy(code);
         await showToast({ style: Toast.Style.Success, title: 'Copied TOTP' });
       } catch (err) {
         await showFailureToast(err, 'Failed to get TOTP');

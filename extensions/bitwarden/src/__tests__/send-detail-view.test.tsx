@@ -16,7 +16,7 @@ const mockDeleteSendWithConfirm = vi.hoisted(() => vi.fn());
 
 vi.mock('../bw-executor', () => mockBw);
 
-vi.mock('../item-utils', () => ({
+vi.mock('../toast', () => ({
   showFailureToast: async (_err: unknown, title: string) =>
     mockShowToast({ style: 'failure', title }),
 }));

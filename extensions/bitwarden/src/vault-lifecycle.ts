@@ -8,6 +8,7 @@ import { checkBwGate } from './unlock-gate';
 import type { GateUIState } from './unlock-gate';
 import { ItemType } from './bitwarden-types';
 import type { BwFolder, BwItem } from './bitwarden-types';
+import { hasTotp } from './item-list';
 
 function isAuthError(message: string): boolean {
   const lower = message.toLowerCase();
@@ -25,12 +26,6 @@ export type UIState =
   | { kind: 'loading' }
   | { kind: 'vault'; items: BwItem[]; folders: BwFolder[] }
   | { kind: 'error'; title: string; message: string; retry?: () => void };
-
-function hasTotpItem(items: BwItem[]): boolean {
-  return items.some(
-    (i) => i.type === ItemType.Login && i.login?.totp !== null && i.login?.totp !== undefined,
-  );
-}
 
 async function handleSyncError(
   err: unknown,
@@ -75,63 +70,81 @@ export function useVaultLifecycle(params: VaultLifecycleParams) {
     setFaviconMap,
   } = params;
 
-  useEffect(() => {
-    void (async () => {
-      const map = await loadFaviconCache();
-      setFaviconMap(map);
+  async function runInitialLoad(
+    session: string | null,
+    setState: React.Dispatch<React.SetStateAction<UIState>>,
+    setVault: (items: BwItem[], folders: BwFolder[]) => void,
+    setFaviconMap: React.Dispatch<React.SetStateAction<Record<string, string>>>,
+    handleLogin: () => Promise<void>,
+    syncVault: (token: string) => Promise<void>,
+    clearSession: () => Promise<void>,
+  ) {
+    const map = await loadFaviconCache();
+    setFaviconMap(map);
 
-      const cached = await loadCachedVault();
-      let staleCache = false;
-      if (cached) {
-        staleCache = hasTotpItem(cached.items) && Object.keys(await loadTotpSecrets()).length === 0;
-        if (!staleCache) {
-          setVault(cached.items, cached.folders);
-        }
+    const cached = await loadCachedVault();
+    let staleCache = false;
+    if (cached) {
+      staleCache = cached.items.some(hasTotp) && Object.keys(await loadTotpSecrets()).length === 0;
+      if (!staleCache) {
+        setVault(cached.items, cached.folders);
       }
+    }
 
-      const noUsableCache = !cached || staleCache;
-      const optimistic = !session && noUsableCache;
-      if (optimistic) {
-        setState({ kind: 'needs-unlock' });
-      }
+    const noUsableCache = !cached || staleCache;
+    const optimistic = !session && noUsableCache;
+    if (optimistic) {
+      setState({ kind: 'needs-unlock' });
+    }
 
-      const gate = await checkBwGate(session);
-      switch (gate.kind) {
-        case 'bw-not-installed':
-        case 'secret-tool-not-installed':
+    const gate = await checkBwGate(session);
+    switch (gate.kind) {
+      case 'bw-not-installed':
+      case 'secret-tool-not-installed':
+        setState({ kind: gate.kind });
+        return;
+      case 'logging-in':
+        if (optimistic) {
+          void handleLogin();
+        } else {
           setState({ kind: gate.kind });
-          return;
-        case 'logging-in':
-          if (optimistic) {
-            void handleLogin();
-          } else {
-            setState({ kind: gate.kind });
-          }
-          return;
-        case 'needs-unlock':
-          if (noUsableCache) setState({ kind: 'needs-unlock' });
-          return;
-        case 'error':
-          setState({
-            kind: 'error',
-            title: gate.title,
-            message: gate.message,
-            retry: () => setState({ kind: 'loading' }),
-          });
-          return;
-        case 'ready':
-          break;
-      }
+        }
+        return;
+      case 'needs-unlock':
+        if (noUsableCache) setState({ kind: 'needs-unlock' });
+        return;
+      case 'error':
+        setState({
+          kind: 'error',
+          title: gate.title,
+          message: gate.message,
+          retry: () => setState({ kind: 'loading' }),
+        });
+        return;
+      case 'ready':
+        break;
+    }
 
-      try {
-        await syncVault(session!);
-        await showToast({ style: Toast.Style.Success, title: 'Vault synced' });
-      } catch (err) {
-        logError('vault-lifecycle.initialSync', err);
-        if (!cached || staleCache)
-          await handleSyncError(err, clearSession, setState, 'Session expired');
-      }
-    })();
+    try {
+      await syncVault(session!);
+      await showToast({ style: Toast.Style.Success, title: 'Vault synced' });
+    } catch (err) {
+      logError('vault-lifecycle.initialSync', err);
+      if (!cached || staleCache)
+        await handleSyncError(err, clearSession, setState, 'Session expired');
+    }
+  }
+
+  useEffect(() => {
+    void runInitialLoad(
+      session,
+      setState,
+      setVault,
+      setFaviconMap,
+      handleLogin,
+      syncVault,
+      clearSession,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

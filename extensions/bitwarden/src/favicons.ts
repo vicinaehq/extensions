@@ -144,7 +144,7 @@ function roundPngCorners(buf: Buffer): Buffer {
         } else {
           // 1px antialiased band
           const factor = radius + 0.5 - dist;
-          data[idx] = Math.round(data[idx] * factor);
+          data[idx] = Math.round(data[idx]! * factor);
         }
       }
     }
@@ -244,7 +244,7 @@ export async function resolveFavicons(domains: string[]): Promise<FaviconMap> {
     { length: Math.min(MAX_CONCURRENT_FETCHES, toFetch.length) },
     async () => {
       while (cursor < toFetch.length) {
-        const domain = toFetch[cursor++];
+        const domain = toFetch[cursor++]!;
         const filePath = join(faviconDir(), `${encodeURIComponent(domain)}.png`);
         const dataUri = await fetchAndWrite(domain, filePath, now);
         if (dataUri) result[domain] = dataUri;

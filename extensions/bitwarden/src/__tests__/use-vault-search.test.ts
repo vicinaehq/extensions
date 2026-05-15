@@ -33,7 +33,7 @@ vi.mock('../use-totp-secrets', () => ({
   useTotpSecrets: () => mockUseTotpSecretsImpl(),
 }));
 
-vi.mock('../item-utils', () => ({
+vi.mock('../item-list', () => ({
   filterItems: (items: BwItem[]) => items,
   groupByFolder: (items: BwItem[]) => {
     const map = new Map();
@@ -42,6 +42,9 @@ vi.mock('../item-utils', () => ({
     }
     return map;
   },
+}));
+
+vi.mock('../toast', () => ({
   showFailureToast: async (_err: unknown, title: string) =>
     mockShowToast({ style: 'failure', title }),
 }));
@@ -253,8 +256,8 @@ describe('useVaultSearch', () => {
 
       await waitFor(() => {
         expect(result.current.sortedSections).toHaveLength(1);
-        expect(result.current.sortedSections[0][0]).toBe('f1');
-        expect(result.current.sortedSections[0][1].folderName).toBe('Work');
+        expect(result.current.sortedSections[0]![0]).toBe('f1');
+        expect(result.current.sortedSections[0]![1]!.folderName).toBe('Work');
       });
     });
   });

@@ -84,8 +84,12 @@ async function execBw(
   args: string[],
   opts: { timeout?: number; maxBuffer?: number; env?: NodeJS.ProcessEnv },
 ): Promise<string> {
-  const { stdout } = await exec('bw', args, opts);
-  return stdout;
+  try {
+    const { stdout } = await exec('bw', args, opts);
+    return stdout;
+  } catch (err) {
+    throw toBwError(err);
+  }
 }
 
 async function execBwJson<T>(
@@ -163,10 +167,14 @@ async function encodeAndExec(
   args: string[],
   session: Session,
 ): Promise<string> {
-  const json = JSON.stringify(payload);
-  const env = sessionEnv(session);
-  const encoded = await execStdin('bw', ['encode'], json, { env, timeout: 15000 });
-  return execStdin('bw', [cmd, ...args], encoded, { env, timeout: 15000 });
+  try {
+    const json = JSON.stringify(payload);
+    const env = sessionEnv(session);
+    const encoded = await execStdin('bw', ['encode'], json, { env, timeout: 15000 });
+    return execStdin('bw', [cmd, ...args], encoded, { env, timeout: 15000 });
+  } catch (err) {
+    throw toBwError(err);
+  }
 }
 
 /**
@@ -198,34 +206,22 @@ export async function login(params: {
     BW_CLIENTSECRET: params.clientSecret,
   };
 
-  try {
-    await execBw(['config', 'server', params.serverUrl], {
-      timeout: 10000,
-      env,
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  await execBw(['config', 'server', params.serverUrl], {
+    timeout: 10000,
+    env,
+  });
 
-  try {
-    await execBw(['login', '--apikey'], {
-      timeout: 30000,
-      env,
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  await execBw(['login', '--apikey'], {
+    timeout: 30000,
+    env,
+  });
 }
 
 /**
  * Retrieve the current status of the `bw` CLI (unauthenticated / locked / unlocked).
  */
 export async function status(): Promise<BwStatus> {
-  try {
-    return await execBwJson<BwStatus>(['status'], { timeout: 10000 });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  return await execBwJson<BwStatus>(['status'], { timeout: 10000 });
 }
 
 /**
@@ -256,11 +252,7 @@ export async function unlock(masterPassword: string): Promise<Session> {
  * Requires a valid Session.
  */
 export async function sync(session: Session): Promise<void> {
-  try {
-    await execBw(['sync'], { timeout: 30000, env: sessionEnv(session) });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  await execBw(['sync'], { timeout: 30000, env: sessionEnv(session) });
 }
 
 /**
@@ -268,15 +260,11 @@ export async function sync(session: Session): Promise<void> {
  * Requires a valid Session.
  */
 export async function listItems(session: Session): Promise<BwItem[]> {
-  try {
-    return await execBwJson<BwItem[]>(['list', 'items'], {
-      timeout: 30000,
-      maxBuffer: 10 * 1024 * 1024,
-      env: sessionEnv(session),
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  return await execBwJson<BwItem[]>(['list', 'items'], {
+    timeout: 30000,
+    maxBuffer: 10 * 1024 * 1024,
+    env: sessionEnv(session),
+  });
 }
 
 /**
@@ -284,14 +272,10 @@ export async function listItems(session: Session): Promise<BwItem[]> {
  * Requires a valid Session.
  */
 export async function listFolders(session: Session): Promise<BwFolder[]> {
-  try {
-    return await execBwJson<BwFolder[]>(['list', 'folders'], {
-      timeout: 15000,
-      env: sessionEnv(session),
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  return await execBwJson<BwFolder[]>(['list', 'folders'], {
+    timeout: 15000,
+    env: sessionEnv(session),
+  });
 }
 
 /**
@@ -299,14 +283,10 @@ export async function listFolders(session: Session): Promise<BwFolder[]> {
  * Requires a valid Session.
  */
 export async function getItem(id: string, session: Session): Promise<BwItem> {
-  try {
-    return await execBwJson<BwItem>(['get', 'item', id], {
-      timeout: 15000,
-      env: sessionEnv(session),
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  return await execBwJson<BwItem>(['get', 'item', id], {
+    timeout: 15000,
+    env: sessionEnv(session),
+  });
 }
 
 /**
@@ -314,14 +294,10 @@ export async function getItem(id: string, session: Session): Promise<BwItem> {
  * Requires a valid Session.
  */
 export async function getTotp(id: string, session: Session): Promise<string> {
-  try {
-    return await execBwTrim(['get', 'totp', id], {
-      timeout: 10000,
-      env: sessionEnv(session),
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  return await execBwTrim(['get', 'totp', id], {
+    timeout: 10000,
+    env: sessionEnv(session),
+  });
 }
 
 /**
@@ -330,12 +306,8 @@ export async function getTotp(id: string, session: Session): Promise<string> {
  * matching Bitwarden's internal item schema.
  */
 export async function createItem(payload: CreateItemPayload, session: Session): Promise<BwItem> {
-  try {
-    const stdout = await encodeAndExec(payload, 'create', ['item'], session);
-    return parseJson<BwItem>(stdout);
-  } catch (err) {
-    throw toBwError(err);
-  }
+  const stdout = await encodeAndExec(payload, 'create', ['item'], session);
+  return parseJson<BwItem>(stdout);
 }
 
 /**
@@ -344,11 +316,7 @@ export async function createItem(payload: CreateItemPayload, session: Session): 
  * with only the fields to update.
  */
 export async function editItem(id: string, payload: object, session: Session): Promise<void> {
-  try {
-    await encodeAndExec(payload, 'edit', ['item', id], session);
-  } catch (err) {
-    throw toBwError(err);
-  }
+  await encodeAndExec(payload, 'edit', ['item', id], session);
 }
 
 /**
@@ -356,12 +324,8 @@ export async function editItem(id: string, payload: object, session: Session): P
  * Requires a valid Session. Returns the created folder with its id.
  */
 export async function createFolder(name: string, session: Session): Promise<BwFolder> {
-  try {
-    const stdout = await encodeAndExec({ name }, 'create', ['folder'], session);
-    return parseJson<BwFolder>(stdout);
-  } catch (err) {
-    throw toBwError(err);
-  }
+  const stdout = await encodeAndExec({ name }, 'create', ['folder'], session);
+  return parseJson<BwFolder>(stdout);
 }
 
 /**
@@ -369,14 +333,10 @@ export async function createFolder(name: string, session: Session): Promise<BwFo
  * Requires a valid Session.
  */
 export async function deleteItem(id: string, session: Session): Promise<void> {
-  try {
-    await execBw(['delete', 'item', id], {
-      timeout: 15000,
-      env: sessionEnv(session),
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  await execBw(['delete', 'item', id], {
+    timeout: 15000,
+    env: sessionEnv(session),
+  });
 }
 
 /**
@@ -421,13 +381,9 @@ export async function generatePassword(options: {
   if (options.symbols) flags.push('-s');
   flags.push('--length', String(options.length));
 
-  try {
-    return await execBwTrim(['generate', ...flags], {
-      timeout: 10000,
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  return await execBwTrim(['generate', ...flags], {
+    timeout: 10000,
+  });
 }
 
 /**
@@ -466,15 +422,11 @@ export async function downloadAttachment(
       'UNSAFE_FILENAME',
     );
   }
-  try {
-    await execBw(['get', 'attachment', attachmentId, '--itemid', itemId, '--output', outPath], {
-      timeout: 30000,
-      env: sessionEnv(session),
-    });
-    return outPath;
-  } catch (err) {
-    throw toBwError(err);
-  }
+  await execBw(['get', 'attachment', attachmentId, '--itemid', itemId, '--output', outPath], {
+    timeout: 30000,
+    env: sessionEnv(session),
+  });
+  return outPath;
 }
 
 /**
@@ -485,14 +437,10 @@ export async function createAttachment(
   filePath: string,
   session: Session,
 ): Promise<void> {
-  try {
-    await execBw(['create', 'attachment', '--itemid', itemId, '--file', filePath], {
-      timeout: 30000,
-      env: sessionEnv(session),
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  await execBw(['create', 'attachment', '--itemid', itemId, '--file', filePath], {
+    timeout: 30000,
+    env: sessionEnv(session),
+  });
 }
 
 /**
@@ -500,14 +448,10 @@ export async function createAttachment(
  * Requires a valid Session.
  */
 export async function listSends(session: Session): Promise<BwSend[]> {
-  try {
-    return await execBwJson<BwSend[]>(['send', 'list'], {
-      timeout: 30000,
-      env: sessionEnv(session),
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  return await execBwJson<BwSend[]>(['send', 'list'], {
+    timeout: 30000,
+    env: sessionEnv(session),
+  });
 }
 
 /**
@@ -515,14 +459,10 @@ export async function listSends(session: Session): Promise<BwSend[]> {
  * Requires a valid Session.
  */
 export async function getSend(id: string, session: Session): Promise<BwSend> {
-  try {
-    return await execBwJson<BwSend>(['send', 'get', id], {
-      timeout: 15000,
-      env: sessionEnv(session),
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  return await execBwJson<BwSend>(['send', 'get', id], {
+    timeout: 15000,
+    env: sessionEnv(session),
+  });
 }
 
 /**
@@ -535,13 +475,9 @@ export async function createSend(
   session: Session,
   filePath?: string,
 ): Promise<BwSend> {
-  try {
-    const extraArgs = filePath ? ['--file', filePath] : [];
-    const stdout = await encodeAndExec(payload, 'send', ['create', ...extraArgs], session);
-    return parseJson<BwSend>(stdout);
-  } catch (err) {
-    throw toBwError(err);
-  }
+  const extraArgs = filePath ? ['--file', filePath] : [];
+  const stdout = await encodeAndExec(payload, 'send', ['create', ...extraArgs], session);
+  return parseJson<BwSend>(stdout);
 }
 
 /**
@@ -549,11 +485,7 @@ export async function createSend(
  * Requires a valid Session.
  */
 export async function editSend(id: string, payload: object, session: Session): Promise<void> {
-  try {
-    await encodeAndExec(payload, 'send', ['edit', id], session);
-  } catch (err) {
-    throw toBwError(err);
-  }
+  await encodeAndExec(payload, 'send', ['edit', id], session);
 }
 
 /**
@@ -561,14 +493,10 @@ export async function editSend(id: string, payload: object, session: Session): P
  * Requires a valid Session.
  */
 export async function deleteSend(id: string, session: Session): Promise<void> {
-  try {
-    await execBw(['send', 'delete', id], {
-      timeout: 15000,
-      env: sessionEnv(session),
-    });
-  } catch (err) {
-    throw toBwError(err);
-  }
+  await execBw(['send', 'delete', id], {
+    timeout: 15000,
+    env: sessionEnv(session),
+  });
 }
 
 interface ReceiveSendResult {
@@ -596,18 +524,14 @@ export async function receiveSend(
     env.BW_SEND_PASSWORD = password;
   }
   if (output) args.push('--output', output);
-  try {
-    const stdout = await execBw(args, { timeout: 30000, env });
-    const trimmed = stdout.trim();
-    const lower = trimmed.toLowerCase();
-    if (lower.startsWith('saved ')) {
-      const filePath = trimmed.slice(6).trim();
-      return { kind: 'file', path: filePath };
-    }
-    return { kind: 'text', text: trimmed };
-  } catch (err) {
-    throw toBwError(err);
+  const stdout = await execBw(args, { timeout: 30000, env });
+  const trimmed = stdout.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('saved ')) {
+    const filePath = trimmed.slice(6).trim();
+    return { kind: 'file', path: filePath };
   }
+  return { kind: 'text', text: trimmed };
 }
 
 /** Descriptor for an action the user can take on an Item */

@@ -13,7 +13,8 @@ import { useCallback, useState } from 'react';
 import * as bw from './bw-executor';
 import { SendType, type SendTypeValue } from './send-types';
 import { sendAccessUrl, toSendPayload, HOURS_OPTIONS } from './send-utils';
-import { digitsOnly, readFormValues, showFailureToast } from './item-utils';
+import { showFailureToast } from './toast';
+import { digitsOnly, readFormValues } from './item-form';
 import { useSession } from './use-session';
 import { renderFormGate, useGateEffects, castGateSetter } from './unlock-gate';
 import type { GateUIState } from './unlock-gate';
@@ -29,6 +30,21 @@ const SEND_TYPE_OPTIONS = Object.keys(SEND_TYPE_MAP).map((label) => ({
   value: label,
   label,
 }));
+
+type SendFormErrors = { name?: string; text?: string; file?: string };
+
+function validateSendForm(
+  sendValues: Record<string, string>,
+  typeNum: SendTypeValue,
+  filePath: string | undefined,
+): SendFormErrors | null {
+  const errors: SendFormErrors = {};
+  if (!sendValues.name?.trim()) errors.name = 'Name is required';
+  if (typeNum === SendType.Text && !sendValues.textContent?.trim())
+    errors.text = 'Text content is required';
+  if (typeNum === SendType.File && !filePath) errors.file = 'File is required';
+  return Object.keys(errors).length > 0 ? errors : null;
+}
 
 export default function CreateSend() {
   const { session, unlock, loginIfNeeded, loginError } = useSession();
@@ -60,27 +76,19 @@ export default function CreateSend() {
       const rawFile = Array.isArray(values.file) ? values.file[0] : undefined;
       const filePath = typeNum === SendType.File && rawFile != null ? String(rawFile) : undefined;
 
-      let hasError = false;
-      if (!sendValues.name?.trim()) {
-        setNameError('Name is required');
-        hasError = true;
+      const errors = validateSendForm(sendValues, typeNum, filePath);
+      if (errors) {
+        setNameError(errors.name);
+        setTextError(errors.text);
+        setFileError(errors.file);
+        return;
       }
-      if (typeNum === SendType.Text && !sendValues.textContent?.trim()) {
-        setTextError('Text content is required');
-        hasError = true;
-      }
-      if (typeNum === SendType.File && !filePath) {
-        setFileError('File is required');
-        hasError = true;
-      }
-      if (hasError) return;
 
       setIsSubmitting(true);
       try {
         const payload = toSendPayload({ ...sendValues, filePath: filePath ?? '' }, typeNum);
         const created = await bw.createSend(payload, session, filePath);
-        const url = sendAccessUrl(created);
-        await Clipboard.copy(url);
+        await Clipboard.copy(sendAccessUrl(created));
         await showToast({
           style: Toast.Style.Success,
           title: 'Send created',

@@ -10,23 +10,19 @@ import {
 } from '@vicinae/api';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as bw from './bw-executor';
+import { logError } from './log';
 import type { BwFolder } from './bitwarden-types';
 import { ItemType } from './bitwarden-types';
 import type { ItemTypeValue } from './bitwarden-types';
-import {
-  CARD_BRANDS,
-  digitsOnly,
-  readFormValues,
-  showFailureToast,
-  toCreatePayload,
-  uploadAttachments,
-} from './item-utils';
+import { CARD_BRANDS, readFormValues, toCreatePayload, uploadAttachments } from './item-form';
+import { showFailureToast } from './toast';
 import CustomFieldsSection from './custom-fields-section';
 import type { CustomField } from './custom-fields-section';
 import { useSession } from './use-session';
 import { getPasswordPrefs, getPreferences } from './preferences';
 import { renderFormGate, useGateEffects, castGateSetter } from './unlock-gate';
 import type { GateUIState } from './unlock-gate';
+import { useCardFields } from './use-card-fields';
 
 type UIState = GateUIState | { kind: 'form' };
 
@@ -73,9 +69,7 @@ export default function CreateItem() {
   const [newFolderName, setNewFolderName] = useState('');
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [attachmentPaths, setAttachmentPaths] = useState<string[]>([]);
-  const [expMonth, setExpMonth] = useState('');
-  const [expYear, setExpYear] = useState('');
-  const [cardCode, setCardCode] = useState('');
+  const { expMonth, setExpMonth, expYear, setExpYear, cardCode, setCardCode } = useCardFields();
   const [nameError, setNameError] = useState<string | undefined>();
   const fieldIdRef = useRef(0);
 
@@ -96,8 +90,8 @@ export default function CreateItem() {
     void (async () => {
       try {
         setFolders(await bw.listFolders(session));
-      } catch {
-        // Folder list is optional — form still works without it
+      } catch (err) {
+        logError('createItem.listFolders', err);
       }
     })();
   }, [session, state.kind, folders.length]);
@@ -279,20 +273,15 @@ export default function CreateItem() {
             id="expMonth"
             title="Expiration Month"
             value={expMonth}
-            onChange={(v) => setExpMonth(digitsOnly(v))}
+            onChange={setExpMonth}
           />
           <Form.TextField
             id="expYear"
             title="Expiration Year"
             value={expYear}
-            onChange={(v) => setExpYear(digitsOnly(v))}
+            onChange={setExpYear}
           />
-          <Form.TextField
-            id="code"
-            title="Security Code"
-            value={cardCode}
-            onChange={(v) => setCardCode(digitsOnly(v))}
-          />
+          <Form.TextField id="code" title="Security Code" value={cardCode} onChange={setCardCode} />
         </>
       )}
 

@@ -69,8 +69,8 @@ describe('storeApiCredentials', () => {
       expect.objectContaining({ stdio: ['pipe', 'ignore', 'ignore'] }),
     );
 
-    const child = mockSpawn.mock.results[0].value;
-    const written = child.stdin.write.mock.calls[0][0];
+    const child = mockSpawn.mock.results[0]!.value;
+    const written = child.stdin.write.mock.calls[0]![0];
     const parsed = JSON.parse(written);
     expect(parsed).toEqual({ clientId: 'my-client-id', clientSecret: 'my-client-secret' });
   });

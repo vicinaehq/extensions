@@ -121,7 +121,7 @@ vi.mock('@vicinae/api', () => ({
 
 vi.mock('../bw-executor', () => mockBw);
 
-vi.mock('../item-utils', () => ({
+vi.mock('../item-form', () => ({
   toCreatePayload: vi.fn((values: Record<string, string>, type: number) => ({
     type,
     name: values.name ?? '',
@@ -129,9 +129,12 @@ vi.mock('../item-utils', () => ({
     folderId: null,
     favorite: false,
   })),
-  itemTypeLabel: vi.fn(() => 'Login'),
   CARD_BRANDS: ['Visa', 'Mastercard', 'Amex', 'Discover', 'Other'],
   uploadAttachments: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../item-list', () => ({
+  itemTypeLabel: vi.fn(() => 'Login'),
 }));
 
 import EditItem from '../edit-item';

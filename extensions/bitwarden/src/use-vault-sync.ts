@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 import { showToast, Toast } from '@vicinae/api';
 import * as bw from './bw-executor';
-import { showFailureToast } from './item-utils';
+import { showFailureToast } from './toast';
 import { saveCachedVault, saveTotpSecrets } from './vault-cache';
-import { ItemType, type BwFolder, type BwItem } from './bitwarden-types';
+import { type BwFolder, type BwItem } from './bitwarden-types';
 
 export function useVaultSync(
   session: string | null,
@@ -18,7 +18,7 @@ export function useVaultSync(
       await saveCachedVault(items, folders);
       const totpMap: Record<string, string> = {};
       for (const item of items) {
-        if (item.type === ItemType.Login && item.login?.totp) {
+        if (item.login?.totp) {
           totpMap[item.id] = item.login.totp;
         }
       }

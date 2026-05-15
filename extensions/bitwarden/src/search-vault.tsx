@@ -1,6 +1,8 @@
 import { Action, ActionPanel, Icon, List, useNavigation } from '@vicinae/api';
 import * as bw from './bw-executor';
-import { itemActions as getItemActions, itemIcon, itemSubtitle, itemTypeLabel } from './item-utils';
+import { itemActions as getItemActions } from './item-actions';
+import { itemIcon } from './item-icons';
+import { itemSubtitle, itemTypeLabel } from './item-list';
 import { useVaultSearch } from './use-vault-search';
 import ItemDetailView, { renderItemActionElements } from './item-detail-view';
 import EditItem from './edit-item';

@@ -31,9 +31,9 @@ const mockCompute = vi.hoisted(() => ({
 
 vi.mock('../totp-compute', () => mockCompute);
 
-vi.mock('../item-utils', () => ({
+vi.mock('../item-list', () => ({
   formatTotp: (code: string) => `${code.slice(0, 3)} ${code.slice(3)}`,
-  itemIcon: () => ({ source: 'icon.png' }),
+  hasTotp: (item: BwItem) => item.type === 1 && item.login?.totp != null,
   itemSubtitle: (item: BwItem) => item.login?.username ?? '',
   filterItems: (items: BwItem[], query: string) =>
     query ? items.filter((i) => i.name.toLowerCase().includes(query.toLowerCase())) : items,
@@ -42,6 +42,10 @@ vi.mock('../item-utils', () => ({
     if (items.length > 0) map.set('f1', { folderName: 'Work', items });
     return map;
   },
+}));
+
+vi.mock('../item-icons', () => ({
+  itemIcon: () => ({ source: 'icon.png' }),
 }));
 
 let mockGateRender: React.ReactElement | null = null;
