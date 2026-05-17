@@ -1,5 +1,6 @@
 import { exec } from "node:child_process";
 import type { AnnotatorBackend } from "./types";
+import { shellEscape } from "../backends/utils";
 
 export const mspaintAnnotator: AnnotatorBackend = {
 	id: "mspaint",
@@ -10,7 +11,7 @@ export const mspaintAnnotator: AnnotatorBackend = {
 
 	annotate: async (imagePath: string) => {
 		await new Promise<void>((resolve) => {
-			exec(`mspaint.exe "${imagePath}"`, () => resolve());
+			exec(`mspaint.exe "${shellEscape(imagePath)}"`, () => resolve());
 		});
 	},
 };

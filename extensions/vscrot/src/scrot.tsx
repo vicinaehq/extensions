@@ -87,7 +87,31 @@ export default function Scrot() {
 	const capture = async (mode: CaptureMode) => {
 		if (!activeBackendId) return;
 		const result = await captureScreenshot(mode, activeBackendId);
-		if (result) setLastCapture(result);
+		if (!result) return;
+
+		// Auto-annotate if the preference is set and an annotator is configured
+		if (prefs.use_editor && activeAnnotatorId) {
+			const shouldReload = await annotateWith(result, activeAnnotatorId);
+			if (shouldReload) {
+				// Auto-reload tools (Satty, swappy) wrote the file back — pick it up
+				// Fall through to auto-copy/save with the (now annotated) file
+			}
+		}
+
+		// Auto-copy and/or auto-save if the preferences say so
+		if (prefs.copy_to_clipboard) await copyToClipboard(result, false);
+		if (prefs.save_to_file) {
+			saveImageFile(result, getSavePath(prefs));
+			refreshRecent();
+		}
+
+		// Close if autoclose is on and at least one auto-action ran
+		if ((prefs.copy_to_clipboard || prefs.save_to_file) && prefs.autoclose_vicinae) {
+			closeMainWindow();
+			return;
+		}
+
+		setLastCapture(result);
 	};
 
 	const handleSave = () => {

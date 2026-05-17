@@ -1,5 +1,8 @@
 import { execSync } from "node:child_process";
 
+/** Escape a path for safe use inside double-quoted shell strings. */
+export const shellEscape = (p: string): string => p.replace(/"/g, '\\"');
+
 export const isCommandAvailable = (cmd: string): boolean => {
 	try {
 		execSync(`command -v ${cmd}`, { stdio: "ignore" });

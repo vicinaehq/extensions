@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import type { CaptureBackend, CaptureMode } from "./types";
-import { isCommandAvailable } from "./utils";
+import { isCommandAvailable, shellEscape } from "./utils";
 
 export const x11ScrotBackend: CaptureBackend = {
 	id: "scrot",
@@ -10,12 +10,13 @@ export const x11ScrotBackend: CaptureBackend = {
 	isAvailable: () => isCommandAvailable("scrot"),
 
 	capture: async (mode: CaptureMode, outputPath: string) => {
+		const out = shellEscape(outputPath);
 		if (mode === "area") {
-			execSync(`scrot -s "${outputPath}"`);
+			execSync(`scrot -s "${out}"`);
 		} else if (mode === "window") {
-			execSync(`scrot -u "${outputPath}"`);
+			execSync(`scrot -u "${out}"`);
 		} else {
-			execSync(`scrot "${outputPath}"`);
+			execSync(`scrot "${out}"`);
 		}
 	},
 };

@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import type { CaptureBackend, CaptureMode } from "./types";
-import { isCommandAvailable } from "./utils";
+import { isCommandAvailable, shellEscape } from "./utils";
 
 export const maimBackend: CaptureBackend = {
 	id: "maim",
@@ -10,14 +10,15 @@ export const maimBackend: CaptureBackend = {
 	isAvailable: () => isCommandAvailable("maim"),
 
 	capture: async (mode: CaptureMode, outputPath: string) => {
+		const out = shellEscape(outputPath);
 		if (mode === "area") {
 			const geometry = execSync("slop -f '%x,%y %wx%h'").toString().trim();
-			execSync(`maim -g "${geometry}" "${outputPath}"`);
+			execSync(`maim -g "${shellEscape(geometry)}" "${out}"`);
 		} else if (mode === "window") {
 			const id = execSync("xdotool getactivewindow").toString().trim();
-			execSync(`maim -i "${id}" "${outputPath}"`);
+			execSync(`maim -i "${shellEscape(id)}" "${out}"`);
 		} else {
-			execSync(`maim "${outputPath}"`);
+			execSync(`maim "${out}"`);
 		}
 	},
 };

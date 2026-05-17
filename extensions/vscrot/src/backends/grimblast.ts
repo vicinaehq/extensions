@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import type { CaptureBackend, CaptureMode } from "./types";
-import { isCommandAvailable, selectMonitor } from "./utils";
+import { isCommandAvailable, selectMonitor, shellEscape } from "./utils";
 
 const MODE_MAP: Record<CaptureMode, string> = {
 	area: "area",
@@ -21,11 +21,12 @@ export const grimblastBackend: CaptureBackend = {
 		outputPath: string,
 		outputName?: string,
 	) => {
+		const out = shellEscape(outputPath);
 		if (mode === "monitor") {
 			// grimblast save output captures the focused output, which races with
 			// closeMainWindow() shifting focus. Use grim -o with named output instead.
-			const name = outputName ?? selectMonitor();
-			execSync(`grim -o "${name}" "${outputPath}"`);
+			const name = shellEscape(outputName ?? selectMonitor());
+			execSync(`grim -o "${name}" "${out}"`);
 		} else if (mode === "window") {
 			// grimblast save active captures whatever window has focus after Vicinae closes.
 			// Use hyprctl + slurp for reliable interactive window selection instead.
@@ -34,9 +35,9 @@ export const grimblastBackend: CaptureBackend = {
 			)
 				.toString()
 				.trim();
-			execSync(`grim -g "${geometry}" "${outputPath}"`);
+			execSync(`grim -g "${shellEscape(geometry)}" "${out}"`);
 		} else {
-			execSync(`grimblast save ${MODE_MAP[mode]} "${outputPath}"`);
+			execSync(`grimblast save ${MODE_MAP[mode]} "${out}"`);
 		}
 	},
 };

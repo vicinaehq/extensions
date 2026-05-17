@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import type { CaptureBackend, CaptureMode } from "./types";
-import { isCommandAvailable, selectMonitor } from "./utils";
+import { isCommandAvailable, selectMonitor, shellEscape } from "./utils";
 
 export const grimBackend: CaptureBackend = {
 	id: "grim",
@@ -14,6 +14,7 @@ export const grimBackend: CaptureBackend = {
 		outputPath: string,
 		outputName?: string,
 	) => {
+		const out = shellEscape(outputPath);
 		let geometry = "";
 		if (mode === "area") {
 			geometry = execSync("slurp").toString().trim();
@@ -24,10 +25,10 @@ export const grimBackend: CaptureBackend = {
 				.toString()
 				.trim();
 		} else if (mode === "monitor") {
-			const name = outputName ?? selectMonitor();
-			execSync(`grim -o "${name}" "${outputPath}"`);
+			const name = shellEscape(outputName ?? selectMonitor());
+			execSync(`grim -o "${name}" "${out}"`);
 			return;
 		}
-		execSync(`grim ${geometry ? `-g "${geometry}"` : ""} "${outputPath}"`);
+		execSync(`grim ${geometry ? `-g "${shellEscape(geometry)}"` : ""} "${out}"`);
 	},
 };

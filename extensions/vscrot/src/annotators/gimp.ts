@@ -1,6 +1,6 @@
 import { exec } from "node:child_process";
 import type { AnnotatorBackend } from "./types";
-import { isCommandAvailable } from "../backends/utils";
+import { isCommandAvailable, shellEscape } from "../backends/utils";
 
 export const gimpAnnotator: AnnotatorBackend = {
 	id: "gimp",
@@ -11,7 +11,7 @@ export const gimpAnnotator: AnnotatorBackend = {
 
 	annotate: async (imagePath: string) => {
 		await new Promise<void>((resolve) => {
-			exec(`gimp "${imagePath}"`, () => resolve());
+			exec(`gimp "${shellEscape(imagePath)}"`, () => resolve());
 		});
 	},
 };

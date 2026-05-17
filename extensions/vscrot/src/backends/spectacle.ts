@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import type { CaptureBackend, CaptureMode } from "./types";
-import { isCommandAvailable } from "./utils";
+import { isCommandAvailable, shellEscape } from "./utils";
 
 const FLAG_MAP: Record<CaptureMode, string> = {
 	area: "-r",
@@ -17,6 +17,6 @@ export const spectacleBackend: CaptureBackend = {
 	isAvailable: () => isCommandAvailable("spectacle"),
 
 	capture: async (mode: CaptureMode, outputPath: string) => {
-		execSync(`spectacle ${FLAG_MAP[mode]} -b -o "${outputPath}"`);
+		execSync(`spectacle ${FLAG_MAP[mode]} -b -o "${shellEscape(outputPath)}"`);
 	},
 };
