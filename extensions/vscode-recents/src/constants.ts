@@ -13,6 +13,7 @@ export const VSCODE_EXECUTABLES: Record<string, string> = {
     VSCodium: "codium",
     "Code - Insiders": "code-insiders",
     Antigravity: "antigravity",
+    Windsurf: "windsurf",
 };
 
 export const VSCODE_STATE_PATHS = {
