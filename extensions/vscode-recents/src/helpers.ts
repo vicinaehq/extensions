@@ -1,17 +1,32 @@
 import path from "path";
 import { homedir } from "os";
 import { existsSync } from "fs";
-import { type Preferences, ProjectEnvironment, ProjectType, type RecentProject } from "./types";
 import { getPreferenceValues } from "@vicinae/api";
-import { VSCODE_STATE_PATHS } from "./constants";
+import { VSCODE_SHARED_STATE_PATHS, VSCODE_STATE_PATHS } from "./constants";
+import { type Preferences, ProjectEnvironment, ProjectType, type RecentProject } from "./types";
 
 export function getVSCodeStateDBPath(): string {
     const home = homedir();
     const { vscodeFlavour } = getPreferenceValues<Preferences>();
     const platform = process.platform as keyof typeof VSCODE_STATE_PATHS;
 
+    // Try the new shared storage path first (VS Code 1.118+)
+    // Each flavor has its own shared storage directory
     let dbPath: string;
+    if (platform in VSCODE_SHARED_STATE_PATHS) {
+        dbPath = VSCODE_SHARED_STATE_PATHS[platform](home, vscodeFlavour);
+    } else {
+        // Default to Linux path for unsupported platforms
+        dbPath = VSCODE_SHARED_STATE_PATHS.linux(home, vscodeFlavour);
+    }
 
+    // If the shared storage path exists, use it
+    if (existsSync(dbPath)) {
+        console.log("[DEBUG] Using shared storage path:", dbPath);
+        return dbPath;
+    }
+
+    // Fall back to legacy per-flavor path (pre VS Code 1.118)
     if (platform in VSCODE_STATE_PATHS) {
         dbPath = VSCODE_STATE_PATHS[platform](home, vscodeFlavour);
     } else {
@@ -25,6 +40,7 @@ export function getVSCodeStateDBPath(): string {
         );
     }
 
+    console.log("[DEBUG] Using legacy flavor-specific path:", dbPath);
     return dbPath;
 }
 

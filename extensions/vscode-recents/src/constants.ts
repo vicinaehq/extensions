@@ -11,9 +11,32 @@ export const VSCODE_EXECUTABLES: Record<string, string> = {
     Code: "code",
     Cursor: "cursor",
     VSCodium: "codium",
-    "Code - Insiders": "code-insiders",
     Antigravity: "antigravity",
+    "Code - Insiders": "code-insiders",
 };
+
+const VSCODE_SHARED_STORAGE_DIRS: Record<string, string> = {
+    "Code": ".vscode-shared",
+    "Cursor": ".cursor-shared",
+    "VSCodium": ".vscodium-shared",
+    "Antigravity": ".antigravity-shared",
+    "Code - Insiders": ".vscode-insiders-shared",
+};
+
+export const VSCODE_SHARED_STATE_PATHS = {
+    linux: (home: string, flavour: string) => {
+        const sharedDir = VSCODE_SHARED_STORAGE_DIRS[flavour] || ".vscode-shared";
+        return `${home}/${sharedDir}/sharedStorage/state.vscdb`;
+    },
+    win32: (home: string, flavour: string) => {
+        const sharedDir = VSCODE_SHARED_STORAGE_DIRS[flavour] || ".vscode-shared";
+        return `${home}/AppData/Roaming/${sharedDir}/sharedStorage/state.vscdb`;
+    },
+    darwin: (home: string, flavour: string) => {
+        const sharedDir = VSCODE_SHARED_STORAGE_DIRS[flavour] || ".vscode-shared";
+        return `${home}/Library/Application Support/${sharedDir}/sharedStorage/state.vscdb`;
+    },
+} as const;
 
 export const VSCODE_STATE_PATHS = {
     linux: (home: string, flavour: string) => `${home}/.config/${flavour}/User/globalStorage/state.vscdb`,
