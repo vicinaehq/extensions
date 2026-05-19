@@ -42,16 +42,16 @@
           "value": "Code"
         },
         {
-          "title": "Visual Studio Code (Insiders)",
-          "value": "Code - Insiders"
-        },
-        {
           "title": "Antigravity",
           "value": "Antigravity"
         },
         {
           "title": "Windsurf",
-          "value": "Windsurf"
+          "value": "Windsurf",
+        },
+        {
+          "title": "Visual Studio Code (Insiders)",
+          "value": "Code - Insiders"
         }
       ]
     },
