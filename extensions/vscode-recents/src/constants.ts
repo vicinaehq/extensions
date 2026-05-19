@@ -12,6 +12,7 @@ export const VSCODE_EXECUTABLES: Record<string, string> = {
     Cursor: "cursor",
     VSCodium: "codium",
     Antigravity: "antigravity",
+    Windsurf: "windsurf",
     "Code - Insiders": "code-insiders",
 };
 
