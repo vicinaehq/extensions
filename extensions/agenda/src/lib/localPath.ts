@@ -2,9 +2,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 export function isLocalPath(url: string): boolean {
-  return (
-    url.startsWith("/") || url.startsWith("~/") || url.startsWith("file://")
-  );
+  return !url.startsWith("http");
 }
 
 export function expandPath(p: string): string {
