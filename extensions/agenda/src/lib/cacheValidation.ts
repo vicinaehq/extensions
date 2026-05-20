@@ -1,4 +1,4 @@
-import { CACHE_DURATION, CACHE_VERSION } from "./constants";
+import { CACHE_VERSION } from "./constants";
 import { Calendar } from "./types";
 import { getCalendarName } from "./calendar";
 
@@ -17,12 +17,14 @@ export interface CacheValidationResult {
 }
 
 /**
- * Validate cache data against current calendars and time constraints.
+ * Validate cache data against current calendars.
+ * Cache is considered valid as long as the calendar configuration matches —
+ * it does not expire by time. A background refresh is always performed after
+ * loading from cache to ensure data stays current.
  */
 export function validateCache(
   cacheData: Partial<CacheData>,
   calendars: Calendar[],
-  now: number = Date.now(),
 ): CacheValidationResult {
   // Check required fields
   if (!cacheData.eventCalendars) {
@@ -36,11 +38,6 @@ export function validateCache(
   // Check cache version
   if (cacheData.cacheVersion !== CACHE_VERSION) {
     return { valid: false, reason: "version mismatch" };
-  }
-
-  // Check cache expiration
-  if (now - cacheData.timestamp >= CACHE_DURATION) {
-    return { valid: false, reason: "expired" };
   }
 
   // Check calendar URLs match

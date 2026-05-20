@@ -46,8 +46,8 @@ describe("events", () => {
       const end = new Date(2024, 0, 17, 0, 0, 0); // 48 hours
 
       describe("when checking if all-day", () => {
-        it("then returns false (must be exactly 24 hours)", () => {
-          expect(isAllDayEvent(start, end)).toBe(false);
+        it("then returns true (multi-day all-day event)", () => {
+          expect(isAllDayEvent(start, end)).toBe(true);
         });
       });
     });

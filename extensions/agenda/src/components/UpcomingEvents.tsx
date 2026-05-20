@@ -1,8 +1,9 @@
-import { Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Icon, Keyboard, List } from "@vicinae/api";
 import { useState } from "react";
 import type { VEvent } from "node-ical";
 import { Calendar } from "../lib/types";
 import { formatDate } from "../lib/calendar";
+import { getLocalDateString } from "../lib/events";
 import { CalendarFilter } from "./CalendarFilter";
 import { EventListItem } from "./EventListItem";
 
@@ -14,6 +15,7 @@ interface UpcomingEventsProps {
   selectedCalendar: string;
   onCalendarChange: (calendar: string) => void;
   eventCalendars: Map<string, string>;
+  onRefresh: () => void;
 }
 
 export function UpcomingEvents({
@@ -24,6 +26,7 @@ export function UpcomingEvents({
   selectedCalendar,
   onCalendarChange,
   eventCalendars,
+  onRefresh,
 }: UpcomingEventsProps) {
   const [isShowingDetail, setIsShowingDetail] = useState<boolean>(false);
 
@@ -48,6 +51,17 @@ export function UpcomingEvents({
 
   const filteredEventsByDate = getFilteredEvents();
 
+  const refreshAction = (
+    <ActionPanel>
+      <Action
+        title="Refresh Calendars"
+        icon={Icon.ArrowClockwise}
+        shortcut={Keyboard.Shortcut.Common.Refresh}
+        onAction={onRefresh}
+      />
+    </ActionPanel>
+  );
+
   if (calendars.length === 0) {
     return (
       <List>
@@ -55,15 +69,21 @@ export function UpcomingEvents({
           title="No calendars configured"
           description="Add iCal URLs using the 'Add Calendar' command"
           icon={Icon.ExclamationMark}
+          actions={refreshAction}
         />
       </List>
     );
   }
 
+  const navigationTitle = lastRefresh
+    ? `Agenda · Updated ${lastRefresh.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}`
+    : "Agenda";
+
   return (
     <List
       isLoading={isLoading}
       isShowingDetail={isShowingDetail}
+      navigationTitle={navigationTitle}
       searchBarPlaceholder="Search events..."
       searchBarAccessory={
         <CalendarFilter
@@ -86,9 +106,11 @@ export function UpcomingEvents({
               : "Add calendars to get started"
           }
           icon={Icon.Calendar}
+          actions={refreshAction}
         />
       )}
       {Object.entries(filteredEventsByDate)
+        .filter(([date]) => date >= getLocalDateString(new Date()))
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, events]) => (
           <List.Section
@@ -107,6 +129,7 @@ export function UpcomingEvents({
                   isShowingDetail={isShowingDetail}
                   onToggleDetail={() => setIsShowingDetail((v) => !v)}
                   calendars={calendars}
+                  onRefresh={onRefresh}
                 />
               );
             })}

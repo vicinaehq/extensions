@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Icon, Keyboard, List } from "@vicinae/api";
 import type { VEvent } from "node-ical";
 import { usePreferences } from "../hooks/usePreferences";
 import { getCalendarName } from "../lib/calendar";
@@ -12,6 +12,7 @@ interface EventListItemProps {
   isShowingDetail: boolean;
   onToggleDetail: () => void;
   calendars: Calendar[];
+  onRefresh: () => void;
 }
 
 export function EventListItem({
@@ -20,6 +21,7 @@ export function EventListItem({
   isShowingDetail,
   onToggleDetail,
   calendars,
+  onRefresh,
 }: EventListItemProps) {
   const { use24Hour } = usePreferences();
   const startDate = new Date(event.start);
@@ -38,7 +40,7 @@ export function EventListItem({
         isShowingDetail
           ? undefined
           : isAllDay
-            ? ""
+            ? "All Day"
             : `${displayStart}${displayEnd ? " - " + displayEnd : ""}`
       }
       icon={Icon.Calendar}
@@ -61,6 +63,12 @@ export function EventListItem({
             title={isShowingDetail ? "Hide Details" : "Show Details"}
             onAction={onToggleDetail}
             shortcut={{ modifiers: ["ctrl"], key: "d" }}
+          />
+          <Action
+            icon={Icon.ArrowClockwise}
+            title="Refresh Calendars"
+            onAction={onRefresh}
+            shortcut={Keyboard.Shortcut.Common.Refresh}
           />
           {event.url && (
             <Action.OpenInBrowser
