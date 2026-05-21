@@ -7,6 +7,7 @@ export type MenuItem = {
   command?: string;
   items?: MenuItem[];
   preview?: ReactNode;
+  form?: () => ReactNode;
 };
 
 export type FlattenedMenuItem = MenuItem & { path: string };

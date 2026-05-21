@@ -63,7 +63,7 @@
       "title": "Search URL",
       "description": "The Elasticsearch endpoint URL for Nix search",
       "type": "textfield",
-      "default": "https://search.nixos.org/backend/latest-46-nixos-unstable/_search",
+      "default": "https://search.nixos.org/backend/latest-48-nixos-unstable/_search",
       "required": true
     },
     {

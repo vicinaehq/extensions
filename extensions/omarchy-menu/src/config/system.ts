@@ -16,7 +16,7 @@ export const system: MenuItem = {
 			id: "lock",
 			name: "Lock",
 			icon: "",
-			command: "omarchy-lock-screen"
+			command: "omarchy-system-lock"
 		},
     {
       id: "suspend",

@@ -25,7 +25,7 @@ const Command = () => {
 
 export default Command;
 
-const ActionPanelCommand = ({ item }: { item: MenuItem }) => {
+export const ActionPanelCommand = ({ item }: { item: MenuItem }) => {
   const { push } = useNavigation();
   return (
     <ActionPanel title="Omarchy">
@@ -34,7 +34,7 @@ const ActionPanelCommand = ({ item }: { item: MenuItem }) => {
           title="Open"
           onAction={async () => {
             await closeMainWindow();
-            await delay(80);
+            await delay(150);
             spawn(item.command ?? "", {
               shell: true,
               detached: true,
@@ -55,7 +55,7 @@ const ActionPanelCommand = ({ item }: { item: MenuItem }) => {
 export const DynamicList = ({ menu }: { menu: MenuItem }) => {
   const hasPreview = menu.items?.some((i) => i.preview);
   const [query, setQuery] = useState("");
-  console.log(menu);
+  if (menu.form) return <menu.form />;
   return (
     <List
       navigationTitle={`Omarchy ${menu.name}`}
