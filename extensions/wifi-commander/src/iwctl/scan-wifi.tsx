@@ -1,4 +1,12 @@
-import { Action, ActionPanel, Color, Icon, List, showToast, useNavigation, Form } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Icon,
+  List,
+  showToast,
+  useNavigation,
+} from "@vicinae/api";
 import { useEffect, useState } from "react";
 import {
   loadSavedNetworks,
@@ -8,8 +16,11 @@ import {
   type WifiDevice,
   type WifiNetwork,
 } from "../utils/wifi-helpers-iwctl";
-import { executeIwctlCommandSilent, executeIwctlCommand } from "../utils/execute-iwctl";
-import { ConnectHiddenForm, ConnectForm} from "../components/ConnectFormIwctl";
+import {
+  executeIwctlCommandSilent,
+  executeIwctlCommand,
+} from "../utils/execute-iwctl";
+import { ConnectHiddenForm, ConnectForm } from "../components/ConnectFormIwctl";
 
 interface ScanResult {
   networks: WifiNetwork[];
@@ -31,7 +42,7 @@ export default function ScanWifiIwctl() {
   const loadWifiDeviceData = async () => {
     const device = await loadWifiDevice();
     setWifiDevice(device);
-    return device
+    return device;
   };
 
   const loadSavedNetworksData = async () => {
@@ -42,21 +53,27 @@ export default function ScanWifiIwctl() {
   const scanWifi = async () => {
     try {
       setScanResult((prev) => ({ ...prev, isLoading: true, error: null }));
-
       // Always load device fresh, don't rely on state
       const device = await loadWifiDevice();
       if (!device) {
         throw new Error("No WiFi device found");
       }
 
-      const executeScan = await executeIwctlCommandSilent("station", [device.name, "scan"])
+      const executeScan = await executeIwctlCommandSilent("station", [
+        device.name,
+        "scan",
+      ]);
 
-      if (!executeScan.success){
+      if (!executeScan.success) {
         // only info since scanning gives error if still scanning
         console.info(executeScan.error || "station scan failed.");
       }
 
-      const result = await executeIwctlCommandSilent("station", [device.name, "get-networks", "rssi-dbms"])
+      const result = await executeIwctlCommandSilent("station", [
+        device.name,
+        "get-networks",
+        "rssi-dbms",
+      ]);
 
       if (!result.success) {
         setScanResult((prev) => ({
@@ -73,12 +90,12 @@ export default function ScanWifiIwctl() {
         isLoading: false,
         error: null,
       });
-
     } catch (error) {
       setScanResult({
         networks: [],
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
         isLoading: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
   };
@@ -89,6 +106,7 @@ export default function ScanWifiIwctl() {
     if (rssi >= -70) return Icon.Signal2;
     if (rssi >= -80) return Icon.Signal1;
     if (rssi >= -100) return "signal-0";
+    return Icon.XMarkCircle;
   };
 
   const getSignalPercent = (rssi: number) => {
@@ -99,13 +117,10 @@ export default function ScanWifiIwctl() {
     return Math.round(percent);
   };
 
-
-
   const getSecurityIcon = (security: string) => {
     if (security.includes("open")) return Icon.LockUnlocked;
     return Icon.Lock;
   };
-
 
   const handleConnect = async (ssid: string, security: string) => {
     // Check if this network is already saved
@@ -117,7 +132,11 @@ export default function ScanWifiIwctl() {
         title: "Connecting...",
         message: `Attempting to connect to open network ${ssid}`,
       });
-      const result = await executeIwctlCommand("station", [ wifiDevice?.name, "connect",  `"${ssid}"`]);
+      const result = await executeIwctlCommand("station", [
+        wifiDevice?.name,
+        "connect",
+        `"${ssid}"`,
+      ]);
       if (result.success) {
         await showToast({
           title: "Connection Successful",
@@ -136,7 +155,11 @@ export default function ScanWifiIwctl() {
         title: "Connecting...",
         message: `Connecting to saved network ${ssid}`,
       });
-      const result = await executeIwctlCommand("station", [ wifiDevice?.name,"connect",  `"${ssid}"`]);
+      const result = await executeIwctlCommand("station", [
+        wifiDevice?.name,
+        "connect",
+        `"${ssid}"`,
+      ]);
       if (result.success) {
         await showToast({
           title: "Connection Successful",
@@ -151,14 +174,19 @@ export default function ScanWifiIwctl() {
       }
     } else {
       // If the network is secure and not saved, push the password form
-      push(<ConnectForm ssid={ ssid } security={ security } deviceName={ wifiDevice.name } />);
+      push(
+        <ConnectForm
+          ssid={ssid}
+          security={security}
+          deviceName={wifiDevice?.name}
+        />,
+      );
     }
   };
 
   const handleHiddenConnect = async () => {
-    push(<ConnectHiddenForm deviceName={wifiDevice.name} />);
-  }
-
+    push(<ConnectHiddenForm deviceName={wifiDevice?.name} />);
+  };
 
   const handleDisconnect = async () => {
     if (!wifiDevice) {
@@ -174,7 +202,10 @@ export default function ScanWifiIwctl() {
       message: "Disconnecting from current network",
     });
 
-    const result = await executeIwctlCommand("station ", [wifiDevice.name,  "disconnect"]);
+    const result = await executeIwctlCommand("station ", [
+      wifiDevice.name,
+      "disconnect",
+    ]);
 
     if (result.success) {
       await showToast({
@@ -197,36 +228,27 @@ export default function ScanWifiIwctl() {
     scanWifi();
   }, []);
 
-  if (scanResult.isLoading) {
-    return (
-      <List searchBarPlaceholder="Scanning wifi networks...">
-        <List.EmptyView
-          title="Scanning Networks"
-          description="Please wait while we scan for available wifi networks..."
-          icon={Icon.Clock}
-        />
-      </List>
-    );
-  }
-
   if (scanResult.error) {
     return (
       <List searchBarPlaceholder="Search wifi networks...">
         <List.EmptyView
           title="Scan Failed"
           description={scanResult.error}
-          icon={Icon.ExclamationMark}
+          icon={Icon.Exclamationmark}
           actions={
             <ActionPanel>
-              <Action title="Retry Scan" icon={Icon.ArrowClockwise} onAction={scanWifi} />
+              <Action
+                title="Retry Scan"
+                icon={Icon.ArrowClockwise}
+                onAction={scanWifi}
+              />
             </ActionPanel>
           }
         />
       </List>
     );
   }
-
-  if (scanResult.networks.length === 0) {
+  if (scanResult.networks.length === 0 && !scanResult.isLoading) {
     return (
       <List searchBarPlaceholder="Search wifi networks...">
         <List.EmptyView
@@ -235,23 +257,34 @@ export default function ScanWifiIwctl() {
           icon={Icon.Wifi}
           actions={
             <ActionPanel>
-              <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={scanWifi} />
+              <Action
+                title="Refresh"
+                icon={Icon.ArrowClockwise}
+                onAction={scanWifi}
+              />
             </ActionPanel>
           }
         />
       </List>
     );
   }
-
   return (
-    <List searchBarPlaceholder="Search wifi networks..." isShowingDetail={true}>
-      <List.Section title={`Available Networks (${scanResult.networks.length})`}>
+    <List
+      searchBarPlaceholder="Search wifi networks..."
+      isShowingDetail={true}
+      isLoading={scanResult.isLoading}
+    >
+      <List.Section
+        title={`Available Networks (${scanResult.networks.length})`}
+      >
         {scanResult.networks.map((network) => (
           <List.Item
             key={`${network.bssid}-${network.ssid || "hidden"}`}
             title={network.ssid || "Hidden Network"}
             icon={{
-              source: network.inUse ? Icon.CheckCircle : getSignalIcon(network.signal),
+              source: network.inUse
+                ? Icon.CheckCircle
+                : getSignalIcon(network.signal),
               tintColor: network.inUse ? Color.Green : "white",
             }}
             accessories={[
@@ -269,16 +302,25 @@ export default function ScanWifiIwctl() {
                       title="Signal Strength"
                       text={`${getSignalPercent(network.signal)}%`}
                     />
-                    <List.Item.Detail.Metadata.Label title="Security" text={network.security} />
+                    <List.Item.Detail.Metadata.Label
+                      title="Security"
+                      text={network.security}
+                    />
                     <List.Item.Detail.Metadata.Separator />
-                    <List.Item.Detail.Metadata.Label title="BSSID" text={network.bssid} />
+                    <List.Item.Detail.Metadata.Label
+                      title="BSSID"
+                      text={network.bssid}
+                    />
                     {network.inUse && (
                       <>
                         <List.Item.Detail.Metadata.Separator />
                         <List.Item.Detail.Metadata.Label
                           title="Status"
                           text="Connected"
-                          icon={{ source: Icon.CheckCircle, tintColor: Color.Green }}
+                          icon={{
+                            source: Icon.CheckCircle,
+                            tintColor: Color.Green,
+                          }}
                         />
                       </>
                     )}
@@ -299,17 +341,18 @@ export default function ScanWifiIwctl() {
                   <Action
                     title="Connect"
                     icon={Icon.Wifi}
-                    onAction={() => handleConnect(network.ssid, network.security)}
+                    onAction={() =>
+                      handleConnect(network.ssid, network.security)
+                    }
                     shortcut={{ modifiers: ["cmd"], key: "enter" }}
                   />
-
                 )}
                 <Action
-                    title="Connect Hidden Network3"
-                    icon={Icon.Wifi}
-                    onAction={() => handleHiddenConnect()}
-                    shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
-                  />
+                  title="Connect Hidden Network3"
+                  icon={Icon.Wifi}
+                  onAction={() => handleHiddenConnect()}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
+                />
                 <Action.CopyToClipboard
                   title="Copy SSID"
                   content={network.ssid}
@@ -335,5 +378,3 @@ export default function ScanWifiIwctl() {
     </List>
   );
 }
-
-

@@ -7,7 +7,7 @@ import { executeCommand, type ExecResult } from "./execute-command";
  */
 export async function executeIwctlCommand(
   subcommand: string,
-  args: string[] = []
+  args: (string | undefined)[] = [],
 ): Promise<ExecResult> {
   const command = `iwctl ${subcommand} ${args.join(" ")}`;
 

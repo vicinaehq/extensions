@@ -1,7 +1,18 @@
-import { Action, ActionPanel, Color, Icon, List, showToast, useNavigation } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Icon,
+  List,
+  showToast,
+  useNavigation,
+} from "@vicinae/api";
 import { useEffect, useState } from "react";
 import ConnectForm from "../components/ConnectFormNmcli";
-import { executeNmcliCommand, executeNmcliCommandSilent } from "../utils/execute-nmcli";
+import {
+  executeNmcliCommand,
+  executeNmcliCommandSilent,
+} from "../utils/execute-nmcli";
 import {
   loadSavedNetworks,
   loadWifiDevice,
@@ -42,7 +53,9 @@ export default function ScanWifiNmcli() {
     try {
       setScanResult((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      const result = await executeNmcliCommandSilent("device wifi list --rescan yes");
+      const result = await executeNmcliCommandSilent(
+        "device wifi list --rescan yes",
+      );
 
       if (!result.success) {
         setScanResult((prev) => ({
@@ -65,7 +78,8 @@ export default function ScanWifiNmcli() {
       setScanResult({
         networks: [],
         isLoading: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
   };
@@ -80,7 +94,9 @@ export default function ScanWifiNmcli() {
         title: "Connecting...",
         message: `Attempting to connect to open network ${ssid}`,
       });
-      const result = await executeNmcliCommand("device wifi connect", [`"${ssid}"`]);
+      const result = await executeNmcliCommand("device wifi connect", [
+        `"${ssid}"`,
+      ]);
       if (result.success) {
         await showToast({
           title: "Connection Successful",
@@ -132,7 +148,9 @@ export default function ScanWifiNmcli() {
       message: "Disconnecting from current network",
     });
 
-    const result = await executeNmcliCommand("device disconnect", [wifiDevice.name]);
+    const result = await executeNmcliCommand("device disconnect", [
+      wifiDevice.name,
+    ]);
 
     if (result.success) {
       await showToast({
@@ -169,28 +187,20 @@ export default function ScanWifiNmcli() {
     scanWifi();
   }, []);
 
-  if (scanResult.isLoading) {
-    return (
-      <List searchBarPlaceholder="Scanning wifi networks...">
-        <List.EmptyView
-          title="Scanning Networks"
-          description="Please wait while we scan for available wifi networks..."
-          icon={Icon.Clock}
-        />
-      </List>
-    );
-  }
-
   if (scanResult.error) {
     return (
       <List searchBarPlaceholder="Search wifi networks...">
         <List.EmptyView
           title="Scan Failed"
           description={scanResult.error}
-          icon={Icon.ExclamationMark}
+          icon={Icon.Exclamationmark}
           actions={
             <ActionPanel>
-              <Action title="Retry Scan" icon={Icon.ArrowClockwise} onAction={scanWifi} />
+              <Action
+                title="Retry Scan"
+                icon={Icon.ArrowClockwise}
+                onAction={scanWifi}
+              />
             </ActionPanel>
           }
         />
@@ -198,7 +208,7 @@ export default function ScanWifiNmcli() {
     );
   }
 
-  if (scanResult.networks.length === 0) {
+  if (scanResult.networks.length === 0 && !scanResult.isLoading) {
     return (
       <List searchBarPlaceholder="Search wifi networks...">
         <List.EmptyView
@@ -207,7 +217,11 @@ export default function ScanWifiNmcli() {
           icon={Icon.Wifi}
           actions={
             <ActionPanel>
-              <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={scanWifi} />
+              <Action
+                title="Refresh"
+                icon={Icon.ArrowClockwise}
+                onAction={scanWifi}
+              />
             </ActionPanel>
           }
         />
@@ -216,14 +230,22 @@ export default function ScanWifiNmcli() {
   }
 
   return (
-    <List searchBarPlaceholder="Search wifi networks..." isShowingDetail={true}>
-      <List.Section title={`Available Networks (${scanResult.networks.length})`}>
+    <List
+      searchBarPlaceholder="Search wifi networks..."
+      isLoading={scanResult.isLoading}
+      isShowingDetail={true}
+    >
+      <List.Section
+        title={`Available Networks (${scanResult.networks.length})`}
+      >
         {scanResult.networks.map((network) => (
           <List.Item
             key={`${network.bssid}-${network.ssid || "hidden"}`}
             title={network.ssid || "Hidden Network"}
             icon={{
-              source: network.inUse ? Icon.CheckCircle : getSignalIcon(network.signal),
+              source: network.inUse
+                ? Icon.CheckCircle
+                : getSignalIcon(network.signal),
               tintColor: network.inUse ? Color.Green : "white",
             }}
             accessories={[
@@ -241,19 +263,37 @@ export default function ScanWifiNmcli() {
                       title="Signal Strength"
                       text={`${network.signal}%`}
                     />
-                    <List.Item.Detail.Metadata.Label title="Rate" text={network.rate} />
-                    <List.Item.Detail.Metadata.Label title="Security" text={network.security} />
-                    <List.Item.Detail.Metadata.Label title="Channel" text={`${network.channel}`} />
+                    <List.Item.Detail.Metadata.Label
+                      title="Rate"
+                      text={network.rate}
+                    />
+                    <List.Item.Detail.Metadata.Label
+                      title="Security"
+                      text={network.security}
+                    />
+                    <List.Item.Detail.Metadata.Label
+                      title="Channel"
+                      text={`${network.channel}`}
+                    />
                     <List.Item.Detail.Metadata.Separator />
-                    <List.Item.Detail.Metadata.Label title="BSSID" text={network.bssid} />
-                    <List.Item.Detail.Metadata.Label title="Mode" text={network.mode} />
+                    <List.Item.Detail.Metadata.Label
+                      title="BSSID"
+                      text={network.bssid}
+                    />
+                    <List.Item.Detail.Metadata.Label
+                      title="Mode"
+                      text={network.mode}
+                    />
                     {network.inUse && (
                       <>
                         <List.Item.Detail.Metadata.Separator />
                         <List.Item.Detail.Metadata.Label
                           title="Status"
                           text="Connected"
-                          icon={{ source: Icon.CheckCircle, tintColor: Color.Green }}
+                          icon={{
+                            source: Icon.CheckCircle,
+                            tintColor: Color.Green,
+                          }}
                         />
                       </>
                     )}
@@ -274,7 +314,9 @@ export default function ScanWifiNmcli() {
                   <Action
                     title="Connect"
                     icon={Icon.Wifi}
-                    onAction={() => handleConnect(network.ssid, network.security)}
+                    onAction={() =>
+                      handleConnect(network.ssid, network.security)
+                    }
                     shortcut={{ modifiers: ["cmd"], key: "enter" }}
                   />
                 )}
