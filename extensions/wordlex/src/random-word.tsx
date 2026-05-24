@@ -5,17 +5,9 @@
  * definition in a Detail view. Great for vocabulary building.
  */
 
-import {
-  Detail,
-  ActionPanel,
-  Action,
-  Icon,
-  showToast,
-  Toast,
-} from "@vicinae/api";
-import { spawn } from "node:child_process";
+import { Detail, ActionPanel, Action, Icon, Keyboard } from "@vicinae/api";
 
-import { randomWord } from "./lib/wordlex";
+import { randomWord, openInWordLex, cmdModifier } from "./lib/wordlex";
 import {
   formatWordDetailMarkdown,
   formatWordDetailPlainText,
@@ -43,37 +35,25 @@ export default function RandomWord() {
             title="Copy Definition"
             content={formatWordDetailPlainText(detail)}
             icon={Icon.Clipboard}
+            shortcut={Keyboard.Shortcut.Common.Copy}
           />
           <Action.Paste
             title="Paste Word"
             content={detail.word}
             icon={Icon.Text}
-            shortcut={{ key: "p", modifiers: ["cmd", "shift"] }}
+            shortcut={{ key: "p", modifiers: [cmdModifier, "shift"] }}
           />
           <Action.OpenInBrowser
             title="Open in Wiktionary"
             url={`https://en.wiktionary.org/wiki/${encodeURIComponent(detail.word)}`}
             icon={Icon.Globe}
-            shortcut={{ key: "w", modifiers: ["cmd"] }}
+            shortcut={{ key: "w", modifiers: [cmdModifier] }}
           />
           <Action
             title="Open in WordLex"
             icon={Icon.AppWindow}
-            shortcut={{ key: "o", modifiers: ["cmd"] }}
-            onAction={() => {
-              try {
-                const child = spawn("wordlex", ["--search", detail.word], {
-                  detached: true,
-                  stdio: "ignore",
-                });
-                child.unref();
-              } catch {
-                showToast({
-                  style: Toast.Style.Failure,
-                  title: "Could not open WordLex",
-                });
-              }
-            }}
+            shortcut={{ key: "o", modifiers: [cmdModifier] }}
+            onAction={() => openInWordLex(detail.word)}
           />
         </ActionPanel>
       }

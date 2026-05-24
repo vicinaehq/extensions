@@ -33,30 +33,18 @@ import {
   Keyboard,
 } from "@vicinae/api";
 
-import { spawn } from "node:child_process";
-import { searchWords, lookupWord } from "./lib/wordlex";
+import {
+  searchWords,
+  lookupWord,
+  openInWordLex,
+  cmdModifier,
+} from "./lib/wordlex";
 import {
   formatWordDetailMarkdown,
   formatWordDetailPlainText,
 } from "./lib/formatter";
 import { POS_LABELS } from "./lib/types";
 import type { SearchResult, WordDetail } from "./lib/types";
-
-/** Launch the WordLex desktop app with a word pre-loaded in the search bar. */
-function openInWordLex(word: string) {
-  try {
-    const child = spawn("wordlex", ["--search", word], {
-      detached: true,
-      stdio: "ignore",
-    });
-    child.unref();
-  } catch {
-    showToast({
-      style: Toast.Style.Failure,
-      title: "Could not open WordLex",
-    });
-  }
-}
 
 // ─── Full-screen Detail view (pushed via Action.Push) ───────
 
@@ -82,23 +70,24 @@ function WordDetailView({ word }: { word: string }) {
             title="Copy Definition"
             content={formatWordDetailPlainText(detail)}
             icon={Icon.Clipboard}
+            shortcut={Keyboard.Shortcut.Common.Copy}
           />
           <Action.Paste
             title="Paste Word"
             content={word}
             icon={Icon.Text}
-            shortcut={{ key: "p", modifiers: ["cmd", "shift"] }}
+            shortcut={{ key: "p", modifiers: [cmdModifier, "shift"] }}
           />
           <Action.OpenInBrowser
             title="Open in Wiktionary"
             url={`https://en.wiktionary.org/wiki/${encodeURIComponent(word)}`}
             icon={Icon.Globe}
-            shortcut={{ key: "w", modifiers: ["cmd"] }}
+            shortcut={{ key: "w", modifiers: [cmdModifier] }}
           />
           <Action
             title="Open in WordLex"
             icon={Icon.AppWindow}
-            shortcut={{ key: "o", modifiers: ["cmd"] }}
+            shortcut={{ key: "o", modifiers: [cmdModifier] }}
             onAction={() => openInWordLex(word)}
           />
         </ActionPanel>
@@ -254,18 +243,18 @@ export default function SearchDictionary() {
                       title="Paste Word"
                       content={result.word}
                       icon={Icon.Text}
-                      shortcut={{ key: "p", modifiers: ["cmd", "shift"] }}
+                      shortcut={{ key: "p", modifiers: [cmdModifier, "shift"] }}
                     />
                     <Action.OpenInBrowser
                       title="Open in Wiktionary"
                       url={`https://en.wiktionary.org/wiki/${encodeURIComponent(result.word)}`}
                       icon={Icon.Globe}
-                      shortcut={{ key: "w", modifiers: ["cmd"] }}
+                      shortcut={{ key: "w", modifiers: [cmdModifier] }}
                     />
                     <Action
                       title="Open in WordLex"
                       icon={Icon.AppWindow}
-                      shortcut={{ key: "o", modifiers: ["cmd"] }}
+                      shortcut={{ key: "o", modifiers: [cmdModifier] }}
                       onAction={() => openInWordLex(result.word)}
                     />
                   </ActionPanel>

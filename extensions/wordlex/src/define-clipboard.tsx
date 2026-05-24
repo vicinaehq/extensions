@@ -18,9 +18,10 @@ import {
   showToast,
   Toast,
   getSelectedText,
+  Keyboard,
 } from "@vicinae/api";
 
-import { lookupWord } from "./lib/wordlex";
+import { lookupWord, openInWordLex, cmdModifier } from "./lib/wordlex";
 import {
   formatWordDetailMarkdown,
   formatWordDetailPlainText,
@@ -106,18 +107,25 @@ export default function DefineClipboard() {
               title="Copy Definition"
               content={formatWordDetailPlainText(detail)}
               icon={Icon.Clipboard}
+              shortcut={Keyboard.Shortcut.Common.Copy}
             />
             <Action.Paste
               title="Paste Word"
               content={word}
               icon={Icon.Text}
-              shortcut={{ key: "p", modifiers: ["cmd", "shift"] }}
+              shortcut={{ key: "p", modifiers: [cmdModifier, "shift"] }}
             />
             <Action.OpenInBrowser
               title="Open in Wiktionary"
               url={`https://en.wiktionary.org/wiki/${encodeURIComponent(word)}`}
               icon={Icon.Globe}
-              shortcut={{ key: "w", modifiers: ["cmd"] }}
+              shortcut={{ key: "w", modifiers: [cmdModifier] }}
+            />
+            <Action
+              title="Open in WordLex"
+              icon={Icon.AppWindow}
+              shortcut={{ key: "o", modifiers: [cmdModifier] }}
+              onAction={() => openInWordLex(word)}
             />
           </ActionPanel>
         ) : undefined

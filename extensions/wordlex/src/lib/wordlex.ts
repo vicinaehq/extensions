@@ -9,10 +9,32 @@
  * must be on $PATH).
  */
 
-import { execSync } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
+import { showToast, Toast } from "@vicinae/api";
+import type { KeyModifier } from "@vicinae/api";
 import type { WordDetail, SearchResult } from "./types";
 
 const EXEC_TIMEOUT_MS = 3000;
+
+/** Platform-aware command modifier: 'cmd' (Command) on macOS, 'ctrl' (Control) on Linux/Windows */
+const isMac = typeof process !== "undefined" && process.platform === "darwin";
+export const cmdModifier: KeyModifier = isMac ? "cmd" : "ctrl";
+
+/** Launch the WordLex desktop app with a word pre-loaded in the search bar. */
+export function openInWordLex(word: string) {
+  try {
+    const child = spawn("wordlex", ["--search", word], {
+      detached: true,
+      stdio: "ignore",
+    });
+    child.unref();
+  } catch {
+    showToast({
+      style: Toast.Style.Failure,
+      title: "Could not open WordLex",
+    });
+  }
+}
 
 /**
  * Look up a word and return its full detail (all senses, synonyms, antonyms, relations).
