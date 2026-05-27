@@ -1,16 +1,23 @@
-
-import { Action, ActionPanel, Form, Icon, showToast, useNavigation } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  Form,
+  Icon,
+  showToast,
+  useNavigation,
+} from "@vicinae/api";
 import { executeIwctlCommand } from "../utils/execute-iwctl";
 import { useState } from "react";
+import type { ExecResult } from "../utils/execute-command";
 
 interface ConnectFormProps {
   ssid: string;
-  deviceName: string;
+  deviceName?: string;
   security: string;
 }
 
-interface ConnectHiddenFormProps{
-  deviceName: string;
+interface ConnectHiddenFormProps {
+  deviceName?: string;
 }
 
 export function ConnectForm({ ssid, security, deviceName }: ConnectFormProps) {
@@ -18,7 +25,10 @@ export function ConnectForm({ ssid, security, deviceName }: ConnectFormProps) {
 
   const isEnterprise = security.toLowerCase().startsWith("8021x");
 
-  const handleConnect = async (values: { password?: string; username?: string }) => {
+  const handleConnect = async (values: {
+    password?: string;
+    username?: string;
+  }) => {
     const { password, username } = values;
 
     // Validate fields
@@ -46,23 +56,24 @@ export function ConnectForm({ ssid, security, deviceName }: ConnectFormProps) {
     });
 
     // Personal Wi-Fi (WPA/WPA2/WPA3)
-    let result;
+    let result: ExecResult;
     if (!isEnterprise) {
-      result = await executeIwctlCommand(
-        `--passphrase=${password}`, ["station", deviceName, "connect",  `"${ssid}"`]
-      );
+      result = await executeIwctlCommand(`--passphrase=${password}`, [
+        "station",
+        deviceName,
+        "connect",
+        `"${ssid}"`,
+      ]);
     }
     // WPA2-Enterprise / 802.1X
     else {
-      result = await executeIwctlCommand(
-        `--user=${username}`, [
-          `--password=${password}`,
-          "station",
-          deviceName,
-          "connect",
-          `"${ssid}"`,
-          ]
-      );
+      result = await executeIwctlCommand(`--user=${username}`, [
+        `--password=${password}`,
+        "station",
+        deviceName,
+        "connect",
+        `"${ssid}"`,
+      ]);
     }
 
     if (result.success) {
@@ -84,39 +95,60 @@ export function ConnectForm({ ssid, security, deviceName }: ConnectFormProps) {
       navigationTitle={`Connect to ${ssid}`}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Connect" icon={Icon.Wifi} onSubmit={handleConnect} />
+          <Action.SubmitForm
+            title="Connect"
+            icon={Icon.Wifi}
+            onSubmit={handleConnect}
+          />
         </ActionPanel>
       }
     >
       <Form.Description
-    title="Connect to Wi-Fi"
-    text="Fill in the details below to connect to a network."
-    />
-    <Form.Separator/>
+        title="Connect to Wi-Fi"
+        text="Fill in the details below to connect to a network."
+      />
+      <Form.Separator />
       {isEnterprise ? (
         <>
-          <Form.TextField id="username" title="Username" placeholder="Enter your login username" />
-          <Form.PasswordField id="password" title="Password" placeholder="Enter your login password" />
+          <Form.TextField
+            id="username"
+            title="Username"
+            placeholder="Enter your login username"
+          />
+          <Form.PasswordField
+            id="password"
+            title="Password"
+            placeholder="Enter your login password"
+          />
         </>
       ) : (
-        <Form.PasswordField id="password" title="Password" placeholder="Enter network password" />
+        <Form.PasswordField
+          id="password"
+          title="Password"
+          placeholder="Enter network password"
+        />
       )}
     </Form>
   );
 }
 
-
 export function ConnectHiddenForm({ deviceName }: ConnectHiddenFormProps) {
-  const [values, setValues] = useState({ ssid: "", security: "open", username: "", password: "" });
+  const [values, setValues] = useState({
+    ssid: "",
+    security: "open",
+    username: "",
+    password: "",
+  });
   const { pop } = useNavigation();
-  
 
   const handleConnect = async () => {
-    
     const { ssid, security, username, password } = values;
 
     if (!ssid) {
-      await showToast({ title: "SSID Required", message: "Please enter a network name." });
+      await showToast({
+        title: "SSID Required",
+        message: "Please enter a network name.",
+      });
       return;
     }
 
@@ -136,12 +168,23 @@ export function ConnectHiddenForm({ deviceName }: ConnectHiddenFormProps) {
       return;
     }
 
-    await showToast({ title: "Connecting...", message: `Attempting to connect to ${ssid}` });
+    await showToast({
+      title: "Connecting...",
+      message: `Attempting to connect to ${ssid}`,
+    });
 
-    let result;
+    let result: ExecResult = {
+      success: false,
+      stdout: "",
+      stderr: "",
+    };
 
     if (security === "open") {
-      result = await executeIwctlCommand("station", [ deviceName, "connect-hidden", `"${ssid}"`]);
+      result = await executeIwctlCommand("station", [
+        deviceName,
+        "connect-hidden",
+        `"${ssid}"`,
+      ]);
     }
 
     if (security === "psk") {
@@ -164,28 +207,37 @@ export function ConnectHiddenForm({ deviceName }: ConnectHiddenFormProps) {
     }
 
     if (result.success) {
-      await showToast({ title: "Connection Successful", message: `Connected to ${ssid}` });
+      await showToast({
+        title: "Connection Successful",
+        message: `Connected to ${ssid}`,
+      });
       pop();
     } else {
-      await showToast({ title: "Connection Failed", message: result.error || "Could not connect." });
+      await showToast({
+        title: "Connection Failed",
+        message: result.error || "Could not connect.",
+      });
     }
   };
 
   return (
     <Form
       navigationTitle="Connect to a hidden Wi‑Fi"
-      
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Connect" icon={Icon.Wifi} onSubmit={handleConnect} />
+          <Action.SubmitForm
+            title="Connect"
+            icon={Icon.Wifi}
+            onSubmit={handleConnect}
+          />
         </ActionPanel>
       }
     >
       <Form.Description
-    title="Connect to Hidden Wi-Fi"
-    text="Fill in the details below to connect to a hidden network."
-    />
-    <Form.Separator />
+        title="Connect to Hidden Wi-Fi"
+        text="Fill in the details below to connect to a hidden network."
+      />
+      <Form.Separator />
       <Form.TextField
         id="ssid"
         title="SSID"
