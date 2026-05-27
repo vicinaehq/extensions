@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { LocalStorage, showToast, Toast } from "@vicinae/api";
 import { parseICS } from "node-ical";
-import type { VEvent } from "node-ical";
+import type { CalendarResponse, VEvent } from "node-ical";
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { Calendar } from "../lib/types";
 import { getCalendars } from "../lib/calendar";
 import { saveToCache, loadFromCache } from "../lib/cache";
@@ -14,6 +16,34 @@ import {
   createOccurrenceUid,
 } from "../lib/eventProcessing";
 import { CACHE_KEY } from "../lib/constants";
+import { isLocalPath, expandPath } from "../lib/localPath";
+
+async function fetchICSData(url: string): Promise<CalendarResponse> {
+  if (isLocalPath(url)) {
+    const dirPath = expandPath(url);
+    const entries = await readdir(dirPath);
+    const icsFiles = entries.filter((f) => f.endsWith(".ics"));
+
+    if (icsFiles.length === 0) {
+      throw new Error(`No .ics files found in ${dirPath}`);
+    }
+
+    const merged: CalendarResponse = {};
+    for (const file of icsFiles) {
+      const content = await readFile(join(dirPath, file), "utf-8");
+      const parsed = parseICS(content);
+      Object.assign(merged, parsed);
+    }
+    return merged;
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  const icsData = await response.text();
+  return parseICS(icsData);
+}
 
 export function useCalendarData(refreshInterval: number) {
   const [calendars, setCalendars] = useState<Calendar[]>(() => getCalendars());
@@ -53,13 +83,7 @@ export function useCalendarData(refreshInterval: number) {
     try {
       for (const calendar of calendars) {
         try {
-          const response = await fetch(calendar.url);
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const icsData = await response.text();
-          const parsed = parseICS(icsData);
+          const parsed = await fetchICSData(calendar.url);
 
           for (const key in parsed) {
             const item = parsed[key];
