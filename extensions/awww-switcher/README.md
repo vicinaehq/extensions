@@ -93,8 +93,8 @@ This produces a production bundle that can be distributed/installed per Vicinae 
 This is how I have added this extension to my keybindings file:
 
 ```
-bind = SUPER CTRL, W, exec, vicinae vicinae://extensions/sovereign/awww-switcher/wpgrid
-bind = SUPER SHIFT, W, exec, vicinae vicinae://extensions/sovereign/awww-switcher/wprandom
+bind = SUPER CTRL, W, exec, vicinae vicinae://launch/@sovereign/awww-switcher/wpgrid
+bind = SUPER SHIFT, W, exec, vicinae vicinae://launch/@sovereign/awww-switcher/wprandom
 ```
 
 ## AWWW Transitions
