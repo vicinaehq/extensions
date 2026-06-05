@@ -49,17 +49,6 @@ export default function Command(): JSX.Element {
       isLoading={isLoading}
       isShowingDetail={isShowingDetail}
       searchBarPlaceholder="Search extensions..."
-      actions={(
-        <ActionPanel>
-          <Action title="Reload Extensions" icon={Icon.RotateAntiClockwise} onAction={loadExtensions} />
-          <Action title="Open Extension Manager" icon={Icon.AppWindow} onAction={() => open("gnome-extensions")} />
-          <Action
-            title="Browse Extensions"
-            icon={Icon.Globe01}
-            onAction={() => open("https://extensions.gnome.org/")}
-          />
-        </ActionPanel>
-      )}
     >
       <List.Section
         title={`Enabled (${enabledCount})`}

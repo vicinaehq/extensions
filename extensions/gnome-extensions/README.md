@@ -57,7 +57,6 @@ sudo pacman -S gnome-shell-extensions curl
 
 ## Preferences
 
-- **Extension Manager Path** – Path to your extension manager command (default: `gnome-extensions`)
 - **Show Disabled Extensions** – Include disabled extensions in the list
 
 ## Development

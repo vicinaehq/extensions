@@ -22,14 +22,6 @@
   ],
   "preferences": [
     {
-      "name": "extensionManagerPath",
-      "type": "textfield",
-      "title": "Extension Manager Path",
-      "description": "Path to your extension manager command (default: gnome-extensions or gnome-extensions-app)",
-      "default": "gnome-extensions",
-      "required": false
-    },
-    {
       "name": "showDisabled",
       "type": "checkbox",
       "title": "Show Disabled Extensions",
