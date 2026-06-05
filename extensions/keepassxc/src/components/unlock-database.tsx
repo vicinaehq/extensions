@@ -33,7 +33,7 @@ export default function UnlockDatabase({ setIsUnlocked }: UnlockDatabaseProps): 
 
       KeePassLoader.checkCredentials(value.password, value.keyFile?.[0] ?? "").then(async () => {
         await showToast({ style: Toast.Style.Success, title: "Database Unlocked" });
-        KeePassLoader.cacheCredentials(value.password, value.keyFile?.[0] ?? "");
+        await KeePassLoader.cacheCredentials(value.password, value.keyFile?.[0] ?? "");
         KeePassLoader.setCredentials(value.password, value.keyFile?.[0] ?? "");
         setIsUnlocked(true);
       }, showToastCliErrors);
@@ -49,24 +49,15 @@ export default function UnlockDatabase({ setIsUnlocked }: UnlockDatabaseProps): 
         <ActionPanel>
           <Action.SubmitForm
             title="Unlock"
+            // @ts-expect-error @typescript-eslint/ban-ts-comment
             onSubmit={handleSubmit}
           />
         </ActionPanel>
       )}
     >
-      <Form.Description
-        text="Your KeePass database is currently locked. Insert your credentials to unlock it."
-      />
-      <Form.PasswordField
-        title="Database Password"
-        {...itemProps.password}
-        onBlur={undefined}
-      />
-      <Form.FilePicker
-        id="keyFile"
-        title="Key File"
-        allowMultipleSelection={false}
-      />
+      <Form.Description text="Your KeePass database is currently locked. Insert your credentials to unlock it." />
+      <Form.PasswordField title="Database Password" {...itemProps.password} onBlur={undefined} />
+      <Form.FilePicker id="keyFile" title="Key File" allowMultipleSelection={false} />
       <Form.Description
         text={"ⓘ Your password and key file path will be stored in your Raycast's local encrypted storage."}
       />

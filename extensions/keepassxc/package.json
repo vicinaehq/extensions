@@ -4,7 +4,7 @@
   "title": "KeePassXC",
   "description": "Access a KeePass database through KeePassXC.",
   "icon": "keepassxc.png",
-  "author": "system7",
+  "author": "7system7",
   "pastContributors": [
     "pabroux",
     "zkytech",
@@ -17,9 +17,12 @@
   "license": "MIT",
   "dependencies": {
     "@raycast/utils": "^1.19.1",
+    "@types/crypto-js": "^4.2.2",
     "@vicinae/api": "^0.19.3",
+    "crypto-js": "^4.2.0",
     "csv-parse": "^5.6.0",
-    "otpauth": "^9.4.1"
+    "otpauth": "^9.4.1",
+    "run-applescript": "^7.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
