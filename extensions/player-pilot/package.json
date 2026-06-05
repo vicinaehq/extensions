@@ -3,7 +3,7 @@
   "name": "player-pilot",
   "title": "Player Pilot",
   "description": "A comprehensive media player controller supporting multiple players with grid view, metadata display, and customizable player filtering.",
-  "categories": [],
+  "categories": ["Media"],
   "license": "MIT",
   "author": "dagimg-dot",
   "contributors": [],

@@ -3,7 +3,7 @@
 	"name": "agent-skills-sh",
 	"title": "Agent Skills",
 	"description": "Install skills from skills.sh, the agent skills directory",
-	"categories": [],
+	"categories": ["Developer Tools"],
 	"license": "MIT",
 	"author": "aurelleb",
 	"contributors": [],

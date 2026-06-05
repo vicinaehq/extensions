@@ -3,7 +3,7 @@
   "name": "awww-switcher",
   "title": "AWWW Switcher",
   "description": "Switch your wallpaper with awww and call a color gen to update color pallets while you are at it",
-  "categories": [],
+  "categories": ["System"],
   "license": "MIT",
   "author": "sovereign",
   "contributors": [],

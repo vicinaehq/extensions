@@ -3,7 +3,7 @@
   "name": "ssh",
   "title": "ssh",
   "description": "Open a host in ssh",
-  "categories": [],
+  "categories": ["System"],
   "license": "MIT",
   "author": "leiserfg",
   "contributors": [],

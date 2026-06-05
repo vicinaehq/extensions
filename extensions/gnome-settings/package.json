@@ -1,189 +1,343 @@
 {
-	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-	"name": "gnome-settings",
-	"title": "GNOME Settings",
-	"description": "Lists and opens GNOME Control Center panels for easy access",
-	"categories": [],
-	"license": "MIT",
-	"author": "dagimg-dot",
-	"contributors": [],
-	"pastContributors": [],
-	"icon": "gnome_settings.png",
-	"commands": [
-		{
-			"name": "applications",
-			"title": "Applications",
-			"description": "Manage installed applications and default apps",
-			"keywords": ["apps", "software", "default", "uninstall", "install"],
-			"mode": "no-view"
-		},
-		{
-			"name": "background",
-			"title": "Background",
-			"description": "Change desktop background and lock screen",
-			"keywords": ["wallpaper", "desktop", "lock screen", "slideshow"],
-			"mode": "no-view"
-		},
-		{
-			"name": "bluetooth",
-			"title": "Bluetooth",
-			"description": "Configure Bluetooth devices and connections",
-			"keywords": ["wireless", "devices", "pair", "connect"],
-			"mode": "no-view"
-		},
-		{
-			"name": "color",
-			"title": "Color",
-			"description": "Manage color profiles and display calibration",
-			"keywords": ["calibration", "profiles", "display", "color"],
-			"mode": "no-view"
-		},
-		{
-			"name": "display",
-			"title": "Display",
-			"description": "Configure screen resolution, scaling, and arrangement",
-			"keywords": ["resolution", "scaling", "monitor", "screen", "arrangement"],
-			"mode": "no-view"
-		},
-		{
-			"name": "keyboard",
-			"title": "Keyboard",
-			"description": "Configure keyboard layout, shortcuts, and typing",
-			"keywords": ["layout", "shortcuts", "typing", "input", "hotkeys"],
-			"mode": "no-view"
-		},
-		{
-			"name": "mouse",
-			"title": "Mouse & Touchpad",
-			"description": "Configure mouse and touchpad settings",
-			"keywords": ["touchpad", "pointer", "click", "scroll", "gestures"],
-			"mode": "no-view"
-		},
-		{
-			"name": "multitasking",
-			"title": "Multitasking",
-			"description": "Configure workspace and window management",
-			"keywords": ["workspace", "windows", "hot corner", "overview"],
-			"mode": "no-view"
-		},
-		{
-			"name": "network",
-			"title": "Network",
-			"description": "Configure network connections and settings",
-			"keywords": ["wifi", "ethernet", "vpn", "proxy", "connection"],
-			"mode": "no-view"
-		},
-		{
-			"name": "wifi",
-			"title": "Wi-Fi",
-			"description": "Manage Wi-Fi connections and settings",
-			"keywords": ["wireless", "connection", "password", "hotspot"],
-			"mode": "no-view"
-		},
-		{
-			"name": "notifications",
-			"title": "Notifications",
-			"description": "Configure notification settings and do not disturb",
-			"keywords": ["alerts", "do not disturb", "banner", "lock screen"],
-			"mode": "no-view"
-		},
-		{
-			"name": "online-accounts",
-			"title": "Online Accounts",
-			"description": "Manage online accounts and cloud services",
-			"keywords": ["google", "microsoft", "cloud", "sync", "calendar"],
-			"mode": "no-view"
-		},
-		{
-			"name": "power",
-			"title": "Power",
-			"description": "Configure power management and battery settings",
-			"keywords": ["battery", "sleep", "suspend", "power button", "energy"],
-			"mode": "no-view"
-		},
-		{
-			"name": "printers",
-			"title": "Printers",
-			"description": "Manage printers and printing settings",
-			"keywords": ["printing", "scanner", "driver", "queue"],
-			"mode": "no-view"
-		},
-		{
-			"name": "privacy",
-			"title": "Privacy",
-			"description": "Configure privacy settings and location services",
-			"keywords": ["location", "camera", "microphone", "usage", "data"],
-			"mode": "no-view"
-		},
-		{
-			"name": "search",
-			"title": "Search",
-			"description": "Configure search settings and file indexing",
-			"keywords": ["files", "indexing", "tracker", "find", "locate"],
-			"mode": "no-view"
-		},
-		{
-			"name": "sharing",
-			"title": "Sharing",
-			"description": "Configure file and screen sharing settings",
-			"keywords": ["files", "screen", "remote", "vnc", "samba"],
-			"mode": "no-view"
-		},
-		{
-			"name": "sound",
-			"title": "Sound",
-			"description": "Configure audio devices and sound settings",
-			"keywords": ["audio", "volume", "microphone", "speakers", "headphones"],
-			"mode": "no-view"
-		},
-		{
-			"name": "system",
-			"title": "System",
-			"description": "System information and general settings",
-			"keywords": ["info", "about", "language", "region", "date"],
-			"mode": "no-view"
-		},
-		{
-			"name": "universal-access",
-			"title": "Universal Access",
-			"description": "Accessibility features and assistive technologies",
-			"keywords": ["accessibility", "screen reader", "magnifier", "high contrast"],
-			"mode": "no-view"
-		},
-		{
-			"name": "wacom",
-			"title": "Wacom Tablet",
-			"description": "Configure Wacom graphics tablet settings",
-			"keywords": ["tablet", "stylus", "pressure", "graphics", "drawing"],
-			"mode": "no-view"
-		},
-		{
-			"name": "wellbeing",
-			"title": "Wellbeing",
-			"description": "Screen time and digital wellness settings",
-			"keywords": ["screen time", "break", "reminder", "wellness", "usage"],
-			"mode": "no-view"
-		},
-		{
-			"name": "wwan",
-			"title": "Mobile Broadband",
-			"description": "Configure mobile broadband and cellular connections",
-			"keywords": ["cellular", "mobile", "broadband", "sim", "carrier"],
-			"mode": "no-view"
-		}
-	],
-	"preferences": [],
-	"scripts": {
-		"build": "vici build",
-		"dev": "vici develop",
-		"lint": "vici lint",
-		"check": "biome check --write src"
-	},
-	"dependencies": {
-		"@vicinae/api": "^0.16.1"
-	},
-	"devDependencies": {
-		"typescript": "^5.9.2",
-		"@biomejs/biome": "^2.3.4"
-	}
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "gnome-settings",
+  "title": "GNOME Settings",
+  "description": "Lists and opens GNOME Control Center panels for easy access",
+  "categories": ["System"],
+  "license": "MIT",
+  "author": "dagimg-dot",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "gnome_settings.png",
+  "commands": [
+    {
+      "name": "applications",
+      "title": "Applications",
+      "description": "Manage installed applications and default apps",
+      "keywords": [
+        "apps",
+        "software",
+        "default",
+        "uninstall",
+        "install"
+      ],
+      "mode": "no-view",
+      "icon": "applications.png"
+    },
+    {
+      "name": "appearance",
+      "title": "Appearance",
+      "description": "Change background and accent color",
+      "keywords": [
+        "wallpaper",
+        "desktop",
+        "lock screen",
+        "slideshow",
+        "background"
+      ],
+      "mode": "no-view",
+      "icon": "appearance.png"
+    },
+    {
+      "name": "bluetooth",
+      "title": "Bluetooth",
+      "description": "Configure Bluetooth devices and connections",
+      "keywords": [
+        "wireless",
+        "devices",
+        "pair",
+        "connect"
+      ],
+      "mode": "no-view",
+      "icon": "bluetooth.png"
+    },
+    {
+      "name": "color",
+      "title": "Color",
+      "description": "Manage color profiles and display calibration",
+      "keywords": [
+        "calibration",
+        "profiles",
+        "display",
+        "color"
+      ],
+      "mode": "no-view",
+      "icon": "color.png"
+    },
+    {
+      "name": "display",
+      "title": "Display",
+      "description": "Configure screen resolution, scaling, and arrangement",
+      "keywords": [
+        "resolution",
+        "scaling",
+        "monitor",
+        "screen",
+        "arrangement"
+      ],
+      "mode": "no-view",
+      "icon": "display.png"
+    },
+    {
+      "name": "keyboard",
+      "title": "Keyboard",
+      "description": "Configure keyboard layout, shortcuts, and typing",
+      "keywords": [
+        "layout",
+        "shortcuts",
+        "typing",
+        "input",
+        "hotkeys"
+      ],
+      "mode": "no-view",
+      "icon": "keyboard.png"
+    },
+    {
+      "name": "mouse",
+      "title": "Mouse & Touchpad",
+      "description": "Configure mouse and touchpad settings",
+      "keywords": [
+        "touchpad",
+        "pointer",
+        "click",
+        "scroll",
+        "gestures"
+      ],
+      "mode": "no-view",
+      "icon": "mouse.png"
+    },
+    {
+      "name": "multitasking",
+      "title": "Multitasking",
+      "description": "Configure workspace and window management",
+      "keywords": [
+        "workspace",
+        "windows",
+        "hot corner",
+        "overview"
+      ],
+      "mode": "no-view",
+      "icon": "multitasking.png"
+    },
+    {
+      "name": "network",
+      "title": "Network",
+      "description": "Configure network connections and settings",
+      "keywords": [
+        "wifi",
+        "ethernet",
+        "vpn",
+        "proxy",
+        "connection"
+      ],
+      "mode": "no-view",
+      "icon": "network.png"
+    },
+    {
+      "name": "wifi",
+      "title": "Wi-Fi",
+      "description": "Manage Wi-Fi connections and settings",
+      "keywords": [
+        "wireless",
+        "connection",
+        "password",
+        "hotspot"
+      ],
+      "mode": "no-view",
+      "icon": "wifi.png"
+    },
+    {
+      "name": "notifications",
+      "title": "Notifications",
+      "description": "Configure notification settings and do not disturb",
+      "keywords": [
+        "alerts",
+        "do not disturb",
+        "banner",
+        "lock screen"
+      ],
+      "mode": "no-view",
+      "icon": "notification.png"
+    },
+    {
+      "name": "online-accounts",
+      "title": "Online Accounts",
+      "description": "Manage online accounts and cloud services",
+      "keywords": [
+        "google",
+        "microsoft",
+        "cloud",
+        "sync",
+        "calendar"
+      ],
+      "mode": "no-view",
+      "icon": "online-accounts.png"
+    },
+    {
+      "name": "power",
+      "title": "Power",
+      "description": "Configure power management and battery settings",
+      "keywords": [
+        "battery",
+        "sleep",
+        "suspend",
+        "power button",
+        "energy"
+      ],
+      "mode": "no-view",
+      "icon": "power.png"
+    },
+    {
+      "name": "printers",
+      "title": "Printers",
+      "description": "Manage printers and printing settings",
+      "keywords": [
+        "printing",
+        "scanner",
+        "driver",
+        "queue"
+      ],
+      "mode": "no-view",
+      "icon": "printers.png"
+    },
+    {
+      "name": "privacy",
+      "title": "Privacy",
+      "description": "Configure privacy settings and location services",
+      "keywords": [
+        "location",
+        "camera",
+        "microphone",
+        "usage",
+        "data"
+      ],
+      "mode": "no-view",
+      "icon": "privacy.png"
+    },
+    {
+      "name": "search",
+      "title": "Search",
+      "description": "Configure search settings and file indexing",
+      "keywords": [
+        "files",
+        "indexing",
+        "tracker",
+        "find",
+        "locate"
+      ],
+      "mode": "no-view",
+      "icon": "search.png"
+    },
+    {
+      "name": "sharing",
+      "title": "Sharing",
+      "description": "Configure file and screen sharing settings",
+      "keywords": [
+        "files",
+        "screen",
+        "remote",
+        "vnc",
+        "samba"
+      ],
+      "mode": "no-view",
+      "icon": "sharing.png"
+    },
+    {
+      "name": "sound",
+      "title": "Sound",
+      "description": "Configure audio devices and sound settings",
+      "keywords": [
+        "audio",
+        "volume",
+        "microphone",
+        "speakers",
+        "headphones"
+      ],
+      "mode": "no-view",
+      "icon": "sound.png"
+    },
+    {
+      "name": "system",
+      "title": "System",
+      "description": "System information and general settings",
+      "keywords": [
+        "info",
+        "about",
+        "language",
+        "region",
+        "date"
+      ],
+      "mode": "no-view",
+      "icon": "system.png"
+    },
+    {
+      "name": "universal-access",
+      "title": "Universal Access",
+      "description": "Accessibility features and assistive technologies",
+      "keywords": [
+        "accessibility",
+        "screen reader",
+        "magnifier",
+        "high contrast"
+      ],
+      "mode": "no-view",
+      "icon": "accessibility.png"
+    },
+    {
+      "name": "wacom",
+      "title": "Wacom Tablet",
+      "description": "Configure Wacom graphics tablet settings",
+      "keywords": [
+        "tablet",
+        "stylus",
+        "pressure",
+        "graphics",
+        "drawing"
+      ],
+      "mode": "no-view",
+      "icon": "wacom.png"
+    },
+    {
+      "name": "wellbeing",
+      "title": "Wellbeing",
+      "description": "Screen time and digital wellness settings",
+      "keywords": [
+        "screen time",
+        "break",
+        "reminder",
+        "wellness",
+        "usage"
+      ],
+      "mode": "no-view",
+      "icon": "wellbeing.png"
+    },
+    {
+      "name": "wwan",
+      "title": "Mobile Broadband",
+      "description": "Configure mobile broadband and cellular connections",
+      "keywords": [
+        "cellular",
+        "mobile",
+        "broadband",
+        "sim",
+        "carrier"
+      ],
+      "mode": "no-view",
+      "icon": "mobile-network.png"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "check": "biome check --write src"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.16.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "^2.3.4"
+  }
 }

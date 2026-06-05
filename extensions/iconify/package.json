@@ -1,0 +1,222 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "iconify",
+  "description": "Search and browse icons from the Iconify catalog",
+  "categories": [
+    "Design Tools",
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "author": "nino-mau",
+  "contributors": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "typescript": "^5.9.2"
+  },
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "view-icons",
+      "icon": "extension_icon.png",
+      "title": "View Icons",
+      "subtitle": "Iconify",
+      "description": "Browse icons by collection",
+      "mode": "view"
+    },
+    {
+      "name": "search-icons",
+      "icon": "extension_icon.png",
+      "title": "Search All Icons",
+      "subtitle": "Iconify",
+      "description": "Search across all Iconify icon sets",
+      "mode": "view"
+    }
+  ],
+  "pastContributors": [],
+  "preferences": [
+    {
+      "name": "primaryAction",
+      "type": "dropdown",
+      "required": true,
+      "title": "Primary action",
+      "description": "Default action used when pressing enter on an icon",
+      "default": "paste",
+      "data": [
+        {
+          "title": "Paste SVG string",
+          "value": "paste"
+        },
+        {
+          "title": "Copy SVG string",
+          "value": "copy"
+        },
+        {
+          "title": "Paste SVG file",
+          "value": "pasteFile"
+        },
+        {
+          "title": "Copy SVG file",
+          "value": "copyFile"
+        },
+        {
+          "title": "Paste icon name",
+          "value": "pasteName"
+        },
+        {
+          "title": "Copy icon name",
+          "value": "copyName"
+        },
+        {
+          "title": "Copy SVG URL",
+          "value": "copyURL"
+        },
+        {
+          "title": "Copy data URI",
+          "value": "copyDataURI"
+        }
+      ]
+    },
+    {
+      "name": "iconColor",
+      "type": "dropdown",
+      "required": true,
+      "title": "Monochrome icon color",
+      "description": "Color injected into icons that use currentColor",
+      "default": "currentColor",
+      "data": [
+        {
+          "title": "Default",
+          "value": "currentColor"
+        },
+        {
+          "title": "Custom",
+          "value": "customColor"
+        }
+      ]
+    },
+    {
+      "name": "customColor",
+      "type": "textfield",
+      "required": false,
+      "title": "Custom icon color",
+      "description": "Hex color used when the custom color option is enabled",
+      "default": "#111111"
+    },
+    {
+      "name": "iconNameFormat",
+      "type": "dropdown",
+      "required": true,
+      "title": "Icon name format",
+      "description": "Format used when copying or pasting icon names",
+      "default": "set-name:icon-name",
+      "data": [
+        {
+          "title": "IconName",
+          "value": "IconName"
+        },
+        {
+          "title": "icon-name",
+          "value": "icon-name"
+        },
+        {
+          "title": "set-name:icon-name",
+          "value": "set-name:icon-name"
+        },
+        {
+          "title": "set-name-icon-name",
+          "value": "set-name-icon-name"
+        },
+        {
+          "title": "set-name/icon-name",
+          "value": "set-name/icon-name"
+        },
+        {
+          "title": "set-name--icon-name",
+          "value": "set-name--icon-name"
+        },
+        {
+          "title": "setNameIconName",
+          "value": "setNameIconName"
+        },
+        {
+          "title": "SetNameIconName",
+          "value": "SetNameIconName"
+        },
+        {
+          "title": "<SetNameIconName />",
+          "value": "<SetNameIconName />"
+        },
+        {
+          "title": "<set-name-icon-name />",
+          "value": "<set-name-icon-name />"
+        },
+        {
+          "title": "i-set-name:icon-name",
+          "value": "i-set-name:icon-name"
+        },
+        {
+          "title": "i-set-name-icon-name",
+          "value": "i-set-name-icon-name"
+        },
+        {
+          "title": "icon-[set-name--icon-name]",
+          "value": "icon-[set-name--icon-name]"
+        }
+      ]
+    },
+    {
+      "name": "columns",
+      "type": "dropdown",
+      "required": true,
+      "title": "Grid columns",
+      "description": "Number of columns shown in the icon grid",
+      "default": "8",
+      "data": [
+        {
+          "title": "6",
+          "value": "6"
+        },
+        {
+          "title": "8",
+          "value": "8"
+        },
+        {
+          "title": "10",
+          "value": "10"
+        }
+      ]
+    },
+    {
+      "name": "itemsPerPage",
+      "type": "dropdown",
+      "required": true,
+      "title": "Icons per page",
+      "description": "How many icons to load per page in the collection browser",
+      "default": "800",
+      "data": [
+        {
+          "title": "200",
+          "value": "200"
+        },
+        {
+          "title": "400",
+          "value": "400"
+        },
+        {
+          "title": "800",
+          "value": "800"
+        }
+      ]
+    }
+  ],
+  "title": "Iconify"
+}

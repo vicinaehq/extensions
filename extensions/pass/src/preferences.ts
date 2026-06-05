@@ -1,5 +1,6 @@
 import { getPreferenceValues } from "@vicinae/api";
 import { resolveAbsolutePath } from "@/utils/path";
+import { Schema } from "@/types"
 
 type RawPreferences = {
   passwordStorePath?: string;
@@ -8,6 +9,7 @@ type RawPreferences = {
   otpAfterPassword?: boolean;
   lastUsedTtl?: string;
   action?: "paste" | "copy";
+  fileSchema?: string;
 };
 
 export type Preferences = {
@@ -17,6 +19,7 @@ export type Preferences = {
   otpAfterPassword: boolean;
   lastUsedTtlSeconds: number;
   action: "paste" | "copy";
+  schema: Schema | null;
 };
 
 export function getPreferences(): Preferences {
@@ -29,7 +32,14 @@ export function getPreferences(): Preferences {
     otpAfterPassword: raw.otpAfterPassword ?? true,
     lastUsedTtlSeconds: parsePositiveInt(raw.lastUsedTtl, 120),
     action: raw.action || "paste",
+    schema: parseJson(raw.fileSchema)
   };
+}
+
+function parseJson(value?: string) {
+  const jsonString = sanitizeString(value);
+  if (jsonString == undefined) return null;
+  return JSON.parse(jsonString);
 }
 
 function sanitizeString(value?: string): string | undefined {

@@ -24,7 +24,7 @@ Vicinae Pass lets you browse, decrypt, and copy secrets that are saved in your G
 - **GPG Passphrase** – Optional passphrase that unlocks your key via GPG loopback mode.
 - **Additional PATH Entries** – Colon-separated directories appended to `PATH` before running `gpg` or `oathtool`.
 - **Prioritize OTP After Password** – When enabled, OTP entries jump to the top after you copy a password to speed up two-factor flows.
-- **Last Used TTL (seconds)** – How long the last-used entry is pinned to the top of the list (defaults to 120 seconds).
+- **Last Used TTL (seconds)** – How long the last-used entry is pinned to the top of the list (defaults to 120 seconds).- **File Schema** - Basic, optional JSON to 'describe' your `pass` file layout (defaults to empty, example below).
 
 ## Usage
 
@@ -33,6 +33,19 @@ Vicinae Pass lets you browse, decrypt, and copy secrets that are saved in your G
 3. Select an entry to decrypt it. The first line becomes the `Password` option; additional `Key: Value` lines become individual fields.
 4. Use the actions to copy a field to the clipboard or paste it directly into the focused window. Successful actions update the “last used” cache so follow-up operations stay nearby.
 5. Lines starting with `otpauth://` trigger `oathtool` and render an `OTP` option. If `oathtool` is missing, the extension shows a toast explaining how to fix it and still lists the remaining fields.
+
+## File Schema
+
+This is a simple bit of JSON to describe the layout of your `pass` files. It takes the form of an array of objects. Each object consists of a "key" (string, the displayed name of the list item) and a "type" (the type of item in the list.) Types can be one of "password", "otp", "field", or "note". An example file schema follows:
+
+```json
+[
+    {"key": "Password","type": "password"},
+    {"key": "UserName","type": "field"},
+    {"key": "URL","type": "field"},
+    {"key": "OTP","type": "otp"}
+]
+```
 
 ## Development
 

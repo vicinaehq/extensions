@@ -1,6 +1,6 @@
 import React from "react";
 import { exec } from "child_process";
-import { Action, ActionPanel, Color, Detail, getPreferenceValues, Icon, Keyboard, List } from "@vicinae/api";
+import { Action, ActionPanel, Color, Detail, getPreferenceValues, Icon, Keyboard, List, runInTerminal } from "@vicinae/api";
 import { cleanText } from "./api";
 import { copyToClipboard, relativeTime } from "./utils";
 import type {
@@ -14,6 +14,20 @@ import type {
   GitHubUser,
 } from "./types";
 import { useGithubPullRequestDetail } from "./hooks";
+
+let commaAvailabilityPromise: Promise<boolean> | null = null;
+
+function hasCommaInstalled(): Promise<boolean> {
+  if (!commaAvailabilityPromise) {
+    commaAvailabilityPromise = new Promise((resolve) => {
+      exec("command -v comma >/dev/null 2>&1", (error) => {
+        resolve(!error);
+      });
+    });
+  }
+
+  return commaAvailabilityPromise;
+}
 
 function OptionActions({
   name,
@@ -149,6 +163,22 @@ function FlakeMetadata({
 }
 
 export function PackageListItem({ pkg }: { pkg: NixPackage }) {
+  const [canRunComma, setCanRunComma] = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    void hasCommaInstalled().then((installed) => {
+      if (mounted) {
+        setCanRunComma(installed);
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const openHomepage = () => {
     if (pkg.package_homepage.length > 0) {
       exec(`xdg-open "${pkg.package_homepage[0]}"`);
@@ -198,6 +228,14 @@ export function PackageListItem({ pkg }: { pkg: NixPackage }) {
               icon={Icon.Code}
               url={sourceUrl}
               shortcut={Keyboard.Shortcut.Common.OpenWith}
+            />
+          )}
+          {canRunComma && (
+            <Action
+              title="Run with comma"
+              icon={Icon.Terminal}
+              onAction={async () => await runInTerminal([",", pkg.package_attr_name], { hold: true })}
+              shortcut={{ key: "return", modifiers: ["ctrl"] }}
             />
           )}
           <Action

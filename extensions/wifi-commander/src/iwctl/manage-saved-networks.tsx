@@ -1,6 +1,16 @@
-import { Action, ActionPanel, Color, Icon, List, showToast } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Icon,
+  List,
+  showToast,
+} from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { executeIwctlCommand, executeIwctlCommandSilent } from "../utils/execute-iwctl";
+import {
+  executeIwctlCommand,
+  executeIwctlCommandSilent,
+} from "../utils/execute-iwctl";
 import {
   type CurrentConnection,
   loadCurrentConnection,
@@ -20,13 +30,13 @@ interface SavedNetworksResult {
 }
 
 export default function ManageSavedNetworksIwctl() {
-
   const [savedNetworks, setSavedNetworks] = useState<SavedNetworksResult>({
     networks: [],
     isLoading: true,
     error: null,
   });
-  const [currentConnection, setCurrentConnection] = useState<CurrentConnection | null>(null);
+  const [currentConnection, setCurrentConnection] =
+    useState<CurrentConnection | null>(null);
   const [wifiDevice, setWifiDevice] = useState<WifiDevice | null>(null);
   const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
 
@@ -54,18 +64,27 @@ export default function ManageSavedNetworksIwctl() {
         throw new Error("No WiFi device found");
       }
 
-      const executeScan = await executeIwctlCommandSilent("station", [device.name, "scan"])
+      const executeScan = await executeIwctlCommandSilent("station", [
+        device.name,
+        "scan",
+      ]);
 
-      if (!executeScan.success){
+      if (!executeScan.success) {
         // only info since scanning gives error if still scanning
         console.info(executeScan.error || "station scan failed.");
       }
 
-      const result = await executeIwctlCommandSilent("station", [device.name, "get-networks", "rssi-dbms"])
+      const result = await executeIwctlCommandSilent("station", [
+        device.name,
+        "get-networks",
+        "rssi-dbms",
+      ]);
 
       if (result.success) {
         const networks = await parseWifiList(result.stdout, device.name);
-        const ssids = networks.map((network) => network.ssid).filter((ssid) => ssid);
+        const ssids = networks
+          .map((network) => network.ssid)
+          .filter((ssid) => ssid);
         setAvailableNetworks(ssids);
       }
     } catch (error) {
@@ -85,13 +104,12 @@ export default function ManageSavedNetworksIwctl() {
         isLoading: false,
         error: null,
       });
-
-
     } catch (error) {
       setSavedNetworks({
         networks: [],
         isLoading: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
   };
@@ -102,7 +120,11 @@ export default function ManageSavedNetworksIwctl() {
       message: `Connecting to ${networkName}`,
     });
 
-    const result = await executeIwctlCommand("station", [wifiDevice?.name, "connect", `"${networkName}"`]);
+    const result = await executeIwctlCommand("station", [
+      wifiDevice?.name,
+      "connect",
+      `"${networkName}"`,
+    ]);
 
     if (result.success) {
       await showToast({
@@ -119,26 +141,39 @@ export default function ManageSavedNetworksIwctl() {
     }
   };
 
-  const handleAutoConnect = async (networkName: string, autoconnect: string) => {
-    let result;
+  const handleAutoConnect = async (
+    networkName: string,
+    autoconnect: string,
+  ) => {
+    let result: ExecResult = { success: false, stdout: "", stderr: "" };
     await showToast({
       title: "Toggling Autoconnect...",
       message: `Toggling Autoconnect for ${networkName}`,
     });
 
-    if(autoconnect === "Unkown"){
+    if (autoconnect === "Unkown") {
       await showToast({
         title: "Toggling Autoconnect Failed",
         message: `Could not see Autoconnect status of ${networkName}`,
       });
     }
 
-    if(autoconnect == "yes"){
-      result = await executeIwctlCommand("known-networks", [`"${networkName}"`, "set-property", "AutoConnect", "no"]);
-    }else{
-      result = await executeIwctlCommand("known-networks", [`"${networkName}"`, "set-property", "AutoConnect", "yes"]);
+    // biome-ignore lint/suspicious/noDoubleEquals: unknown
+    if (autoconnect == "yes") {
+      result = await executeIwctlCommand("known-networks", [
+        `"${networkName}"`,
+        "set-property",
+        "AutoConnect",
+        "no",
+      ]);
+    } else {
+      result = await executeIwctlCommand("known-networks", [
+        `"${networkName}"`,
+        "set-property",
+        "AutoConnect",
+        "yes",
+      ]);
     }
-
 
     if (result.success) {
       await showToast({
@@ -169,7 +204,10 @@ export default function ManageSavedNetworksIwctl() {
       message: "Disconnecting from current network",
     });
 
-    const result = await executeIwctlCommand("station ", [wifiDevice.name,  "disconnect"]);
+    const result = await executeIwctlCommand("station ", [
+      wifiDevice.name,
+      "disconnect",
+    ]);
 
     if (result.success) {
       await showToast({
@@ -193,7 +231,10 @@ export default function ManageSavedNetworksIwctl() {
       message: `Removing ${networkName} from saved networks`,
     });
 
-    const result = await executeIwctlCommand("known-networks", [`"${networkName}"`, "forget"]);
+    const result = await executeIwctlCommand("known-networks", [
+      `"${networkName}"`,
+      "forget",
+    ]);
 
     if (result.success) {
       await showToast({
@@ -209,7 +250,6 @@ export default function ManageSavedNetworksIwctl() {
     }
   };
 
-
   // not sure if im going to implement this. since i cant get to this info of activating. only in use
   const getStateIcon = (networkState: string) => {
     switch (networkState.toLowerCase()) {
@@ -222,7 +262,7 @@ export default function ManageSavedNetworksIwctl() {
     }
   };
 
-    // same with this one
+  // same with this one
   const getStateColor = (networkState: string) => {
     switch (networkState.toLowerCase()) {
       case "activated":
@@ -241,28 +281,20 @@ export default function ManageSavedNetworksIwctl() {
     loadSavedNetworksData();
   }, []);
 
-  if (savedNetworks.isLoading) {
-    return (
-      <List searchBarPlaceholder="Loading saved networks...">
-        <List.EmptyView
-          title="Loading Saved Networks"
-          description="Please wait while we load your saved Wi-Fi networks..."
-          icon={Icon.Clock}
-        />
-      </List>
-    );
-  }
-
   if (savedNetworks.error) {
     return (
       <List searchBarPlaceholder="Search saved networks...">
         <List.EmptyView
           title="Failed to Load Networks"
           description={savedNetworks.error}
-          icon={Icon.ExclamationMark}
+          icon={Icon.Exclamationmark}
           actions={
             <ActionPanel>
-              <Action title="Retry" icon={Icon.ArrowClockwise} onAction={loadSavedNetworksData} />
+              <Action
+                title="Retry"
+                icon={Icon.ArrowClockwise}
+                onAction={loadSavedNetworksData}
+              />
             </ActionPanel>
           }
         />
@@ -270,7 +302,7 @@ export default function ManageSavedNetworksIwctl() {
     );
   }
 
-  if (savedNetworks.networks.length === 0) {
+  if (savedNetworks.networks.length === 0 && !savedNetworks.isLoading) {
     return (
       <List searchBarPlaceholder="Search saved networks...">
         <List.EmptyView
@@ -282,15 +314,27 @@ export default function ManageSavedNetworksIwctl() {
     );
   }
   return (
-    <List searchBarPlaceholder="Search saved networks..." isShowingDetail={true}>
+    <List
+      searchBarPlaceholder="Search saved networks..."
+      isShowingDetail={true}
+      isLoading={savedNetworks.isLoading}
+    >
       <List.Section title={`Saved Networks (${savedNetworks.networks.length})`}>
         {savedNetworks.networks.map((network) => (
           <List.Item
             key={network.name}
             title={network.name}
             icon={{
-              source: getStateIcon(currentConnection?.name === network.name ? "Activated" : "Disconnected"),
-              tintColor: getStateColor(currentConnection?.name === network.name ? "Activated" : "Disconnected"),
+              source: getStateIcon(
+                currentConnection?.name === network.name
+                  ? "Activated"
+                  : "Disconnected",
+              ),
+              tintColor: getStateColor(
+                currentConnection?.name === network.name
+                  ? "Activated"
+                  : "Disconnected",
+              ),
             }}
             detail={
               <List.Item.Detail
@@ -301,11 +345,23 @@ export default function ManageSavedNetworksIwctl() {
                       title="Device"
                       text={wifiDevice?.name || "No device"}
                     />
-                    <List.Item.Detail.Metadata.Label title="Security" text={network.security} />
+                    <List.Item.Detail.Metadata.Label
+                      title="Security"
+                      text={network.security}
+                    />
                     <List.Item.Detail.Metadata.Separator />
-                    <List.Item.Detail.Metadata.Label title="Auto Connect" text={network.autoconnect} />
-                    <List.Item.Detail.Metadata.Label title="Hidden" text={network.hidden} />
-                    <List.Item.Detail.Metadata.Label title="Last Used" text={network.last_used} />
+                    <List.Item.Detail.Metadata.Label
+                      title="Auto Connect"
+                      text={network.autoconnect}
+                    />
+                    <List.Item.Detail.Metadata.Label
+                      title="Hidden"
+                      text={network.hidden}
+                    />
+                    <List.Item.Detail.Metadata.Label
+                      title="Last Used"
+                      text={network.last_used}
+                    />
                   </List.Item.Detail.Metadata>
                 }
               />
@@ -319,7 +375,7 @@ export default function ManageSavedNetworksIwctl() {
                     onAction={handleDisconnect}
                     shortcut={{ modifiers: ["cmd"], key: "d" }}
                   />
-                ) }
+                )}
                 <Action
                   title="Connect"
                   icon={Icon.Wifi}
@@ -333,11 +389,13 @@ export default function ManageSavedNetworksIwctl() {
                   shortcut={{ modifiers: ["cmd"], key: "delete" }}
                 />
                 <Action
-                    title="Toggle AutoConnect"
-                    icon={Icon.Repeat}
-                    onAction={() => handleAutoConnect(network.name, network.autoconnect)}
-                    shortcut={{ modifiers: ["cmd"], key: "a" }}
-                  />
+                  title="Toggle AutoConnect"
+                  icon={Icon.Repeat}
+                  onAction={() =>
+                    handleAutoConnect(network.name, network.autoconnect)
+                  }
+                  shortcut={{ modifiers: ["cmd"], key: "a" }}
+                />
                 <Action.CopyToClipboard
                   title="Copy Network Name"
                   content={network.name}

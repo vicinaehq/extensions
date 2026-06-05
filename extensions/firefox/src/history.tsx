@@ -5,9 +5,11 @@ import { Database } from "sql.js";
 import {
   createCommonActions,
   getFirefoxProfiles,
+  getStoredFirefoxProfile,
   initDatabase,
   Profile,
   showErrorToast,
+  setStoredFirefoxProfile,
 } from "./utils";
 
 function getFirefoxHistory(db: Database) {
@@ -32,7 +34,7 @@ type HistoryItem = {
 };
 
 export default function Command() {
-  const [, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentProfile, setCurrentProfile] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +44,10 @@ export default function Command() {
       setIsLoading(true);
       try {
         const { profiles, defaultProfile } = await getFirefoxProfiles();
+        const storedProfile = await getStoredFirefoxProfile();
+        const selectedProfile =
+          profiles.find((profile) => profile.path === storedProfile)?.path ??
+          defaultProfile;
         if (profiles.length === 0) {
           await showErrorToast(
             "No Firefox profiles found",
@@ -49,7 +55,8 @@ export default function Command() {
           );
         }
         setProfiles(profiles);
-        setCurrentProfile(defaultProfile);
+        setCurrentProfile(selectedProfile);
+        void setStoredFirefoxProfile(selectedProfile);
       } catch (error) {
         await showErrorToast("Error loading profiles", String(error));
         setProfiles([]);
@@ -112,6 +119,25 @@ export default function Command() {
     <List
       isLoading={isLoading}
       searchBarPlaceholder="Search Firefox history"
+      searchBarAccessory={
+        <List.Dropdown
+          tooltip="Profile"
+          value={currentProfile}
+          onChange={(value) => {
+            setCurrentProfile(value);
+            void setStoredFirefoxProfile(value);
+          }}
+        >
+          {profiles.map((profile) => (
+            <List.Dropdown.Item
+              key={profile.path}
+              icon={Icon.Person}
+              title={profile.name || profile.path}
+              value={profile.path}
+            />
+          ))}
+        </List.Dropdown>
+      }
     >
       {history.map((item) => (
         <List.Item

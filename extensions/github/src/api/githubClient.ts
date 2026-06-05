@@ -1,5 +1,5 @@
-import { Octokit } from "@octokit/rest";
 import { getPreferenceValues } from "@vicinae/api";
+import { Octokit } from "@octokit/rest";
 
 const token = getPreferenceValues<{ personalAccessToken: string }>()
   .personalAccessToken;
@@ -11,4 +11,4 @@ if (!token) {
 }
 
 export const authToken = token;
-export const octokit = new Octokit({ auth: token, });
+export const octokit = new Octokit({ auth: token });

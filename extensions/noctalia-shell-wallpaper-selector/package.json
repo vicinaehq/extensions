@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "noctalia-shell-wallpaper-selector",
+  "title": "Noctalia Shell Wallpaper Selector",
+  "description": "Simple extension to quickly change your wallpaper using the Noctalia Shell IPC for interacting with wallpapers.",
+  "categories": [
+    "Media",
+    "System"
+  ],
+  "license": "MIT",
+  "author": "Gimblet",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "change-your-wallpaper",
+      "title": "Change your wallpaper",
+      "subtitle": "Select a new wallpaper for noctalia shell",
+      "description": "This command executes the Noctalia Shell IPC in order to change the user's wallpaper",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "wallpaper_directory",
+      "title": "Wallpaper directory",
+      "description": "Absolute path to the folder where you store your wallpapers.",
+      "required": true,
+      "type": "textfield"
+    },
+    {
+      "name": "display_name",
+      "title": "Your display name",
+      "description": "Set your display name as declared in your Window Manager, this monitor will have the wallpaper changed, currently only one monitor is supported.\nFor example: In Hyprland run hyprctl monitors and you should see something like Monitor DP-1.\nTherefore you would set DP-1.",
+      "required": true,
+      "type": "textfield"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.9"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}

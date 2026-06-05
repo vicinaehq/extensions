@@ -1,7 +1,7 @@
 import { useExec } from "@raycast/utils";
 import { List, Detail } from "@vicinae/api";
 import { ReactNode } from "react";
-import { noOmarchyEnv } from "~/config/error";
+import { noOmarchyEnv } from "../config/error";
 
 export const OmarchyCheck = ({ children }: { children: ReactNode }) => {
   const { isLoading, error } = useExec(

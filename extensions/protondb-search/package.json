@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "protondb-search",
+  "title": "ProtonDB",
+  "description": "Search Steam games and check Linux compatibility via Proton",
+  "categories": [
+    "Applications",
+    "Fun"
+  ],
+  "license": "MIT",
+  "author": "fbosch",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "protondb-search",
+      "title": "Search ProtonDB",
+      "subtitle": "Search Steam games and check Linux compatibility",
+      "description": "Search for Steam games and view their ProtonDB compatibility ratings",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-persist-client": "^5.90.24",
+    "@vicinae/api": "^0.20.6",
+    "ms": "^2.1.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.7",
+    "@types/ms": "^2.1.0",
+    "typescript": "^5.9.3"
+  }
+}

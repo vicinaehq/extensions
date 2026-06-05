@@ -3,13 +3,21 @@ import { homedir } from "os";
 import path from "path";
 import { promisify } from "util";
 
-import { Action, ActionPanel, getPreferenceValues, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, getPreferenceValues, LocalStorage, showToast, Toast } from "@vicinae/api";
 import ini from "ini";
 import initSqlJs, { Database } from "sql.js";
 
 export const read = promisify(readFile);
 
-export const FIREFOX_FOLDER = path.join(homedir(), getPreferenceValues().profile_dir);
+const FIREFOX_PROFILE_STORAGE_KEY = "firefox.selectedProfile";
+
+type FirefoxPreferences = {
+  profile_dir: string;
+};
+
+const preferences = getPreferenceValues<FirefoxPreferences>();
+
+export const FIREFOX_FOLDER = path.join(homedir(), preferences.profile_dir);
 
 export type Profile = { name: string; path: string };
 
@@ -34,10 +42,12 @@ export async function getFirefoxProfiles(): Promise<{
       return false;
     })
     .map((key) => ({ name: iniFile[key].Name, path: iniFile[key].Path }));
+  let defaultProfile = "";
+
   const installKey = Object.keys(iniFile).find((key) =>
     key.startsWith("Install")
   );
-  let defaultProfile = "";
+
   if (installKey && iniFile[installKey]?.Default) {
     defaultProfile = iniFile[installKey].Default;
   } else if (profiles.length > 0) {
@@ -45,6 +55,14 @@ export async function getFirefoxProfiles(): Promise<{
   }
   profiles.sort((a, b) => a.name?.localeCompare(b.name));
   return { profiles, defaultProfile };
+}
+
+export async function getStoredFirefoxProfile() {
+  return LocalStorage.getItem<string>(FIREFOX_PROFILE_STORAGE_KEY);
+}
+
+export async function setStoredFirefoxProfile(profilePath: string) {
+  await LocalStorage.setItem(FIREFOX_PROFILE_STORAGE_KEY, profilePath);
 }
 
 export async function initDatabase(profilePath: string): Promise<Database> {

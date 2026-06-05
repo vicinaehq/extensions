@@ -3,7 +3,7 @@
 	"name": "dashboard-icons",
 	"title": "Dashboard Icons",
 	"description": "Browse and download icons from dashboardicons.com",
-	"categories": [],
+	"categories": ["Design Tools"],
 	"license": "MIT",
 	"author": "aurelleb",
 	"contributors": [],

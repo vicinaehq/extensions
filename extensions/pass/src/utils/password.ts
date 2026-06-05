@@ -19,55 +19,83 @@ export async function buildPasswordOptions({
   const options: PasswordOption[] = [];
   const warnings: string[] = [];
 
-  if (chunks.length > 0) {
-    const passwordValue = chunks.shift();
-    if (passwordValue && passwordValue.trim().length > 0) {
+  if (preferences.schema == null) {
+    if (chunks.length > 0) {
+      const passwordValue = chunks.shift();
+      if (passwordValue && passwordValue.trim().length > 0) {
+        options.push({
+          title: "Password",
+          value: passwordValue,
+          type: "password",
+        });
+      }
+    }
+
+    for (const rawLine of chunks) {
+      const line = rawLine.trim();
+      if (!line) continue;
+
+      if (line.startsWith("otpauth://")) {
+        try {
+          const code = await deriveOtpCode(line, preferences);
+          const index = prioritizeOtp ? 0 : Math.min(1, options.length);
+          options.splice(index, 0, {
+            title: "OTP",
+            value: code,
+            type: "otp",
+          });
+        } catch (error) {
+          const message =
+            error instanceof OtpError
+              ? error.message
+              : "Failed to generate OTP code";
+          warnings.push(message);
+        }
+        continue;
+      }
+
+      const separatorIndex = line.indexOf(":");
+      if (separatorIndex === -1) {
+        continue;
+      }
+
+      const key = line.slice(0, separatorIndex).trim();
+      const value = line.slice(separatorIndex + 1).trim();
+
+      if (!key || !value) continue;
+
       options.push({
-        title: "Password",
-        value: passwordValue,
-        type: "password",
+        title: key,
+        value,
+        type: "field",
       });
     }
   }
 
-  for (const rawLine of chunks) {
-    const line = rawLine.trim();
-    if (!line) continue;
+  else {
+    for (const { chunk, index } of chunks.map((chunk, index) => ({chunk, index}))) {
+      const data = chunk.trim();
+      const pref = preferences.schema![index];
+      if (data != "" && pref != undefined) {
+        if (pref.type == "otp" && data.startsWith("otpauth")) {
+          const code = await deriveOtpCode(data, preferences);
+          const index = prioritizeOtp ? 0 : options.length;
 
-    if (line.startsWith("otpauth://")) {
-      try {
-        const code = await deriveOtpCode(line, preferences);
-        const index = prioritizeOtp ? 0 : Math.min(1, options.length);
-        options.splice(index, 0, {
-          title: "OTP",
-          value: code,
-          type: "otp",
-        });
-      } catch (error) {
-        const message =
-          error instanceof OtpError
-            ? error.message
-            : "Failed to generate OTP code";
-        warnings.push(message);
+          options.splice(index, 0, ({
+            title: pref.key,
+            value: code,
+            type: pref.type
+          }));
+        }
+        else {
+          options.push({
+            title: pref.key,
+            value: data,
+            type: pref.type,
+          });
+        }
       }
-      continue;
     }
-
-    const separatorIndex = line.indexOf(":");
-    if (separatorIndex === -1) {
-      continue;
-    }
-
-    const key = line.slice(0, separatorIndex).trim();
-    const value = line.slice(separatorIndex + 1).trim();
-
-    if (!key || !value) continue;
-
-    options.push({
-      title: key,
-      value,
-      type: "field",
-    });
   }
 
   return { options, warnings };

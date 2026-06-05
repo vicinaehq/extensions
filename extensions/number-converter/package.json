@@ -1,0 +1,62 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "number-converter",
+  "title": "Number converter",
+  "description": "Convert numbers across binary, octal, decimal, and hexadecimal formats",
+  "categories": [
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "author": "asd2003ru",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "convert-from-binary",
+      "title": "Convert from Binary",
+      "subtitle": "Input binary and convert to octal/decimal/hex",
+      "description": "Convert binary values and copy results",
+      "icon": "bi.png",
+      "mode": "view"
+    },
+    {
+      "name": "convert-from-octal",
+      "title": "Convert from Octal",
+      "subtitle": "Input octal and convert to binary/decimal/hex",
+      "description": "Convert octal values and copy results",
+      "icon": "oc.png",
+      "mode": "view"
+    },
+    {
+      "name": "convert-from-decimal",
+      "title": "Convert from Decimal",
+      "subtitle": "Input decimal and convert to binary/octal/hex",
+      "description": "Convert decimal values and copy results",
+      "icon": "de.png",
+      "mode": "view"
+    },
+    {
+      "name": "convert-from-hex",
+      "title": "Convert from Hex",
+      "subtitle": "Input hexadecimal and convert to binary/octal/decimal",
+      "description": "Convert hexadecimal values and copy results",
+      "icon": "he.png",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}

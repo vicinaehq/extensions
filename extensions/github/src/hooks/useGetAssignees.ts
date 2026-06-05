@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { octokit } from "../api/githubClient";
 import { Assignee, Repository } from "../types";
+import { octokitPaginate } from "../api/octokitPaginate";
 
 const defaultValue: Assignee[] = [];
 export const useGetAssignees = (repo: Repository | null) => {
@@ -9,7 +10,7 @@ export const useGetAssignees = (repo: Repository | null) => {
     queryFn: async () => {
       if (!repo) return defaultValue;
       const [owner, repoName] = repo.full_name.split("/");
-      const assignees = await octokit.paginate(octokit.issues.listAssignees, {
+      const assignees = await octokitPaginate(octokit.issues.listAssignees, {
         owner,
         repo: repoName,
         per_page: 100,

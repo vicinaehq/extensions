@@ -25,3 +25,6 @@ export type PasswordOptionsResult = {
   options: PasswordOption[];
   warnings: string[];
 };
+
+export type SchemaItem = { key: string, type: PasswordOptionType };
+export type Schema = SchemaItem[];

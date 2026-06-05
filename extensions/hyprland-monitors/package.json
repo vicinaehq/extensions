@@ -3,7 +3,7 @@
   "name": "hyprland-monitors",
   "title": "Hyprland Monitors",
   "description": "A simple monitor management extension for Hyprland",
-  "categories": [],
+  "categories": ["System"],
   "license": "MIT",
   "author": "fredrikmwold",
   "contributors": [],

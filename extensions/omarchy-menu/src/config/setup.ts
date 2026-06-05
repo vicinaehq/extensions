@@ -1,6 +1,12 @@
 import { Icon } from "@vicinae/api";
-import { open_in_editor, present_terminal } from "~/helpers/actions";
 import { MenuItem } from "./types";
+import { open_in_editor, present_terminal } from "../helpers/actions";
+import {
+  browsers_list,
+  editors_list,
+  powerprofiles_list,
+  terminals_list,
+} from "../helpers/menu-generators";
 
 export const setup: MenuItem = {
   id: "setup",
@@ -16,7 +22,7 @@ export const setup: MenuItem = {
     {
       id: "wifi",
       name: "Wifi",
-      icon: " ",
+      icon: "",
       command: "omarchy-launch-wifi",
     },
     {
@@ -29,26 +35,7 @@ export const setup: MenuItem = {
       id: "power",
       name: "Power",
       icon: "󱐋",
-      items: [
-        {
-          id: "performance",
-          name: "Performance",
-          icon: "󰒓",
-          command: "powerprofilesctl set performance",
-        },
-        {
-          id: "balanced",
-          name: "Balanced",
-          icon: "󰒔",
-          command: "powerprofilesctl set balanced",
-        },
-        {
-          id: "power-saver",
-          name: "Power Saver",
-          icon: "󰒕",
-          command: "powerprofilesctl set power-saver",
-        },
-      ],
+      items: powerprofiles_list(),
     },
     {
       id: "monitors",
@@ -71,8 +58,27 @@ export const setup: MenuItem = {
     {
       id: "defaults",
       name: "Defaults",
-      icon: "",
-      command: open_in_editor("~/.config/uwsm/default"),
+      icon: "",
+      items: [
+        {
+          id: "browser",
+          name: "Browser",
+          icon: "",
+          items: browsers_list(),
+        },
+        {
+          id: "terminal",
+          name: "Terminal",
+          icon: "",
+          items: terminals_list(),
+        },
+        {
+          id: "editor",
+          name: "Editor",
+          icon: "",
+          items: editors_list(),
+        },
+      ],
     },
     {
       id: "dns",
@@ -104,6 +110,12 @@ export const setup: MenuItem = {
       name: "Config",
       icon: "",
       items: [
+        {
+          id: "defaults",
+          name: "Defaults",
+          icon: "",
+          command: open_in_editor("~/.config/uwsm/default"),
+        },
         {
           id: "hyperland",
           name: "Hyprland",

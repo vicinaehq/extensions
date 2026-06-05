@@ -1,0 +1,130 @@
+{
+  "name": "bedrock-chat",
+  "title": "Bedrock Chat",
+  "description": "Interact with Amazon Bedrock models directly from your command bar",
+  "icon": "icon.png",
+  "author": "hongyilyu",
+  "keywords": [
+    "chat",
+    "bedrock",
+    "aws",
+    "ai"
+  ],
+  "categories": [
+    "Productivity",
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "ask",
+      "title": "Ask Question",
+      "subtitle": "Bedrock",
+      "description": "Ask Bedrock",
+      "mode": "view",
+      "icon": "bedrock-image.png"
+    },
+    {
+      "name": "conversation",
+      "title": "Conversations",
+      "subtitle": "Bedrock",
+      "description": "Collection of your recent conversation",
+      "mode": "view",
+      "icon": "bedrock-conversations.png"
+    },
+    {
+      "name": "ask-clipboard-image",
+      "title": "Ask Clipboard Image",
+      "description": "Ask about an image from your clipboard",
+      "mode": "view",
+      "icon": "bedrock-image.png"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "bedrockApiKey",
+      "description": "Enter your Amazon Bedrock API key (bearer token)",
+      "type": "password",
+      "title": "Bedrock API Key",
+      "required": true
+    },
+    {
+      "name": "bedrockRegion",
+      "description": "AWS region for Bedrock (e.g., us-east-1, us-west-2)",
+      "type": "textfield",
+      "title": "Bedrock Region",
+      "placeholder": "us-east-1",
+      "default": "us-east-1",
+      "required": false
+    },
+    {
+      "name": "useStream",
+      "label": "Enable streaming completions",
+      "description": "Stream the completions of the generated answer",
+      "type": "checkbox",
+      "title": "Stream Completion",
+      "default": true,
+      "required": true
+    },
+    {
+      "name": "titleModel",
+      "title": "Title Generation Model",
+      "description": "Model used to auto-generate conversation titles",
+      "type": "dropdown",
+      "required": false,
+      "default": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "data": [
+        {
+          "title": "Claude Haiku 4.5",
+          "value": "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+        },
+        {
+          "title": "Claude Sonnet 4.6",
+          "value": "us.anthropic.claude-sonnet-4-6"
+        },
+        {
+          "title": "Claude Opus 4.6",
+          "value": "us.anthropic.claude-opus-4-6-v1"
+        },
+        {
+          "title": "Kimi K2.5",
+          "value": "moonshotai.kimi-k2.5"
+        },
+        {
+          "title": "GLM 5",
+          "value": "zai.glm-5"
+        }
+      ]
+    },
+    {
+      "name": "titlePrompt",
+      "title": "Title Generation Prompt",
+      "description": "Custom prompt for generating conversation titles",
+      "type": "textfield",
+      "required": false,
+      "default": "Generate a short, concise title (5-10 words max) for this conversation. Return only the title text, nothing else."
+    }
+  ],
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1016.0",
+    "@vicinae/api": "^0.20.8",
+    "@types/uuid": "^10.0.0",
+    "image-meta": "^0.2.1",
+    "moment": "^2.30.1",
+    "run-applescript": "^7.0.0",
+    "say": "^0.16.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.1.1",
+    "@types/node": "^22.19.1",
+    "@types/react": "^19.2.7",
+    "eslint": "^9.39.1",
+    "prettier": "^3.7.3",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  }
+}

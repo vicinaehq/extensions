@@ -3,7 +3,7 @@
   "name": "mise",
   "title": "Manage Tools",
   "description": "Manage mise installed tools",
-  "categories": [],
+  "categories": ["Developer Tools"],
   "license": "MIT",
   "author": "fredrikmwold",
   "contributors": [],

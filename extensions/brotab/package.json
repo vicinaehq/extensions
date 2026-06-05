@@ -3,7 +3,7 @@
   "name": "brotab",
   "title": "Brotab",
   "description": "Quick access to your open browser tabs",
-  "categories": [],
+  "categories": ["Web"],
   "license": "MIT",
   "author": "brpaz",
   "contributors": [],

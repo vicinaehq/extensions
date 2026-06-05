@@ -1,6 +1,6 @@
 import { Icon } from "@vicinae/api";
-import { present_terminal } from "~/helpers/actions";
 import { MenuItem } from "./types";
+import { present_terminal } from "../helpers/actions";
 
 export const update: MenuItem = {
   id: "update",
@@ -21,19 +21,25 @@ export const update: MenuItem = {
         {
           id: "stable",
           name: "Stable",
-          icon: "",
+          icon: "🟢",
           command: present_terminal("omarchy-channel-set stable"),
+        },
+        {
+          id: "rc",
+          name: "RC",
+          icon: "🟡",
+          command: present_terminal("omarchy-channel-set rc"),
         },
         {
           id: "edge",
           name: "Edge",
-          icon: "",
+          icon: "🟠",
           command: present_terminal("omarchy-channel-set edge"),
         },
         {
           id: "dev",
           name: "Dev",
-          icon: "",
+          icon: "🔴",
           command: present_terminal("omarchy-channel-set dev"),
         },
       ],
@@ -78,6 +84,12 @@ export const update: MenuItem = {
           name: "Swayosd",
           icon: "",
           command: present_terminal("omarchy-refresh-swayosd"),
+        },
+        {
+          id: "tmux",
+          name: "Tmux",
+          icon: "",
+          command: present_terminal("omarchy-refresh-tmux"),
         },
         {
           id: "walker",
@@ -158,6 +170,12 @@ export const update: MenuItem = {
           name: "Bluetooth",
           icon: "󰂯",
           command: present_terminal("omarchy-restart-bluetooth"),
+        },
+        {
+          id: "trackpad",
+          name: "Trackpad",
+          icon: "󰟸",
+          command: present_terminal("omarchy-restart-trackpad"),
         },
       ],
     },

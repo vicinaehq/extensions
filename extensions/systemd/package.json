@@ -3,7 +3,7 @@
   "name": "systemd",
   "title": "Systemd",
   "description": "Vicinae extension for managing systemd services",
-  "categories": [],
+  "categories": ["System"],
   "license": "MIT",
   "author": "knoopx",
   "contributors": [],

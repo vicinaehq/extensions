@@ -42,6 +42,8 @@ export enum VSCodeFlavour {
     Cursor = "Cursor",
     VSCodium = "VSCodium",
     CodeInsiders = "Code - Insiders",
+    Antigravity = "Antigravity",
+    Windsurf = "Windsurf",
 }
 
 export enum WindowPreference {

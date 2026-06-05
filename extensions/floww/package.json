@@ -3,7 +3,7 @@
   "name": "floww",
   "title": "Floww",
   "description": "Vicinae extension for Floww CLI - manage and apply workflows across workspaces",
-  "categories": [],
+  "categories": ["Productivity"],
   "license": "MIT",
   "author": "dagimg-dot",
   "contributors": [],

@@ -3,7 +3,7 @@
   "name": "aria2-manager",
   "title": "Aria2 Manager",
   "description": "All-in-one download manager powered by Aria2 and yt-dlp.",
-  "categories": [],
+  "categories": ["Web"],
   "license": "MIT",
   "author": "ozer-01",
   "contributors": [],

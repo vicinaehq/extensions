@@ -3,7 +3,7 @@
 	"name": "dbus",
 	"title": "DBus",
 	"description": "Explore objects exposed by DBus using a pleasant and search-focused interface",
-	"categories": [],
+	"categories": ["System", "Developer Tools"],
 	"license": "MIT",
 	"author": "aurelleb",
 	"contributors": [],

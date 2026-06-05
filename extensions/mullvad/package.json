@@ -6,6 +6,7 @@
   "icon": "mullvad-icon.png",
   "author": "aurelleb",
   "contributors": [],
+  "categories": ["Security"],
   "license": "MIT",
   "commands": [
     {

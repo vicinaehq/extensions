@@ -331,7 +331,7 @@ const pactlStreamSchema = z.object({
   description: z.string().optional(),
   mute: z.boolean(),
   properties: z.object({
-    "application.name": z.string(),
+    "application.name": z.string().optional(),
     "media.name": z.string().optional(),
     "application.process.binary": z.string().optional(),
     "node.name": z.string().optional(),

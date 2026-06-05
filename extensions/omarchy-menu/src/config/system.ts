@@ -16,7 +16,7 @@ export const system: MenuItem = {
 			id: "lock",
 			name: "Lock",
 			icon: "",
-			command: "omarchy-lock-screen"
+			command: "omarchy-system-lock"
 		},
     {
       id: "suspend",
@@ -37,5 +37,19 @@ export const system: MenuItem = {
       command:
         "omarchy-system-shutdown",
     },
+    {
+      id: "hibernate",
+      name: "Hibernate",
+      icon: "󰤁",
+      command:
+        "systemctl hibernate",
+    },
+    {
+      id: "logout",
+      name: "Logout",
+      icon: "󰜉",
+      command:
+        "omarchy-system-logout",
+    }
   ],
 };

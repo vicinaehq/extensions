@@ -1,5 +1,6 @@
 import { Cache } from "@vicinae/api";
 import { Calendar } from "./types";
+import { isLocalPath, expandPath } from "./localPath";
 
 const cache = new Cache();
 
@@ -16,7 +17,12 @@ export const getCalendarName = (calendar: Calendar): string => {
   if (calendar.name) {
     return calendar.name;
   }
-  // Fallback: Try to extract a meaningful name from the URL
+  if (isLocalPath(calendar.url)) {
+    const dirPath = expandPath(calendar.url);
+    const parts = dirPath.split("/").filter((p) => p);
+    return parts[parts.length - 1] || calendar.url;
+  }
+
   try {
     const urlObj = new URL(calendar.url);
     const pathParts = urlObj.pathname.split("/").filter((p) => p);

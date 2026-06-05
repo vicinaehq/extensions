@@ -3,7 +3,7 @@
   "name": "pacman-updates",
   "title": "pacman-updates",
   "description": "Will show you the pacman packages that have an update.",
-  "categories": [],
+  "categories": ["System"],
   "license": "MIT",
   "author": "sovereign",
   "contributors": [],

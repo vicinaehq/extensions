@@ -3,7 +3,7 @@
 	"name": "port-killer",
 	"title": "Kill Port",
 	"description": "Kills a process by port",
-	"categories": [],
+	"categories": ["Developer Tools"],
 	"license": "MIT",
 	"author": "LuggaPugga",
 	"contributors": [],

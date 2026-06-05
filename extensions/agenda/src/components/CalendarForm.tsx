@@ -85,7 +85,7 @@ export default function CalendarForm({
       />
       <Form.TextField
         id="url"
-        title="iCal URL"
+        title="iCal URL or Path"
         defaultValue={isEditing ? calendar.url : undefined}
       />
       <Form.Dropdown
@@ -103,7 +103,7 @@ export default function CalendarForm({
         ))}
       </Form.Dropdown>
       {!isEditing && (
-        <Form.Description text="Enter the iCal URL from your calendar service. For Google Calendar, go to Settings → [Calendar Name] → Integrate calendar → Public address in iCal format." />
+        <Form.Description text="Enter an iCal URL or a local directory path containing .ics files (e.g. from vdirsyncer). Supports HTTP(S) URLs, absolute paths, ~/... paths, and file:// URIs. For Google Calendar, go to Settings → [Calendar Name] → Integrate calendar → Public address in iCal format." />
       )}
     </Form>
   );

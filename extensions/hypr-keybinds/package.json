@@ -3,7 +3,7 @@
   "name": "hypr-keybinds",
   "title": "hypr keybinds",
   "description": "Will show you your hyprland keybinds in case you forget.",
-  "categories": [],
+  "categories": ["System"],
   "license": "MIT",
   "author": "sovereign",
   "contributors": [],
