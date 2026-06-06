@@ -1,0 +1,95 @@
+{
+  "$schema": "https://biomejs.dev/schemas/latest/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 80,
+    "attributePosition": "auto",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "expand": "auto",
+    "useEditorconfig": true
+  },
+  "assist": {
+    "actions": {
+      "recommended": true,
+      "source": {
+        "recommended": true,
+        "noDuplicateClasses": "on",
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "warn"
+      },
+      "suspicious": {
+        "noUnknownAtRules": {
+          "level": "warn",
+          "options": {
+            "ignore": ["tailwind"]
+          }
+        }
+      },
+      "nursery": {
+        "recommended": true,
+        "useImportsFirst": "warn",
+        "useNullishCoalescing": "warn",
+        "useArraySome": "warn",
+        "useUnicodeRegex": "warn",
+        "useSortedClasses": {
+          "level": "warn",
+          "fix": "safe",
+          "options": {
+            "functions": ["cn", "clsx", "cva"]
+          }
+        }
+      }
+    }
+  },
+  "javascript": {
+    "experimentalEmbeddedSnippetsEnabled": true,
+    "formatter": {
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "es5",
+      "semicolons": "always",
+      "arrowParentheses": "always",
+      "bracketSameLine": false,
+      "quoteStyle": "single",
+      "attributePosition": "auto",
+      "bracketSpacing": true
+    },
+    "globals": []
+  },
+  "html": {
+    "formatter": {
+      "enabled": true,
+      "indentScriptAndStyle": false,
+      "selfCloseVoidElements": "always"
+    }
+  },
+  "css": {
+    "linter": {
+      "enabled": true
+    },
+    "formatter": {
+      "enabled": true
+    },
+    "parser": {
+      "tailwindDirectives": true
+    }
+  }
+}
