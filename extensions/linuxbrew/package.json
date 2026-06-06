@@ -1,0 +1,111 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "linuxbrew",
+  "title": "Linuxbrew",
+  "description": "Search, inspect, install, upgrade, and clean Linuxbrew packages from Vicinae.",
+  "categories": [
+    "Developer Tools",
+    "System"
+  ],
+  "license": "MIT",
+  "author": "domainus",
+  "icon": "extension-icon.png",
+  "commands": [
+    {
+      "name": "installed",
+      "title": "Show Installed",
+      "subtitle": "Linuxbrew",
+      "description": "List installed Linuxbrew formulae and casks",
+      "mode": "view"
+    },
+    {
+      "name": "search",
+      "title": "Search",
+      "subtitle": "Linuxbrew",
+      "description": "Search Linuxbrew formulae and casks",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "search",
+          "placeholder": "Query",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "outdated",
+      "title": "Show Outdated",
+      "subtitle": "Linuxbrew",
+      "description": "Show outdated Linuxbrew packages",
+      "mode": "view"
+    },
+    {
+      "name": "upgrade",
+      "title": "Upgrade",
+      "subtitle": "Linuxbrew",
+      "description": "Upgrade Linuxbrew packages",
+      "mode": "view"
+    },
+    {
+      "name": "clean-up",
+      "title": "Clean up",
+      "subtitle": "Linuxbrew",
+      "description": "Clean old files and packages from the Linuxbrew cache",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "customBrewPath",
+      "type": "textfield",
+      "required": false,
+      "title": "Custom Brew Executable Path",
+      "description": "Defaults to /home/linuxbrew/.linuxbrew/bin/brew when present, then brew on PATH"
+    },
+    {
+      "name": "includeCasks",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "title": "Search",
+      "label": "Include casks when searching",
+      "description": "Include Homebrew casks alongside formulae in search results."
+    },
+    {
+      "name": "greedyUpgrades",
+      "type": "checkbox",
+      "required": false,
+      "default": false,
+      "title": "Upgrades",
+      "label": "Include auto-updating casks when checking or upgrading",
+      "description": "Pass --greedy to Homebrew outdated and upgrade commands."
+    },
+    {
+      "name": "cleanupAll",
+      "type": "checkbox",
+      "required": false,
+      "default": false,
+      "title": "Clean up",
+      "label": "Include --prune=all when cleaning",
+      "description": "Remove all cached downloads instead of respecting Homebrew's default cleanup threshold."
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "test": "esbuild src/lib.ts --bundle --platform=node --format=esm --outfile=dist/lib.mjs && node --test test/*.test.mjs",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.21.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "@types/react": "19.0.10",
+    "typescript": "^5.9.3",
+    "esbuild": "^0.27.1"
+  },
+  "version": "0.1.0",
+  "contributors": []
+}
