@@ -187,7 +187,7 @@ export function PackageListItem({ pkg }: { pkg: NixPackage }) {
 
   // Extract source URL from package position
   const package_position = pkg.package_position;
-  const parts = package_position.split(":");
+  const parts = package_position?.split(":") ?? [];
   const line = parts[parts.length - 1];
   const file_path = parts.slice(0, -1).join(":");
   const cleanFilePath = file_path.startsWith("/") ? file_path.slice(1) : file_path;
