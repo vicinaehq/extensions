@@ -115,7 +115,7 @@ export default async function RandomWallpaper() {
     const isWide = wallpaperInfo.width / wallpaperInfo.height;
 
     if (isWMSupported && isWide > 1.8 && monitorNames.includes(leftMonitorName) && monitorNames.includes(rightMonitorName)) {
-      omniCommand(
+      await omniCommand(
         _path.join(pathExpanded, selectedWallpaper),
         `${leftMonitorName}|${rightMonitorName}`,
         awwwTransition,
@@ -128,7 +128,7 @@ export default async function RandomWallpaper() {
         awwwFPS,
       );
     } else {
-      omniCommand(
+      await omniCommand(
         _path.join(pathExpanded, selectedWallpaper),
         "ALL",
         awwwTransition,

@@ -108,9 +108,9 @@ export default function DisplayGrid() {
                     <Action
                       title={`Set '${wallpapersMetadata[w]?.name}' on All`}
                       icon={Icon.Image}
-                      onAction={() => {
+                      onAction={ async () => {
                         console.log(_path.join(pathExpanded, w));
-                        omniCommand(
+                        await omniCommand(
                           _path.join(pathExpanded, w),
                           "ALL",
                           awwwTransition,
@@ -133,8 +133,8 @@ export default function DisplayGrid() {
                           <Action
                             title={`Split wallpaper ${leftMonitorName} | ${rightMonitorName}`}
                             icon={Icon.ArrowsExpand}
-                            onAction={() => {
-                              omniCommand(
+                            onAction={async () => {
+                              await omniCommand(
                                 _path.join(pathExpanded, w),
                                 `${leftMonitorName}|${rightMonitorName}`,
                                 awwwTransition,
@@ -157,8 +157,8 @@ export default function DisplayGrid() {
                             key={hashMonitor(monitor)} // This should be more resistant than simply using monitor.model, in case someone has the same monitor twice
                             title={`Set on ${monitor.name}`}
                             icon={Icon.Monitor}
-                            onAction={() => {
-                              omniCommand(
+                            onAction={async () => {
+                              await omniCommand(
                                 _path.join(pathExpanded, w),
                                 monitor.name,
                                 awwwTransition,
