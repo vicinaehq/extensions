@@ -3,7 +3,9 @@
   "name": "npm",
   "title": "NPM",
   "description": "An extenstion to manage npm packages",
-  "categories": ["Developer Tools"],
+  "categories": [
+    "Developer Tools"
+  ],
   "license": "MIT",
   "author": "FredrikMWold",
   "contributors": [],
@@ -91,9 +93,9 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@raycast/utils": "^2.2.3",
+    "@raycast/utils": "^2.2.4",
     "@uidotdev/usehooks": "^2.4.1",
-    "@vicinae/api": "^0.20.9",
+    "@vicinae/api": "^0.20.15",
     "find-up": "^8.0.0",
     "package-manager-detector": "^1.6.0",
     "semver": "^7.7.4"
@@ -101,6 +103,6 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
     "@types/semver": "^7.7.1",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }

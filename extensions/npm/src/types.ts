@@ -3,4 +3,5 @@ export type Package = {
   version: string;
   dev?: boolean;
   global: boolean;
+  newVersion?: string;
 };

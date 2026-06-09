@@ -1,40 +1,34 @@
-import { useFetch } from "@raycast/utils";
-import semver from "semver";
+import { usePromise } from "@raycast/utils";
+import { useRef } from "react";
 import type { Package } from "../types";
 
-export const useGetVersionUpdate = (npmPackage: Package) => {
-  const encodedName = encodeURIComponent(npmPackage.name);
-
-  const { data, isLoading } = useFetch(
-    `https://registry.npmjs.com/${encodedName}`,
-    {
-      parseResponse: async (response) => {
-        const data = (await response.json()) as Response;
-        const latestVersion = data["dist-tags"].latest;
-        const latestSemver = semver.coerce(latestVersion);
-        const currentSemver = semver.coerce(npmPackage.version);
-        const hasUpdate =
-          latestSemver !== null &&
-          currentSemver !== null &&
-          semver.gt(latestSemver, currentSemver);
+export const useGetVersionUpdate = (npmPackage: Package[]) => {
+  const abortable = useRef<AbortController | null>(null);
+  const { data = [], isLoading } = usePromise(
+    async () => {
+      const responses = npmPackage.map(async (pkg) => {
+        const res = await fetch(`https://registry.npmjs.org/${pkg.name}`, {
+          signal: abortable.current?.signal,
+        });
+        const json = (await res.json()) as Response;
+        const latestVersion = json["dist-tags"].latest;
         return {
-          hasUpdate,
-          versionData: {
-            name: npmPackage.name,
-            version: npmPackage.version,
-            hasUpdate,
-            newVersion: latestVersion,
-          },
+          name: pkg.name,
+          newVersion: latestVersion,
         } as const;
-      },
+      });
+      return Promise.all(responses);
+    },
+    [],
+    {
+      abortable,
     },
   );
 
-  if (data) return data;
-  return { hasUpdate: false, isLoading, versionData: undefined };
+  return { data, isLoading };
 };
 
-type Response = {
+export type Response = {
   name: string;
   "dist-tags": {
     latest: string;
