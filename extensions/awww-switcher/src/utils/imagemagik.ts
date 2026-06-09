@@ -8,11 +8,17 @@ export async function runConvertSplit(imgpath: string) {
   const cmd = `mkdir -p "${outDir}" && magick "${imgpath}" -crop 50%x100% +repage "${outDir}/split_%d.jpg"`;
   execSync(cmd);
 
-  return Array.from({ length: 2 }, (_, i) => path.join(outDir, `split_${i}.jpg`));
+  return Array.from({ length: 2 }, (_, i) =>
+    path.join(outDir, `split_${i}.jpg`),
+  );
 }
 
-export const runPostProduction = async (imgpath: string, option: string): Promise<boolean> => {
+export const runPostProduction = async (
+  imgpath: string,
+  option: string,
+): Promise<boolean> => {
   const outDir = ".cache/vicinae/awww-switcher";
+  execSync(`mkdir -p ${outDir}`);
   let cmd: string;
   const postProdpath = path.join(outDir, `postprod.jpg`);
 
