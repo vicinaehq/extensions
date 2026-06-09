@@ -8,7 +8,9 @@
 	],
 	"license": "MIT",
 	"author": "aurelleb",
-	"contributors": [],
+	"contributors": [
+		"JdotCarver"
+	],
 	"pastContributors": [],
 	"icon": "extension_icon.png",
 	"commands": [
@@ -20,7 +22,35 @@
 			"mode": "view"
 		}
 	],
-	"preferences": [],
+	"preferences": [
+	{
+		"name": "show-favicons",
+		"title": "Show Favicons",
+		"label": "Show Website Favicons",
+		"description": "Show the website's favicon instead of the default bookmark icon. \nNote: This will enable requesting favicon URLs from a remote provider (DuckDuckGo).",
+		"type": "checkbox",
+		"required": false,
+		"default": false
+	},
+	{
+		"name": "bookmark-render-limit",
+		"title": "Bookmark Render Limit",
+		"description": "Limit the number of Bookmark entries to render results faster. \nSetting it to 0 will disable the render limit.",
+		"type": "textfield",
+		"required": false,
+		"default": "100",
+		"placeholder": "100"
+	},
+	{
+		"name": "show-url-in-subtitle",
+		"title": "Show Full URL",
+		"label": "Show full URL",
+		"description": "Display the full URL instead of the domain.",
+		"type": "checkbox",
+		"required": false,
+		"default": false
+	}
+],
 	"scripts": {
 		"build": "vici build",
 		"dev": "vici develop",
