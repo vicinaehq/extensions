@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "protonvpn",
+  "title": "ProtonVPN",
+  "description": "Quickly Switch On/Off ProtonVPN",
+  "categories": [],
+  "license": "MIT",
+  "author": "Mujtaba1i",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "protonVPN.png",
+  "commands": [
+    {
+      "name": "protonvpn",
+      "title": "ProtonVPN Dashboard",
+      "subtitle": "Control ProtonVPN",
+      "description": "Dashboard to control ProtonVPN connection",
+      "mode": "view"
+    },
+    {
+      "name": "toggle",
+      "title": "Toggle ProtonVPN",
+      "description": "Toggle ProtonVPN connection",
+      "mode": "no-view"
+    },
+    {
+      "name": "status",
+      "title": "ProtonVPN Status",
+      "description": "Show ProtonVPN connection status",
+      "mode": "view"
+    },
+    {
+      "name": "connect",
+      "title": "Connect ProtonVPN",
+      "description": "Connect to ProtonVPN",
+      "mode": "no-view"
+    },
+    {
+      "name": "disconnect",
+      "title": "Disconnect ProtonVPN",
+      "description": "Disconnect from ProtonVPN",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.19.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
