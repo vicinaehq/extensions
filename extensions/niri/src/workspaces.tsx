@@ -1,39 +1,77 @@
-import { List, Icon, ActionPanel, Action } from '@vicinae/api';
+import { List, Icon, ActionPanel, Action, closeMainWindow } from '@vicinae/api';
+import { useMemo } from 'react';
 import { useNiriArrayData } from './hooks';
 import type { Workspace, Window } from './types';
 import { NiriList } from './components/NiriList';
 import { runNiriAction, showSuccess } from './utils';
 
+type WorkspaceWindows = {
+  workspace: Workspace;
+  windows: Window[];
+};
+
+function windowFocusTime(window: Window): number {
+  return window.focus_timestamp
+    ? window.focus_timestamp.secs * 1e9 + window.focus_timestamp.nanos
+    : 0;
+}
+
+function mostRecentWindowTime(windows: Window[]): number {
+  return windows.reduce((max, w) => Math.max(max, windowFocusTime(w)), 0);
+}
+
+function compareWorkspacesByFocusTime(a: WorkspaceWindows, b: WorkspaceWindows): number {
+  return mostRecentWindowTime(b.windows) - mostRecentWindowTime(a.windows);
+}
+
 export default function Workspaces() {
-  const [workspaces, workspacesLoading, handleRefresh] = useNiriArrayData<Workspace>(
+  const [workspaces, workspacesLoading, handleWorkspacesRefresh] = useNiriArrayData<Workspace>(
     'niri msg --json workspaces',
     'Failed to get workspaces'
   );
 
-  const [windows] = useNiriArrayData<Window>('niri msg --json windows', 'Failed to get windows');
+  const [windows, windowsLoading, handleWindowsRefresh] = useNiriArrayData<Window>('niri msg --json windows', 'Failed to get windows');
 
-  const loading = workspacesLoading;
+  const result = useMemo(() => {
+    if (workspacesLoading || windowsLoading) return { loading: true, sorted: [], focusedOutput: undefined };
 
-  const focusWorkspace = async (workspaceRef: string | number) => {
+    const sorted = workspaces
+      .map((workspace) => ({
+        workspace,
+        windows: windows.filter((window) => window.workspace_id === workspace.id),
+      }))
+      .sort(compareWorkspacesByFocusTime);
+
+    const focusedOutput = sorted.find((ww) => ww.workspace.is_focused)?.workspace.output;
+
+    return { loading: false, sorted, focusedOutput };
+  }, [workspaces, windows, workspacesLoading, windowsLoading]);
+
+  const focusWorkspace = async (workspace: Workspace, focusedOutput: string | undefined) => {
+    const workspaceRef = workspace.name || workspace.idx.toString();
+    if (workspace.output != focusedOutput) {
+      await runNiriAction(`focus-monitor ${workspace.output}`);
+    }
     const success = await runNiriAction(`focus-workspace ${workspaceRef}`);
     if (success) {
-      showSuccess(`Focused workspace ${workspaceRef}`);
-      await handleRefresh();
+      await handleWorkspacesRefresh();
+      await handleWindowsRefresh();
+      closeMainWindow({clearRootSearch: true});
     }
   };
 
   return (
     <NiriList
-      loading={loading}
+      loading={result.loading}
       emptyTitle="No Workspaces Found"
       emptyDescription="No workspaces are currently available."
       emptyIcon={Icon.Window}
     >
-      {workspaces.map((workspace) => {
+      {result.sorted.map((workspaceWindows) => {
+        const workspace = workspaceWindows.workspace;
         const displayName = workspace.name || `Workspace ${workspace.idx}`;
-        const workspaceWindows = windows.filter((window) => window.workspace_id === workspace.id);
-        const windowCount = workspaceWindows.length;
-        const activeWindow = windows.find((window) => window.id === workspace.active_window_id);
+        const windowCount = workspaceWindows.windows.length;
+        const activeWindow = workspaceWindows.windows.find((window) => window.id === workspace.active_window_id);
         const activeWindowTitle = activeWindow?.title;
 
         return (
@@ -55,7 +93,7 @@ export default function Workspaces() {
                 <Action
                   title="Focus Workspace"
                   icon={Icon.Eye}
-                  onAction={() => focusWorkspace(workspace.name || workspace.idx.toString())}
+                  onAction={() => focusWorkspace(workspace, result.focusedOutput)}
                 />
                 <Action.CopyToClipboard
                   title="Copy Workspace ID"

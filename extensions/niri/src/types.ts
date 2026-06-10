@@ -41,6 +41,10 @@ export interface Window {
   is_focused: boolean;
   is_floating: boolean;
   is_urgent: boolean;
+  focus_timestamp: {
+    secs: number;
+    nanos: number;
+  } | null;
 }
 
 export interface Workspace {
