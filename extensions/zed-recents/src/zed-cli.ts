@@ -15,6 +15,7 @@ const KNOWN_ZED_PATHS = [
     "/usr/local/bin/zeditor",
     "/usr/bin/zedit",
     "/usr/local/bin/zedit",
+    "/run/current-system/sw/bin/zeditor",
     join(homedir(), ".local", "zed.app", "bin", "zed"),
 ]; // See https://zed.dev/docs/linux#community for possible binary names
 
