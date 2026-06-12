@@ -32,17 +32,31 @@ import { getLastSyncAt, syncWithGoogle } from "./lib/sync";
 
 const AUTO_SYNC_STALE_MS = 2 * 60 * 1000;
 
-function formatDue(due: string): string {
+function formatDue(due: string, dueTime?: string): string {
   const today = todayIsoDate();
-  if (due === today) return "Today";
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  if (due === toIsoDate(tomorrow)) return "Tomorrow";
-  return new Date(`${due}T00:00:00`).toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+  let label: string;
+  if (due === today) {
+    label = "Today";
+  } else {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    label =
+      due === toIsoDate(tomorrow)
+        ? "Tomorrow"
+        : new Date(`${due}T00:00:00`).toLocaleDateString(undefined, {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+          });
+  }
+  if (dueTime) {
+    const time = new Date(`${due}T${dueTime}:00`).toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    label += `, ${time}`;
+  }
+  return label;
 }
 
 function snoozeDate(days: number): string {
@@ -66,10 +80,16 @@ function TaskForm(props: {
       await showToast({ style: Toast.Style.Failure, title: "Title is required" });
       return;
     }
+    // A midnight timestamp is treated as "no time set" — the DateTime
+    // picker can't distinguish the two.
+    const hasTime = values.due && (values.due.getHours() !== 0 || values.due.getMinutes() !== 0);
     const fields = {
       title,
       notes: values.notes?.trim() || undefined,
       due: values.due ? toIsoDate(values.due) : undefined,
+      dueTime: hasTime
+        ? `${String(values.due!.getHours()).padStart(2, "0")}:${String(values.due!.getMinutes()).padStart(2, "0")}`
+        : undefined,
     };
     if (task) {
       await updateTask(task.id, fields);
@@ -107,8 +127,8 @@ function TaskForm(props: {
       <Form.DatePicker
         id="due"
         title="Due Date"
-        type={Form.DatePicker.Type.Date}
-        defaultValue={task?.due ? new Date(`${task.due}T00:00:00`) : null}
+        type={Form.DatePicker.Type.DateTime}
+        defaultValue={task?.due ? new Date(`${task.due}T${task.dueTime ?? "00:00"}:00`) : null}
       />
     </Form>
   );
@@ -196,7 +216,7 @@ function buildSections(tasks: Task[]): { title: string; rows: Row[] }[] {
   // Tasks whose parent is missing or inactive are promoted to top level.
   const topLevel = active.filter((t) => !t.parentId || !activeIds.has(t.parentId));
 
-  const buckets: Record<string, Row[]> = {
+  const parentBuckets: Record<string, Task[]> = {
     Overdue: [],
     Today: [],
     Upcoming: [],
@@ -210,14 +230,21 @@ function buildSections(tasks: Task[]): { title: string; rows: Row[] }[] {
         : task.due === today
           ? "Today"
           : "Upcoming";
-    const subtasks = childrenOf(task.id);
-    buckets[bucket].push({ task, isSubtask: false, subtaskCount: subtasks.length });
-    for (const sub of subtasks) {
-      buckets[bucket].push({ task: sub, isSubtask: true });
-    }
+    parentBuckets[bucket].push(task);
   }
-  buckets.Overdue.sort((a, b) => (a.task.due ?? "").localeCompare(b.task.due ?? ""));
-  buckets.Upcoming.sort((a, b) => (a.task.due ?? "").localeCompare(b.task.due ?? ""));
+  const byDueThenTime = (a: Task, b: Task) =>
+    `${a.due ?? ""} ${a.dueTime ?? ""}`.localeCompare(`${b.due ?? ""} ${b.dueTime ?? ""}`);
+  const buckets: Record<string, Row[]> = {};
+  for (const [name, parents] of Object.entries(parentBuckets)) {
+    if (name !== "No Date") parents.sort(byDueThenTime);
+    buckets[name] = parents.flatMap((task) => {
+      const subtasks = childrenOf(task.id);
+      return [
+        { task, isSubtask: false, subtaskCount: subtasks.length },
+        ...subtasks.map((sub): Row => ({ task: sub, isSubtask: true })),
+      ];
+    });
+  }
 
   const completed = tasks
     .filter((t) => t.completed)
@@ -364,7 +391,10 @@ export default function ManageTodos() {
             if (task.due && !task.completed) {
               const overdue = task.due < todayIsoDate();
               accessories.push({
-                tag: { value: formatDue(task.due), color: overdue ? Color.Red : Color.SecondaryText },
+                tag: {
+                  value: formatDue(task.due, task.dueTime),
+                  color: overdue ? Color.Red : Color.SecondaryText,
+                },
               });
             }
             return (

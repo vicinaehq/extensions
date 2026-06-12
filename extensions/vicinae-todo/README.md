@@ -10,8 +10,16 @@ quick add, due dates, subtasks, and optional two-way sync with Google Tasks.
   snooze to tomorrow (`⌘T`) or next week (`⌘⇧T`), new todo (`⌘N`),
   delete (`⌃X`), sync (`⌘R`).
 - **Add Todo** — quick add with natural language: `buy milk tomorrow`,
-  `pay rent on jun 20`, `finish slides by monday`. The date phrase is parsed
-  and stripped from the title.
+  `pay rent on jun 20`, `finish slides by monday`. Times work too, in any
+  common format: `report due 22nd june 12pm`, `12 pm`, `12:00`, `1200hrs`,
+  `1200 hrs`, or a bare `1200`. The date/time phrases are parsed and stripped
+  from the title.
+
+  A bare 4-digit number only counts as a time when it sits next to the date
+  phrase or at the end of the input — `buy 1500 nails tomorrow` keeps
+  `1500 nails` in the title, while `submit report tomorrow 1500` means 3 PM.
+  Bare `19xx`/`20xx` read as years; use `1930hrs` or `19:30` for evening
+  times.
 
 ## Development
 
@@ -50,7 +58,10 @@ opened if the last sync is more than two minutes old.
 
 ### Sync model notes
 
-- Google Tasks stores due **dates** only (no time of day), and has no
-  priorities or tags — the data model here sticks to what syncs cleanly.
+- The Google Tasks **API** stores due **dates** only — [it cannot read or
+  write a time of day](https://developers.google.com/tasks/reference/rest/v1/tasks)
+  — and has no priorities or tags. Due dates sync; times stay local to the
+  extension (they survive remote edits and are only cleared if the due date
+  is cleared on Google's side).
 - Subtasks sync natively (one level deep, matching Google Tasks).
 - Deletions propagate both ways; conflicts resolve to the most recent edit.

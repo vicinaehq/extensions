@@ -5,17 +5,17 @@ import { addTask } from "./lib/store";
 export default async function AddTodo(
   props: LaunchProps<{ arguments: { text: string } }>,
 ) {
-  const { title, due } = parseQuickAdd(props.arguments.text ?? "");
+  const { title, due, dueTime } = parseQuickAdd(props.arguments.text ?? "");
 
   if (!title) {
     await showToast({ style: Toast.Style.Failure, title: "Nothing to add" });
     return;
   }
 
-  await addTask({ title, due });
+  await addTask({ title, due, dueTime });
   await showToast({
     style: Toast.Style.Success,
     title: `Added "${title}"`,
-    message: due ? `Due ${due}` : undefined,
+    message: due ? `Due ${due}${dueTime ? ` at ${dueTime}` : ""}` : undefined,
   });
 }

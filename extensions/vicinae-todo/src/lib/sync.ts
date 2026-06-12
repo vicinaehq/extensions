@@ -42,6 +42,9 @@ function applyRemoteToLocal(local: Task, remote: GoogleTask, googleIdToLocalId: 
   local.title = remote.title ?? "";
   local.notes = remote.notes || undefined;
   local.due = remoteDueToLocal(remote.due);
+  // Google can't store a time of day — keep the local one unless the due
+  // date was cleared remotely.
+  if (!local.due) local.dueTime = undefined;
   local.completed = remote.status === "completed";
   local.completedAt = remote.completed;
   local.parentId = remote.parent ? googleIdToLocalId.get(remote.parent) : undefined;

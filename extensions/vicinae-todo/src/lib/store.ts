@@ -7,6 +7,8 @@ export interface Task {
   notes?: string;
   /** ISO date, date-only (YYYY-MM-DD) — matches what Google Tasks can store */
   due?: string;
+  /** HH:MM, 24h — local-only; Google Tasks cannot store a time of day */
+  dueTime?: string;
   parentId?: string;
   completed: boolean;
   completedAt?: string;
@@ -38,7 +40,7 @@ export async function saveTasks(tasks: Task[]): Promise<void> {
 }
 
 export async function addTask(
-  fields: Pick<Task, "title"> & Partial<Pick<Task, "notes" | "due" | "parentId">>,
+  fields: Pick<Task, "title"> & Partial<Pick<Task, "notes" | "due" | "dueTime" | "parentId">>,
 ): Promise<Task> {
   const now = new Date().toISOString();
   const task: Task = {
