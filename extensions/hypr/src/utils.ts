@@ -8,6 +8,7 @@ import type {
   HyprctlBind,
   HyprLayerSurface,
   HyprLayersResponse,
+  Layout,
 } from './types';
 
 const execFileAsync = promisify(execFile);
@@ -16,16 +17,45 @@ const xkbEvdevOffset = 8;
 let evdevKeycodes: Record<number, string> | undefined;
 let hyprctlCheckPromise: Promise<void> | undefined;
 
+export function capitalizeFirst(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export async function getHyprctlJson<T>(command: string): Promise<T> {
   await ensureHyprRuntimeAvailable();
   const args = ['-j', ...command.split(' ').filter(Boolean)];
-  const { stdout } = await execFileAsync('hyprctl', args, { timeout: 10000 }).catch(
-    (error: unknown) => {
-      throw normalizeHyprError(error);
-    }
-  );
+  const { stdout } = await execFileAsync('hyprctl', args, {
+    timeout: 10000,
+  }).catch((error: unknown) => {
+    throw normalizeHyprError(error);
+  });
 
   return JSON.parse(stdout) as T;
+}
+
+export async function switchToLayout(
+  activeWorkspaceId: number,
+  layout: Layout
+) {
+  try {
+    await ensureHyprRuntimeAvailable();
+    const { stdout } = await execFileAsync(
+      'hyprctl',
+      getSwitchLayoutArgs(activeWorkspaceId, layout),
+      {
+        timeout: 10000,
+      }
+    ).catch((error: unknown) => {
+      throw normalizeHyprError(error);
+    });
+
+    ensureHyprctlCommandSucceeded(stdout.toString());
+    await closeMainWindow({ popToRootType: PopToRootType.Immediate });
+    return true;
+  } catch (error) {
+    handleError('Layout switch failed', error);
+    return false;
+  }
 }
 
 export async function focusHyprTarget(target: HyprFocusTarget, value: string) {
@@ -96,7 +126,9 @@ function normalizeHyprError(error: unknown) {
     .join('\n');
 
   if (execError.code === 'ENOENT') {
-    return new Error('hyprctl is required. Install Hyprland/hyprctl and try again.');
+    return new Error(
+      'hyprctl is required. Install Hyprland/hyprctl and try again.'
+    );
   }
 
   if (isMissingHyprlandSessionError(combinedOutput)) {
@@ -177,6 +209,21 @@ function getLayerName(level: number) {
 }
 
 type HyprFocusTarget = 'window' | 'monitor' | 'workspace';
+
+function getSwitchLayoutArgs(activeWorkspaceId: number, layout: Layout) {
+  return [
+    'eval',
+    `hl.workspace_rule({ workspace = "${activeWorkspaceId}", layout = "${layout}" })`,
+  ];
+}
+
+function ensureHyprctlCommandSucceeded(stdout: string) {
+  const output = stdout.trim();
+
+  if (output.startsWith('error:')) {
+    throw new Error(output);
+  }
+}
 
 function getHyprFocusCommand(target: HyprFocusTarget, value: string) {
   const luaValue = escapeLuaString(value);

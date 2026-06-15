@@ -52,6 +52,13 @@
       "mode": "view"
     },
     {
+      "name": "switch-layout",
+      "title": "Switch Layout",
+      "subtitle": "Switch layout for active workspace",
+      "description": "Switch the tiling layout for the active Hyprland workspace.",
+      "mode": "view"
+    },
+    {
       "name": "windows",
       "title": "Windows",
       "subtitle": "Show Hyprland windows",
