@@ -49,7 +49,7 @@ export async function switchToLayout(
       throw normalizeHyprError(error);
     });
 
-    ensureHyprctlCommandSucceeded(stdout.toString());
+    ensureHyprctlCommandSucceeded(stdout);
     await closeMainWindow({ popToRootType: PopToRootType.Immediate });
     return true;
   } catch (error) {
