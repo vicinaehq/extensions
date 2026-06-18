@@ -3,8 +3,10 @@ import filesize from "file-size";
 import { SearchResult, useSearch } from "./hooks";
 import { getIcon } from "./utils";
 import { getBaseUrl } from "../config";
+import { useCheckPreferences } from "../preferences";
 
 export function Search() {
+  useCheckPreferences();
   const { results, isLoading, search } = useSearch();
 
   return (

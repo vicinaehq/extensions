@@ -3,8 +3,10 @@ import { formatDistanceToNow, parseISO } from "date-fns";
 import { capitalize } from "../utils";
 import { type Activity, useActivity } from "./hooks";
 import { getIcon } from "./utils";
+import { useCheckPreferences } from "../preferences";
 
 export function Activity() {
+  useCheckPreferences();
   const { activity, isLoading, pagination } = useActivity();
 
   return (

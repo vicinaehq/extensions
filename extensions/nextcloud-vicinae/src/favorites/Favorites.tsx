@@ -2,8 +2,10 @@ import { Action, ActionPanel, Color, Icon, List } from "@vicinae/api";
 import path from "path";
 import { Favorite, useFavorites } from "./hooks";
 import { getBaseUrl } from "../config";
+import { useCheckPreferences } from "../preferences";
 
 export function Favorites() {
+  useCheckPreferences();
   const { favorites, isLoading } = useFavorites();
 
   return (

@@ -2,8 +2,10 @@ import { Action, ActionPanel, Icon, List } from "@vicinae/api";
 import { type Note, useNotes } from "../hooks";
 import { NoteDetails } from "./NoteDetails";
 import { getBaseUrl } from "../../config";
+import { useCheckPreferences } from "../../preferences";
 
 export function Notes() {
+  useCheckPreferences();
   const { notes, isLoading } = useNotes();
 
   return (

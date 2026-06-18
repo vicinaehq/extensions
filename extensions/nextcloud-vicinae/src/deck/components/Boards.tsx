@@ -2,8 +2,10 @@ import { Action, ActionPanel, Icon, List } from "@vicinae/api";
 import { type Board, useBoards } from "../hooks";
 import { Stacks } from "./Stacks";
 import { getBaseUrl } from "../../config";
+import { useCheckPreferences } from "../../preferences";
 
 export function Boards() {
+  useCheckPreferences();
   const { boards, isLoading } = useBoards();
 
   return (
