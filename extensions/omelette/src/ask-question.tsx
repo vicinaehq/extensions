@@ -28,21 +28,25 @@ function ConversationDetailView({
   selectedModel,
   isFirstQuestion,
   onStartNew,
+  addQuestion,
+  updateQuestion,
+  existingQuestions,
 }: {
   conversationId: string;
   initialQuestionPrompt?: string;
   selectedModel: string;
   isFirstQuestion: boolean;
   onStartNew: () => void;
+  addQuestion: (q: Question) => Promise<void>;
+  updateQuestion: (q: Question) => Promise<void>;
+  existingQuestions: Question[];
 }) {
   const { pop } = useNavigation();
-  const { getByConversationId, add: addQuestion, update: updateQuestion } = useQuestions();
 
   const [output, setOutput] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(!!initialQuestionPrompt);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
-  const existingQuestions = getByConversationId(conversationId);
   const [questions, setQuestions] = useState<Question[]>(existingQuestions);
 
   useEffect(() => {
@@ -173,6 +177,9 @@ export default function AskQuestion({ conversationId }: ChatProps) {
           conversationId={activeConversationId}
           selectedModel={selectedModel}
           isFirstQuestion={false}
+          existingQuestions={activeQuestions}
+          addQuestion={addQuestion}
+          updateQuestion={updateQuestion}
           onStartNew={() => {
             setActiveConversationId(uuidv4());
             clearSearchBar({ clearText: true });
@@ -199,6 +206,9 @@ export default function AskQuestion({ conversationId }: ChatProps) {
         initialQuestionPrompt={promptToSubmit}
         selectedModel={selectedModel}
         isFirstQuestion={isFirst}
+        existingQuestions={activeQuestions}
+        addQuestion={addQuestion}
+        updateQuestion={updateQuestion}
         onStartNew={() => {
           setActiveConversationId(uuidv4());
           clearSearchBar({ clearText: true });
@@ -294,6 +304,9 @@ export default function AskQuestion({ conversationId }: ChatProps) {
                         conversationId={activeConversationId}
                         selectedModel={selectedModel}
                         isFirstQuestion={false}
+                        existingQuestions={activeQuestions}
+                        addQuestion={addQuestion}
+                        updateQuestion={updateQuestion}
                         onStartNew={() => {
                           setActiveConversationId(uuidv4());
                           clearSearchBar({ clearText: true });

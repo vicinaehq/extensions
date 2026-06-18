@@ -12,7 +12,13 @@ export function useQuestions() {
       try {
         const stored = await LocalStorage.getItem<string>("questions");
         if (stored) {
-          setData(JSON.parse(stored));
+          const loaded = JSON.parse(stored);
+          setData((prev) => {
+            if (prev.length > 0) {
+              return [...prev, ...loaded];
+            }
+            return loaded;
+          });
         }
       } catch (error) {
         console.error("Failed to load questions from localStorage:", error);
@@ -40,19 +46,18 @@ export function useQuestions() {
         title: "Saving question...",
         style: Toast.Style.Animated,
       });
-      const newData = [question, ...data];
-      setData((prev) => [question, ...prev]);
-      try {
-        await saveToLocalStorage(newData); // Save to LocalStorage
-        toast.title = "Question saved!";
-        toast.style = Toast.Style.Success;
-      } catch (error) {
-        console.error("Failed to save question:", error);
-        toast.title = "Failed to save question!";
-        toast.style = Toast.Style.Failure;
-      }
+      setData((prev) => {
+        const newData = [question, ...prev];
+        saveToLocalStorage(newData).catch((error) => {
+          console.error("Failed to save question:", error);
+          showToast({ title: "Failed to save question!", style: Toast.Style.Failure });
+        });
+        return newData;
+      });
+      toast.title = "Question saved!";
+      toast.style = Toast.Style.Success;
     },
-    [data],
+    [],
   );
 
   // TODO: fix to align with `add`
