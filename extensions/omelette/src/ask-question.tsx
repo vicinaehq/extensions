@@ -163,7 +163,12 @@ export default function AskQuestion({ conversationId }: ChatProps) {
   const [activeConversationId, setActiveConversationId] = useState<string>(conversationId ?? uuidv4());
   const [searchText, setSearchText] = useState<string>("");
 
-  const { isLoading: isLoadingQuestions, getByConversationId } = useQuestions();
+  const {
+    isLoading: isLoadingQuestions,
+    getByConversationId,
+    add: addQuestion,
+    update: updateQuestion,
+  } = useQuestions();
   const activeQuestions = getByConversationId(activeConversationId);
   
   // Keep track of whether we've auto-pushed the detail view for this component mount
