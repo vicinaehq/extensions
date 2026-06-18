@@ -25,11 +25,6 @@ Transform your workflow with specialized commands that work on your currently se
 - **Translate to English**: Quickly translate text from any language to English.
 - **Custom Quick AI**: Run your own custom prompts on selected text.
 
-![Summarize](assets/3-summarise.png)
-![Improve Writing](assets/4-improve-writing.png)
-![Fix Grammar](assets/5-fix-grammar.png)
-![Translate](assets/6-translate-to-english.png)
-
 ## Configuration
 
 ### 1. API Key
