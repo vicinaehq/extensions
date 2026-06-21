@@ -19,7 +19,7 @@ export const VSCODE_EXECUTABLES: Record<string, string> = {
 const VSCODE_SHARED_STORAGE_DIRS: Record<string, string> = {
     "Code": ".vscode-shared",
     "Cursor": ".cursor-shared",
-    "VSCodium": ".vscodium-shared",
+    "VSCodium": ".vscode-oss-shared",
     "Antigravity": ".antigravity-shared",
     "Code - Insiders": ".vscode-insiders-shared",
 };
