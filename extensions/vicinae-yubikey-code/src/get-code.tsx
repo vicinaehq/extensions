@@ -633,11 +633,15 @@ async function forgetPassword(): Promise<CommandResult> {
 }
 
 async function listAccountsWithBackend(): Promise<CommandResult> {
+  let ykoathError: string | undefined;
+
   if (shouldTryYkoath()) {
     const result = await executeYkoath(["list"]);
     if (result.success || selectedBackend() === Backend.Ykoath) {
       return result;
     }
+
+    ykoathError = result.error;
 
     debugLog("backend.fallback", {
       operation: "list",
@@ -647,15 +651,20 @@ async function listAccountsWithBackend(): Promise<CommandResult> {
     });
   }
 
-  return executeYkmanWithAuth(["oath", "accounts", "list"], sessionPassword);
+  const ykmanResult = await executeYkmanWithAuth(["oath", "accounts", "list"], sessionPassword);
+  return withCombinedBackendError(ykmanResult, ykoathError);
 }
 
 async function getAccountCodeWithBackend(accountKey: string): Promise<CommandResult> {
+  let ykoathError: string | undefined;
+
   if (shouldTryYkoath()) {
     const result = await executeYkoath(["code", accountKey]);
     if (result.success || selectedBackend() === Backend.Ykoath) {
       return result;
     }
+
+    ykoathError = result.error;
 
     debugLog("backend.fallback", {
       operation: "code",
@@ -666,7 +675,19 @@ async function getAccountCodeWithBackend(accountKey: string): Promise<CommandRes
     });
   }
 
-  return executeYkmanWithAuth(["oath", "accounts", "code", accountKey, "-s"], sessionPassword);
+  const ykmanResult = await executeYkmanWithAuth(["oath", "accounts", "code", accountKey, "-s"], sessionPassword);
+  return withCombinedBackendError(ykmanResult, ykoathError);
+}
+
+function withCombinedBackendError(result: CommandResult, ykoathError?: string): CommandResult {
+  if (result.success || result.requiresPassword || !ykoathError) {
+    return result;
+  }
+
+  return {
+    ...result,
+    error: [`ykoath failed: ${ykoathError}`, `ykman failed: ${result.error || "unknown error"}`].join("\n"),
+  };
 }
 
 async function executeYkmanWithAuth(args: string[], password?: string): Promise<CommandResult> {
