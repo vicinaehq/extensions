@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vicinae/
+
+# Local development output
+*.log
+.npmrc
+.DS_Store
