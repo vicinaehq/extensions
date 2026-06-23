@@ -3,7 +3,11 @@
   "name": "mail",
   "title": "Mail",
   "description": "Read emails with Vicinae",
-  "categories": [],
+  "categories": [
+    "Productivity",
+    "Applications",
+    "Web"
+  ],
   "license": "MIT",
   "author": "Damnjelly",
   "contributors": [],
