@@ -84,6 +84,10 @@ export default function KaomojiList() {
 								icon={Icon.Star}
 								actions={
 									<ActionPanel>
+										<Action.Paste
+											title="Paste Kaomoji"
+											content={kaomoji}
+										/>
 										<Action.CopyToClipboard
 											title="Copy Kaomoji"
 											content={kaomoji}
@@ -111,6 +115,10 @@ export default function KaomojiList() {
 							icon={Icon.Emoji}
 							actions={
 								<ActionPanel>
+									<Action.Paste
+										title="Paste Kaomoji"
+										content={kaomoji}
+									/>
 									<Action.CopyToClipboard
 										title="Copy Kaomoji"
 										content={kaomoji}
