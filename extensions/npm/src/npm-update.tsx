@@ -5,6 +5,7 @@ import { NpmTerminalUsageDetails } from "./components/NpmTerminalUsageDetails";
 import { useGetVersionUpdate } from "./hooks/useGetVersionUpdate";
 import { useUpdatePackages } from "./hooks/useUpdatePackages";
 import type { Package } from "./types";
+import { hasUpdate } from "./utils/hasUpdate";
 
 export default function NpmUpdate(props: {
   arguments?: {
@@ -16,6 +17,7 @@ export default function NpmUpdate(props: {
 
   const {
     packages,
+    isLoading,
     updatePackages,
     selectedDependencies,
     selectedDevDependencies,
@@ -30,7 +32,7 @@ export default function NpmUpdate(props: {
     return <NpmErrorDetails error={error} clear={clearError} />;
   }
   return (
-    <List>
+    <List isLoading={isLoading}>
       <List.Section title="Dependencies">
         {packages
           .filter((pkg) => !pkg.dev)
@@ -76,8 +78,6 @@ const DependencyListItem = ({
   onSelect: (dependency: string) => void;
   npmCommand: string;
 }) => {
-  const { hasUpdate, versionData } = useGetVersionUpdate(pkg);
-  if (!hasUpdate) return;
   return (
     <List.Item
       key={pkg.name}
@@ -86,7 +86,7 @@ const DependencyListItem = ({
       accessories={[
         {
           text: {
-            value: `${semver.coerce(pkg.version)} → ${versionData?.newVersion}`,
+            value: `${semver.coerce(pkg.version)} → ${pkg?.newVersion}`,
             color: Color.Orange,
           },
         },

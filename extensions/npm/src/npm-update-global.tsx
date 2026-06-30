@@ -7,6 +7,7 @@ import type { Package } from "./types";
 
 export default function NpmUpdateGlobal() {
   const {
+    isLoading,
     packages,
     updatePackages,
     selectedDependencies,
@@ -20,7 +21,7 @@ export default function NpmUpdateGlobal() {
     return <NpmErrorDetails error={error} clear={clearError} />;
   }
   return (
-    <List>
+    <List isLoading={isLoading}>
       <List.Section title="Packages">
         {packages
           .filter((pkg) => !pkg.dev)
@@ -52,8 +53,6 @@ const DependencyListItem = ({
   onSelect: (dependency: string) => void;
   npmCommand: string;
 }) => {
-  const { hasUpdate, versionData } = useGetVersionUpdate(pkg);
-  if (!hasUpdate) return;
   return (
     <List.Item
       key={pkg.name}
@@ -62,7 +61,7 @@ const DependencyListItem = ({
       accessories={[
         {
           text: {
-            value: `${semver.coerce(pkg.version)} → ${versionData?.newVersion}`,
+            value: `${semver.coerce(pkg.version)} → ${pkg?.newVersion}`,
             color: Color.Orange,
           },
         },
