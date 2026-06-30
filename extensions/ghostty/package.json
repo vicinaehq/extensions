@@ -1,0 +1,129 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "ghostty",
+  "title": "Ghostty",
+  "description": "Launch windows, create tabs, open workspaces, run launch configurations, and manage Ghostty on Linux.",
+  "categories": [
+    "Productivity",
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "author": "domainus",
+  "icon": "extension-icon.png",
+  "commands": [
+    {
+      "name": "new-ghostty-window",
+      "title": "New Ghostty Window",
+      "description": "Launch a new Ghostty window",
+      "mode": "no-view"
+    },
+    {
+      "name": "new-ghostty-tab",
+      "title": "New Ghostty Tab",
+      "description": "Create a new tab in the current Ghostty window using the configured Ctrl+Shift+T shortcut",
+      "mode": "no-view"
+    },
+    {
+      "name": "search-ghostty-tab",
+      "title": "Focus Ghostty Window",
+      "subtitle": "Ghostty",
+      "description": "List visible Ghostty windows and focus the selected one",
+      "mode": "view"
+    },
+    {
+      "name": "open-ghostty-launch-configuration",
+      "title": "Open Ghostty Launch Configuration",
+      "description": "Open Ghostty with a saved YAML launch configuration",
+      "mode": "view"
+    },
+    {
+      "name": "open-ghostty-workspace",
+      "title": "Open Ghostty Workspace",
+      "description": "Find Git repositories and open them in Ghostty or with a launch configuration",
+      "mode": "view"
+    },
+    {
+      "name": "open-with-ghostty",
+      "title": "Open with Ghostty",
+      "description": "Open a path in Ghostty",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "path",
+          "type": "text",
+          "placeholder": "Path to open",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "view-ghostty-config",
+      "title": "Manage Ghostty Config",
+      "description": "View, edit, validate, and open the Ghostty configuration file",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "workspaceParentDirectory",
+      "type": "directory",
+      "required": false,
+      "title": "Workspaces Parent Directory",
+      "description": "Directory to scan for Git repositories",
+      "default": "~/Developer"
+    },
+    {
+      "name": "workspaceScanDepth",
+      "type": "dropdown",
+      "required": true,
+      "title": "Workspace Scan Depth",
+      "description": "Max depth to scan for git repositories",
+      "default": "3",
+      "data": [
+        {
+          "title": "2",
+          "value": "2"
+        },
+        {
+          "title": "3",
+          "value": "3"
+        },
+        {
+          "title": "4",
+          "value": "4"
+        },
+        {
+          "title": "5",
+          "value": "5"
+        },
+        {
+          "title": "6",
+          "value": "6"
+        }
+      ]
+    },
+    {
+      "name": "ghosttyBinary",
+      "type": "textfield",
+      "required": true,
+      "title": "Ghostty Binary",
+      "description": "Path to Ghostty",
+      "default": "/usr/bin/ghostty"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "pretest": "tsc --outDir dist --module commonjs --target ES2022 --jsx react-jsx --esModuleInterop --skipLibCheck src/lib.ts", "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.21.3",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "@types/react": "19.0.10",
+    "typescript": "^5.9.3"
+  },
+  "version": "0.1.0"
+}
