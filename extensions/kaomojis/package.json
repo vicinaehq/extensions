@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "kaomojis",
+  "title": "Kaomojis",
+  "description": "Browse and copy kaomojis to clipboard",
+  "categories": [],
+  "license": "MIT",
+  "author": "bl4zee1g",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "kaomoji",
+      "title": "kaomoji",
+      "subtitle": "Copy a kaomoji",
+      "description": "Browse and copy kaomojis to clipboard",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.21.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
