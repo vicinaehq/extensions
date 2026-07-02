@@ -38,7 +38,7 @@
     "publish": "./publish.sh"
   },
   "dependencies": {
-    "@vicinae/api": "^0.21.0"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.2",

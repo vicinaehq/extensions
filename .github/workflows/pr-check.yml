@@ -70,7 +70,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: extensions/${{ matrix.extension }}
-        run: bun install
+        run: npm install --legacy-peer-deps
 
       - name: Build extension
         working-directory: extensions/${{ matrix.extension }}

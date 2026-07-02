@@ -25,7 +25,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.14.0",
+    "@vicinae/api": "^0.22.2",
     "js-yaml": "^4.1.0",
     "toml": "^3.0.0"
   },

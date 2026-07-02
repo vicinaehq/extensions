@@ -45,7 +45,7 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.20.9"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "typescript": "^5.9.2",

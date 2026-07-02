@@ -74,7 +74,7 @@
     "format:check": "prettier --check src/**/*.{ts,tsx}"
   },
   "dependencies": {
-    "@vicinae/api": "^0.20.7"
+    "@vicinae/api": "^0.22.2"
   },
   "peerDependencies": {
     "react": "^18.0.0"

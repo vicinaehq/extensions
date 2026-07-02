@@ -80,7 +80,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@vicinae/api": "^0.16.5",
+    "@vicinae/api": "^0.22.2",
     "node-ical": "^0.22.1"
   },
   "devDependencies": {

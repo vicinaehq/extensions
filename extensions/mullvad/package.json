@@ -75,7 +75,7 @@
   ],
   "dependencies": {
     "@raycast/utils": "^1.10.1",
-    "@vicinae/api": "^0.16.0"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

@@ -33,7 +33,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.16.0",
+    "@vicinae/api": "^0.22.2",
     "fuse.js": "^7.1.0"
   },
   "devDependencies": {

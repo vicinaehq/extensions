@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@raycast/utils": "^2.2.3",
-    "@vicinae/api": "^0.20.7"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.1.1",

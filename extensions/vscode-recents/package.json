@@ -87,7 +87,7 @@
     },
     "dependencies": {
         "sql.js": "^1.14.1",
-        "@vicinae/api": "^0.20.4"
+        "@vicinae/api": "^0.22.2"
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.6",

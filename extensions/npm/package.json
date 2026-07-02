@@ -94,7 +94,7 @@
   "dependencies": {
     "@raycast/utils": "^2.2.3",
     "@uidotdev/usehooks": "^2.4.1",
-    "@vicinae/api": "^0.20.9",
+    "@vicinae/api": "^0.22.2",
     "find-up": "^8.0.0",
     "package-manager-detector": "^1.6.0",
     "semver": "^7.7.4"

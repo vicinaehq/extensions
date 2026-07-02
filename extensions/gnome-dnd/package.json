@@ -36,7 +36,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vicinae/api": "^0.16.8",
+    "@vicinae/api": "^0.22.2",
     "execa": "^9.6.0"
   },
   "devDependencies": {

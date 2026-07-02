@@ -157,7 +157,7 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.16.0",
+    "@vicinae/api": "^0.22.2",
     "freedesktop-icons": "^1.0.0",
     "systeminformation": "^5.23.5",
     "xdg-apps": "^1.1.0"

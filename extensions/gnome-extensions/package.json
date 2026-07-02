@@ -37,7 +37,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.18.3"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.7.0",
