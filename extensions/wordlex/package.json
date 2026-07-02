@@ -1,0 +1,58 @@
+{
+  "name": "wordlex",
+  "title": "WordLex Dictionary",
+  "description": "Instantly search 150,000+ words with definitions, synonyms, antonyms, and relations — fully offline.",
+  "categories": [
+    "Productivity",
+    "Data"
+  ],
+  "license": "MIT",
+  "author": "vedesh-padal",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "search-dictionary",
+      "title": "Search Dictionary",
+      "subtitle": "WordLex",
+      "description": "Search for any word and see its full definition, synonyms, antonyms, and relations.",
+      "mode": "view"
+    },
+    {
+      "name": "define-clipboard",
+      "title": "Define Clipboard Word",
+      "subtitle": "WordLex",
+      "description": "Look up the word in your clipboard or selection and view its full definition.",
+      "mode": "view"
+    },
+    {
+      "name": "random-word",
+      "title": "Random Word",
+      "subtitle": "WordLex",
+      "description": "Discover a random word with its full definition — great for vocabulary building.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "eslint src/",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.8.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.59.4",
+    "@typescript-eslint/parser": "^8.59.4",
+    "eslint": "^10.4.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.8.3",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.59.4"
+  }
+}
