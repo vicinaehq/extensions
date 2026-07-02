@@ -76,7 +76,7 @@ Pulls from Yahoo Finance. Shows:
 You can install the required dependencies and run your extension in development mode like so:
 
 ```bash
-bun install
+npm install
 bun run dev
 ```
 

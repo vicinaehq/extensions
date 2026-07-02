@@ -50,6 +50,6 @@ Works with any MPRIS-compatible media player including:
 Run with:
 
 ```sh
-bun install
+npm install
 bun dev
 ```

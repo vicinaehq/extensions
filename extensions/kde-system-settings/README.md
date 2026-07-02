@@ -27,7 +27,7 @@ Search and open KDE System Settings modules directly from Vicinae.
 ## Development
 
 ```bash
-bun install
+npm install
 bun run build
 bun run dev
 ```
