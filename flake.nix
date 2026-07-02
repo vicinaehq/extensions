@@ -63,7 +63,8 @@
             }
           ))
           (lib.flip builtins.removeAttrs [
-            # TODO: fails to build due to node-gyp
+            # TODO: fails to build due to node-gyp (dbus-next -> usocket native module)
+            "bluetooth"
             "dbus"
             "systemd"
           ])
