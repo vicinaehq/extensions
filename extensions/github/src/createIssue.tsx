@@ -1,23 +1,28 @@
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Action, ActionPanel, Form } from "@vicinae/api";
 import { useGetAssignees } from "./hooks/useGetAssignees";
+import { useGetGitContext } from "./hooks/useGetGitContext";
 import { useGetLabels } from "./hooks/useGetLabels";
 import { useGetMyRepos } from "./hooks/useGetRepos";
 import { useIssueForm } from "./hooks/useIssueForm";
 import { persister, queryClient } from "./queryClient";
 
-function CreateIssue() {
+function CreateIssue(props: {
+  arguments?: {
+    path: string;
+  };
+}) {
   return (
     <PersistQueryClientProvider
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Command />
+      <Command path={props.arguments?.path} />
     </PersistQueryClientProvider>
   );
 }
 
-function Command() {
+function Command({ path }: { path?: string }) {
   const {
     repo,
     setRepo,
@@ -31,8 +36,9 @@ function Command() {
     title,
     handleCreateIssue,
     errors,
-  } = useIssueForm();
+  } = useIssueForm(path);
   const { data: repos } = useGetMyRepos();
+  const gitContext = useGetGitContext(path);
   const { data: assignees } = useGetAssignees(repo);
   const { data: labels } = useGetLabels(repo);
   return (
@@ -46,25 +52,29 @@ function Command() {
         </ActionPanel>
       }
     >
-      <Form.Dropdown
-        id="repository"
-        title="Repository"
-        placeholder="Select a repository"
-        error={errors?.fieldErrors.repo?.[0]}
-        value={repo?.full_name || ""}
-        onChange={(newValue) =>
-          setRepo(repos?.find((r) => r.full_name === newValue) || null)
-        }
-      >
-        {repos?.map((repo) => (
-          <Form.Dropdown.Item
-            key={repo.id}
-            value={repo.full_name}
-            icon={repo?.owner?.avatar_url}
-            title={repo.name}
-          />
-        ))}
-      </Form.Dropdown>
+      {gitContext ? (
+        <Form.Description title="Repository" text={repo?.full_name || ""} />
+      ) : (
+        <Form.Dropdown
+          id="repository"
+          title="Repository"
+          placeholder="Select a repository"
+          error={errors?.fieldErrors.repo?.[0]}
+          value={repo?.full_name || ""}
+          onChange={(newValue) =>
+            setRepo(repos?.find((r) => r.full_name === newValue) || null)
+          }
+        >
+          {repos?.map((repo) => (
+            <Form.Dropdown.Item
+              key={repo.id}
+              value={repo.full_name}
+              icon={repo?.owner?.avatar_url}
+              title={repo.name}
+            />
+          ))}
+        </Form.Dropdown>
+      )}
       <Form.Separator />
       <Form.TextField
         id="title"

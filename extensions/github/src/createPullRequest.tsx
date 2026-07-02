@@ -1,35 +1,39 @@
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Action, ActionPanel, Form } from "@vicinae/api";
-import { useEffect } from "react";
+import { useGetAssignees } from "./hooks/useGetAssignees";
 import { useGetBranches } from "./hooks/useGetBranches";
+import { useGetGitContext } from "./hooks/useGetGitContext";
+import { useGetIssues } from "./hooks/useGetIssues";
 import { useGetMyRepos } from "./hooks/useGetRepos";
 import { useGetRepositoryDetails } from "./hooks/useGetRepositoryDetails";
 import { usePullRequestForm } from "./hooks/usePullRequestForm";
 import { persister, queryClient } from "./queryClient";
-import { useGetIssues } from "./hooks/useGetIssues";
-import { useGetAssignees } from "./hooks/useGetAssignees";
 
-function CreatePullRequest() {
+function CreatePullRequest(props: {
+  arguments?: {
+    path: string;
+  };
+}) {
   return (
     <PersistQueryClientProvider
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Command />
+      <Command path={props.arguments?.path} />
     </PersistQueryClientProvider>
   );
 }
 
-function Command() {
+function Command({ path }: { path?: string }) {
   const {
     repo,
     setRepo,
     baseRepo,
     setBaseRepo,
     fromBranch,
-    setFromBranch,
+    setSelectedFromBranch,
     toBranch,
-    setToBranch,
+    setSelectedToBranch,
     description,
     setDescription,
     linkedIssue,
@@ -44,71 +48,59 @@ function Command() {
     draft,
     setDraft,
     errors,
-  } = usePullRequestForm();
-
+  } = usePullRequestForm(path);
   const { data: repos = [] } = useGetMyRepos();
-  const { data: repoDetails } = useGetRepositoryDetails(repo);
-  const defaultBaseRepo =
-    repoDetails?.fork && repoDetails.parent ? repoDetails.parent : repo;
-  const effectiveBaseRepo = baseRepo || defaultBaseRepo || null;
-  const { data: sourceBranches = [] } = useGetBranches(repo);
-  const { data: targetBranches = [] } = useGetBranches(effectiveBaseRepo);
-  const { data: issues = [] } = useGetIssues(
-    effectiveBaseRepo?.full_name || "",
-  );
-  const { data: assignees = [] } = useGetAssignees(effectiveBaseRepo);
-  const isForkRepo = Boolean(repoDetails?.fork && repoDetails.parent);
+  const gitContext = useGetGitContext(path);
 
+  const { data: repoDetails } = useGetRepositoryDetails(repo);
+  const { data: fromBranches = [] } = useGetBranches(repo);
+  const { data: toBranches = [] } = useGetBranches(baseRepo);
+
+  const { data: issues = [] } = useGetIssues(baseRepo?.full_name || "");
+  const { data: assignees = [] } = useGetAssignees(baseRepo);
+  const isForkRepo = Boolean(repoDetails?.fork && repoDetails.parent);
   const baseRepoOptions = [repoDetails?.parent, repo].filter(
     (x) => x !== undefined && x !== null,
   );
-
-  useEffect(() => {
-    if (effectiveBaseRepo) {
-      const defaultBranch = targetBranches?.find(
-        (b) => b.name === effectiveBaseRepo.default_branch,
-      );
-      setToBranch(defaultBranch || null);
-    }
-  }, [effectiveBaseRepo, targetBranches, setToBranch]);
 
   return (
     <Form
       actions={
         <ActionPanel>
-          <Action.SubmitForm
-            title="Submit PR"
-            onSubmit={() => handleCreatePr(effectiveBaseRepo)}
-          />
+          <Action.SubmitForm title="Submit PR" onSubmit={handleCreatePr} />
         </ActionPanel>
       }
     >
-      <Form.Dropdown
-        id="repository"
-        title="Repository"
-        placeholder="Select a repository"
-        error={errors?.fieldErrors.repo?.[0]}
-        value={repo?.full_name || ""}
-        onChange={(newValue) =>
-          setRepo(repos?.find((r) => r.full_name === newValue) || null)
-        }
-      >
-        {repos?.map((repo) => (
-          <Form.Dropdown.Item
-            key={repo.id}
-            value={repo.full_name}
-            icon={repo?.owner?.avatar_url}
-            title={repo.name}
-          />
-        ))}
-      </Form.Dropdown>
+      {gitContext ? (
+        <Form.Description title="Repository" text={repo?.full_name || ""} />
+      ) : (
+        <Form.Dropdown
+          id="repository"
+          title="Repository"
+          placeholder="Select a repository"
+          error={errors?.fieldErrors.repo?.[0]}
+          value={repo?.full_name || ""}
+          onChange={(newValue) =>
+            setRepo(repos?.find((r) => r.full_name === newValue) || null)
+          }
+        >
+          {repos?.map((repo) => (
+            <Form.Dropdown.Item
+              key={repo.id}
+              value={repo.full_name}
+              icon={repo?.owner?.avatar_url}
+              title={repo.name}
+            />
+          ))}
+        </Form.Dropdown>
+      )}
       {isForkRepo && (
         <Form.Dropdown
           id="baseRepository"
           title="Base Repository"
           placeholder="Select a target repository"
           error={errors?.fieldErrors.baseRepo?.[0]}
-          value={effectiveBaseRepo?.full_name || ""}
+          value={baseRepo?.full_name || ""}
           onChange={(newValue) =>
             setBaseRepo(
               baseRepoOptions.find(
@@ -127,26 +119,30 @@ function Command() {
           ))}
         </Form.Dropdown>
       )}
-      <Form.Dropdown
-        id="fromBranch"
-        title="From"
-        placeholder="Select a branch"
-        error={errors?.fieldErrors.fromBranch?.[0]}
-        value={fromBranch?.name || ""}
-        onChange={(newValue) =>
-          setFromBranch(
-            sourceBranches?.find((branch) => branch.name === newValue) || null,
-          )
-        }
-      >
-        {sourceBranches?.map((branch) => (
-          <Form.Dropdown.Item
-            key={branch.name}
-            value={branch.name}
-            title={branch.name}
-          />
-        ))}
-      </Form.Dropdown>
+      {gitContext ? (
+        <Form.Description title="From" text={fromBranch?.name || ""} />
+      ) : (
+        <Form.Dropdown
+          id="fromBranch"
+          title="From"
+          placeholder="Select a branch"
+          error={errors?.fieldErrors.fromBranch?.[0]}
+          value={fromBranch?.name || ""}
+          onChange={(newValue) =>
+            setSelectedFromBranch(
+              fromBranches?.find((branch) => branch.name === newValue) || null,
+            )
+          }
+        >
+          {fromBranches?.map((branch) => (
+            <Form.Dropdown.Item
+              key={branch.name}
+              value={branch.name}
+              title={branch.name}
+            />
+          ))}
+        </Form.Dropdown>
+      )}
       <Form.Dropdown
         id="toBranch"
         title="Into"
@@ -154,12 +150,12 @@ function Command() {
         error={errors?.fieldErrors.toBranch?.[0]}
         value={toBranch?.name}
         onChange={(newValue) =>
-          setToBranch(
-            targetBranches?.find((branch) => branch.name === newValue) || null,
+          setSelectedToBranch(
+            toBranches?.find((branch) => branch.name === newValue) || null,
           )
         }
       >
-        {targetBranches?.map((branch) => (
+        {toBranches?.map((branch) => (
           <Form.Dropdown.Item
             key={branch.name}
             value={branch.name}

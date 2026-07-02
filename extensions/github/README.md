@@ -4,8 +4,9 @@ A Vicinae extension that provides GitHub integration, allowing you to work with 
 
 ## Features
 
-- **Issues & Pull Requests**: View and manage issues and PRs created by you, assigned to you, or mentioning you
-- **Repository Search**: Search through your public and private repositories with advanced filtering and sorting
+- **Issues & Pull Requests**: View the issues and pull requests that matter to you
+- **Workflow Runs**: Inspect recent workflow runs for your repositories
+- **Repository Search**: Search through your public and private repositories
 
 ## Installation
 
@@ -40,33 +41,40 @@ To use this extension, you need a GitHub Personal Access Token:
 Customize the extension behavior through these preferences:
 
 - **GitHub Token**: Your personal access token (required)
-- **Default Search Terms**: Default search query for issues/PRs (default: "author:@me")
-- **Number of Search Results**: Number of results to fetch (default: 50)
-- **Default Issue Filter**: Filter to apply when opening issues
-  - My Issues
-  - Assigned to Me
-  - Mentioning Me
-  - All Issues
-- **Default Repository Filter**: Filter for repositories
-  - All Repositories
-  - My Repositories
+- **Number of Search Results**: Number of results to fetch when searching repositories (default: 50)
+- **Default Issue Filter**: Default filter for issues and pull requests: My Issues, Assigned to Me, Mentioning Me, or All Issues
 
 ## Commands
 
-### Issues
-Lists issues and pull requests relevant to you:
-- Issues/PRs you created (`author:@me`)
-- Issues/PRs assigned to you
-- Issues/PRs where you're mentioned
+| Command | Description |
+| --- | --- |
+| My Issues | View issues involving you and filter them by scope or repository. |
+| Workflow Runs | View recent workflow runs for a selected repository. |
+| Create Issue | Create a new issue in one of your repositories. |
+| Create Pull Request | Create a new pull request in one of your repositories. |
+| My Pull Requests | View pull requests involving you and filter them by scope or repository. |
+| My Repositories | Browse your repositories. |
+| Search Repositories | Search your public and private repositories by name. |
 
-Supports filtering and searching by title, number, or assignee.
+## Open from the Terminal
 
-### Search Repositories
-Search through your repositories by name with support for filtering (all vs. my repositories) and sorting options.
+The Create Pull Request and Create Issue commands accept a `path` argument. When the provided directory is inside a git repository with a GitHub `origin` remote, Vicinae uses that local git context to infer the repository. Pull requests also prefill the source branch, target branch, and fork base repository when available.
+
+You can add a small shell helper to open the command for the current directory:
+
+```bash
+ghpr() {
+   vicinae 'vicinae://extensions/knoopx/github/createPullRequest?arguments={"path":"'"$(pwd)"'"}'
+}
+
+ghi() {
+   vicinae 'vicinae://extensions/knoopx/github/createIssue?arguments={"path":"'"$(pwd)"'"}'
+}
+```
 
 ## Development
 
-This extension uses the GitHub REST API via Octokit and GraphQL for efficient data fetching.
+This extension uses the GitHub REST API via Octokit and React Query for data fetching and caching.
 
 ### Development Mode
 
@@ -81,14 +89,6 @@ Build the production bundle:
 ```bash
 npm run build
 ```
-
-## Dependencies
-
-- `@octokit/rest`: GitHub REST API client
-- `@vicinae/api`: Vicinae API
-- `date-fns`: Date utilities
-- `graphql-request`: GraphQL client
-- `lodash`: Utility functions
 
 ## License
 
