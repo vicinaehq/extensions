@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "cloudflare-warp",
+  "title": "Cloudflare Warp",
+  "description": "Manage your Cloudflare Warp connection — toggle, check status, and stay in control from your launcher.",
+  "categories": ["System"],
+  "license": "MIT",
+  "author": "anuraglol",
+  "contributors": [],
+  "pastContributors": [],
+  "preferences": [],
+  "icon": "extension_icon.png",
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "oxfmt",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.7"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
+    "typescript": "^5.9.2"
+  },
+  "commands": [
+    {
+      "name": "cloudflare-warp-tool",
+      "title": "Cloudflare Warp",
+      "subtitle": "Cloudflare",
+      "description": "Toggle your Warp connection and check its current status.",
+      "mode": "view"
+    }
+  ]
+}
