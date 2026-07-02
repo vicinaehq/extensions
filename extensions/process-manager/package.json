@@ -63,6 +63,7 @@
     {
       "name": "sort-by-memory",
       "title": "Sort by Memory",
+      "label": "Sort by memory usage instead of CPU",
       "description": "Sort by memory usage instead of CPU",
       "type": "checkbox",
       "required": false,
@@ -71,6 +72,7 @@
     {
       "name": "show-system-processes",
       "title": "Show System Processes",
+      "label": "Include system and kernel processes",
       "description": "Include system and kernel processes",
       "type": "checkbox",
       "required": false,
@@ -79,6 +81,7 @@
     {
       "name": "show-pid",
       "title": "Show PID",
+      "label": "Display process ID in subtitle",
       "description": "Display process ID in subtitle",
       "type": "checkbox",
       "required": false,
@@ -87,6 +90,7 @@
     {
       "name": "show-path",
       "title": "Show Path",
+      "label": "Display process path in subtitle",
       "description": "Display process path in subtitle",
       "type": "checkbox",
       "required": false,
@@ -95,6 +99,7 @@
     {
       "name": "search-in-paths",
       "title": "Search in Paths",
+      "label": "Enable searching by process path",
       "description": "Enable searching by process path",
       "type": "checkbox",
       "required": false,
@@ -103,6 +108,7 @@
     {
       "name": "search-in-pid",
       "title": "Search in PID",
+      "label": "Enable searching by process ID",
       "description": "Enable searching by process ID",
       "type": "checkbox",
       "required": false,
@@ -111,6 +117,7 @@
     {
       "name": "close-window-after-kill",
       "title": "Close Window After Kill",
+      "label": "Automatically close window after killing a process",
       "description": "Automatically close window after killing a process",
       "type": "checkbox",
       "required": false,
@@ -119,6 +126,7 @@
     {
       "name": "clear-search-after-kill",
       "title": "Clear Search After Kill",
+      "label": "Clear search bar after killing a process",
       "description": "Clear search bar after killing a process",
       "type": "checkbox",
       "required": false,
