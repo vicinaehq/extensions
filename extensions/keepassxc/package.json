@@ -27,7 +27,7 @@
     "@raycast/eslint-config": "^2.1.1",
     "@stylistic/eslint-plugin": "^5.7.1",
     "@types/node": "^22.18.9",
-    "@types/react": "^19.2.2",
+    "@types/react": "19.0.10",
     "@vicinae/api": "^0.22.2",
     "eslint": "^9.37.0",
     "eslint-plugin-react": "^7.37.5",
