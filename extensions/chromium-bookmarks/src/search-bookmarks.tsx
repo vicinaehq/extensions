@@ -11,17 +11,33 @@ import {
 	Color,
 	showToast,
 	Toast,
+	getPreferenceValues,
 } from "@vicinae/api";
 import { useEffect, useMemo, useState } from "react";
 import { BrowserSelector } from "./browser-selector";
 import {
 	addFavorite,
-	flattenBookmarks,
 	FlattenedBrowserBookmark,
 	removeFavorite,
 	useBookmarks,
 } from "./bookmarks";
-import { extractHost } from "./utils";
+import { extractHost, faviconIcon } from "./utils";
+
+type Preferences = {
+	"show-favicons": boolean;
+	"bookmark-render-limit": string;
+	"show-url-in-subtitle": boolean;
+};
+
+const getShortcutName = (bookmark: FlattenedBrowserBookmark["bookmark"]) => {
+	const name = bookmark.name.trim();
+
+	if (name) {
+		return name;
+	}
+
+	return extractHost(bookmark.url) ?? bookmark.url;
+};
 
 const BookmarkDetail = ({ data }: { data: FlattenedBrowserBookmark }) => {
 	return (
@@ -58,6 +74,11 @@ const BookmarkDetail = ({ data }: { data: FlattenedBrowserBookmark }) => {
 						icon={data.browser.icon}
 						text={{ value: data.browser.name }}
 					/>
+
+					<List.Item.Detail.Metadata.Label
+						title="Profile"
+						text={{ value: data.profile }}
+					/>
 				</List.Item.Detail.Metadata>
 			}
 		/>
@@ -67,10 +88,25 @@ const BookmarkDetail = ({ data }: { data: FlattenedBrowserBookmark }) => {
 const BROWSER_FILTER_KEY = "browser-filter";
 
 const BookmarkList = () => {
-	const { roots, browsers, error, loading } = useBookmarks();
+	const { bookmarks, browsers, error, loading } = useBookmarks();
+  const preferences = getPreferenceValues<Preferences>();
+  const showFavicons = preferences["show-favicons"] ?? false;
+  const showUrlInSubtitle = preferences["show-url-in-subtitle"] ?? false;
+
+	const parsedDisplayLimit = Number.parseInt(
+	preferences["bookmark-render-limit"] ?? "100",
+	10,
+);
+
+	const displayLimit =
+		Number.isFinite(parsedDisplayLimit) && parsedDisplayLimit >= 0
+			? parsedDisplayLimit
+			: 100;
+
 	const [browserFilter, setBrowserFilter] = useState<string>("all");
+	const [searchText, setSearchText] = useState("");
 	const [showingDetail, setShowingDetail] = useState(false);
-	const [flattenedBookmarks, setFlattenedBoomarks] = useState<
+	const [localBookmarks, setLocalBookmarks] = useState<
 		FlattenedBrowserBookmark[]
 	>([]);
 
@@ -81,33 +117,73 @@ const BookmarkList = () => {
 	}, []);
 
 	useEffect(() => {
-		setFlattenedBoomarks(flattenBookmarks(roots));
-	}, [roots]);
+		setLocalBookmarks(bookmarks);
+	}, [bookmarks]);
 
-	const sortedBookmarks = useMemo(
-		() =>
-			flattenedBookmarks
-				.sort(
-					(a, b) =>
-						b.bookmark.dateAdded.getTime() - a.bookmark.dateAdded.getTime(),
-				)
-				.sort((a, b) => +b.favorite - +a.favorite),
-		[flattenedBookmarks],
-	);
+	useEffect(() => {
+		if (browserFilter === "all") return;
+		if (!browsers.length) return;
 
-	const filteredUrlBookmarks = useMemo(
-		() =>
+		const filterStillExists = browsers.some(
+			(browser) => browser.id === browserFilter,
+		);
+
+		if (!filterStillExists) {
+			setBrowserFilter("all");
+			LocalStorage.setItem(BROWSER_FILTER_KEY, "all");
+		}
+	}, [browserFilter, browsers]);
+
+	const { filteredUrlBookmarks, totalMatchingBookmarks } = useMemo(() => {
+		const query = searchText.trim().toLowerCase();
+
+		let items =
 			browserFilter === "all"
-				? sortedBookmarks
-				: sortedBookmarks.filter((b) => b.browser.name === browserFilter),
-		[sortedBookmarks, browserFilter],
-	);
+				? localBookmarks
+				: localBookmarks.filter((item) => item.browser.id === browserFilter);
+
+		if (query) {
+				items = items.filter((item) => {
+					const host = extractHost(item.bookmark.url);
+
+				return [
+						item.bookmark.name,
+						item.bookmark.url,
+					host,
+						item.folder,
+						item.browser.name,
+				].some((value) => value?.toLowerCase().includes(query));
+			});
+		}
+
+	const total = items.length;
+		const visible = displayLimit > 0 ? items.slice(0, displayLimit) : items;
+
+	return {
+		filteredUrlBookmarks: visible,
+		totalMatchingBookmarks: total,
+	};
+}, [localBookmarks, browserFilter, searchText, displayLimit]);
+
+	const sortLocalBookmarks = (items: FlattenedBrowserBookmark[]) => {
+		return [...items].sort((a, b) => {
+			const favoriteDiff = Number(b.favorite) - Number(a.favorite);
+
+			if (favoriteDiff !== 0) {
+				return favoriteDiff;
+			}
+
+			return b.bookmark.dateAdded.getTime() - a.bookmark.dateAdded.getTime();
+		});
+	};
 
 	const addToFavorites = async (id: string) => {
-		addFavorite(id);
-		setFlattenedBoomarks(
-			flattenedBookmarks.map((b) =>
+		await addFavorite(id);
+		setLocalBookmarks((previous) =>
+			sortLocalBookmarks(
+			previous.map((b) =>
 				b.bookmark.id === id ? { ...b, favorite: true } : b,
+					),
 			),
 		);
 		await showToast({
@@ -117,12 +193,15 @@ const BookmarkList = () => {
 	};
 
 	const removeFromFavorites = async (id: string) => {
-		removeFavorite(id);
-		setFlattenedBoomarks(
-			flattenedBookmarks.map((b) =>
+		await removeFavorite(id);
+		setLocalBookmarks((previous) =>
+			sortLocalBookmarks(
+			previous.map((b) =>
 				b.bookmark.id === id ? { ...b, favorite: false } : b,
+					),
 			),
 		);
+
 		await showToast({
 			title: "Removed from favorites",
 			style: Toast.Style.Success,
@@ -131,6 +210,7 @@ const BookmarkList = () => {
 
 	const handleBrowserFilterChange = async (s: string) => {
 		await clearSearchBar();
+		setSearchText("");
 		setBrowserFilter(s);
 		await LocalStorage.setItem(BROWSER_FILTER_KEY, s);
 	};
@@ -148,6 +228,8 @@ const BookmarkList = () => {
 			isLoading={loading}
 			isShowingDetail={showingDetail}
 			searchBarPlaceholder="Search bookmarks..."
+			filtering={false}
+			onSearchTextChange={setSearchText}
 			searchBarAccessory={
 				<BrowserSelector
 					filter={browserFilter}
@@ -163,27 +245,52 @@ const BookmarkList = () => {
 					icon={Icon.Bookmark}
 				/>
 			)}
-			<List.Section title={`${filteredUrlBookmarks.length} bookmarks`}>
+
+			<List.Section title={
+						displayLimit > 0 && filteredUrlBookmarks.length < totalMatchingBookmarks
+							? `Showing ${filteredUrlBookmarks.length} of ${totalMatchingBookmarks} bookmarks`
+							: `${totalMatchingBookmarks} bookmarks`
+					}
+				>
 				{filteredUrlBookmarks.map(
-					({ id, browser, bookmark, folder, favorite }) => (
+					({ id, browser, bookmark, folder, favorite, profile }) => (
 						<List.Item
 							key={id}
-							subtitle={extractHost(bookmark.url) ?? undefined}
+							subtitle={
+								showUrlInSubtitle
+									? bookmark.url
+									: extractHost(bookmark.url) ?? undefined
+							}
 							title={bookmark.name}
 							detail={
 								<BookmarkDetail
-									data={{ id, browser, bookmark, folder, favorite }}
+									data={{ id, browser, bookmark, folder, favorite, profile }}
 								/>
 							}
-							icon={{
-								source: Icon.Bookmark,
-								tintColor: favorite ? Color.Yellow : undefined,
-							}}
-							accessories={!showingDetail ? [{ icon: browser.icon }] : []}
+							icon={faviconIcon({
+								url: bookmark.url,
+								favorite,
+								enabled: showFavicons,
+							})}
+							accessories={!showingDetail ? [
+											...(showFavicons && favorite
+												? [
+														{
+															icon: {
+																source: Icon.Star,
+																tintColor: "#fffac1",
+															},
+														},
+													]
+												: []),
+											{ icon: browser.icon },
+										]
+									: []
+							}
 							actions={
 								<ActionPanel>
 									<Action
-										title={"Open in browser"}
+										title="Open in Browser"
 										icon={Icon.Globe}
 										onAction={async () => {
 											await closeMainWindow();
@@ -195,24 +302,43 @@ const BookmarkList = () => {
 										content={bookmark.url}
 									/>
 									<Action
-										title="Toggle bookmark details"
+										title="Toggle Bookmark Details"
 										icon={Icon.Bookmark}
+										shortcut={{ modifiers: ["ctrl"], key: "d" }}
 										onAction={() => setShowingDetail((v) => !v)}
 									/>
 									{!favorite && (
 										<Action
-											title="Add to favorites"
-											icon={{ source: Icon.Bookmark, tintColor: Color.Yellow }}
+											title="Add to Favorites"
+											icon={Icon.Star}
+											shortcut={{ modifiers: ["ctrl"], key: "f" }}
 											onAction={() => addToFavorites(bookmark.id)}
 										/>
 									)}
 									{favorite && (
 										<Action
-											title="Remove from favorites"
-											icon={{ source: Icon.Bookmark, tintColor: Color.Red }}
+											title="Remove from Favorites"
+											icon={Icon.StarDisabled}
+											shortcut={{ modifiers: ["ctrl"], key: "f" }}
 											onAction={() => removeFromFavorites(bookmark.id)}
 										/>
 									)}
+									<Action.CreateQuicklink
+										title="Create Shortcut"
+										icon={Icon.Link}
+										shortcut={{ modifiers: ["ctrl"], key: "s" }}
+										quicklink={{
+											name: getShortcutName(bookmark),
+											link: bookmark.url,
+											icon: Icon.Bookmark,
+										}}
+									/>
+									<Action
+										title="Extension Settings"
+										icon={Icon.Cog}
+										onAction={() => open("vicinae://settings/open?tab=@aurelleb/chromium-bookmarks")}
+										shortcut={{ modifiers: ["ctrl"], key: "," }}
+									/>
 								</ActionPanel>
 							}
 						/>
