@@ -56,13 +56,15 @@
               pname = "vicinae-extension-${name}";
               version = "0";
               src = ./extensions/${name};
+              npmFlags = [ "--legacy-peer-deps" ];
               postPatch = ''
                 substituteInPlace tsconfig.json --replace "../../" "${./.}/"
               '';
             }
           ))
           (lib.flip builtins.removeAttrs [
-            # TODO: fails to build due to node-gyp
+            # TODO: fails to build due to node-gyp (dbus-next -> usocket native module)
+            "bluetooth"
             "dbus"
             "systemd"
           ])
