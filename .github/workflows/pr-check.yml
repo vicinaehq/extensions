@@ -8,7 +8,7 @@ on:
 
 jobs:
   detect-changes:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-latest
     outputs:
       extensions: ${{ steps.detect.outputs.extensions }}
     steps:
@@ -35,7 +35,7 @@ jobs:
   validate:
     needs: detect-changes
     if: needs.detect-changes.outputs.extensions != '[]'
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -55,7 +55,7 @@ jobs:
 
   build:
     needs: [validate, detect-changes]
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-latest-4
     strategy:
       fail-fast: false
       matrix:
