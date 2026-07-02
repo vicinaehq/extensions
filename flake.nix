@@ -56,6 +56,7 @@
               pname = "vicinae-extension-${name}";
               version = "0";
               src = ./extensions/${name};
+              npmFlags = [ "--legacy-peer-deps" ];
               postPatch = ''
                 substituteInPlace tsconfig.json --replace "../../" "${./.}/"
               '';
