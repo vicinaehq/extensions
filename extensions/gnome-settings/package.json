@@ -5,6 +5,7 @@
   "description": "Lists and opens GNOME Control Center panels for easy access",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "dagimg-dot",
   "contributors": [],
   "pastContributors": [],

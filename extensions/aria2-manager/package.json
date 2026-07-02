@@ -5,6 +5,7 @@
   "description": "All-in-one download manager powered by Aria2 and yt-dlp.",
   "categories": ["Web"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "ozer-01",
   "contributors": [],
   "pastContributors": [],

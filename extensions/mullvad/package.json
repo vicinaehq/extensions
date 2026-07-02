@@ -8,6 +8,7 @@
   "contributors": [],
   "categories": ["Security"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "commands": [
     {
       "name": "mullvad",

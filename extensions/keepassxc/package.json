@@ -15,6 +15,7 @@
     "Security"
   ],
   "license": "MIT",
+  "platforms": ["Linux", "Windows"],
   "dependencies": {
     "@raycast/utils": "^1.19.1",
     "@vicinae/api": "^0.19.3",

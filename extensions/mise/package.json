@@ -5,6 +5,7 @@
   "description": "Manage mise installed tools",
   "categories": ["Developer Tools"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "fredrikmwold",
   "contributors": [],
   "pastContributors": [],

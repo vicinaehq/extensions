@@ -5,6 +5,7 @@
   "description": "Vicinae extension for Floww CLI - manage and apply workflows across workspaces",
   "categories": ["Productivity"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "dagimg-dot",
   "contributors": [],
   "pastContributors": [],

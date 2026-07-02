@@ -5,6 +5,7 @@
   "description": "Advanced process manager - view, kill, and control running processes",
   "categories": ["Productivity", "System", "Developer Tools"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "leonkohli",
   "contributors": [],
   "pastContributors": [],

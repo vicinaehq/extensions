@@ -5,6 +5,7 @@
   "description": "Will show you your hyprland keybinds in case you forget.",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "sovereign",
   "contributors": [],
   "pastContributors": [],

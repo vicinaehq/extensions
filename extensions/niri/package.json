@@ -8,6 +8,7 @@
     "Productivity"
   ],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "knoopx",
   "contributors": [],
   "pastContributors": [],

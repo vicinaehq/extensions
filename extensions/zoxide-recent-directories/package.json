@@ -4,6 +4,7 @@
   "title": "zoxide recent directories",
   "description": "Browse your recent opened directories through zoxide's list and open them using the application of your choice with the ability to filter zoxide entries to show only git repositories.",
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "c4n4m1",
   "contributors": [],
   "pastContributors": [],

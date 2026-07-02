@@ -8,6 +8,7 @@
     "System"
   ],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "domainus",
   "icon": "extension-icon.png",
   "commands": [

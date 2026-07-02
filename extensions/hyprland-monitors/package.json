@@ -5,6 +5,7 @@
   "description": "A simple monitor management extension for Hyprland",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "fredrikmwold",
   "contributors": [],
   "pastContributors": [],

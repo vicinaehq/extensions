@@ -5,6 +5,7 @@
   "description": "An extenstion to manage npm packages",
   "categories": ["Developer Tools"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "FredrikMWold",
   "contributors": [],
   "pastContributors": [],

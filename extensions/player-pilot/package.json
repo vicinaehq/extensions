@@ -5,6 +5,7 @@
   "description": "A comprehensive media player controller supporting multiple players with grid view, metadata display, and customizable player filtering.",
   "categories": ["Media"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "dagimg-dot",
   "contributors": [],
   "pastContributors": [],

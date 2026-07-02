@@ -4,6 +4,7 @@
   "title": "Zed Recent Projects",
   "description": "Open Zed editor recent projects",
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "contributors": [],
   "pastContributors": [],
   "author": "pavle99",

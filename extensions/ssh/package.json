@@ -5,6 +5,7 @@
   "description": "Open a host in ssh",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "leiserfg",
   "contributors": [],
   "pastContributors": [],

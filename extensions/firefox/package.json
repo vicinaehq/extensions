@@ -9,6 +9,7 @@
   "icon": "extension-icon.svg",
   "author": "knoopx",
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "commands": [
     {
       "icon": "bookmarks-icon.png",

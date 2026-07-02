@@ -5,6 +5,7 @@
 	"description": "Kills a process by port",
 	"categories": ["Developer Tools"],
 	"license": "MIT",
+	"platforms": ["Linux"],
 	"author": "LuggaPugga",
 	"contributors": [],
 	"pastContributors": [],

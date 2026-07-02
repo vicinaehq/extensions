@@ -6,6 +6,7 @@
     "System"
   ],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "nino-mau",
   "contributors": [],
   "scripts": {

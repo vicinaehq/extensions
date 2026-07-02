@@ -5,6 +5,7 @@
   "description": "Will show you the pacman packages that have an update.",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "sovereign",
   "contributors": [],
   "pastContributors": [],

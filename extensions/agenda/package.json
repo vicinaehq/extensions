@@ -7,6 +7,7 @@
     "Productivity"
   ],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "knoopx",
   "contributors": [],
   "pastContributors": [],

@@ -5,6 +5,7 @@
   "description": "Quick access to your open browser tabs",
   "categories": ["Web"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "brpaz",
   "contributors": [],
   "pastContributors": [],

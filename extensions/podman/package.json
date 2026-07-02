@@ -5,6 +5,7 @@
   "description": "Vicinae extension for managing Podman containers",
   "categories": ["Developer Tools", "Productivity"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "knoopx",
   "contributors": [],
   "pastContributors": [],

@@ -5,6 +5,7 @@
   "description": "Vicinae extension for managing systemd services",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "knoopx",
   "contributors": [],
   "pastContributors": [],

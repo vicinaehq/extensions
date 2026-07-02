@@ -5,6 +5,7 @@
 	"description": "Explore objects exposed by DBus using a pleasant and search-focused interface",
 	"categories": ["System", "Developer Tools"],
 	"license": "MIT",
+	"platforms": ["Linux"],
 	"author": "aurelleb",
 	"contributors": [],
 	"pastContributors": [],

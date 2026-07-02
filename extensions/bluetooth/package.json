@@ -5,6 +5,7 @@
 	"description": "Vicinae bluetooth extension for managing bluetooth devices using org.bluez via dbus-next",
 	"categories": ["System"],
 	"license": "MIT",
+	"platforms": ["Linux"],
 	"author": "Gelei",
 	"contributors": [],
 	"pastContributors": [],

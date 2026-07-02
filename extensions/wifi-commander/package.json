@@ -7,6 +7,7 @@
     "System"
   ],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "dagimg-dot",
   "contributors": [
     "Gareck-OG"
