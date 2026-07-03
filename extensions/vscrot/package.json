@@ -1,0 +1,223 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "vscrot",
+  "title": "VScrot",
+  "description": "An extension to take and manage screenshots",
+  "categories": [
+    "Productivity",
+    "Other"
+  ],
+  "license": "MIT",
+  "author": "JaINTP",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "scrot",
+      "title": "Scrot",
+      "subtitle": "Take a screenshot",
+      "description": "Take a screenshot",
+      "mode": "view"
+    },
+    {
+      "name": "area",
+      "title": "Capture Area",
+      "subtitle": "Capture a selected area of your screen.",
+      "description": "Capture a selected area of your screen.",
+      "mode": "view"
+    },
+    {
+      "name": "window",
+      "title": "Capture Window",
+      "subtitle": "Capture a selected window.",
+      "description": "Capture a selected window.",
+      "mode": "view"
+    },
+    {
+      "name": "monitor",
+      "title": "Capture Monitor",
+      "subtitle": "Capture a selected monitor.",
+      "description": "Capture a selected monitor.",
+      "mode": "view"
+    },
+    {
+      "name": "all",
+      "title": "Capture All Monitors",
+      "subtitle": "Capture all monitors.",
+      "description": "Capture all monitors.",
+      "mode": "view"
+    },
+    {
+      "name": "manage-tools",
+      "title": "Manage Tools",
+      "subtitle": "Check and install screenshot tools",
+      "description": "View which capture, annotation, and clipboard tools are installed and copy install commands for any that are missing",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "screenshot_tool",
+      "type": "dropdown",
+      "title": "Screenshot Tool",
+      "description": "The tool used to capture screenshots. 'Auto-detect' picks the first available one.",
+      "default": "auto",
+      "required": true,
+      "data": [
+        {
+          "title": "Auto-detect",
+          "value": "auto"
+        },
+        {
+          "title": "grimblast (Hyprland)",
+          "value": "grimblast"
+        },
+        {
+          "title": "grim + slurp (Wayland)",
+          "value": "grim"
+        },
+        {
+          "title": "spectacle (KDE)",
+          "value": "spectacle"
+        },
+        {
+          "title": "gnome-screenshot (GNOME)",
+          "value": "gnome-screenshot"
+        },
+        {
+          "title": "flameshot",
+          "value": "flameshot"
+        },
+        {
+          "title": "maim + slop (X11)",
+          "value": "maim"
+        },
+        {
+          "title": "scrot (X11)",
+          "value": "scrot"
+        },
+        {
+          "title": "screencapture (macOS)",
+          "value": "screencapture"
+        },
+        {
+          "title": "screenshot-desktop (npm, Windows/macOS)",
+          "value": "screenshot-desktop"
+        }
+      ]
+    },
+    {
+      "name": "annotation_tool",
+      "type": "dropdown",
+      "title": "Annotation Tool",
+      "description": "Tool used to annotate screenshots. Auto-reload tools (Satty, swappy) reload the preview automatically. Manual tools (GIMP, Pinta, Paint) require you to save and use Refresh Preview.",
+      "default": "auto",
+      "required": true,
+      "data": [
+        {
+          "title": "Auto-detect",
+          "value": "auto"
+        },
+        {
+          "title": "Satty (auto-reload)",
+          "value": "satty"
+        },
+        {
+          "title": "swappy (auto-reload)",
+          "value": "swappy"
+        },
+        {
+          "title": "GIMP (manual save)",
+          "value": "gimp"
+        },
+        {
+          "title": "Pinta (manual save)",
+          "value": "pinta"
+        },
+        {
+          "title": "Paint / mspaint (manual save)",
+          "value": "mspaint"
+        },
+        {
+          "title": "None",
+          "value": "none"
+        }
+      ]
+    },
+    {
+      "name": "screenshot_path",
+      "type": "textfield",
+      "title": "Screenshot Path",
+      "description": "Folder to save screenshots to",
+      "default": "~/Pictures/Screenshots",
+      "required": true
+    },
+    {
+      "name": "use_editor",
+      "type": "checkbox",
+      "title": "Use Editor (Satty)",
+      "label": "Open in editor by default",
+      "description": "Whether to open Satty after taking a screenshot",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "copy_to_clipboard",
+      "type": "checkbox",
+      "title": "Copy to Clipboard",
+      "label": "Copy to clipboard automatically",
+      "description": "Whether to copy the screenshot to the clipboard",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "save_to_file",
+      "type": "checkbox",
+      "title": "Save to File",
+      "label": "Save to file automatically",
+      "description": "Whether to save the screenshot to a file",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "subfolder_format",
+      "type": "textfield",
+      "title": "Subfolder Format",
+      "description": "Folder name format (e.g. %d-%m-%Y). Omit to save directly in screenshot path.",
+      "default": "%d-%m-%Y",
+      "required": false
+    },
+    {
+      "name": "filename_format",
+      "type": "textfield",
+      "title": "Filename Format",
+      "description": "File name format (e.g. Screenshot_%d-%m-%Y_%H-%M-%S)",
+      "default": "Screenshot_%d-%m-%Y_%H-%M-%S",
+      "required": true
+    },
+    {
+      "name": "autoclose_vicinae",
+      "type": "checkbox",
+      "title": "Autoclose Vicinae",
+      "label": "Close Vicinae after saving or copying",
+      "description": "Automatically close Vicinae after saving a screenshot to file or copying it to the clipboard",
+      "default": false,
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.15",
+    "screenshot-desktop": "^1.6.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "typescript": "^5.9.2"
+  }
+}
