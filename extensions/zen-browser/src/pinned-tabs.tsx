@@ -1,7 +1,15 @@
-import { Icon, List, getPreferenceValues, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, getPreferenceValues, showToast, Toast } from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { listPinnedTabs, type Entry, type Preferences } from "./lib";
-import { EntryActions } from "./actions";
+import { focusZenTab, listPinnedTabs, runZen, type Entry, type Preferences } from "./lib";
+
+function PinnedTabActions({ entry, prefs }: { entry: Entry; prefs: Preferences }) {
+  return <ActionPanel>
+    <Action title="Focus Existing Zen Tab" icon={Icon.ArrowRightCircle} onAction={async () => { try { focusZenTab(entry.tabIndex || 0); await showToast({ style: Toast.Style.Success, title: "Focused Zen tab", message: entry.title }); } catch (e: any) { await showToast({ style: Toast.Style.Failure, title: "Could not focus Zen tab", message: e?.message || String(e) }); } }} />
+    <Action title="Open URL in New Zen Tab" icon={Icon.Globe01} onAction={async () => { runZen([entry.url], prefs); await showToast({ style: Toast.Style.Success, title: "Opening in Zen", message: entry.url }); }} />
+    <Action.OpenInBrowser title="Open in Default Browser" url={entry.url} />
+    <Action.CopyToClipboard title="Copy URL" content={entry.url} />
+  </ActionPanel>;
+}
 
 export default function Command() {
   const prefs = getPreferenceValues<Preferences>();
@@ -25,10 +33,10 @@ export default function Command() {
 
   return <List isLoading={loading} searchBarPlaceholder="Search Zen essential and pinned tabs…">
     <List.Section title="Essential Tabs" subtitle={`${essentialTabs.length}`}>
-      {essentialTabs.map((e, i) => <List.Item key={`essential-${e.url}-${i}`} title={e.title} subtitle={e.subtitle} icon={Icon.Star} actions={<EntryActions entry={e} prefs={prefs} />} />)}
+      {essentialTabs.map((e, i) => <List.Item key={`essential-${e.url}-${i}`} title={e.title} subtitle={e.subtitle} accessories={e.tabIndex ? [{ text: `Tab ${e.tabIndex}` }] : []} icon={Icon.Star} actions={<PinnedTabActions entry={e} prefs={prefs} />} />)}
     </List.Section>
     <List.Section title="Pinned Tabs" subtitle={`${pinnedTabs.length}`}>
-      {pinnedTabs.map((e, i) => <List.Item key={`pinned-${e.url}-${i}`} title={e.title} subtitle={e.subtitle} icon={Icon.Pin} actions={<EntryActions entry={e} prefs={prefs} />} />)}
+      {pinnedTabs.map((e, i) => <List.Item key={`pinned-${e.url}-${i}`} title={e.title} subtitle={e.subtitle} accessories={e.tabIndex ? [{ text: `Tab ${e.tabIndex}` }] : []} icon={Icon.Pin} actions={<PinnedTabActions entry={e} prefs={prefs} />} />)}
     </List.Section>
     {items.length === 0 ? <List.EmptyView title="No Zen essential or pinned tabs found" description="Tabs are read safely from the selected Zen session backup." /> : null}
   </List>;

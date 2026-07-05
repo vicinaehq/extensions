@@ -4,7 +4,7 @@ import { join, basename, extname } from "path";
 import { tmpdir, homedir } from "os";
 
 export type Preferences = { zenCommand?: string; profilesDirectory?: string; profileDirectorySuffix?: string; searchEngine?: string; limitResults?: string };
-export type Entry = { title: string; url: string; subtitle?: string; date?: string; essential?: boolean };
+export type Entry = { title: string; url: string; subtitle?: string; date?: string; essential?: boolean; tabIndex?: number };
 export type Workspace = { id: string; name: string; icon?: string };
 export const defaultCommand = "flatpak run app.zen_browser.zen";
 export function expandHome(path: string): string { return path.replace(/^~(?=$|\/)/, homedir()); }
@@ -33,19 +33,19 @@ function queryPlaces<T>(profile: string, sql: string, parse: (cols: string[]) =>
 export function searchHistory(term: string, p?: Preferences): Entry[] { const profile = findProfileDir(p); if (!profile) return []; const like = `%${sqlEscape(term)}%`; const limit = Number(p?.limitResults || 50); return queryPlaces(profile, `select coalesce(title,url), url, datetime(last_visit_date/1000000,'unixepoch') from moz_places where url not like 'place:%' and (title like '${like}' or url like '${like}') order by last_visit_date desc limit ${limit};`, c => ({ title: c[0] || c[1], url: c[1], date: c[2], subtitle: c[1] })); }
 export function searchBookmarks(term: string, p?: Preferences): Entry[] { const profile = findProfileDir(p); if (!profile) return []; const like = `%${sqlEscape(term)}%`; const limit = Number(p?.limitResults || 50); return queryPlaces(profile, `select coalesce(b.title,p.title,p.url), p.url from moz_bookmarks b join moz_places p on b.fk=p.id where b.type=1 and (b.title like '${like}' or p.title like '${like}' or p.url like '${like}') order by b.dateAdded desc limit ${limit};`, c => ({ title: c[0] || c[1], url: c[1], subtitle: c[1] })); }
 export function listWorkspaces(p?: Preferences): Workspace[] { const profile = findProfileDir(p); if (!profile) return []; return queryPlaces(profile, `select id, name, icon from zen_workspaces order by rowid;`, c => ({ id: c[0], name: c[1] || c[0], icon: c[2] })); }
-function selectedTabEntry(tab: any): { title: string; url: string; essential: boolean } | null {
+function selectedTabEntry(tab: any, tabIndex: number): { title: string; url: string; essential: boolean; tabIndex: number } | null {
   const entries = Array.isArray(tab?.entries) ? tab.entries : [];
   const index = Math.max(0, Math.min(entries.length - 1, Number(tab?.index || entries.length) - 1));
   const entry = entries[index]; const url = String(entry?.url || ""); if (!url || url.startsWith("about:")) return null;
-  return { title: String(entry?.title || url), url, essential: tab?.zenEssential === true };
+  return { title: String(entry?.title || url), url, essential: tab?.zenEssential === true, tabIndex };
 }
 function pinnedFromSession(session: any): Entry[] {
   const windows = Array.isArray(session?.windows) ? session.windows : [];
-  return windows.flatMap((w: any) => Array.isArray(w?.tabs) ? w.tabs : []).filter((t: any) => t?.pinned).map(selectedTabEntry).filter((e: any): e is { title: string; url: string; essential: boolean } => Boolean(e)).map(e => ({ title: e.title, url: e.url, subtitle: e.url, essential: e.essential }));
+  return windows.flatMap((w: any) => Array.isArray(w?.tabs) ? w.tabs.map((tab: any, index: number) => ({ tab, tabIndex: index + 1 })) : []).filter((t: any) => t?.tab?.pinned).map((t: any) => selectedTabEntry(t.tab, t.tabIndex)).filter((e: any): e is { title: string; url: string; essential: boolean; tabIndex: number } => Boolean(e)).map(e => ({ title: e.title, url: e.url, subtitle: e.url, essential: e.essential, tabIndex: e.tabIndex }));
 }
 function readPinnedTabsFile(path: string): Entry[] {
   if (extname(path) === ".json") return pinnedFromSession(JSON.parse(readFileSync(path, "utf8")));
-  const script = `import json,lz4.block,sys\np=sys.argv[1]\nb=open(p,'rb').read()\nb=b[8:] if b.startswith(b'mozLz40\\0') else b\ndata=json.loads(lz4.block.decompress(b).decode('utf-8'))\nout=[]\nfor w in data.get('windows',[]):\n  for t in w.get('tabs',[]):\n    if not t.get('pinned'):\n      continue\n    entries=t.get('entries') or []\n    if not entries:\n      continue\n    idx=max(0,min(len(entries)-1,int(t.get('index') or len(entries))-1))\n    e=entries[idx]\n    url=str(e.get('url') or '')\n    if not url or url.startswith('about:'):\n      continue\n    title=str(e.get('title') or url)\n    out.append({'title':title,'url':url,'subtitle':url,'essential':bool(t.get('zenEssential'))})\nprint(json.dumps(out))`;
+  const script = `import json,lz4.block,sys\np=sys.argv[1]\nb=open(p,'rb').read()\nb=b[8:] if b.startswith(b'mozLz40\\0') else b\ndata=json.loads(lz4.block.decompress(b).decode('utf-8'))\nout=[]\nfor w in data.get('windows',[]):\n  for tab_index,t in enumerate(w.get('tabs',[]), start=1):\n    if not t.get('pinned'):\n      continue\n    entries=t.get('entries') or []\n    if not entries:\n      continue\n    idx=max(0,min(len(entries)-1,int(t.get('index') or len(entries))-1))\n    e=entries[idx]\n    url=str(e.get('url') or '')\n    if not url or url.startswith('about:'):\n      continue\n    title=str(e.get('title') or url)\n    out.append({'title':title,'url':url,'subtitle':url,'essential':bool(t.get('zenEssential')),'tabIndex':tab_index})\nprint(json.dumps(out))`;
   return JSON.parse(execFileSync("python3", ["-c", script, path], { encoding: "utf8", timeout: 10000, maxBuffer: 1024 * 1024 }));
 }
 export function listPinnedTabs(p?: Preferences): Entry[] {
@@ -79,3 +79,16 @@ for (let i = 0; i < list.length; i++) {
 }
 export function listZenWindows(): { id: string; title: string }[] { const out = execFileSync("wmctrl", ["-lx"], { encoding: "utf8", timeout: 3000 }); const windows = out.split(/\n/).filter(l => /\bzen\b|zen-browser|app\.zen_browser/i.test(l)).map(l => { const parts = l.trim().split(/\s+/); return { id: parts[0], title: parts.slice(4).join(" ") || "Zen Browser" }; }); return windows.length ? windows : (isZenRunning() ? [{ id: "wayland-running", title: "Zen Browser (Wayland)" }] : []); }
 export function focusWindow(id: string): void { if (id === "wayland-running") return focusZenWayland(); execFileSync("wmctrl", ["-ia", id], { timeout: 3000 }); }
+function ydotoolKey(sequence: string): void { execFileSync("ydotool", ["key", ...sequence.split(/\s+/).filter(Boolean)], { timeout: 5000, stdio: "ignore" }); }
+export function focusZenTab(tabIndex: number): void {
+  if (!Number.isInteger(tabIndex) || tabIndex < 1) throw new Error("Tab index is unavailable");
+  focusZenWayland();
+  execFileSync("sleep", ["0.2"], { timeout: 1000 });
+  const directSlot = Math.min(tabIndex, 8);
+  const directKeyCode = directSlot + 1;
+  ydotoolKey(`56:1 ${directKeyCode}:1 ${directKeyCode}:0 56:0`);
+  for (let i = directSlot; i < tabIndex; i++) {
+    execFileSync("sleep", ["0.05"], { timeout: 1000 });
+    ydotoolKey("29:1 109:1 109:0 29:0");
+  }
+}

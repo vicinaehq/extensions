@@ -27,8 +27,8 @@ test('listPinnedTabs reads pinned tabs from session backups', () => {
     }));
 
     assert.deepEqual(mod.listPinnedTabs({ profilesDirectory: root, profileDirectorySuffix: 'Default (release)' }), [
-      { title: 'Mail Inbox', url: 'https://mail.example/inbox', subtitle: 'https://mail.example/inbox', essential: true },
-      { title: 'Calendar', url: 'https://calendar.example', subtitle: 'https://calendar.example', essential: false }
+      { title: 'Mail Inbox', url: 'https://mail.example/inbox', subtitle: 'https://mail.example/inbox', essential: true, tabIndex: 1 },
+      { title: 'Calendar', url: 'https://calendar.example', subtitle: 'https://calendar.example', essential: false, tabIndex: 3 }
     ]);
   } finally {
     rmSync(root, { recursive: true, force: true });
