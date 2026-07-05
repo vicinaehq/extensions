@@ -15,6 +15,7 @@
     { "name": "search-history", "title": "Search Zen History", "description": "Search Zen Browser history", "mode": "view" },
     { "name": "search-bookmarks", "title": "Search Zen Bookmarks", "description": "Search Zen Browser bookmarks", "mode": "view" },
     { "name": "open-workspace", "title": "Open Zen Workspace", "description": "List Zen workspaces from your profile", "mode": "view" },
+    { "name": "pinned-tabs", "title": "Pinned Zen Tabs", "description": "List native pinned tabs from your Zen Browser session", "mode": "view" },
     { "name": "focus-zen-window", "title": "Focus Zen Window", "description": "List and focus visible Zen Browser windows", "mode": "view" }
   ],
   "preferences": [
