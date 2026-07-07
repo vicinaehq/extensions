@@ -5,7 +5,7 @@ import {
 	confirmAlert,
 	Icon,
 	List,
-	showToast,
+	showInFileBrowser,
 } from "@vicinae/api";
 import { useFileContent } from "../hooks/use-file-content";
 import { useWorkflows } from "../hooks/use-workflows";
@@ -119,14 +119,11 @@ ${fileContent}
 						shortcut={{ modifiers: ["cmd"], key: "c" }}
 					/>
 					<Action
-						title="Show in Finder"
-						icon={Icon.Finder}
-						onAction={() => {
-							showToast({
-								title: "Show in Finder",
-								message: "Feature not implemented yet",
-							});
-						}}
+						title="Show in File Browser"
+						icon={Icon.Folder}
+						onAction={() =>
+							showInFileBrowser(workflow.filePath, { select: true })
+						}
 						shortcut={{ modifiers: ["cmd"], key: "f" }}
 					/>
 				</ActionPanel>

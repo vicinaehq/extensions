@@ -35,7 +35,7 @@ A Vicinae extension for managing and applying [Floww CLI](https://github.com/dag
 - **Validate Workflow** (`⌘V`): Check if the workflow is valid
 - **Remove Workflow** (`⌘⌫`): Delete a workflow after confirmation
 - **Copy Workflow Name** (`⌘C`): Copy the workflow name to clipboard
-- **Show in Finder** (`⌘F`): Open the workflow file location
+- **Show in File Browser** (`⌘F`): Reveal the workflow file in your file manager
 
 ## Development
 
