@@ -1,3 +1,7 @@
+import type { AVAILABLE_LAYOUTS } from './layouts';
+
+export type Layout = (typeof AVAILABLE_LAYOUTS)[number];
+
 export type WorkspaceRef = {
   id: number;
   name: string;
