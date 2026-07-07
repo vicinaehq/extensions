@@ -17,6 +17,7 @@ export default function FlowwWorkflows() {
 		setupStatus,
 		refresh,
 		applyWorkflow,
+		removeWorkflow,
 		showVersion,
 	} = useWorkflows();
 
@@ -32,6 +33,11 @@ export default function FlowwWorkflows() {
 		} catch (_err) {
 			// Error is already handled in applyWorkflow function
 		}
+	};
+
+	const handleRemoveWorkflow = async (workflowName: string) => {
+		await removeWorkflow(workflowName);
+		await refresh();
 	};
 
 	const handleInitFloww = async () => {
@@ -140,6 +146,7 @@ export default function FlowwWorkflows() {
 						key={workflow.name}
 						workflow={workflow}
 						onApply={handleApplyWorkflow}
+						onRemove={handleRemoveWorkflow}
 						id={workflow.name}
 					/>
 				))}

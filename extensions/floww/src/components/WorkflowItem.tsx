@@ -14,12 +14,18 @@ import type { Workflow } from "../types/workflow";
 interface WorkflowItemProps {
 	workflow: Workflow;
 	onApply: (workflowName: string) => Promise<void>;
+	onRemove: (workflowName: string) => Promise<void>;
 	id?: string;
 }
 
-export function WorkflowItem({ workflow, onApply, id }: WorkflowItemProps) {
+export function WorkflowItem({
+	workflow,
+	onApply,
+	onRemove,
+	id,
+}: WorkflowItemProps) {
 	const { content: fileContent, isLoading } = useFileContent(workflow.filePath);
-	const { validateWorkflow, removeWorkflow } = useWorkflows();
+	const { validateWorkflow } = useWorkflows();
 
 	const handleApply = async () => {
 		await onApply(workflow.name);
@@ -44,7 +50,7 @@ export function WorkflowItem({ workflow, onApply, id }: WorkflowItemProps) {
 		});
 
 		if (confirmed) {
-			await removeWorkflow(workflow.name);
+			await onRemove(workflow.name);
 		}
 	};
 
