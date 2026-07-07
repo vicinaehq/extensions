@@ -112,6 +112,22 @@ export async function showFlowwVersion(): Promise<void> {
 }
 
 /**
+ * Remove a workflow by name (skips CLI confirmation prompt)
+ */
+export async function removeWorkflow(workflowName: string): Promise<void> {
+	const result = await executeFlowwCommand(WORKFLOW_ACTIONS.REMOVE, [
+		"--force",
+		workflowName,
+	]);
+
+	if (result.success) {
+		await showSuccessToast(
+			`${SUCCESS_MESSAGES.WORKFLOW_REMOVED}: "${workflowName}"`,
+		);
+	}
+}
+
+/**
  * Get all available workflows
  */
 export async function getWorkflows(): Promise<Workflow[]> {

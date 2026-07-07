@@ -1,4 +1,12 @@
-import { Action, ActionPanel, Icon, List, showToast } from "@vicinae/api";
+import {
+	Action,
+	ActionPanel,
+	Alert,
+	confirmAlert,
+	Icon,
+	List,
+	showToast,
+} from "@vicinae/api";
 import { useFileContent } from "../hooks/use-file-content";
 import { useWorkflows } from "../hooks/use-workflows";
 import type { Workflow } from "../types/workflow";
@@ -11,7 +19,7 @@ interface WorkflowItemProps {
 
 export function WorkflowItem({ workflow, onApply, id }: WorkflowItemProps) {
 	const { content: fileContent, isLoading } = useFileContent(workflow.filePath);
-	const { validateWorkflow } = useWorkflows();
+	const { validateWorkflow, removeWorkflow } = useWorkflows();
 
 	const handleApply = async () => {
 		await onApply(workflow.name);
@@ -19,6 +27,25 @@ export function WorkflowItem({ workflow, onApply, id }: WorkflowItemProps) {
 
 	const handleValidate = async () => {
 		await validateWorkflow(workflow.name);
+	};
+
+	const handleRemove = async () => {
+		const confirmed = await confirmAlert({
+			title: "Remove Workflow",
+			message: `Are you sure you want to remove "${workflow.name}"? This cannot be undone.`,
+			icon: Icon.Trash,
+			primaryAction: {
+				title: "Remove",
+				style: Alert.ActionStyle.Destructive,
+			},
+			dismissAction: {
+				title: "Cancel",
+			},
+		});
+
+		if (confirmed) {
+			await removeWorkflow(workflow.name);
+		}
 	};
 
 	const getWorkflowIcon = (_workflow: Workflow) => {
@@ -74,6 +101,12 @@ ${fileContent}
 						onAction={handleValidate}
 						shortcut={{ modifiers: ["cmd"], key: "v" }}
 					/>
+					<Action
+						title="Remove Workflow"
+						icon={Icon.Trash}
+						onAction={handleRemove}
+						shortcut={{ modifiers: ["cmd"], key: "backspace" }}
+					/>
 					<Action.CopyToClipboard
 						title="Copy Workflow Name"
 						content={workflow.name}
@@ -83,7 +116,6 @@ ${fileContent}
 						title="Show in Finder"
 						icon={Icon.Finder}
 						onAction={() => {
-							// This would need to be implemented with a proper file system action
 							showToast({
 								title: "Show in Finder",
 								message: "Feature not implemented yet",

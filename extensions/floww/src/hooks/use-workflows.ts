@@ -4,6 +4,7 @@ import {
 	applyWorkflow,
 	checkFlowwSetup,
 	getWorkflows,
+	removeWorkflow,
 	showFlowwVersion,
 	validateWorkflow,
 } from "../services/floww-service";
@@ -26,6 +27,7 @@ export interface UseWorkflowsActions {
 	refresh: () => Promise<void>;
 	applyWorkflow: (workflowName: string) => Promise<void>;
 	validateWorkflow: (workflowName: string) => Promise<void>;
+	removeWorkflow: (workflowName: string) => Promise<void>;
 	showVersion: () => Promise<void>;
 }
 
@@ -112,6 +114,22 @@ export function useWorkflows(): UseWorkflowsState & UseWorkflowsActions {
 		}
 	}, []);
 
+	const handleRemoveWorkflow = useCallback(
+		async (workflowName: string) => {
+			try {
+				await removeWorkflow(workflowName);
+				await loadWorkflows();
+			} catch (err) {
+				const flowwError = handleCommandError(
+					err,
+					`remove workflow: ${workflowName}`,
+				);
+				await showErrorToast(flowwError, "Remove Workflow Error");
+			}
+		},
+		[loadWorkflows],
+	);
+
 	const handleShowVersion = useCallback(async () => {
 		await showFlowwVersion();
 	}, []);
@@ -128,6 +146,7 @@ export function useWorkflows(): UseWorkflowsState & UseWorkflowsActions {
 		refresh,
 		applyWorkflow: handleApplyWorkflow,
 		validateWorkflow: handleValidateWorkflow,
+		removeWorkflow: handleRemoveWorkflow,
 		showVersion: handleShowVersion,
 	};
 }

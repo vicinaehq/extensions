@@ -5,8 +5,8 @@ export const FLOWW_CONFIG = {
 	BINARY_PATH: "floww",
 	CONFIG_DIR: join(homedir(), ".config", "floww"),
 	WORKFLOWS_DIR: join(homedir(), ".config", "floww", "workflows"),
-	COMMAND_TIMEOUT: 30000, // 30 seconds
-	FILE_READ_TIMEOUT: 5000, // 5 seconds
+	COMMAND_TIMEOUT: 30000,
+	FILE_READ_TIMEOUT: 5000,
 } as const;
 
 export const SUPPORTED_FILE_EXTENSIONS = [
@@ -19,6 +19,7 @@ export const SUPPORTED_FILE_EXTENSIONS = [
 export const WORKFLOW_ACTIONS = {
 	APPLY: "apply",
 	VALIDATE: "validate",
+	REMOVE: "remove",
 	VERSION: "--version",
 	HELP: "help",
 	INIT: "init",
@@ -38,5 +39,6 @@ export const ERROR_MESSAGES = {
 export const SUCCESS_MESSAGES = {
 	WORKFLOW_APPLIED: "Workflow applied successfully",
 	WORKFLOW_VALID: "Workflow is valid",
+	WORKFLOW_REMOVED: "Workflow removed successfully",
 	VERSION_RETRIEVED: "Version retrieved successfully",
 } as const;
