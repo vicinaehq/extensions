@@ -28,7 +28,8 @@ export const WORKFLOW_ACTIONS = {
 } as const;
 
 export const ERROR_MESSAGES = {
-	CLI_NOT_INSTALLED: "Floww CLI is not installed. Please install it first.",
+	CLI_NOT_INSTALLED:
+		"Floww CLI not found in ~/.local/bin. Open preferences to set a custom path if installed elsewhere.",
 	CONFIG_MISSING:
 		"Floww configuration not found. Please run 'floww init' first.",
 	NO_WORKFLOWS: "No workflows directory found. Please run 'floww init' first.",

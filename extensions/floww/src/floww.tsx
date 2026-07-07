@@ -4,6 +4,7 @@ import {
 	closeMainWindow,
 	Icon,
 	List,
+	openExtensionPreferences,
 	showToast,
 } from "@vicinae/api";
 import { WorkflowItem } from "./components/WorkflowItem";
@@ -84,17 +85,15 @@ export default function FlowwWorkflows() {
 							/>
 							{setupStatus && !setupStatus.installed && (
 								<Action
-									title="Install Floww CLI"
-									icon={Icon.Download}
-									onAction={() =>
-										showToast({ title: "Please install Floww CLI first" })
-									}
+									title="Open Preferences"
+									icon={Icon.Cog}
+									onAction={openExtensionPreferences}
 								/>
 							)}
 							{setupStatus && !setupStatus.configExists && (
 								<Action
 									title="Initialize Floww"
-									icon={Icon.Cog}
+									icon={Icon.Wand}
 									onAction={handleInitFloww}
 								/>
 							)}
