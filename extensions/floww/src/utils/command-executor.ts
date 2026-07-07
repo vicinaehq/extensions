@@ -3,13 +3,17 @@ import { accessSync, constants } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import { getPreferenceValues, showToast } from "@vicinae/api";
+import { getPreferenceValues, LocalStorage, showToast } from "@vicinae/api";
 import { FLOWW_CONFIG } from "./constants";
 import { handleCommandError } from "./error-handler";
+
+const CACHE_KEY_PATH = "floww_binary_path";
+const CACHE_KEY_INSTALLED = "floww_installed";
 
 const execAsync = promisify(exec);
 
 let resolvedBinaryPath: string | null = null;
+let flowwAvailable: boolean | null = null;
 
 function resolveFlowwBinary(): string {
 	if (resolvedBinaryPath) return resolvedBinaryPath;
@@ -136,10 +140,34 @@ export async function executeFlowwCommandSilent(
  * Check if Floww binary exists and is executable
  */
 export async function isFlowwAvailable(): Promise<boolean> {
+	// LocalStorage cache survives Vicinae process teardown between opens
+	const cachedPath = await LocalStorage.getItem<string>(CACHE_KEY_PATH);
+	if (cachedPath) {
+		try {
+			accessSync(cachedPath, constants.X_OK);
+			resolvedBinaryPath = cachedPath;
+			return true;
+		} catch {
+			await LocalStorage.removeItem(CACHE_KEY_PATH);
+			await LocalStorage.removeItem(CACHE_KEY_INSTALLED);
+		}
+	}
+
+	// In-memory cache (same process, e.g. refresh after remove)
+	if (flowwAvailable !== null) return flowwAvailable;
+
 	try {
 		const result = await executeFlowwCommandSilent("--version");
-		return result.success;
+		flowwAvailable = result.success;
+		const binPath = resolveFlowwBinary();
+		if (binPath.includes("/")) {
+			await LocalStorage.setItem(CACHE_KEY_PATH, binPath);
+		}
+		await LocalStorage.setItem(CACHE_KEY_INSTALLED, flowwAvailable);
+		return flowwAvailable;
 	} catch {
+		flowwAvailable = false;
+		await LocalStorage.setItem(CACHE_KEY_INSTALLED, false);
 		return false;
 	}
 }

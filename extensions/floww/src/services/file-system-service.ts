@@ -3,10 +3,7 @@ import { extname, join } from "node:path";
 import type { Workflow } from "../types/workflow";
 import { getWorkflowSummary, parseWorkflowFile } from "../utils/config-parser";
 import { FLOWW_CONFIG, SUPPORTED_FILE_EXTENSIONS } from "../utils/constants";
-import {
-	handleCommandError,
-	handleFileSystemError,
-} from "../utils/error-handler";
+import { handleFileSystemError } from "../utils/error-handler";
 
 /**
  * Check if config directory exists
@@ -37,35 +34,36 @@ export async function workflowsDirectoryExists(): Promise<boolean> {
  */
 async function getFileSystemWorkflows(): Promise<Workflow[]> {
 	try {
-		const files = await readdir(FLOWW_CONFIG.WORKFLOWS_DIR);
-		const workflows: Workflow[] = [];
+		const entries = await readdir(FLOWW_CONFIG.WORKFLOWS_DIR, {
+			withFileTypes: true,
+		});
 
-		for (const file of files) {
-			const filePath = join(FLOWW_CONFIG.WORKFLOWS_DIR, file);
-			const stats = await stat(filePath);
+		const candidates = entries.filter(
+			(entry) =>
+				entry.isFile() &&
+				SUPPORTED_FILE_EXTENSIONS.includes(
+					extname(
+						entry.name,
+					).toLowerCase() as (typeof SUPPORTED_FILE_EXTENSIONS)[number],
+				),
+		);
 
-			if (stats.isFile()) {
-				const extension = extname(file).toLowerCase();
+		const statResults = await Promise.all(
+			candidates.map((entry) =>
+				stat(join(FLOWW_CONFIG.WORKFLOWS_DIR, entry.name)),
+			),
+		);
 
-				// Only process supported file extensions
-				if (
-					SUPPORTED_FILE_EXTENSIONS.includes(
-						extension as (typeof SUPPORTED_FILE_EXTENSIONS)[number],
-					)
-				) {
-					const name = file.replace(extension, "");
+		const workflows = candidates.map((entry, i) => {
+			const extension = extname(entry.name).toLowerCase();
+			return {
+				name: entry.name.replace(extension, ""),
+				filePath: join(FLOWW_CONFIG.WORKFLOWS_DIR, entry.name),
+				fileExtension: extension,
+				lastModified: statResults[i].mtime,
+			};
+		});
 
-					workflows.push({
-						name,
-						filePath,
-						fileExtension: extension,
-						lastModified: stats.mtime,
-					});
-				}
-			}
-		}
-
-		// Sort workflows by name
 		return workflows.sort((a, b) => a.name.localeCompare(b.name));
 	} catch (error) {
 		const flowwError = handleFileSystemError(error, FLOWW_CONFIG.WORKFLOWS_DIR);
@@ -89,24 +87,17 @@ export async function readWorkflowFile(filePath: string): Promise<string> {
  * Get workflows with enriched descriptions
  */
 export async function getEnrichedWorkflows(): Promise<Workflow[]> {
-	try {
-		const workflows = await getFileSystemWorkflows();
+	const workflows = await getFileSystemWorkflows();
 
-		// Enrich workflows with descriptions
-		for (const workflow of workflows) {
+	return Promise.all(
+		workflows.map(async (workflow) => {
 			try {
 				const content = await readWorkflowFile(workflow.filePath);
 				const config = parseWorkflowFile(content, workflow.fileExtension);
-				workflow.description = getWorkflowSummary(config);
-			} catch (_error) {
-				// If we can't parse the file, just use a fallback description
-				workflow.description = "Workflow file (parse error)";
+				return { ...workflow, description: getWorkflowSummary(config) };
+			} catch {
+				return { ...workflow, description: "Workflow file (parse error)" };
 			}
-		}
-
-		return workflows;
-	} catch (error) {
-		const flowwError = handleCommandError(error, "get enriched workflows");
-		throw new Error(flowwError.message);
-	}
+		}),
+	);
 }
