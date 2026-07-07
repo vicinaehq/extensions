@@ -39,7 +39,17 @@ export async function openProject(project: RecentProject): Promise<void> {
         args.push("--add");
     }
 
-    args.push(project.path);
+    try {
+        const uri = buildUri(project);
+        args.push(uri);
+    } catch (error) {
+        await showToast({
+            style: Toast.Style.Failure,
+            title: "Failed to build URI",
+            message: `Could not build URI for project: ${error}`,
+        });
+        return;
+    }
 
     try {
         await spawnDetached(resolvedPath, args);
@@ -50,6 +60,20 @@ export async function openProject(project: RecentProject): Promise<void> {
             message: `Could not open project in Zed: ${error}`,
         });
     }
+}
+
+function buildUri(project: RecentProject): string {
+    if (!project.remote) {
+        return `file://${project.path}`;
+    }
+
+    if (project.remote.kind === "ssh") {
+        const userPart = project.remote.user ? `${project.remote.user}@` : "";
+        const portPart = project.remote.port ? `:${project.remote.port}` : "";
+        return `${project.remote.kind}://${userPart}${project.remote.host}${portPart}${project.path}`;
+    }
+
+    throw new Error(`Unsupported remote kind: ${project.remote.kind}`);
 }
 
 async function resolveExecutable(): Promise<string | undefined> {
