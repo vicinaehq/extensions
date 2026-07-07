@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { confirmAlert, openExtensionPreferences } from "@vicinae/api";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SetupStatus } from "../services/floww-service";
 import {
 	applyWorkflow,
@@ -38,6 +39,7 @@ export function useWorkflows(): UseWorkflowsState & UseWorkflowsActions {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
+	const promptedRef = useRef(false);
 
 	const loadWorkflows = useCallback(async () => {
 		try {
@@ -49,6 +51,22 @@ export function useWorkflows(): UseWorkflowsState & UseWorkflowsActions {
 
 			if (!status.installed) {
 				setError(ERROR_MESSAGES.CLI_NOT_INSTALLED);
+
+				if (!promptedRef.current) {
+					promptedRef.current = true;
+					const open = await confirmAlert({
+						title: "Floww CLI not found",
+						message:
+							"Set the binary path in extension preferences if floww is installed in a custom location.",
+						primaryAction: { title: "Open Preferences" },
+						dismissAction: { title: "OK" },
+					});
+
+					if (open) {
+						await openExtensionPreferences();
+					}
+				}
+
 				return;
 			}
 
