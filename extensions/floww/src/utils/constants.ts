@@ -20,6 +20,7 @@ export const WORKFLOW_ACTIONS = {
 	APPLY: "apply",
 	VALIDATE: "validate",
 	REMOVE: "remove",
+	EDIT: "edit",
 	VERSION: "--version",
 	HELP: "help",
 	INIT: "init",

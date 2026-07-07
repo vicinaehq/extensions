@@ -25,7 +25,7 @@ export function WorkflowItem({
 	id,
 }: WorkflowItemProps) {
 	const { content: fileContent, isLoading } = useFileContent(workflow.filePath);
-	const { validateWorkflow } = useWorkflows();
+	const { validateWorkflow, editWorkflow } = useWorkflows();
 
 	const handleApply = async () => {
 		await onApply(workflow.name);
@@ -33,6 +33,10 @@ export function WorkflowItem({
 
 	const handleValidate = async () => {
 		await validateWorkflow(workflow.name);
+	};
+
+	const handleEdit = async () => {
+		await editWorkflow(workflow.filePath);
 	};
 
 	const handleRemove = async () => {
@@ -106,6 +110,12 @@ ${fileContent}
 						icon={Icon.CheckCircle}
 						onAction={handleValidate}
 						shortcut={{ modifiers: ["cmd"], key: "v" }}
+					/>
+					<Action
+						title="Edit Workflow"
+						icon={Icon.Pencil}
+						onAction={handleEdit}
+						shortcut={{ modifiers: ["cmd"], key: "e" }}
 					/>
 					<Action
 						title="Remove Workflow"

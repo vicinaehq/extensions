@@ -1,3 +1,9 @@
+import {
+	confirmAlert,
+	getPreferenceValues,
+	openExtensionPreferences,
+	runInTerminal,
+} from "@vicinae/api";
 import type { Workflow } from "../types/workflow";
 import {
 	executeFlowwCommand,
@@ -109,6 +115,29 @@ export async function showFlowwVersion(): Promise<void> {
 		const flowwError = handleCommandError(error, "version check");
 		await showErrorToast(flowwError, "Version Error");
 	}
+}
+
+/**
+ * Open a workflow in the terminal editor
+ */
+export async function editWorkflow(filePath: string): Promise<void> {
+	const { editorPath } = getPreferenceValues<{ editorPath?: string }>();
+
+	if (!editorPath) {
+		const open = await confirmAlert({
+			title: "Editor not configured",
+			message: "Open extension preferences to set the editor path?",
+			primaryAction: { title: "Open Preferences" },
+			dismissAction: { title: "Cancel" },
+		});
+
+		if (open) {
+			await openExtensionPreferences();
+		}
+		return;
+	}
+
+	await runInTerminal([editorPath, filePath]);
 }
 
 /**

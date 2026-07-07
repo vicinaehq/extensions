@@ -3,6 +3,7 @@ import type { SetupStatus } from "../services/floww-service";
 import {
 	applyWorkflow,
 	checkFlowwSetup,
+	editWorkflow,
 	getWorkflows,
 	removeWorkflow,
 	showFlowwVersion,
@@ -27,6 +28,7 @@ export interface UseWorkflowsActions {
 	refresh: () => Promise<void>;
 	applyWorkflow: (workflowName: string) => Promise<void>;
 	validateWorkflow: (workflowName: string) => Promise<void>;
+	editWorkflow: (filePath: string) => Promise<void>;
 	removeWorkflow: (workflowName: string) => Promise<void>;
 	showVersion: () => Promise<void>;
 }
@@ -114,6 +116,15 @@ export function useWorkflows(): UseWorkflowsState & UseWorkflowsActions {
 		}
 	}, []);
 
+	const handleEditWorkflow = useCallback(async (filePath: string) => {
+		try {
+			await editWorkflow(filePath);
+		} catch (err) {
+			const flowwError = handleCommandError(err, `edit workflow: ${filePath}`);
+			await showErrorToast(flowwError, "Edit Workflow Error");
+		}
+	}, []);
+
 	const handleRemoveWorkflow = useCallback(
 		async (workflowName: string) => {
 			try {
@@ -146,6 +157,7 @@ export function useWorkflows(): UseWorkflowsState & UseWorkflowsActions {
 		refresh,
 		applyWorkflow: handleApplyWorkflow,
 		validateWorkflow: handleValidateWorkflow,
+		editWorkflow: handleEditWorkflow,
 		removeWorkflow: handleRemoveWorkflow,
 		showVersion: handleShowVersion,
 	};

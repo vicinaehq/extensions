@@ -31,6 +31,14 @@
       "type": "textfield",
       "required": false,
       "default": ""
+    },
+    {
+      "name": "editorPath",
+      "title": "Editor Path",
+      "description": "Path to your terminal editor (e.g. /usr/bin/nvim, /usr/bin/vim). Used when editing workflows.",
+      "type": "textfield",
+      "required": false,
+      "default": ""
     }
   ],
   "scripts": {
