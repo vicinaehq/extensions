@@ -1,0 +1,8 @@
+node_modules/
+dist/
+
+# Gerado pelo `vici` a cada build.
+vicinae-env.d.ts
+
+# Certificados exportados pela tela de chaves.
+*.pem
