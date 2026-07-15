@@ -4,13 +4,14 @@
 
 # Vicinae Pass
 
-Vicinae Pass lets you browse, decrypt, and copy secrets that are saved in your GNU pass vault directly from Vicinae on Linux. It mirrors the Raycast experience while embracing the Vicinae component and toast system.
+Vicinae Pass lets you browse, decrypt, and copy secrets that are saved in your GNU pass vault directly from Vicinae on Linux and macOS. It mirrors the Raycast experience while embracing the Vicinae component and toast system.
 
 ## Requirements
 
 - [pass](https://www.passwordstore.org/) configured with your GPG key
 - `gpg` available in your `$PATH`
 - [`oathtool`](https://manpages.debian.org/oathtool) (optional) for generating OTP codes from `otpauth://` lines
+- On macOS, Homebrew installs typically require `/opt/homebrew/bin` or `/usr/local/bin` to be visible to Vicinae
 
 ## Commands
 
@@ -22,9 +23,10 @@ Vicinae Pass lets you browse, decrypt, and copy secrets that are saved in your G
 
 - **Pass Store Location** – Absolute path to your `~/.password-store` directory (defaults to `~/.password-store`).
 - **GPG Passphrase** – Optional passphrase that unlocks your key via GPG loopback mode.
-- **Additional PATH Entries** – Colon-separated directories appended to `PATH` before running `gpg` or `oathtool`.
+- **Additional PATH Entries** – Colon-separated directories prepended to `PATH` before running `gpg` or `oathtool`.
 - **Prioritize OTP After Password** – When enabled, OTP entries jump to the top after you copy a password to speed up two-factor flows.
-- **Last Used TTL (seconds)** – How long the last-used entry is pinned to the top of the list (defaults to 120 seconds).- **File Schema** - Basic, optional JSON to 'describe' your `pass` file layout (defaults to empty, example below).
+- **Last Used TTL (seconds)** – How long the last-used entry is pinned to the top of the list (defaults to 120 seconds).
+- **File Schema** - Basic, optional JSON to 'describe' your `pass` file layout (defaults to empty, example below).
 
 ## Usage
 
@@ -62,4 +64,11 @@ Use `npm run build` to assemble a production bundle that Vicinae can import.
 
 - Make sure your password store is initialized (`pass init ...`) and contains `.gpg` files.
 - If GPG prompts for a passphrase, add it to the extension preferences or ensure your agent has the key unlocked.
-- Install `oathtool` if you want OTP generation: `sudo apt install oathtool` (Debian/Ubuntu) or `sudo pacman -S oathtool` (Arch).
+- Install `oathtool` if you want OTP generation: `sudo apt install oathtool` (Debian/Ubuntu), `sudo pacman -S oathtool` (Arch), or `brew install oath-toolkit` (macOS).
+- On macOS, install GPG and pinentry with `brew install gnupg pinentry-mac`, then configure `~/.gnupg/gpg-agent.conf` if passphrase prompts fail:
+  ```conf
+  pinentry-program /opt/homebrew/bin/pinentry-mac
+  allow-loopback-pinentry
+  ```
+  Restart the agent with `gpgconf --kill gpg-agent`.
+- If Vicinae cannot find `gpg` or `oathtool` on macOS, set **Additional PATH Entries** to `/opt/homebrew/bin:/usr/local/bin:/opt/local/bin`.

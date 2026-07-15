@@ -27,25 +27,36 @@ export async function runCommand(command: string, args: string[], preferences: P
     return stdout;
   } catch (error) {
     const err = error as NodeJS.ErrnoException & { stderr?: string };
+    const stderr = typeof err.stderr === "string" ? err.stderr : undefined;
+    const details = stderr?.trim() || err.message || String(err.code ?? "unknown error");
     throw new CommandError(
-      `Failed to run ${command}`,
+      `Failed to run ${command}: ${details}`,
       err.code,
-      typeof err.stderr === "string" ? err.stderr : undefined,
+      stderr,
     );
   }
 }
 
 function buildEnv(additionalPath?: string): NodeJS.ProcessEnv {
-  const extras = additionalPath
-    ?.split(":")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-
-  const currentPath = process.env.PATH ?? "";
-  const updatedPath = extras && extras.length > 0 ? `${currentPath}:${extras.join(":")}` : currentPath;
+  const platformDefaults = process.platform === "darwin"
+    ? ["/opt/homebrew/bin", "/usr/local/bin", "/opt/local/bin", "/usr/local/MacGPG2/bin"]
+    : [];
+  const pathEntries = [
+    ...splitPath(additionalPath),
+    ...platformDefaults,
+    ...splitPath(process.env.PATH),
+  ];
+  const updatedPath = Array.from(new Set(pathEntries)).join(":");
 
   return {
     ...process.env,
     PATH: updatedPath,
   };
+}
+
+function splitPath(value?: string): string[] {
+  return value
+    ?.split(":")
+    .map((entry) => entry.trim())
+    .filter(Boolean) ?? [];
 }

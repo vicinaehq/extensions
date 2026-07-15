@@ -200,8 +200,7 @@ function PasswordOptionsView({
         />
       ) : (
         options.map((option, index) => {
-          const handleAction = () =>
-            performPasswordAction(password, option, action);
+          const alternateAction = action === "paste" ? "copy" : "paste";
           return (
             <List.Item
               key={`${option.title}-${index}`}
@@ -214,14 +213,14 @@ function PasswordOptionsView({
                     icon={
                       action === "paste" ? Icon.Keyboard : Icon.CopyClipboard
                     }
-                    onAction={handleAction}
+                    onAction={() => performPasswordAction(password, option, action)}
                   />
                   <Action
-                    title={action === "copy" ? "Copy to Clipboard" : "Paste"}
+                    title={alternateAction === "copy" ? "Copy to Clipboard" : "Paste"}
                     icon={
-                      action === "copy" ? Icon.CopyClipboard : Icon.Keyboard
+                      alternateAction === "copy" ? Icon.CopyClipboard : Icon.Keyboard
                     }
-                    onAction={handleAction}
+                    onAction={() => performPasswordAction(password, option, alternateAction)}
                   />
                 </ActionPanel>
               }
