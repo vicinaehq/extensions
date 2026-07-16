@@ -5,6 +5,7 @@
   "description": "Switch your wallpaper with awww and call a color gen to update color pallets while you are at it",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "sovereign",
   "contributors": [],
   "pastContributors": [],
@@ -330,7 +331,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.20.5",
+    "@vicinae/api": "^0.22.2",
     "image-size": "^2.0.2",
     "jimp": "^1.6.0",
     "untildify": "^6.0.0"

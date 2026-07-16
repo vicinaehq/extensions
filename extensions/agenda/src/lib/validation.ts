@@ -1,7 +1,11 @@
 import { showToast, Toast } from "@vicinae/api";
 import { getCalendars } from "./calendar";
+import { isLocalPath } from "./localPath";
 
-const validateUrl = (url: string): boolean => {
+const validateUrlOrPath = (url: string): boolean => {
+  if (isLocalPath(url)) {
+    return true;
+  }
   try {
     new URL(url);
     return true;
@@ -25,11 +29,10 @@ export const validateCalendarForm = async (
     return false;
   }
 
-  // Basic URL validation
-  if (!validateUrl(url)) {
+  if (!validateUrlOrPath(url)) {
     await showToast({
-      title: "Invalid URL",
-      message: "Please enter a valid URL.",
+      title: "Invalid URL or Path",
+      message: "Please enter a valid URL or local directory path.",
       style: Toast.Style.Failure,
     });
     return false;

@@ -49,6 +49,10 @@ function Command() {
                 title="Copy Clone URL (HTTPS)"
                 content={repo.html_url + ".git"}
               />
+              <Action.CopyToClipboard
+                title="Copy Clone URL (SSH)"
+                content={repo.git_url}
+              />
             </ActionPanel>
           }
         />

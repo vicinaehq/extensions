@@ -1,0 +1,73 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "hypr",
+  "description": "Inspect Hyprland monitors, workspaces, windows, layers, outputs, and keybinds.",
+  "categories": [
+    "System"
+  ],
+  "license": "MIT",
+  "platforms": ["Linux"],
+  "author": "nino-mau",
+  "contributors": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.22.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
+    "typescript": "^5.9.2"
+  },
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "outputs",
+      "title": "Outputs",
+      "subtitle": "Show Hyprland outputs",
+      "description": "Display active and inactive Hyprland outputs.",
+      "mode": "view"
+    },
+    {
+      "name": "workspace",
+      "title": "Workspaces",
+      "subtitle": "Show Hyprland workspaces",
+      "description": "Display Hyprland workspaces.",
+      "mode": "view"
+    },
+    {
+      "name": "layers",
+      "title": "Layers",
+      "subtitle": "Show Hyprland layer surfaces",
+      "description": "Display Hyprland layer-shell surfaces.",
+      "mode": "view"
+    },
+    {
+      "name": "monitors",
+      "title": "Monitors",
+      "subtitle": "Show active Hyprland monitors",
+      "description": "Display active Hyprland monitors.",
+      "mode": "view"
+    },
+    {
+      "name": "windows",
+      "title": "Windows",
+      "subtitle": "Show Hyprland windows",
+      "description": "Display Hyprland windows.",
+      "mode": "view"
+    },
+    {
+      "name": "keybinds",
+      "title": "Keybinds",
+      "subtitle": "Show Hyprland keybinds",
+      "description": "Display Hyprland keybinds.",
+      "mode": "view"
+    }
+  ],
+  "pastContributors": [],
+  "preferences": [],
+  "title": "Hypr"
+}

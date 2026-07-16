@@ -7,6 +7,7 @@
     "System"
   ],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "codingcodax",
   "contributors": [],
   "pastContributors": [],
@@ -58,12 +59,12 @@
   },
   "dependencies": {
     "@raycast/utils": "^2.2.3",
-    "@vicinae/api": "^0.20.7"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.1.1",
     "@types/node": "^25.5.0",
-    "@types/react": "^19.2.14",
+    "@types/react": "19.0.10",
     "eslint": "^10.1.0",
     "prettier": "^3.8.1",
     "ts-node": "^10.9.2",

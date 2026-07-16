@@ -5,6 +5,7 @@
 	"description": "Explore objects exposed by DBus using a pleasant and search-focused interface",
 	"categories": ["System", "Developer Tools"],
 	"license": "MIT",
+	"platforms": ["Linux"],
 	"author": "aurelleb",
 	"contributors": [],
 	"pastContributors": [],
@@ -37,7 +38,7 @@
 		"lint": "vici lint"
 	},
 	"dependencies": {
-		"@vicinae/api": "^0.16.5",
+		"@vicinae/api": "^0.22.2",
 		"dbus-next": "^0.10.2",
 		"fast-xml-parser": "^5.3.2",
 		"x11": "^2.3.0"

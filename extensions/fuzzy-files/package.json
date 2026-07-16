@@ -8,6 +8,7 @@
     "System"
   ],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "sameoldlab",
   "contributors": [],
   "pastContributors": [],
@@ -27,11 +28,11 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.16.0"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",
-    "@types/react": "^18.3.23",
+    "@types/react": "19.0.10",
     "typescript": "^5.9.2"
   }
 }

@@ -5,6 +5,7 @@
   "description": "Manage your Skate key-value databases directly from Vicinae",
   "categories": ["Developer Tools", "Productivity"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "knoopx",
   "icon": "extension_icon.svg",
   "commands": [
@@ -20,7 +21,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.15.5"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

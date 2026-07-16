@@ -7,8 +7,11 @@
     "System"
   ],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "dagimg-dot",
-  "contributors": ["Gareck-OG"],
+  "contributors": [
+    "Gareck-OG"
+  ],
   "pastContributors": [],
   "icon": "wifi_commander.png",
   "commands": [
@@ -52,6 +55,7 @@
     {
       "name": "network-cli-tool",
       "title": "Network CLI Tool",
+      "description": "Choose the command-line tool used for Wi-Fi management",
       "required": true,
       "type": "dropdown",
       "data": [
@@ -64,7 +68,6 @@
           "value": "iwctl"
         }
       ]
-
     }
   ],
   "scripts": {
@@ -72,9 +75,9 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.14.0"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^6.0.3"
   }
 }

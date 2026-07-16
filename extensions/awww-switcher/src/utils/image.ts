@@ -2,10 +2,11 @@ import { opendir, readdir, readFile, stat } from "fs/promises";
 import { createReadStream } from "fs";
 import * as _path from "path";
 import { imageSize } from "image-size";
-import { LocalStorage as storage } from "@vicinae/api";
+import { Cache,LocalStorage as storage } from "@vicinae/api";
 import { createHash } from "node:crypto";
 
 const hyprpaperSupportedFormats = ["jpg", "jpeg", "png", "webp", "gif"];
+const cache = new Cache();
 
 export interface Image {
   name: string;
@@ -89,8 +90,8 @@ async function getMetadataFromCache(): Promise<string | undefined> {
   return storage.getItem("wallpapersMetadata") ?? "";
 }
 
-async function getPrevWallpapersHash(): Promise<string | undefined> {
-  return storage.getItem("wallpapersHash");
+function getPrevWallpapersHash(): string | undefined {
+  return cache.get("wallpapersHash");
 }
 
 const getWallpapersHash = async (path: string): Promise<string> => {
@@ -115,21 +116,21 @@ const getWallpapersHash = async (path: string): Promise<string> => {
 }
 
 export const wallpaperSourceChanged = async (path: string): Promise<boolean> => {
-  let previousWallpapersHash = await getPrevWallpapersHash();
+  let previousWallpapersHash = getPrevWallpapersHash() ?? await getWallpapersHash(path);
   const currentWallpapersHash = await getWallpapersHash(path);
-  return (currentWallpapersHash == previousWallpapersHash);
-
+  const res = currentWallpapersHash != previousWallpapersHash;
+  return (res);
 }
 
 // fetch images only if the source directory signature has changed and stores both the src dir signature and the wallpapers in LocalStorage
 export const getImagesMetadata = async (path: string): Promise<Record<string, Image>> => {
   console.time("🚀 Fetch Metadata speed ");
   let results: Record<string, Image> = {};
-  let previousWallpapersHash = await getPrevWallpapersHash();
+  let previousWallpapersHash = getPrevWallpapersHash();
   const currentWallpapersHash = await getWallpapersHash(path);
 
   if ((previousWallpapersHash == undefined) || (previousWallpapersHash != currentWallpapersHash)) {
-    storage.setItem("wallpapersHash", currentWallpapersHash!);
+    cache.set("wallpapersHash", currentWallpapersHash);
     try {
       const imagesPaths = await parseImagesFromPath(path);
       console.log(`📁 Found ${imagesPaths.length} images`);

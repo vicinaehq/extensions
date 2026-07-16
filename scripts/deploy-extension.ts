@@ -34,7 +34,7 @@ async function deployExtension(extensionName: string): Promise<boolean> {
 
 	// Install dependencies
 	console.log(`Installing dependencies for ${extensionName}...`);
-	const installRes = spawnSync('bun', ['install'], {
+	const installRes = spawnSync('npm', ['ci', '--legacy-peer-deps'], {
 		cwd: fullPath,
 		stdio: 'inherit'
 	});

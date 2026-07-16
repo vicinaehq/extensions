@@ -5,6 +5,7 @@
   "description": "This extension can be used to manage Exegol containers trough Vicinae.",
   "categories": ["Applications", "Productivity"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "lap1nou",
   "contributors": [],
   "pastContributors": [],
@@ -66,7 +67,7 @@
     "format": "biome format --write src"
   },
   "dependencies": {
-    "@vicinae/api": "^0.16.0"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "typescript": "^5.9.2",

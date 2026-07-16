@@ -5,6 +5,7 @@
   "description": "Will show you the pacman packages that have an update.",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "sovereign",
   "contributors": [],
   "pastContributors": [],
@@ -39,7 +40,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.13.4"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

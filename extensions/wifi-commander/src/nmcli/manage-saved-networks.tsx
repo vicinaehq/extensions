@@ -1,6 +1,16 @@
-import { Action, ActionPanel, Color, Icon, List, showToast } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Icon,
+  List,
+  showToast,
+} from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { executeNmcliCommand, executeNmcliCommandSilent } from "../utils/execute-nmcli";
+import {
+  executeNmcliCommand,
+  executeNmcliCommandSilent,
+} from "../utils/execute-nmcli";
 import {
   loadSavedNetworks as apiLoadSavedNetworks,
   type CurrentConnection,
@@ -23,7 +33,8 @@ export default function ManageSavedNetworksNmcli() {
     isLoading: true,
     error: null,
   });
-  const [currentConnection, setCurrentConnection] = useState<CurrentConnection | null>(null);
+  const [currentConnection, setCurrentConnection] =
+    useState<CurrentConnection | null>(null);
   const [wifiDevice, setWifiDevice] = useState<WifiDevice | null>(null);
   const [_availableNetworks, setAvailableNetworks] = useState<string[]>([]);
 
@@ -39,10 +50,14 @@ export default function ManageSavedNetworksNmcli() {
 
   const loadAvailableNetworks = async () => {
     try {
-      const result = await executeNmcliCommandSilent("device wifi list --rescan yes");
+      const result = await executeNmcliCommandSilent(
+        "device wifi list --rescan yes",
+      );
       if (result.success) {
         const networks = parseWifiList(result.stdout);
-        const ssids = networks.map((network) => network.ssid).filter((ssid) => ssid);
+        const ssids = networks
+          .map((network) => network.ssid)
+          .filter((ssid) => ssid);
         setAvailableNetworks(ssids);
       }
     } catch (error) {
@@ -64,7 +79,8 @@ export default function ManageSavedNetworksNmcli() {
       setSavedNetworks({
         networks: [],
         isLoading: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
   };
@@ -75,7 +91,9 @@ export default function ManageSavedNetworksNmcli() {
       message: `Connecting to ${networkName}`,
     });
 
-    const result = await executeNmcliCommand("connection up", [`"${networkName}"`]);
+    const result = await executeNmcliCommand("connection up", [
+      `"${networkName}"`,
+    ]);
 
     if (result.success) {
       await showToast({
@@ -106,7 +124,9 @@ export default function ManageSavedNetworksNmcli() {
       message: "Disconnecting from current network",
     });
 
-    const result = await executeNmcliCommand("device disconnect", [wifiDevice.name]);
+    const result = await executeNmcliCommand("device disconnect", [
+      wifiDevice.name,
+    ]);
 
     if (result.success) {
       await showToast({
@@ -183,28 +203,20 @@ export default function ManageSavedNetworksNmcli() {
     loadSavedNetworks();
   }, []);
 
-  if (savedNetworks.isLoading) {
-    return (
-      <List searchBarPlaceholder="Loading saved networks...">
-        <List.EmptyView
-          title="Loading Saved Networks"
-          description="Please wait while we load your saved Wi-Fi networks..."
-          icon={Icon.Clock}
-        />
-      </List>
-    );
-  }
-
   if (savedNetworks.error) {
     return (
       <List searchBarPlaceholder="Search saved networks...">
         <List.EmptyView
           title="Failed to Load Networks"
           description={savedNetworks.error}
-          icon={Icon.ExclamationMark}
+          icon={Icon.Exclamationmark}
           actions={
             <ActionPanel>
-              <Action title="Retry" icon={Icon.ArrowClockwise} onAction={loadSavedNetworks} />
+              <Action
+                title="Retry"
+                icon={Icon.ArrowClockwise}
+                onAction={loadSavedNetworks}
+              />
             </ActionPanel>
           }
         />
@@ -212,7 +224,7 @@ export default function ManageSavedNetworksNmcli() {
     );
   }
 
-  if (savedNetworks.networks.length === 0) {
+  if (savedNetworks.networks.length === 0 && !savedNetworks.isLoading) {
     return (
       <List searchBarPlaceholder="Search saved networks...">
         <List.EmptyView
@@ -225,7 +237,11 @@ export default function ManageSavedNetworksNmcli() {
   }
 
   return (
-    <List searchBarPlaceholder="Search saved networks..." isShowingDetail={true}>
+    <List
+      searchBarPlaceholder="Search saved networks..."
+      isShowingDetail={true}
+      isLoading={savedNetworks.isLoading}
+    >
       <List.Section title={`Saved Networks (${savedNetworks.networks.length})`}>
         {savedNetworks.networks.map((network) => (
           <List.Item
@@ -240,14 +256,23 @@ export default function ManageSavedNetworksNmcli() {
                 markdown={`# ${network.name}`}
                 metadata={
                   <List.Item.Detail.Metadata>
-                    <List.Item.Detail.Metadata.Label title="Type" text={network.type} />
+                    <List.Item.Detail.Metadata.Label
+                      title="Type"
+                      text={network.type}
+                    />
                     <List.Item.Detail.Metadata.Label
                       title="Device"
                       text={network.device || "No device"}
                     />
-                    <List.Item.Detail.Metadata.Label title="State" text={network.state} />
+                    <List.Item.Detail.Metadata.Label
+                      title="State"
+                      text={network.state}
+                    />
                     <List.Item.Detail.Metadata.Separator />
-                    <List.Item.Detail.Metadata.Label title="UUID" text={network.uuid} />
+                    <List.Item.Detail.Metadata.Label
+                      title="UUID"
+                      text={network.uuid}
+                    />
                   </List.Item.Detail.Metadata>
                 }
               />
