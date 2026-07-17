@@ -3,9 +3,13 @@
   "name": "deja-dup",
   "title": "Déjà Dup Backups",
   "description": "Browse, search and restore files from your Déjà Dup (restic) backups",
-  "categories": ["System"],
+  "categories": [
+    "System"
+  ],
   "license": "MIT",
-  "platforms": ["Linux"],
+  "platforms": [
+    "Linux"
+  ],
   "author": "samvoelzke",
   "contributors": [],
   "icon": "extension_icon.png",
@@ -29,7 +33,11 @@
       "title": "Back Up Now",
       "subtitle": "Déjà Dup",
       "description": "Start a backup immediately",
-      "keywords": ["backup", "take backup", "run backup"],
+      "keywords": [
+        "backup",
+        "take backup",
+        "run backup"
+      ],
       "mode": "no-view"
     },
     {
@@ -37,7 +45,10 @@
       "title": "Backup Status",
       "subtitle": "Déjà Dup",
       "description": "See the last backup, destination, schedule and included paths",
-      "keywords": ["backup", "status"],
+      "keywords": [
+        "backup",
+        "status"
+      ],
       "mode": "view"
     },
     {
@@ -58,10 +69,22 @@
       "required": false,
       "default": "auto",
       "data": [
-        { "title": "Auto-detect", "value": "auto" },
-        { "title": "Native (system package)", "value": "native" },
-        { "title": "Flatpak", "value": "flatpak" },
-        { "title": "Snap", "value": "snap" }
+        {
+          "title": "Auto-detect",
+          "value": "auto"
+        },
+        {
+          "title": "Native (system package)",
+          "value": "native"
+        },
+        {
+          "title": "Flatpak",
+          "value": "flatpak"
+        },
+        {
+          "title": "Snap",
+          "value": "snap"
+        }
       ]
     },
     {
@@ -112,8 +135,7 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.23.1",
-    "@raycast/utils": "^2.2.7"
+    "@vicinae/api": "^0.23.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
