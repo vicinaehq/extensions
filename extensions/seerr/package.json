@@ -1,0 +1,96 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "seerr",
+	"title": "Seerr",
+	"description": "Request movies and shows straight from vicinae using Seerr (formerly known as Jellyseerr)",
+	"categories": ["Applications", "Media"],
+	"license": "MIT",
+	"platforms": ["Linux", "Windows", "macOS"],
+	"author": "vmohammad",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension_icon.png",
+	"preferences": [
+		{
+			"name": "server-url",
+			"type": "textfield",
+			"title": "Server URL",
+			"description": "The URL of which your Seerr instance is hosted.",
+			"placeholder": "http://localhost:5055",
+			"required": true
+		},
+		{
+			"name": "login-type",
+			"type": "dropdown",
+			"title": "Login Type",
+			"description": "How to authenticate with your Seerr instance",
+			"required": true,
+			"default": "jellyfin",
+			"data": [
+				{
+					"title": "Local Account",
+					"value": "local"
+				},
+				{
+					"title": "Jellyfin",
+					"value": "jellyfin"
+				}
+			]
+		},
+		{
+			"name": "username",
+			"type": "textfield",
+			"title": "Username / Email",
+			"required": true,
+			"placeholder": "admin",
+			"description": "Email for local login, username for Jellyfin"
+		},
+		{
+			"name": "password",
+			"title": "Password",
+			"type": "password",
+			"description": "Password for local or Jellyfin login",
+			"required": true
+		},
+		{
+			"name": "view-mode",
+			"type": "dropdown",
+			"title": "View Mode",
+			"description": "Display trending media as a list or grid",
+			"required": false,
+			"default": "grid",
+			"data": [
+				{
+					"title": "Grid",
+					"value": "grid"
+				},
+				{
+					"title": "List",
+					"value": "list"
+				}
+			]
+		}
+	],
+	"commands": [
+		{
+			"name": "explore",
+			"title": "Explore and Request Trending Movies",
+			"description": "Explore and request trending movies",
+			"mode": "view",
+			"keywords": ["request", "explore", "discover"]
+		}
+	],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"format": "biome format --write src",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.22.3"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.3",
+		"@biomejs/biome": "2.3.2"
+	}
+}
