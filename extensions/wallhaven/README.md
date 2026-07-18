@@ -1,15 +1,3 @@
-# Vicinae Extension
+An extension to browse [Wallhaven](https://wallhaven.cc/) and find the perfect wallpaper.
 
-Congratulations on generating your new Vicinae extension!
-
-You can install the required dependencies and run your extension in development mode like so:
-
-```bash
-npm install
-npm run dev
-```
-If you want to build the production bundle, simply run:
-
-```bash
-npm run build
-```
+On supported platforms, the wallpaper can be downloaded and set as the current wallpaper automatically.
