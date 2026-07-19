@@ -4,6 +4,7 @@ type SearchWallpapersOptions = {
 	resolutions?: string[];
 	ratios?: string[];
 	page?: number;
+	seed?: string;
 	sorting?:
 		| "date_added"
 		| "relevance"
@@ -34,6 +35,7 @@ export type WallpaperSearchResponse = {
 	meta: {
 		current_page: number;
 		last_page: number;
+		seed: string | null;
 	};
 };
 
@@ -49,6 +51,7 @@ export const searchWallpapers = async (
 		params.set("resolutions", options.resolutions.join(","));
 	if (options.ratios) params.set("ratios", options.ratios.join(","));
 	if (options.page) params.set("page", `${options.page}`);
+	if (options.seed) params.set("seed", options.seed);
 	if (options.sorting) params.set("sorting", options.sorting);
 
 	const res = await fetch(`${BASE_URL}?${params}`);

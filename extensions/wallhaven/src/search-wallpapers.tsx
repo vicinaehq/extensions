@@ -92,11 +92,19 @@ function useWallpaperSearch(query: string, filterValue: string | undefined) {
 	const [wallpapers, setWallpapers] = useState<WallpaperResult[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [hasMore, setHasMore] = useState(false);
-	const search = useRef({ id: 0, page: 1 });
+	const search = useRef<{
+		id: number;
+		page: number;
+		key: string;
+		seed?: string;
+	}>({ id: 0, page: 1, key: "" });
 
 	const fetchPage = useCallback(
 		async (page: number, append: boolean) => {
 			if (!filterValue) return;
+			const key = `${query}|${filterValue}`;
+			if (append && search.current.key !== key) return;
+			if (!append) setHasMore(false);
 			const id = ++search.current.id;
 			setIsLoading(true);
 			try {
@@ -108,10 +116,17 @@ function useWallpaperSearch(query: string, filterValue: string | undefined) {
 						filter.kind === "resolution" ? formatResolution(filter) : undefined,
 					ratios: [filterRatio(filter).join("x")],
 					sorting: query.length === 0 ? "random" : "relevance",
+					seed: append ? search.current.seed : undefined,
 				});
 				if (id !== search.current.id) return;
 				search.current.page = page;
-				setWallpapers((prev) => (append ? [...prev, ...res.data] : res.data));
+				search.current.key = key;
+				if (!append) search.current.seed = res.meta.seed ?? undefined;
+				setWallpapers((prev) => {
+					if (!append) return res.data;
+					const seen = new Set(prev.map((w) => w.id));
+					return [...prev, ...res.data.filter((w) => !seen.has(w.id))];
+				});
 				setHasMore(res.meta.current_page < res.meta.last_page);
 			} catch (error) {
 				if (id !== search.current.id) return;
