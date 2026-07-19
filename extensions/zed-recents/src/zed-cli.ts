@@ -65,7 +65,7 @@ export async function openProject(project: RecentProject): Promise<void> {
 function buildUri(project: RecentProject): string {
     if (!project.remote) {
         const uri = new URL("file:///");
-        uri.pathname = project.path;
+        uri.pathname = project.path.replace(/%/g, "%25");
         return uri.toString();
     }
 
@@ -76,7 +76,7 @@ function buildUri(project: RecentProject): string {
     const isRawIpv6 = project.remote.host.includes(":") && !project.remote.host.startsWith("[");
     const safeHost = isRawIpv6 ? `[${project.remote.host}]` : project.remote.host;
     const uri = new URL(`${project.remote.kind}://${safeHost}`);
-    uri.pathname = project.path;
+    uri.pathname = project.path.replace(/%/g, "%25");
 
     if (project.remote.user) {
         uri.username = project.remote.user;
