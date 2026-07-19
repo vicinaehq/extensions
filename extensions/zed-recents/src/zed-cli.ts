@@ -64,16 +64,28 @@ export async function openProject(project: RecentProject): Promise<void> {
 
 function buildUri(project: RecentProject): string {
     if (!project.remote) {
-        return `file://${project.path}`;
+        const uri = new URL("file:///");
+        uri.pathname = project.path;
+        return uri.toString();
     }
 
-    if (project.remote.kind === "ssh") {
-        const userPart = project.remote.user ? `${project.remote.user}@` : "";
-        const portPart = project.remote.port ? `:${project.remote.port}` : "";
-        return `${project.remote.kind}://${userPart}${project.remote.host}${portPart}${project.path}`;
+    if (!project.remote.host) {
+        throw new Error("Remote host is missing");
     }
 
-    throw new Error(`Unsupported remote kind: ${project.remote.kind}`);
+    const isRawIpv6 = project.remote.host.includes(":") && !project.remote.host.startsWith("[");
+    const safeHost = isRawIpv6 ? `[${project.remote.host}]` : project.remote.host;
+    const uri = new URL(`${project.remote.kind}://${safeHost}`);
+    uri.pathname = project.path;
+
+    if (project.remote.user) {
+        uri.username = project.remote.user;
+    }
+    if (project.remote.port) {
+        uri.port = project.remote.port.toString();
+    }
+
+    return uri.toString();
 }
 
 async function resolveExecutable(): Promise<string | undefined> {
