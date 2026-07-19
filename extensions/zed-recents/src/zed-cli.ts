@@ -39,7 +39,17 @@ export async function openProject(project: RecentProject): Promise<void> {
         args.push("--add");
     }
 
-    args.push(project.path);
+    try {
+        const uri = buildUri(project);
+        args.push(uri);
+    } catch (error) {
+        await showToast({
+            style: Toast.Style.Failure,
+            title: "Failed to build URI",
+            message: `Could not build URI for project: ${error}`,
+        });
+        return;
+    }
 
     try {
         await spawnDetached(resolvedPath, args);
@@ -50,6 +60,32 @@ export async function openProject(project: RecentProject): Promise<void> {
             message: `Could not open project in Zed: ${error}`,
         });
     }
+}
+
+function buildUri(project: RecentProject): string {
+    if (!project.remote) {
+        const uri = new URL("file:///");
+        uri.pathname = project.path.replace(/%/g, "%25");
+        return uri.toString();
+    }
+
+    if (!project.remote.host) {
+        throw new Error("Remote host is missing");
+    }
+
+    const isRawIpv6 = project.remote.host.includes(":") && !project.remote.host.startsWith("[");
+    const safeHost = isRawIpv6 ? `[${project.remote.host}]` : project.remote.host;
+    const uri = new URL(`${project.remote.kind}://${safeHost}`);
+    uri.pathname = project.path.replace(/%/g, "%25");
+
+    if (project.remote.user) {
+        uri.username = project.remote.user;
+    }
+    if (project.remote.port) {
+        uri.port = project.remote.port.toString();
+    }
+
+    return uri.toString();
 }
 
 async function resolveExecutable(): Promise<string | undefined> {
