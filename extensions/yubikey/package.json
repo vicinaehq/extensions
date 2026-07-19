@@ -1,0 +1,118 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "yubikey",
+  "title": "YubiKey",
+  "description": "TOTP codes, FIDO2 passkeys and PIV certificates from your YubiKey, fully native with no external dependencies",
+  "icon": "yubikey.png",
+  "author": "LLawli",
+  "contributors": [],
+  "pastContributors": [],
+  "license": "MIT",
+  "categories": [
+    "Security"
+  ],
+  "platforms": [
+    "Linux"
+  ],
+  "commands": [
+    {
+      "name": "otp-codes",
+      "title": "OTP Codes",
+      "subtitle": "YubiKey",
+      "description": "List the YubiKey's TOTP codes and paste the selected one into the focused field",
+      "mode": "view",
+      "icon": "otp.png",
+      "keywords": [
+        "totp",
+        "otp",
+        "2fa",
+        "mfa",
+        "code",
+        "yubikey",
+        "oath"
+      ]
+    },
+    {
+      "name": "security-keys",
+      "title": "Keys & Certificates",
+      "subtitle": "YubiKey",
+      "description": "Manage FIDO2 passkeys, PIV slots and certificates on the YubiKey",
+      "mode": "view",
+      "icon": "keys.png",
+      "keywords": [
+        "fido2",
+        "passkey",
+        "piv",
+        "certificate",
+        "key",
+        "yubikey",
+        "pin"
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "language",
+      "title": "Language",
+      "description": "Language of the extension's interface.",
+      "type": "dropdown",
+      "required": false,
+      "default": "auto",
+      "data": [
+        { "title": "Automatic (system)", "value": "auto" },
+        { "title": "English", "value": "en" },
+        { "title": "Português", "value": "pt" }
+      ]
+    },
+    {
+      "name": "pcscSocket",
+      "title": "pcscd socket",
+      "description": "Path to the pcscd socket. Leave empty to use the system default (/run/pcscd/pcscd.comm).",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "/run/pcscd/pcscd.comm"
+    },
+    {
+      "name": "serial",
+      "title": "YubiKey serial",
+      "description": "Pin the extension to a specific key. Leave empty to use the first one found.",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "25349859"
+    },
+    {
+      "name": "purgeClipboardHistory",
+      "title": "Remove codes from clipboard history",
+      "description": "Pasting a code writes it to Vicinae's clipboard history. With this on, the entry is removed right after.",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Delete the history entry after pasting"
+    },
+    {
+      "name": "touchTimeout",
+      "title": "Touch wait time",
+      "description": "Seconds to wait for the touch before giving up.",
+      "type": "textfield",
+      "required": false,
+      "default": "16"
+    }
+  ],
+  "scripts": {
+    "dev": "vici develop",
+    "build": "vici build",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.23.1",
+    "react": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.17",
+    "typescript": "^5.9.2"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}
