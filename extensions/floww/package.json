@@ -3,9 +3,13 @@
   "name": "floww",
   "title": "Floww",
   "description": "Vicinae extension for Floww CLI - manage and apply workflows across workspaces",
-  "categories": ["Productivity"],
+  "categories": [
+    "Productivity"
+  ],
   "license": "MIT",
-  "platforms": ["Linux"],
+  "platforms": [
+    "Linux"
+  ],
   "author": "dagimg-dot",
   "contributors": [],
   "pastContributors": [],
@@ -19,10 +23,28 @@
       "mode": "view"
     }
   ],
-  "preferences": [],
+  "preferences": [
+    {
+      "name": "flowwPath",
+      "title": "Floww Binary Path",
+      "description": "Custom path to the floww binary. Leave empty to auto-detect in ~/.local/bin/floww or PATH",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "editorPath",
+      "title": "Editor Path",
+      "description": "Path to your terminal editor (e.g. /usr/bin/nvim, /usr/bin/vim). Used when editing workflows.",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    }
+  ],
   "scripts": {
     "build": "vici build",
-    "dev": "vici develop"
+    "dev": "vici develop",
+    "check": "biome check src --write"
   },
   "dependencies": {
     "@vicinae/api": "^0.22.2",
@@ -31,6 +53,7 @@
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
+    "@types/node": "^26.1.0",
     "typescript": "^5.9.2"
   }
 }
