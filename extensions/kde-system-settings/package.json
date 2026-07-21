@@ -7,6 +7,7 @@
     "System"
   ],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "mmstroik",
   "contributors": [],
   "pastContributors": [],
@@ -39,12 +40,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vicinae/api": "^0.16.1"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
     "@types/node": "^22.18.8",
-    "@types/react": "^19.0.10",
+    "@types/react": "19.0.10",
     "eslint": "^9.37.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",

@@ -5,6 +5,7 @@
   "description": "A simple monitor management extension for Hyprland",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "fredrikmwold",
   "contributors": [],
   "pastContributors": [],
@@ -59,7 +60,7 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.19.8"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.2",

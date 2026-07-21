@@ -7,6 +7,7 @@
     "System"
   ],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "rastsislaux",
   "contributors": [],
   "pastContributors": [],
@@ -54,7 +55,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "^0.20.3",
+    "@vicinae/api": "^0.22.2",
     "zod": "^4.3.6"
   },
   "devDependencies": {

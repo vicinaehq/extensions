@@ -8,17 +8,20 @@ on:
 jobs:
   check-formatting:
     name: Check Formatting
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
       - run: nix fmt -- --ci
   flake-check:
     name: Flake Check
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-latest-16
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            max-jobs = auto
       - uses: cachix/cachix-action@v14
         continue-on-error: true
         with:

@@ -72,7 +72,7 @@ export default function TimerCommand() {
     const id = Date.now().toString()
     const unitName = `vicinae-timer-${id}`
 
-    const cmd = `systemd-run --user --on-active="${seconds}s" --timer-property=AccuracySec=1s --unit="${unitName}" -- /bin/bash -c 'notify-send -a "Vicinae" "Timer" "${timerNote}"'`
+    const cmd = `systemd-run --user --on-active="${seconds}s" --timer-property=AccuracySec=1s --unit="${unitName}" -- /usr/bin/env bash -c 'notify-send -a "Vicinae" "Timer" "${timerNote}"'`
 
     exec(cmd, error => {
       if (error) {

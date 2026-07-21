@@ -5,6 +5,7 @@
   "description": "Quick access to your open browser tabs",
   "categories": ["Web"],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "brpaz",
   "contributors": [],
   "pastContributors": [],
@@ -36,12 +37,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vicinae/api": "^0.16.1",
+    "@vicinae/api": "^0.22.2",
     "execa": "^9.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@types/react": "^19.2.4",
+    "@types/react": "19.0.10",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
     "eslint": "^9.39.1",

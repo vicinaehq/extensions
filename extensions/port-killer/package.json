@@ -5,6 +5,7 @@
 	"description": "Kills a process by port",
 	"categories": ["Developer Tools"],
 	"license": "MIT",
+	"platforms": ["Linux"],
 	"author": "LuggaPugga",
 	"contributors": [],
 	"pastContributors": [],
@@ -25,7 +26,7 @@
 		"format": "biome format --write"
 	},
 	"dependencies": {
-		"@vicinae/api": "^0.15.3"
+		"@vicinae/api": "^0.22.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.7",

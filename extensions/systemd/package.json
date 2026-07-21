@@ -5,6 +5,7 @@
   "description": "Vicinae extension for managing systemd services",
   "categories": ["System"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "knoopx",
   "contributors": [],
   "pastContributors": [],
@@ -23,7 +24,7 @@
     "dev": "vici develop"
   },
   "dependencies": {
-    "@vicinae/api": "0.16.6",
+    "@vicinae/api": "^0.22.2",
     "dbus-next": "^0.10.2",
     "x11": "^2.3.0"
   },

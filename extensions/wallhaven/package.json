@@ -1,0 +1,41 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "wallhaven",
+	"title": "Wallhaven",
+	"description": "Find the perfect wallpaper for your monitor",
+	"categories": [],
+	"license": "MIT",
+	"author": "aurelleb",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension_icon.png",
+	"commands": [
+		{
+			"name": "search-wallpapers",
+			"title": "Search Wallpapers",
+			"description": "Find and set wallpapers tailored to your screen resolution",
+			"mode": "view"
+		},
+		{
+			"name": "downloaded-wallpapers",
+			"title": "Downloaded Wallpapers",
+			"description": "Browse, set and manage previously downloaded wallpapers",
+			"mode": "view"
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"format": "biome format --write src",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.23.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.2",
+		"@types/node": "^26.1.1",
+		"typescript": "^5.9.2"
+	}
+}

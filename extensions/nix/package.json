@@ -8,6 +8,7 @@
     "Developer Tools"
   ],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "knoopx",
   "contributors": [],
   "pastContributors": [],
@@ -98,11 +99,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vicinae/api": "0.16.8"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/react": "^19.0.0",
+    "@types/react": "19.0.10",
     "eslint": "^9.39.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",

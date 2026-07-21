@@ -4,6 +4,7 @@
   "title": "Zed Recent Projects",
   "description": "Open Zed editor recent projects",
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "contributors": [],
   "pastContributors": [],
   "author": "pavle99",
@@ -51,7 +52,7 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.20.4"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.6",

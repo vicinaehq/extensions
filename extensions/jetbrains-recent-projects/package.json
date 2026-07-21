@@ -5,6 +5,7 @@
   "description": "Quickly list and open recent JetBrains IDE projects directly from Vicinae. Supports IntelliJ IDEA, WebStorm, PyCharm and other JetBrains IDEs.",
   "categories": ["Developer Tools"],
   "license": "MIT",
+  "platforms": ["Linux"],
   "author": "FurkanTRN",
   "contributors": [],
   "pastContributors": [],
@@ -45,7 +46,7 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.16.14"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

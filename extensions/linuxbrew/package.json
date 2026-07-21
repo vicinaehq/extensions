@@ -8,6 +8,7 @@
     "System"
   ],
   "license": "MIT",
+  "platforms": ["Linux", "macOS"],
   "author": "domainus",
   "icon": "extension-icon.png",
   "commands": [
@@ -98,7 +99,7 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.21.3"
+    "@vicinae/api": "^0.22.2"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",
