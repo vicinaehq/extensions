@@ -63,7 +63,7 @@ Use `npm run build` to assemble a production bundle that Vicinae can import.
 ## Troubleshooting
 
 - Make sure your password store is initialized (`pass init ...`) and contains `.gpg` files.
-- If GPG prompts for a passphrase, add it to the extension preferences or ensure your agent has the key unlocked.
+- If GPG prompts for a passphrase, either unlock the key with your system pinentry/agent or use **Enter GPG Passphrase** from the error view. If a saved passphrase fails, **Try System Pinentry** retries without loopback. Saving **GPG Passphrase** in preferences uses GPG loopback mode.
 - Install `oathtool` if you want OTP generation: `sudo apt install oathtool` (Debian/Ubuntu), `sudo pacman -S oathtool` (Arch), or `brew install oath-toolkit` (macOS).
 - On macOS, install GPG and pinentry with `brew install gnupg pinentry-mac`, then configure `~/.gnupg/gpg-agent.conf` if passphrase prompts fail:
   ```conf
@@ -71,4 +71,4 @@ Use `npm run build` to assemble a production bundle that Vicinae can import.
   allow-loopback-pinentry
   ```
   Restart the agent with `gpgconf --kill gpg-agent`.
-- If Vicinae cannot find `gpg` or `oathtool` on macOS, set **Additional PATH Entries** to `/opt/homebrew/bin:/usr/local/bin:/opt/local/bin`.
+- If Vicinae cannot find `gpg` or `oathtool` on macOS, set **Additional PATH Entries** to `/opt/homebrew/bin:/usr/local/bin:/opt/local/bin`. Nix users can add `~/.nix-profile/bin` or `/etc/profiles/per-user/$USER/bin` if needed.
