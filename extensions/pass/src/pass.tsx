@@ -13,7 +13,6 @@ import { getPreferences } from "@/preferences";
 import {
   listPasswordEntries,
   decryptPasswordEntry,
-  isGpgUnlocked,
 } from "@/services/passctl";
 import { getLastUsedPassword } from "@/storage/last-used";
 import { buildPasswordOptions } from "@/utils/password";
@@ -34,13 +33,11 @@ export default function Command() {
     isLoading: true,
   });
 
-  const [locked, setlocked] = useState(true);
   const { push } = useNavigation();
 
   const refresh = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: undefined }));
     try {
-      setlocked(await isGpgUnlocked(preferences));
       const [entries, lastUsed] = await Promise.all([
         listPasswordEntries(preferences.passwordStorePath),
         getLastUsedPassword(preferences.lastUsedTtlSeconds),
@@ -92,20 +89,12 @@ export default function Command() {
                   title="View Secrets"
                   icon={Icon.Key}
                   onAction={() => {
-                    if (!locked || preferences.gpgPassphrase) {
-                      return push(
-                        <PasswordOptionsView
-                          password={entry.value}
-                          showOtpFirst={entry.showOtpFirst}
-                          action={preferences.action}
-                          gpgPassword={preferences.gpgPassphrase}
-                        />,
-                      );
-                    }
                     push(
-                      <PasswordEntryForm
-                        entry={entry.value}
+                      <PasswordOptionsView
+                        password={entry.value}
                         showOtpFirst={entry.showOtpFirst}
+                        action={preferences.action}
+                        gpgPassword={preferences.gpgPassphrase}
                       />,
                     );
                   }}
@@ -134,6 +123,10 @@ function PasswordOptionsView({
   const [isLoading, setIsLoading] = useState(true);
   const [options, setOptions] = useState<PasswordOption[]>([]);
   const [error, setError] = useState<string | undefined>();
+  const [retryToken, setRetryToken] = useState(0);
+  const [useSavedPassphrase, setUseSavedPassphrase] = useState(true);
+  const { push } = useNavigation();
+  const effectiveGpgPassword = useSavedPassphrase ? gpgPassword : undefined;
 
   useEffect(() => {
     let disposed = false;
@@ -145,7 +138,7 @@ function PasswordOptionsView({
         const plaintext = await decryptPasswordEntry(
           password,
           preferences,
-          gpgPassword,
+          effectiveGpgPassword,
         );
         const { options: parsed, warnings } = await buildPasswordOptions({
           plaintext,
@@ -184,7 +177,7 @@ function PasswordOptionsView({
     return () => {
       disposed = true;
     };
-  }, [password, preferences, showOtpFirst]);
+  }, [password, preferences, showOtpFirst, effectiveGpgPassword, retryToken]);
 
   return (
     <List
@@ -192,7 +185,41 @@ function PasswordOptionsView({
       searchBarPlaceholder="Select a field to copy/paste"
     >
       {error ? (
-        <List.EmptyView title="Unable to read entry" description={error} />
+        <List.EmptyView
+          title="Unable to read entry"
+          description={error}
+          actions={
+            <ActionPanel>
+              <Action
+                title="Enter GPG Passphrase"
+                icon={Icon.Key}
+                onAction={() => {
+                  push(
+                    <PasswordEntryForm
+                      entry={password}
+                      showOtpFirst={showOtpFirst}
+                    />,
+                  );
+                }}
+              />
+              {gpgPassword && useSavedPassphrase ? (
+                <Action
+                  title="Try System Pinentry"
+                  icon={Icon.Key}
+                  onAction={() => {
+                    setUseSavedPassphrase(false);
+                    setRetryToken((token) => token + 1);
+                  }}
+                />
+              ) : null}
+              <Action
+                title="Retry"
+                icon={Icon.RotateAntiClockwise}
+                onAction={() => setRetryToken((token) => token + 1)}
+              />
+            </ActionPanel>
+          }
+        />
       ) : options.length === 0 ? (
         <List.EmptyView
           title="No fields found"
@@ -200,8 +227,7 @@ function PasswordOptionsView({
         />
       ) : (
         options.map((option, index) => {
-          const handleAction = () =>
-            performPasswordAction(password, option, action);
+          const alternateAction = action === "paste" ? "copy" : "paste";
           return (
             <List.Item
               key={`${option.title}-${index}`}
@@ -214,14 +240,14 @@ function PasswordOptionsView({
                     icon={
                       action === "paste" ? Icon.Keyboard : Icon.CopyClipboard
                     }
-                    onAction={handleAction}
+                    onAction={() => performPasswordAction(password, option, action)}
                   />
                   <Action
-                    title={action === "copy" ? "Copy to Clipboard" : "Paste"}
+                    title={alternateAction === "copy" ? "Copy to Clipboard" : "Paste"}
                     icon={
-                      action === "copy" ? Icon.CopyClipboard : Icon.Keyboard
+                      alternateAction === "copy" ? Icon.CopyClipboard : Icon.Keyboard
                     }
-                    onAction={handleAction}
+                    onAction={() => performPasswordAction(password, option, alternateAction)}
                   />
                 </ActionPanel>
               }
