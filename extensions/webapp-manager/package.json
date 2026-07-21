@@ -1,0 +1,103 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "webapp-manager",
+  "title": "Manage Webapps Extension",
+  "description": "Create and manage desktop entries that launch URLs with configurable browser commands.",
+  "categories": ["Web", "Productivity"],
+  "license": "MIT",
+  "author": "Xyz3R",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "manage-desktop-entries",
+      "title": "Manage Webapps",
+      "subtitle": "Create, edit, and delete URL desktop entries",
+      "description": "Manage .desktop entries for URLs and configure browser launch arguments.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "type": "directory",
+      "name": "desktopEntryDirectory",
+      "title": "Desktop Entries Directory",
+      "description": "Where managed .desktop files are written.",
+      "required": true,
+      "default": "~/.local/share/applications"
+    },
+    {
+      "type": "textfield",
+      "name": "browserCommand",
+      "title": "Browser Command",
+      "description": "Command used to launch web apps from desktop entries.",
+      "required": true,
+      "placeholder": "chromium-browser",
+      "default": "chromium-browser"
+    },
+    {
+      "type": "textfield",
+      "name": "browserArgsTemplate",
+      "title": "Browser Args Template",
+      "description": "Arguments template for the browser command. Supports {url}, {origin}, and {hostname}.",
+      "required": true,
+      "placeholder": "--app={url}",
+      "default": "--app={url}"
+    },
+    {
+      "type": "dropdown",
+      "name": "windowManager",
+      "title": "Window Manager",
+      "description": "Window manager backend used to focus existing windows for single-window entries.",
+      "required": true,
+      "default": "niri",
+      "data": [
+        {
+          "title": "niri",
+          "value": "niri"
+        },
+        {
+          "title": "Hyprland",
+          "value": "hyprland"
+        },
+        {
+          "title": "Sway",
+          "value": "sway"
+        },
+        {
+          "title": "i3",
+          "value": "i3"
+        },
+        {
+          "title": "Custom",
+          "value": "custom"
+        }
+      ]
+    },
+    {
+      "type": "textfield",
+      "name": "customWindowFocusCommand",
+      "title": "Custom Focus Command",
+      "description": "Used only when Window Manager is custom. Command should focus an existing window and exit 0 on success. Supports {match} and {mode}.",
+      "required": false,
+      "placeholder": "my-wm-focus --mode {mode} --match {match}"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "postbuild": "node scripts/copy-webp-wasm.cjs",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@cwasm/webp": "^0.1.5",
+    "@vicinae/api": "^0.19.7",
+    "fast-png": "^8.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "typescript": "^5.9.2"
+  }
+}
