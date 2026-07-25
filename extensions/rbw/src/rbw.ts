@@ -12,22 +12,6 @@ export type VaultEntry = {
   type: string;
 };
 
-export type VaultEntryDetail = {
-  id: string;
-  folder: string | null;
-  name: string;
-  data: {
-    username?: string;
-    password?: string;
-    totp?: string;
-    uris?: { uri: string; match_type: string | null }[];
-    [key: string]: unknown;
-  };
-  fields: unknown[];
-  notes: string | null;
-  history: unknown[];
-};
-
 export class RbwError extends Error {
   constructor(
     message: string,
@@ -80,17 +64,6 @@ export async function searchEntries(term: string): Promise<VaultEntry[]> {
   return JSON.parse(stdout) as VaultEntry[];
 }
 
-/** Get full details for a specific entry. Specify user when name is not unique. */
-export async function getEntry(
-  name: string,
-  user?: string,
-): Promise<VaultEntryDetail> {
-  const args = ["get", "--raw", "--full", name];
-  if (user) args.push(user);
-  const stdout = await runRbw(args);
-  return JSON.parse(stdout) as VaultEntryDetail;
-}
-
 /** Get a specific field from an entry. */
 export async function getField(
   field: string,
@@ -117,43 +90,6 @@ export async function listFields(
 export async function getCode(name: string, user?: string): Promise<string> {
   const args = ["code", name];
   if (user) args.push(user);
-  return (await runRbw(args)).trimEnd();
-}
-
-/** Get TOTP code and copy to clipboard. */
-export async function getCodeClipboard(
-  name: string,
-  user?: string,
-): Promise<string> {
-  const args = ["code", "--clipboard", name];
-  if (user) args.push(user);
-  return (await runRbw(args)).trimEnd();
-}
-
-/** Generate a password. Returns just the password if no name given, or saves to vault. */
-export async function generatePassword(
-  length: number,
-  options?: {
-    name?: string;
-    user?: string;
-    uri?: string;
-    folder?: string;
-    noSymbols?: boolean;
-    onlyNumbers?: boolean;
-    nonconfusables?: boolean;
-    diceware?: boolean;
-  },
-): Promise<string> {
-  const args = ["generate"];
-  if (options?.noSymbols) args.push("--no-symbols");
-  if (options?.onlyNumbers) args.push("--only-numbers");
-  if (options?.nonconfusables) args.push("--nonconfusables");
-  if (options?.diceware) args.push("--diceware");
-  if (options?.uri) args.push("--uri", options.uri);
-  if (options?.folder) args.push("--folder", options.folder);
-  args.push(String(length));
-  if (options?.name) args.push(options.name);
-  if (options?.user) args.push(options.user);
   return (await runRbw(args)).trimEnd();
 }
 

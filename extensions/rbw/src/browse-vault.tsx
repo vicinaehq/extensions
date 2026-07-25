@@ -125,14 +125,39 @@ export default function Command() {
     },
     [loadEntries],
   );
-
+  
   if (locked) {
     return (
       <List>
-        <List.EmptyView
+        <List.Item
           icon={Icon.Lock}
           title="Vault Locked"
-          description="Unlock your Bitwarden vault with `rbw unlock` first"
+          subtitle="Press Enter to unlock"
+          actions={
+            <ActionPanel>
+              <Action
+                title="Unlock Vault"
+                icon={Icon.LockUnlocked}
+                onAction={async () => {
+                  closeMainWindow();
+                  try {
+                    const { execFile } = await import("node:child_process");
+                    const { promisify } = await import("node:util");
+                    await promisify(execFile)("rbw", ["unlock"]);
+                    setLocked(false);
+                    await loadEntries();
+                  } catch (error) {
+                    showToast(
+                      Toast.Style.Failure,
+                      error instanceof RbwError
+                        ? error.message
+                        : "Failed to unlock vault",
+                    );
+                  }
+                }}
+              />
+            </ActionPanel>
+          }
         />
       </List>
     );
