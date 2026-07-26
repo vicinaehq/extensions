@@ -1,6 +1,114 @@
 {
 	"tools": [
 		{
+			"name": "Acceleration Converter",
+			"path": "acceleration-converter",
+			"description": "Convert values between acceleration units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2213%22%20cy%3D%224%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M4%2017l5%201l.75-1.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2021v-4l-4-3l1-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2012V9l5-1l3%203l3%201%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Angle Units Converter",
+			"path": "angle-converter",
+			"description": "Convert values between angle units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2019H3l9-15%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20.615%2015.171h.015%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.515%2011.771h.015%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.715%208.671h.015%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.415%205.971h.015%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Area Units Converter",
+			"path": "area-converter",
+			"description": "Convert values between area units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M16%208V6a2%202%200%200%200-2-2H6a2%202%200%200%200-2%202v8a2%202%200%200%200%202%202h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8.586%2019.414L19.413%208.587%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Energy Units Converter",
+			"path": "energy-converter",
+			"description": "Convert values between energy units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%206a7.75%207.75%200%201%200%2010%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%204v8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Fitness Computer",
+			"path": "fitness-computer",
+			"description": "Compute BMR (Basal Metabolic Rate), TDEE / Calories (Total Daily Energy Expenditure), BMI (Body Mass Index), Ideal Weight (Ideal Body Weight), Body Fat (Body Fat Percentage), Max HR (Maximum Heart Rate): key metrics used to assess overall fitness and physiological health.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5.636%205.636a9%209%200%200%201%2013.397.747L13.414%2012l5.619%205.617A9%209%200%201%201%205.636%205.636z%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2211.5%22%20cy%3D%227.5%22%20r%3D%221%22%20fill%3D%22currentColor%22%3E%3C%2Fcircle%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Food Energy Converter",
+			"path": "food-energy-converter",
+			"description": "Convert between food (joule, calories)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%2021h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2021V3L3%209h18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%203l10%206%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%209v4a2%202%200%201%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Force Units Converter",
+			"path": "force-converter",
+			"description": "Convert values between force units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2%2012h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%208H4a1%201%200%200%200-1%201v6a1%201%200%200%200%201%201h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%207v10a1%201%200%200%200%201%201h1a1%201%200%200%200%201-1V7a1%201%200%200%200-1-1H7a1%201%200%200%200-1%201z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2012h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%207v10a1%201%200%200%200%201%201h1a1%201%200%200%200%201-1V7a1%201%200%200%200-1-1h-1a1%201%200%200%200-1%201z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%208h2a1%201%200%200%201%201%201v6a1%201%200%200%201-1%201h-2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M22%2012h-1%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Frequency Converter",
+			"path": "frequency-converter",
+			"description": "Convert values between frequency units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%2018v-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2018v-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2018V9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2018v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Illuminance Converter",
+			"path": "illuminance-converter",
+			"description": "Illuminance units converter (Lux, Foot Candles, Nox, Phot, Flame)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%224%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3%2012h1m8-9v1m8%208h1m-9%208v1M5.6%205.6l.7.7m12.1-.7l-.7.7m0%2011.4l.7.7m-12.1-.7l-.7.7%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Length Units Converter",
+			"path": "length-converter",
+			"description": "Convert values from length units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-ruler-3%22%3E%3Cpath%20d%3D%22M19.875%208c.621%200%201.125%20.512%201.125%201.143v5.714c0%20.631%20-.504%201.143%20-1.125%201.143h-15.875a1%201%200%200%201%20-1%20-1v-5.857c0%20-.631%20.504%20-1.143%201.125%20-1.143h15.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%208v2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%208v3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%208v3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%208v3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%208v2%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Mass Units Converter",
+			"path": "mass-converter",
+			"description": "Convert values between mass units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2012v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.071%204.929a4%2010%2045%200%200-9.9%204.243a4%2010%2045%200%200-4.242%209.9a4%2010%2045%200%200%209.9-4.244a4%2010%2045%200%200%204.242-9.9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4.929%204.929a10%204%2045%200%200%204.243%209.9a10%204%2045%200%200%209.9%204.242a10%204%2045%200%200-4.244-9.9a10%204%2045%200%200-9.9-4.242%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Power Converter",
+			"path": "power-converter",
+			"description": "Convert values between power units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%206a7.75%207.75%200%201%200%2010%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%204v8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Pressure Units Converter",
+			"path": "pressure-converter",
+			"description": "Convert values between pressure units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M13.41%2010.59L16%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2012a5%205%200%200%201%205-5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "SI Prefixes Converter",
+			"path": "si-prefixes-converter",
+			"description": "Convert between Metric Prefixes",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2012h18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%203v18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16.5%204.5l3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.5%204.5l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%204v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%206h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2016h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2018h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Speed Converter",
+			"path": "speed-converter",
+			"description": "Convert values between speed units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2017h13.4a3%203%200%200%200%202.5-1.34L22%2011h0h-6.23a4%204%200%200%200-1.49.29l-3.56%201.42a4%204%200%200%201-1.49.29H5.5h0h-1L3%2017z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2013l1.5-5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%208h8l2%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Temperature converter",
+			"path": "temperature-converter",
+			"description": "Degrees temperature conversions for Kelvin, Celsius, Fahrenheit, Rankine, Delisle, Newton, Réaumur, and Rømer.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2013.5a4%204%200%201%200%204%200V5a2%202%200%200%200-4%200v8.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%209h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Volume Units Converter",
+			"path": "volume-converter",
+			"description": "Convert values from volume units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-meter-cube%22%3E%3Cpath%20d%3D%22M17%205h1.5a1.5%201.5%200%200%201%200%203h-.5h.5a1.5%201.5%200%200%201%200%203h-1.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2014a2%202%200%200%201%202%20-2h.5a2.5%202.5%200%200%201%202.5%202.5v3.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2015.5v-1a2.5%202.5%200%201%201%205%200v3.5%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Volume Flow Rate Converter",
+			"path": "volume-flow-rate-converter",
+			"description": "Convert values between volume flow rate units",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5%208h8.5a2.5%202.5%200%201%200-2.34-3.24%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2012h15.5a2.5%202.5%200%201%201-2.34%203.24%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2016h5.5a2.5%202.5%200%201%201-2.34%203.24%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "ActiveDirectory LDAP properties searcher",
 			"path": "ad-ldap-searcher",
 			"description": "Search in mapping of LDAP properties and ActiveDirectory UI",
@@ -25,7 +133,7 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%2013v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2012v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%208v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13.148%203.476l2.667%201.104a4%204%200%200%200%204.656%206.14l.053.132a3%203%200%200%201%200%202.296c-.497.786-.838%201.404-1.024%201.852c-.189.456-.409%201.194-.66%202.216a3%203%200%200%201-1.624%201.623c-1.048.263-1.787.483-2.216.661c-.475.197-1.092.538-1.852%201.024a3%203%200%200%201-2.296%200C10.05%2020.021%209.433%2019.68%209%2019.5c-.471-.195-1.21-.415-2.216-.66a3%203%200%200%201-1.623-1.624c-.265-1.052-.485-1.79-.661-2.216c-.198-.479-.54-1.096-1.024-1.852a3%203%200%200%201%200-2.296c.48-.744.82-1.361%201.024-1.852c.171-.413.391-1.152.66-2.216a3%203%200%200%201%201.624-1.623C7.816%204.905%208.554%204.685%209%204.5c.458-.19%201.075-.531%201.852-1.024a3%203%200%200%201%202.296%200z%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
-			"name": "Dead pixel",
+			"name": "Dead Pixel Tester",
 			"path": "dead-pixel",
 			"description": "Tool to check if a pixel on your screen is dead or not.",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
@@ -34,6 +142,18 @@
 			"name": "DMARC Report Analyzer",
 			"path": "dmarc-report-analyzer",
 			"description": "Read and display DMARC Xml Reports",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "DNS Propagation Tester",
+			"path": "dns-propagation-tester",
+			"description": "A simple tool for testing DNS propagation across different servers.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "DNS Tester",
+			"path": "dns-tester",
+			"description": "A simple tool for testing DNS resolution, whois queries, and other DNS-related tasks.",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
@@ -79,6 +199,18 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "HTTPS Tester",
+			"path": "https-tester",
+			"description": "Validate HTTPS certificate, HSTS and 302 redirection",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2012l2%202l4-4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%203a12%2012%200%200%200%208.5%203A12%2012%200%200%201%2012%2021A12%2012%200%200%201%203.5%206A12%2012%200%200%200%2012%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Keyboard Tester",
+			"path": "keyboard-tester",
+			"description": "Test your keyboard keys and check if all keys are working properly. Visual feedback for each key press with support for different keyboard layouts.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%222%22%20y%3D%226%22%20width%3D%2220%22%20height%3D%2212%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h0%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2010h0%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2010h0%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2010h0%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2014h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Keycode info",
 			"path": "keycode-info",
 			"description": "Find the javascript keycode, code, location and modifiers of any pressed key.",
@@ -100,7 +232,13 @@
 			"name": "MongoDB ObjectId Converter",
 			"path": "mongo-objectid-converter",
 			"description": "Convert between MongoDB ObjectId and internal timestamp",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v6a8%203%200%200%200%2016%200V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6a8%203%200%200%200%2016%200v-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-brand-mongodb%22%3E%3Cpath%20d%3D%22M12%203v19%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2011.227c0%203.273%20-1.812%204.77%20-6%209.273c-4.188%20-4.503%20-6%20-6%20-6%20-9.273c0%20-4.454%203.071%20-6.927%206%20-9.227c2.929%202.3%206%204.773%206%209.227%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Nmap Command Builder",
+			"path": "nmap-command-builder",
+			"description": "A simple command builder for generating Nmap scan commands.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2012l2%202l4-4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%203a12%2012%200%200%200%208.5%203A12%2012%200%200%201%2012%2021A12%2012%200%200%201%203.5%206A12%2012%200%200%200%2012%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Outlook MSG Parser",
@@ -118,7 +256,13 @@
 			"name": "Resistor Calculator",
 			"path": "resistor-calculator",
 			"description": "Compute Resistor values from/to band colors",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13%2010l7.383%207.418c.823.82.823%202.148%200%202.967a2.11%202.11%200%200%201-2.976%200L10%2013%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6.293%2015.293l-2.586-2.586a1%201%200%200%201%200-1.414l7.586-7.586a1%201%200%200%201%201.414%200l2.586%202.586a1%201%200%200%201%200%201.414l-7.586%207.586a1%201%200%200%201-1.414%200z%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2019h5v-1a7.35%207.35%200%201%201%206%200v1h5%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "RJ45 Cat6 Wiring Cheatsheet",
+			"path": "rj45-memo",
+			"description": "Complete RJ45 Cat6 Wiring cheatsheet",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M4.6%207h14.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2012h18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4.6%2017h14.8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Outlook Safelink decoder",
@@ -169,6 +313,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%204H6L3%2014%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%204h2l3%2010%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2016h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21%2016.5a3.5%203.5%200%200%201-7%200V14h7v2.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2016.5a3.5%203.5%200%200%201-7%200V14h7v2.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "URL Builder",
+			"path": "url-builder",
+			"description": "Allows to edit and build URLs with query parameters",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2012a9%209%200%201%200-9%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015H12%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.578%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203c1.719%202.755%202.5%205.876%202.5%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2021v-7m3%203l-3-3l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "URL parser",
 			"path": "url-parser",
 			"description": "Parse a URL into its separate constituent parts (protocol, origin, params, port, username-password, ...)",
@@ -197,6 +347,12 @@
 			"path": "bcrypt",
 			"description": "Hash and compare text string using bcrypt. Bcrypt is a password-hashing function based on the Blowfish cipher.",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%228%22%20y%3D%2211%22%20width%3D%228%22%20height%3D%225%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M10%2011V9a2%202%200%201%201%204%200v2%22%3E%3C%2Fpath%3E%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%222%22%3E%3C%2Frect%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Bech32 Encoder/Decoder",
+			"path": "bech32",
+			"description": "Encode/Decode/Validate betch32(m)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%227%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M21%2021l-6-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%207H9.5a1.5%201.5%200%200%200%200%203h1a1.5%201.5%200%200%201%200%203H8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2013v1m0-8v1%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Certificate/Key parser",
@@ -253,6 +409,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M5%209h14c.55%200%201%20.45%201%201s-.45%201-1%201H5c-.55%200-1-.45-1-1s.45-1%201-1zm0%204h8c.55%200%201%20.45%201%201s-.45%201-1%201H5c-.55%200-1-.45-1-1s.45-1%201-1z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Jasypt String Encryption",
+			"path": "jasypt-string-encryption",
+			"description": "Encrypt and decrypt strings using the Jasypt (Java Simplified Encryption) standard.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203l18%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.669%2017.669A12%2012%200%200%201%2012%2021A12%2012%200%200%201%203.5%206c.797.036%201.589%200%202.366-.126m3.092-.912A12%2012%200%200%200%2012%203a12%2012%200%200%200%208.5%203a12%2012%200%200%201-1.117%209.379%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "JWT Generator",
 			"path": "jwt-generator",
 			"description": "JWT Token generator and editor",
@@ -289,6 +451,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%225%22%20y%3D%2211%22%20width%3D%2214%22%20height%3D%2210%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2216%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M8%2011V7a4%204%200%200%201%208%200v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "PGP File Encryption",
+			"path": "pgp-file-encryption",
+			"description": "Encrypt and decrypt files using PGP",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M19%2018a3.5%203.5%200%200%200%200-7h-1c.397-1.768-.285-3.593-1.788-4.787c-1.503-1.193-3.6-1.575-5.5-1S7.397%207.232%207%209c-2.199-.088-4.155%201.326-4.666%203.373c-.512%202.047.564%204.154%202.566%205.027%22%3E%3C%2Fpath%3E%3Crect%20x%3D%228%22%20y%3D%2215%22%20width%3D%228%22%20height%3D%225%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M10%2015v-2a2%202%200%201%201%204%200v2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "PGP keygen",
 			"path": "pgp-key-pair-generator",
 			"description": "Generate new random PGP private and public keys (with or without passphrase).",
@@ -311,6 +479,12 @@
 			"path": "rsa-key-pair-generator",
 			"description": "Generate a new random RSA private and public pem certificate key pair.",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%2215%22%20r%3D%223%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M13%2017.5V22l2-1.5l2%201.5v-4.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2019H5a2%202%200%200%201-2-2V7c0-1.1.9-2%202-2h14a2%202%200%200%201%202%202v10a2%202%200%200%201-1%201.73%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%209h12%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2012h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2015h2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "SAML Parser",
+			"path": "saml-parser",
+			"description": "Detects SAML input (Base64, DEFLATE, or XML), parses, validates its signature, and displays a structured view of the assertion—including issuer, subject, conditions, authentication context, claims, and validation status.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%2215%22%20r%3D%224%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M10.85%2012.15L19%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%205l2%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%208l2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Shamirs Secret Sharing",
@@ -382,7 +556,7 @@
 			"name": "Folder Structure Diagram",
 			"path": "folder-structure-diagram",
 			"description": "tree-like utility for generating ASCII folder structure diagrams",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M5%204h4l3%203h7a2%202%200%200%201%202%202v8a2%202%200%200%201-2%202H5a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-folder-symlink%22%3E%3Cpath%20d%3D%22M3%2021v-4a3%203%200%200%201%203%20-3h5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2017l3%20-3l-3%20-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2011v-5a2%202%200%200%201%202%20-2h4l3%203h7a2%202%200%200%201%202%202v8a2%202%200%200%201%20-2%202h-8%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Font Compare",
@@ -469,10 +643,22 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M16%207h1a2%202%200%200%201%202%202v.5a.5.5%200%200%200%20.5.5a.5.5%200%200%201%20.5.5v3a.5.5%200%200%201-.5.5a.5.5%200%200%200-.5.5v.5a2%202%200%200%201-2%202h-2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%207H6a2%202%200%200%200-2%202v6a2%202%200%200%200%202%202h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%208l-2%204h3l-2%204%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Random Line Picker",
+			"path": "random-line-picker",
+			"description": "Pick random lines from a text input",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%204l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020l3-3l-3-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%207h3a5%205%200%200%201%205%205a5%205%200%200%200%205%205h5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21%207h-5a4.978%204.978%200%200%200-2.998.998M9%2016.001A4.984%204.984%200%200%201%206%2017H3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Regex Tester",
 			"path": "regex-tester",
 			"description": "Test your regular expressions with sample text.",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%205h7%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%203v2c0%204.418-2.239%208-5%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%209c-.003%202.144%202.952%203.908%206.7%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2020l4-9l4%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.1%2018h-6.2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "RSVP Reader",
+			"path": "rsvp-reader",
+			"description": "A Rapid Serial Visual Presentation (RSVP) tool that lets you paste text, and have the words displayed one at a time at a configurable words-per-minute (WPM) value.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%225%22%20y%3D%224%22%20width%3D%224%22%20height%3D%2216%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Crect%20x%3D%229%22%20y%3D%224%22%20width%3D%224%22%20height%3D%2216%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M5%208h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016h4%22%3E%3C%2Fpath%3E%3Cg%20transform%3D%22rotate(-13%2027.054%20-55.827)%22%3E%3Crect%20width%3D%224%22%20height%3D%2216%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M0%204h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M0%2012h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Rune converter",
@@ -505,6 +691,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203l18%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10.584%2010.587a2%202%200%200%200%202.828%202.83%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9.363%205.365A9.466%209.466%200%200%201%2012%205c4%200%207.333%202.333%2010%207c-.778%201.361-1.612%202.524-2.503%203.488m-2.14%201.861C15.726%2018.449%2013.942%2019%2012%2019c-4%200-7.333-2.333-10-7c1.369-2.395%202.913-4.175%204.632-5.341%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Tab to Spaces",
+			"path": "tab-to-spaces",
+			"description": "Convert tab to multiple spaces",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%206H9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%2012h-7%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%2018H9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%208l4%204l-4%204%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Text diff",
 			"path": "text-diff",
 			"description": "Compare two texts and see the differences between them.",
@@ -526,7 +718,7 @@
 			"name": "Text to Unicode Names",
 			"path": "text-to-unicode-names",
 			"description": "Convert a text to its hexadecimal character codes and Unicode Names for each character",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%205h7%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%203v2c0%204.418-2.239%208-5%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%209c-.003%202.144%202.952%203.908%206.7%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2020l4-9l4%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.1%2018h-6.2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%205h7%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%204c0%204.846%200%207%20.5%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%208.5c0%202.286-2%204.5-3.5%204.5S4%2011.865%204%2011c0-2%201-3%203-3s5%20.57%205%202.857c0%201.524-.667%202.571-2%203.143%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2020l4-9l4%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.1%2018h-6.2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "TOON to JSON",
@@ -538,7 +730,7 @@
 			"name": "Text Translator",
 			"path": "translator",
 			"description": "Translate text from one language to another (using opus-mt)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%204l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020l3-3l-3-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%207h3a5%205%200%200%201%205%205a5%205%200%200%200%205%205h5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21%207h-5a4.978%204.978%200%200%200-2.998.998M9%2016.001A4.984%204.984%200%200%201%206%2017H3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%205h7%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%203v2c0%204.418-2.239%208-5%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%209c-.003%202.144%202.952%203.908%206.7%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2020l4-9l4%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.1%2018h-6.2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Unicode Formatter",
@@ -553,76 +745,16 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%203h10v8h-3l-4%202v-2h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4a1%201%200%200%201-1%201H6a1%201%200%200%201-1-1V6a1%201%200%200%201%201-1h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2018v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Zalgo Generator/Banner",
+			"path": "zalgo",
+			"description": "Generate Zalgo text and clean zalgo generated text",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%228%22%20height%3D%228%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M3%208h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2016h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%203v1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%203v1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%208h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%2016h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2020v1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2020v1%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Amortization Calculator",
 			"path": "amortization-calculator",
 			"description": "Calculate loan amortization schedules with monthly payment breakdowns",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%205H7a2%202%200%200%200-2%202v12a2%202%200%200%200%202%202h10a2%202%200%200%200%202-2V7a2%202%200%200%200-2-2h-2%22%3E%3C%2Fpath%3E%3Crect%20x%3D%229%22%20y%3D%223%22%20width%3D%226%22%20height%3D%224%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M14%2011h-2.5a1.5%201.5%200%200%200%200%203h1a1.5%201.5%200%200%201%200%203H10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v1m0-8v1%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Angle Units Converter",
-			"path": "angle-converter",
-			"description": "Convert values between angle units",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2019H3l9-15%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20.615%2015.171h.015%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.515%2011.771h.015%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.715%208.671h.015%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.415%205.971h.015%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Area Units Converter",
-			"path": "area-converter",
-			"description": "Convert values between area units",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M16%208V6a2%202%200%200%200-2-2H6a2%202%200%200%200-2%202v8a2%202%200%200%200%202%202h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8.586%2019.414L19.413%208.587%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Energy Units Converter",
-			"path": "energy-converter",
-			"description": "Convert values between energy units",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%206a7.75%207.75%200%201%200%2010%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%204v8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Force Units Converter",
-			"path": "force-converter",
-			"description": "Convert values between force units",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%206a7.75%207.75%200%201%200%2010%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%204v8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Illuminance Converter",
-			"path": "illuminance-converter",
-			"description": "Illuminance units converter (Lux, Foot Candles, Nox, Phot, Flame)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M6%206h3.5L12%203.5L14.5%206H18v3.5l2.5%202.5l-2.5%202.5V18h-3.5L12%2020.5L9.5%2018H6v-3.5L3.5%2012L6%209.5z%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Length Units Converter",
-			"path": "length-converter",
-			"description": "Convert values from length units",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%204v16%22%3E%3C%2Fpath%3E%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M12%2013l7.5-7.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2018l8-8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2020l5-5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%208l4-4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Mass Units Converter",
-			"path": "mass-converter",
-			"description": "Convert values between mass units",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2012v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.071%204.929a4%2010%2045%200%200-9.9%204.243a4%2010%2045%200%200-4.242%209.9a4%2010%2045%200%200%209.9-4.244a4%2010%2045%200%200%204.242-9.9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4.929%204.929a10%204%2045%200%200%204.243%209.9a10%204%2045%200%200%209.9%204.242a10%204%2045%200%200-4.244-9.9a10%204%2045%200%200-9.9-4.242%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Power Converter",
-			"path": "power-converter",
-			"description": "Convert values between power units",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%206a7.75%207.75%200%201%200%2010%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%204v8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Pressure Units Converter",
-			"path": "pressure-converter",
-			"description": "Convert values between pressure units",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2012v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.071%204.929a4%2010%2045%200%200-9.9%204.243a4%2010%2045%200%200-4.242%209.9a4%2010%2045%200%200%209.9-4.244a4%2010%2045%200%200%204.242-9.9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4.929%204.929a10%204%2045%200%200%204.243%209.9a10%204%2045%200%200%209.9%204.242a10%204%2045%200%200-4.244-9.9a10%204%2045%200%200-9.9-4.242%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Temperature converter",
-			"path": "temperature-converter",
-			"description": "Degrees temperature conversions for Kelvin, Celsius, Fahrenheit, Rankine, Delisle, Newton, Réaumur, and Rømer.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2013.5a4%204%200%201%200%204%200V5a2%202%200%200%200-4%200v8.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%209h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "Volume Units Converter",
-			"path": "volume-converter",
-			"description": "Convert values from volume units",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M13.41%2010.59L16%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2012a5%205%200%200%201%205-5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "ANSI Escape Tester",
@@ -646,6 +778,12 @@
 			"name": "Code/Scripts Highlighter",
 			"path": "code-highlighter",
 			"description": "Highlight programming code fragments",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%208l-4%204l4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%208l4%204l-4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%204l-4%2016%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "CSS/JS Prettify & Minify",
+			"path": "css-js-prettify-minify",
+			"description": "Prettify or minify your CSS and JavaScript code online.",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%208l-4%204l4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%208l4%204l-4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%204l-4%2016%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
@@ -688,7 +826,7 @@
 			"name": "Favicon Generator",
 			"path": "favicon-generator",
 			"description": "Generate Favicon and corresponding header",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-favicon%22%3E%3Cpath%20d%3D%22M2%205m0%203a3%203%200%200%201%203%20-3h14a3%203%200%200%201%203%203v8a3%203%200%200%201%20-3%203h-14a3%203%200%200%201%20-3%20-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2010v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2010a2%202%200%201%200%200%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2012m-2%200a2%202%200%201%200%204%200a2%202%200%201%200%20-4%200%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-favicon%22%3E%3Cpath%20d%3D%22M2%208a3%203%200%200%201%203%20-3h14a3%203%200%200%201%203%203v8a3%203%200%200%201%20-3%203h-14a3%203%200%200%201%20-3%20-3l0%20-8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2010v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2010a2%202%200%201%200%200%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2012a2%202%200%201%200%204%200a2%202%200%201%200%20-4%200%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "File Splitter",
@@ -748,19 +886,31 @@
 			"name": "Json to Typescript",
 			"path": "json-to-typescript",
 			"description": "Convert JSON to Typescript code",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%204l-2%2014.5l-6%202l-6-2L4%204z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7.5%208h3v8l-2-1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16.5%208H14a.5.5%200%200%200-.5.5v3a.5.5%200%200%200%20.5.5h1.423a.5.5%200%200%201%20.495.57L15.5%2015.5l-2%20.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-brand-typescript%22%3E%3Cpath%20d%3D%22M15%2017.5c.32%20.32%20.754%20.5%201.207%20.5h.543c.69%200%201.25%20-.56%201.25%20-1.25v-.25a1.5%201.5%200%200%200%20-1.5%20-1.5a1.5%201.5%200%200%201%20-1.5%20-1.5v-.25c0%20-.69%20.56%20-1.25%201.25%20-1.25h.543c.453%200%20.887%20.18%201.207%20.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2012h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2012v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21%2019v-14a2%202%200%200%200%20-2%20-2h-14a2%202%200%200%200%20-2%202v14a2%202%200%200%200%202%202h14a2%202%200%200%200%202%20-2%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "K6 Load Testing Script Generator",
+			"path": "k6-script-generator",
+			"description": "Generate k6 load testing scripts with common presets",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2017h13.4a3%203%200%200%200%202.5-1.34L22%2011h0h-6.23a4%204%200%200%200-1.49.29l-3.56%201.42a4%204%200%200%201-1.49.29H5.5h0h-1L3%2017z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2013l1.5-5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%208h8l2%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Mailto Generator",
 			"path": "mailto-generator",
 			"description": "Generate a mailto: link href",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M3%207l9%206l9-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-mail-cog%22%3E%3Cpath%20d%3D%22M12%2019h-7a2%202%200%200%201%20-2%20-2v-10a2%202%200%200%201%202%20-2h14a2%202%200%200%201%202%202v5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%207l9%206l9%20-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.001%2019a2%202%200%201%200%204%200a2%202%200%201%200%20-4%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.001%2015.5v1.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.001%2021v1.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M22.032%2017.25l-1.299%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.27%2020l-1.3%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.97%2017.25l1.3%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20.733%2020l1.3%20.75%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Open graph meta generator",
 			"path": "og-meta-generator",
 			"description": "Generate open-graph and socials HTML meta tags for your website.",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7.859%206H5.025A2.025%202.025%200%200%200%203%208.025v2.834c0%20.537.213%201.052.593%201.432l6.116%206.116a2.025%202.025%200%200%200%202.864%200l2.834-2.834a2.025%202.025%200%200%200%200-2.864L9.29%206.593A2.025%202.025%200%200%200%207.859%206z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.573%2018.407l2.834-2.834a2.025%202.025%200%200%200%200-2.864L13.29%205.593%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%209h-.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Picomatch Tester",
+			"path": "picomatch-tester",
+			"description": "A simple tester for the picomatch library, which is used for glob pattern matching.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v11a2%202%200%200%201-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2010v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2012h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2017h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Pomodoro Timer",
@@ -778,19 +928,19 @@
 			"name": "SQL Minifier",
 			"path": "sql-minifier",
 			"description": "Minify SQL queries",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v6a8%203%200%200%200%2016%200V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6a8%203%200%200%200%2016%200v-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-database-minus%22%3E%3Cpath%20d%3D%22M4%206c0%201.657%203.582%203%208%203s8%20-1.343%208%20-3s-3.582%20-3%20-8%20-3s-8%201.343%20-8%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%206v6c0%201.657%203.582%203%208%203s8%20-1.343%208%20-3v-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6c0%201.657%203.582%203%208%203c.164%200%20.328%20-.002%20.49%20-.006%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%2015v-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2019h6%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "SQL Parameters Generator",
 			"path": "sql-parameters",
 			"description": "Prepare SQL statement from a given parametrized SQL query and parameters",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v6a8%203%200%200%200%2016%200V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6a8%203%200%200%200%2016%200v-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-database-cog%22%3E%3Cpath%20d%3D%22M4%206c0%201.657%203.582%203%208%203s8%20-1.343%208%20-3s-3.582%20-3%20-8%20-3s-8%201.343%20-8%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%206v6c0%201.657%203.582%203%208%203c.21%200%20.42%20-.003%20.626%20-.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%2011.5v-5.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6c0%201.657%203.582%203%208%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.001%2019a2%202%200%201%200%204%200a2%202%200%201%200%20-4%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.001%2015.5v1.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.001%2021v1.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M22.032%2017.25l-1.299%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.27%2020l-1.3%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.97%2017.25l1.3%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20.733%2020l1.3%20.75%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "SQL prettify and format",
 			"path": "sql-prettify",
 			"description": "Format and prettify your SQL queries online (it supports various SQL dialects).",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v6a8%203%200%200%200%2016%200V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6a8%203%200%200%200%2016%200v-6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-database-star%22%3E%3Cpath%20d%3D%22M4%206c0%201.657%203.582%203%208%203s8%20-1.343%208%20-3s-3.582%20-3%20-8%20-3s-8%201.343%20-8%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%206v6c0%201.43%202.67%202.627%206.243%202.927%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%2010.5v-4.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012v6c0%201.546%203.12%202.82%207.128%202.982%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.8%2020.817l-2.172%201.138a.392%20.392%200%200%201%20-.568%20-.41l.415%20-2.411l-1.757%20-1.707a.389%20.389%200%200%201%20.217%20-.665l2.428%20-.352l1.086%20-2.193a.392%20.392%200%200%201%20.702%200l1.086%202.193l2.428%20.352a.39%20.39%200%200%201%20.217%20.665l-1.757%201.707l.414%202.41a.39%20.39%200%200%201%20-.567%20.411l-2.172%20-1.138%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Stacktrace prettier",
@@ -877,15 +1027,21 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Cloudflare DNS/RDAP Queries",
+			"path": "dns-query",
+			"description": "Query DNS records and RDAP for any domain name online using Cloudflare DNS/RDAP.org.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "DNSBL Checker",
 			"path": "dnsbl-checker",
 			"description": "Check if a given IP is in any of known DNS Blacklist servers (spam block)",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2018H5a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202v7.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%206l9%206l9-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2018h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2015l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
-			"name": "FW command line generator",
+			"name": "firewalld command line generator",
 			"path": "firewalld-generator",
-			"description": "Generate fw command lines",
+			"description": "Generate firewalld command lines",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M7%2018h8m4%200h2v-6a5%205%200%200%200-5-5h-1l1.5%205H21%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2018V7h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2017v-5h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%209l18-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2012V8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
@@ -1042,7 +1198,7 @@
 			"name": "Multi link downloader",
 			"path": "multi-link-downloader",
 			"description": "The tool will asynchronously combine the contents of the provided links into a single zip file for you to download. (Requires an internet connection)",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-file-download%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021h-10a2%202%200%200%201%20-2%20-2v-14a2%202%200%200%201%202%20-2h7l5%205v11a2%202%200%200%201%20-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9.5%2014.5l2.5%202.5l2.5%20-2.5%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-file-download%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021h-10a2%202%200%200%201%20-2%20-2v-14a2%202%200%200%201%202%20-2h7l5%205v11a2%202%200%200%201%20-2%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9.5%2014.5l2.5%202.5l2.5%20-2.5%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "My IP Address",
@@ -1105,6 +1261,24 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2018v3h16V7l-8-4l-8%204v3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2014h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2011l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Shell Commands Formatter",
+			"path": "shell-formatter",
+			"description": "Format shell commands as multiline shell commands split on arguments",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%209l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%2015h3%22%3E%3C%2Fpath%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%3E%3C%2Frect%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Shell Commands Linearizer",
+			"path": "shell-linearizer",
+			"description": "Linearize multiline shell commands",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%209l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%2015h3%22%3E%3C%2Fpath%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%3E%3C%2Frect%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Shutdown Command Generator",
+			"path": "shutdown-command-generator",
+			"description": "Generate shutdown command for various OS",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203l18%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2012a4%204%200%200%200-4-4M9.166%209.177a4%204%200%200%200%205.66%205.654%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2012h1m8-9v1m8%208h1m-9%208v1M5.6%205.6l.7.7m12.1-.7l-.7.7m0%2011.4l.7.7m-12.1-.7l-.7.7%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "SIP Authorization",
 			"path": "sip-auth",
 			"description": "This tool helps you to verify the SIP authorization header. The tool performs all calculations in the browser and does not transmit sensitive information over the network, so feel free to use it.",
@@ -1115,6 +1289,24 @@
 			"path": "spf-dns-generator",
 			"description": "Generate SPF DNS TXT record",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a17%2017%200%200%201%200%2018%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "TCP/UDP Port Tester",
+			"path": "tcp-udp-port-tester",
+			"description": "Allows to test TCP/UDP (using a websocket proxy on server side)",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2012a9%209%200%201%200-9%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015H12%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.578%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203c1.719%202.755%202.5%205.876%202.5%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2021v-7m3%203l-3-3l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "UFW Command Generator",
+			"path": "ufw-generator",
+			"description": "Generate UFW command lines",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M7%2018h8m4%200h2v-6a5%205%200%200%200-5-5h-1l1.5%205H21%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2018V7h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2017v-5h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%209l18-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2012V8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Visual Subnet Calculator",
+			"path": "visual-subnet-calculator",
+			"description": "A tool for quickly designing networks and collaborating on that design with others. It focuses on expediting the work of network administrators, not academic subnetting math.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2012a9%209%200%201%200-9%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015H12%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.578%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203c1.719%202.755%202.5%205.876%202.5%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2021v-7m3%203l-3-3l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Websocket tester",
@@ -1285,6 +1477,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M11.5%2020H6a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2h12a2%202%200%200%201%202%202v7.5M4%2010h16M10%204v16m4-1h7m-3-3l3%203l-3%203%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Geographic Coordinates Converter",
+			"path": "geo-coordinates-converter",
+			"description": "Convert geographic coordinates between WGS84, GCJ02, BD09, CGCS2000 and WebMercator. Also convert between Decimal, DMS and UTM. And with an interactive map.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-world-pin%22%3E%3Cpath%20d%3D%22M20.972%2011.291a9%209%200%201%200%20-8.322%209.686%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%209h16.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3.6%2015h8.9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.5%203a17%2017%200%200%200%200%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12.5%203a16.986%2016.986%200%200%201%202.578%209.018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21.121%2020.121a3%203%200%201%200%20-4.242%200c.418%20.419%201.125%201.045%202.121%201.879c1.051%20-.89%201.759%20-1.516%202.121%20-1.879%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19%2018v.01%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Integer base converter",
 			"path": "base-converter",
 			"description": "Convert a number between different bases (decimal, hexadecimal, binary, octal, base64, ...)",
@@ -1402,13 +1600,13 @@
 			"name": "Jq Cheatsheet",
 			"path": "jq-memo",
 			"description": "JQ command cheatsheet",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%204H5v16h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%204h3v16h-3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "JSONPath Syntax Cheatsheet",
 			"path": "jsonpath-memo",
 			"description": "JSONPath Syntax Cheatsheet",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%204H5v16h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%204h3v16h-3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "K8s Cheatsheet",
@@ -1433,6 +1631,12 @@
 			"path": "nginx-memo",
 			"description": "Nginx configuration and useful commands",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Powershell Cheatsheet",
+			"path": "powershell-memo",
+			"description": "Powershell is a powerful scripting language and command-line shell designed for system administration and automation. It provides a wide range of cmdlets and features that allow users to manage and automate tasks on Windows systems efficiently.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M7%209a2%202%200%201%201%202-2v10a2%202%200%201%201-2-2h10a2%202%200%201%201-2%202V7a2%202%200%201%201%202%202H7%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Regex cheatsheet",
@@ -1501,6 +1705,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2012h18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%203v18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16.5%204.5l3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.5%204.5l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%204v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%206h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2016h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2018h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Tip calculator",
+			"path": "tip-calculator",
+			"description": "Calculate the tip for a bill and split it among multiple people.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%224%22%20y%3D%223%22%20width%3D%2216%22%20height%3D%2218%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Crect%20x%3D%228%22%20y%3D%227%22%20width%3D%228%22%20height%3D%223%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M8%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2017v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2017v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Trigonometric/Equation Curve Visualizer",
 			"path": "trigo-viewer",
 			"description": "Visualize trigonometric or equations depending on x",
@@ -1540,7 +1750,7 @@
 			"name": "Passphrase Generator",
 			"path": "passphrase-generator",
 			"description": "Generate random memoizable Passphrases",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%204l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020l3-3l-3-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%207h3a5%205%200%200%201%205%205a5%205%200%200%200%205%205h5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21%207h-5a4.978%204.978%200%200%200-2.998.998M9%2016.001A4.984%204.984%200%200%201%206%2017H3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-lock-cog%22%3E%3Cpath%20d%3D%22M12%2021h-5a2%202%200%200%201%20-2%20-2v-6a2%202%200%200%201%202%20-2h10c.564%200%201.074%20.234%201.437%20.61%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2016a1%201%200%201%200%202%200a1%201%200%200%200%20-2%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2011v-4a4%204%200%201%201%208%200v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.001%2019a2%202%200%201%200%204%200a2%202%200%201%200%20-4%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.001%2015.5v1.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.001%2021v1.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M22.032%2017.25l-1.299%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17.27%2020l-1.3%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.97%2017.25l1.3%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20.733%2020l1.3%20.75%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Pin Code Generator",
@@ -1579,6 +1789,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M13%203a1%201%200%200%201%201%201v4.535l3.928-2.267a1%201%200%200%201%201.366.366l1%201.732a1%201%200%200%201-.366%201.366L16.001%2012l3.927%202.269a1%201%200%200%201%20.366%201.366l-1%201.732a1%201%200%200%201-1.366.366L14%2015.464V20a1%201%200%200%201-1%201h-2a1%201%200%200%201-1-1v-4.536l-3.928%202.268a1%201%200%200%201-1.366-.366l-1-1.732a1%201%200%200%201%20.366-1.366L7.999%2012L4.072%209.732a1%201%200%200%201-.366-1.366l1-1.732a1%201%200%200%201%201.366-.366L10%208.535V4a1%201%200%200%201%201-1h2z%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Calendar Converter",
+			"path": "calendar-converter",
+			"description": "Convert dates and times between Gregorian, Julian, Hebrew, Islamic, Persian, Mayan, Indian, French Republican, ISO‑8601, Unix time, and Excel serial formats",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%224%22%20y%3D%225%22%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M16%203v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%203v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2011h16%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2015h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2015v3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Credit Card Checker",
 			"path": "credit-card-checker",
 			"description": "Check a Credit Card number for validity",
@@ -1589,6 +1805,12 @@
 			"path": "currency-converter",
 			"description": "Convert currency values using https://github.com/fawazahmed0/exchange-api",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%227%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M4%204l3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%204l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2020l3-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%2020l-3-3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Explain Shell Command",
+			"path": "explainshell",
+			"description": "Use explainshell.com (or a self hosted) to explain a shell command",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%209l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%2015h3%22%3E%3C%2Fpath%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%3E%3C%2Frect%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "IBAN validator and parser",
@@ -1615,6 +1837,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5%205v16%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19%205v9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%205a5%205%200%200%201%207%200a5%205%200%200%200%207%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2014a5%205%200%200%201%207%200a5%205%200%200%200%207%200%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "ISO 639 Searcher",
+			"path": "iso-639-searcher",
+			"description": "Search in ISO 639-1/2T/2B/3 language codes",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%205h7%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%203v2c0%204.418-2.239%208-5%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%209c-.003%202.144%202.952%203.908%206.7%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2020l4-9l4%209%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.1%2018h-6.2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Luhn Validator",
 			"path": "luhn-validator",
 			"description": "Check and generate key for identifier validated by a Luhn checknum",
@@ -1637,6 +1865,12 @@
 			"path": "rmb-numbers",
 			"description": "RMB/Renminbi Capitalization Conversion Tool",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2019v-7L7%205m10%200l-5%207%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2017h8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2013h8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Running Pace Calculator",
+			"path": "running-pace-calculator",
+			"description": "Calculate your running pace, estimate your finish times for popular races, break down splits, and find your training zones.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2213%22%20cy%3D%224%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M4%2017l5%201l.75-1.5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2021v-4l-4-3l1-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2012V9l5-1l3%203l3%201%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "SLA calculator",
@@ -1667,6 +1901,18 @@
 			"path": "camera-recorder",
 			"description": "Take a picture or record a video from your webcam or camera.",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5%207h1a2%202%200%200%200%202-2a1%201%200%200%201%201-1h6a1%201%200%200%201%201%201a2%202%200%200%200%202%202h1a2%202%200%200%201%202%202v9a2%202%200%200%201-2%202H5a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2213%22%20r%3D%223%22%3E%3C%2Fcircle%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Crop image",
+			"path": "crop-image",
+			"description": "Crop, resize, and rotate images with custom background colors.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%205v10a1%201%200%200%200%201%201h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%208h10a1%201%200%200%201%201%201v10%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "GIF to MP4",
+			"path": "gif-to-mp4",
+			"description": "Convert GIF to MP4 using ffmpeg",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M15%2010l4.553-2.276A1%201%200%200%201%2021%208.618v6.764a1%201%200%200%201-1.447.894L15%2014v-4z%22%3E%3C%2Fpath%3E%3Crect%20x%3D%223%22%20y%3D%226%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2012h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2010v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "HEIC Converter",
@@ -1723,6 +1969,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%204l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020l3-3l-3-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%207h3a5%205%200%200%201%205%205a5%205%200%200%200%205%205h5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21%207h-5a4.978%204.978%200%200%200-2.998.998M9%2016.001A4.984%204.984%200%200%201%206%2017H3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Remove Image Background",
+			"path": "remove-background",
+			"description": "Remove background from an image using AI",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2019H5a2%202%200%200%201-2-2V7a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202v4%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2214%22%20y%3D%2214%22%20width%3D%227%22%20height%3D%225%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%209l4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2012V9h3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Remove EXIF",
 			"path": "remove-exif",
 			"description": "Remove Exif from JPEG Files",
@@ -1762,7 +2014,7 @@
 			"name": "Fortune wheel",
 			"path": "fortune-wheel",
 			"description": "A configurable fortune wheel",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%204l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020l3-3l-3-3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%207h3a5%205%200%200%201%205%205a5%205%200%200%200%205%205h5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21%207h-5a4.978%204.978%200%200%200-2.998.998M9%2016.001A4.984%204.984%200%200%201%206%2017H3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-wheel%22%3E%3Cpath%20d%3D%22M3%2012a9%209%200%201%200%2018%200a9%209%200%201%200%20-18%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2012a3%203%200%201%200%206%200a3%203%200%201%200%20-6%200%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2012h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2012h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13.6%209.4l3.4%20-4.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10.4%2014.6l-3.4%204.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%204.6l3.4%204.8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13.6%2014.6l3.4%204.8%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Chronometer",
@@ -1909,7 +2161,7 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
-			"name": "Html cleaner",
+			"name": "HTML cleaner",
 			"path": "html-cleaner",
 			"description": "Clean HTML",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%204l-2%2014.5l-6%202l-6-2L4%204z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.5%208h-7l.5%204h6l-.5%203.5l-2.5.75l-2.5-.75l-.1-.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
@@ -1917,7 +2169,7 @@
 		{
 			"name": "Escape HTML entities",
 			"path": "html-entities",
-			"description": "Escape or unescape HTML entities (replace characters like &lt;,&gt;, &, &quot; and \\&apos; with their HTML version)",
+			"description": "Escape or unescape HTML entities (replace characters like &lt;,&gt;, &amp;, &quot; and \\&apos; with their HTML version)",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%208l-4%204l4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%208l4%204l-4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%204l-4%2016%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
@@ -1927,10 +2179,16 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%204l-2%2014.5l-6%202l-6-2L4%204z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.5%208h-7l.5%204h6l-.5%203.5l-2.5.75l-2.5-.75l-.1-.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
-			"name": "Html Prettifier",
+			"name": "HTML Prettifier",
 			"path": "html-prettifier",
 			"description": "Prettify HTML code",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%204l-2%2014.5l-6%202l-6-2L4%204z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.5%208h-7l.5%204h6l-.5%203.5l-2.5.75l-2.5-.75l-.1-.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "HTML to data",
+			"path": "html-to-data",
+			"description": "Convert HTML table to JSON, YAML, CSV, SQL INSERT, XML, Markdown or XLSX",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M11.5%2020H6a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2h12a2%202%200%200%201%202%202v7.5M4%2010h16M10%204v16m4-1h7m-3-3l3%203l-3%203%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "HTML to XHTML",
@@ -1978,7 +2236,7 @@
 			"name": "SVG placeholder generator",
 			"path": "svg-placeholder-generator",
 			"description": "Generate svg images to use as a placeholder in your applications.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M19%205v14H5V5h14m0-2H5c-1.1%200-2%20.9-2%202v14c0%201.1.9%202%202%202h14c1.1%200%202-.9%202-2V5c0-1.1-.9-2-2-2zm-4.86%208.86l-3%203.87L9%2013.14L6%2017h12l-3.86-5.14z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20class%3D%22tabler-icon%20tabler-icon-file-type-svg%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2012v-7a2%202%200%200%201%202%20-2h7l5%205v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2020.25c0%20.414%20.336%20.75%20.75%20.75h1.25a1%201%200%200%200%201%20-1v-1a1%201%200%200%200%20-1%20-1h-1a1%201%200%200%201%20-1%20-1v-1a1%201%200%200%201%201%20-1h1.25a.75%20.75%200%200%201%20.75%20.75%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2015l2%206l2%20-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M20%2015h-1a2%202%200%200%200%20-2%202v2a2%202%200%200%200%202%202h1v-3%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Url Cleaner",
@@ -2015,6 +2273,12 @@
 			"path": "utm-url-generator",
 			"description": "Generate an URL with utm_ parameters",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2015v-4a2%202%200%200%201%204%200v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2013h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%209v6h-1.5a1.5%201.5%200%201%201%201.5-1.5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Cron Expression Builder",
+			"path": "cron-expression-builder",
+			"description": "Generate Cron expressions from a UI",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M12%207v5l3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "CSV to JSON",
@@ -2077,6 +2341,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Json Patch Tester",
+			"path": "json-patch",
+			"description": "A simple tool for creating and testing JSON patches according to RFC 6902. And list paths of a JSON object.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v11a2%202%200%200%201-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2010v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2012h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2017h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Json Query",
 			"path": "json-query",
 			"description": "Run JSON Query lang on a given JSON content",
@@ -2119,6 +2389,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "JSON to .env",
+			"path": "json-to-env",
+			"description": "Convert a flat JSON object into a .env file. Keys are upper-cased and values are safely quoted when they contain whitespace, quotes, or env-special characters.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "JSON to Go",
 			"path": "json-to-go",
 			"description": "Convert JSON to Go struct",
@@ -2149,16 +2425,16 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
-			"name": "Json to PHP-Array",
-			"path": "json-to-php-array",
-			"description": "Convert JSON to PHP Array",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%2212%22%20rx%3D%2210%22%20ry%3D%229%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M5.5%2015l.395-1.974L6.5%2010h1.32a1%201%200%200%201%20.986%201.164l-.167%201a1%201%200%200%201-.986.836H6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.5%2015l.395-1.974L16.5%2010h1.32a1%201%200%200%201%20.986%201.164l-.167%201a1%201%200%200%201-.986.836H16%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%207.5L11%2013%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.6%2010H14l-.5%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
 			"name": "Json to PHP Code",
 			"path": "json-to-php",
 			"description": "Generate PHP Classes from JSON",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Json to PHP-Array",
+			"path": "json-to-php-array",
+			"description": "Convert JSON to PHP Array",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%2212%22%20rx%3D%2210%22%20ry%3D%229%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M5.5%2015l.395-1.974L6.5%2010h1.32a1%201%200%200%201%20.986%201.164l-.167%201a1%201%200%200%201-.986.836H6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15.5%2015l.395-1.974L16.5%2010h1.32a1%201%200%200%201%20.986%201.164l-.167%201a1%201%200%200%201-.986.836H16%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%207.5L11%2013%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.6%2010H14l-.5%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Json to Python",
@@ -2215,6 +2491,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%2010V5h-1m8%2014v-5h-1%22%3E%3C%2Fpath%3E%3Crect%20x%3D%2215%22%20y%3D%225%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Crect%20x%3D%2210%22%20y%3D%2214%22%20width%3D%223%22%20height%3D%225%22%20rx%3D%22.5%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M6%2010h.01M6%2019h.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "ObjGen to JSON",
+			"path": "objgen-json",
+			"description": "Generate xomplex JSON from TOML like syntax",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%200%200-2%202v3a2%203%200%200%201-2%203a2%203%200%200%201%202%203v3a2%202%200%200%200%202%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204a2%202%200%200%201%202%202v3a2%203%200%200%200%202%203a2%203%200%200%200-2%203v3a2%202%200%200%201-2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "PHP-Array to JSON",
 			"path": "php-array-to-json",
 			"description": "Convert PHP Array to JSON",
@@ -2257,10 +2539,22 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M22%2012.54c-1.804-.345-2.701-1.08-3.523-2.94c-.487.696-1.102%201.568-.92%202.4c.028.238-.32%201.002-.557%201H3c0%205.208%203.164%207%206.196%207c4.124.022%207.828-1.376%209.854-5c1.146-.101%202.296-1.505%202.95-2.46z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2010h3v3H5z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2010h3v3H8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2010h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%207h3v3H8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%207h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%204h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4.571%2018c1.5%200%202.047-.074%202.958-.78%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2016v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Docker Image Downloader",
+			"path": "docker-image-downloader",
+			"description": "Download a docker image given a docker registry, an architecture and an image name",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v11a2%202%200%200%201-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2011v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2014l3%203l3-3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Docker inspect to Docker run",
 			"path": "docker-inspect-to-docker-run",
 			"description": "Convert docker inspect command json result back to Docker run command",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M22%2012.54c-1.804-.345-2.701-1.08-3.523-2.94c-.487.696-1.102%201.568-.92%202.4c.028.238-.32%201.002-.557%201H3c0%205.208%203.164%207%206.196%207c4.124.022%207.828-1.376%209.854-5c1.146-.101%202.296-1.505%202.95-2.46z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2010h3v3H5z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2010h3v3H8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2010h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%207h3v3H8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%207h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%204h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4.571%2018c1.5%200%202.047-.074%202.958-.78%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2016v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Docker Pangolin Labels",
+			"path": "docker-pangolin-labels",
+			"description": "Convert Docker Compose Pangolin labels to blueprints and vice versa",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M15.9%205c-.17%200-.32.09-.41.23l-.07.15l-5.18%2011.65c-.16.29-.26.61-.26.96c0%201.11.9%202.01%202.01%202.01c.96%200%201.77-.68%201.96-1.59l.01-.03L16.4%205.5c0-.28-.22-.5-.5-.5zM1%209l2%202c2.88-2.88%206.79-4.08%2010.53-3.62l1.19-2.68C9.89%203.84%204.74%205.27%201%209zm20%202l2-2a15.367%2015.367%200%200%200-5.59-3.57l-.53%202.82c1.5.62%202.9%201.53%204.12%202.75zm-4%204l2-2c-.8-.8-1.7-1.42-2.66-1.89l-.55%202.92c.42.27.83.59%201.21.97zM5%2013l2%202a7.1%207.1%200%200%201%204.03-2l1.28-2.88c-2.63-.08-5.3.87-7.31%202.88z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Docker run to Docker compose converter",
@@ -2281,15 +2575,39 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M22%2012.54c-1.804-.345-2.701-1.08-3.523-2.94c-.487.696-1.102%201.568-.92%202.4c.028.238-.32%201.002-.557%201H3c0%205.208%203.164%207%206.196%207c4.124.022%207.828-1.376%209.854-5c1.146-.101%202.296-1.505%202.95-2.46z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2010h3v3H5z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2010h3v3H8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2010h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%207h3v3H8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%207h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%204h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4.571%2018c1.5%200%202.047-.074%202.958-.78%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2016v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Dockerfile Label Generator",
+			"path": "dockerfile-label-generator",
+			"description": "A simple tool for generating labels for Dockerfiles.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M22%2012.54c-1.804-.345-2.701-1.08-3.523-2.94c-.487.696-1.102%201.568-.92%202.4c.028.238-.32%201.002-.557%201H3c0%205.208%203.164%207%206.196%207c4.124.022%207.828-1.376%209.854-5c1.146-.101%202.296-1.505%202.95-2.46z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2010h3v3H5z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2010h3v3H8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2010h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%207h3v3H8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%207h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%204h3v3h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4.571%2018c1.5%200%202.047-.074%202.958-.78%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2016v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Kubernetes RBAC Generator",
+			"path": "k8s-rbac-generator",
+			"description": "Generate k8s RBAC policy YAML",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203a12%2012%200%200%200%208.5%203A12%2012%200%200%201%2012%2021A12%2012%200%200%201%203.5%206A12%2012%200%200%200%2012%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2014l8-3l8%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Traefik Docker Compose Maker",
 			"path": "traefik-compose-maker",
 			"description": "Create a docker compose with Traefik labels ready for a given service and options",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M15.9%205c-.17%200-.32.09-.41.23l-.07.15l-5.18%2011.65c-.16.29-.26.61-.26.96c0%201.11.9%202.01%202.01%202.01c.96%200%201.77-.68%201.96-1.59l.01-.03L16.4%205.5c0-.28-.22-.5-.5-.5zM1%209l2%202c2.88-2.88%206.79-4.08%2010.53-3.62l1.19-2.68C9.89%203.84%204.74%205.27%201%209zm20%202l2-2a15.367%2015.367%200%200%200-5.59-3.57l-.53%202.82c1.5.62%202.9%201.53%204.12%202.75zm-4%204l2-2c-.8-.8-1.7-1.42-2.66-1.89l-.55%202.92c.42.27.83.59%201.21.97zM5%2013l2%202a7.1%207.1%200%200%201%204.03-2l1.28-2.88c-2.63-.08-5.3.87-7.31%202.88z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
-			"name": "Html to markdown",
+			"name": "Epub to Markdown",
+			"path": "epub-to-markdown",
+			"description": "Convert an EPUB file to full markdown content",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M19%204v16H7a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2h12z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19%2016H7a2%202%200%200%200-2%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%208h6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "HTML to markdown",
 			"path": "html-to-markdown",
 			"description": "Convert HTML (either from clipboard) to Markdown",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2015V9l2%202l2-2v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2013l2%202l2-2m-2%202V9%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Markdown Diff",
+			"path": "markdown-diff",
+			"description": "Compare two Markdown documents and see the differences between them.",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2015V9l2%202l2-2v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2013l2%202l2-2m-2%202V9%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
@@ -2305,10 +2623,28 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%206h16%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2012h16%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2018h12%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Markdown preview",
+			"path": "markdown-preview",
+			"description": "Live preview of Markdown as you type",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2015V9l2%202l2-2v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2013l2%202l2-2m-2%202V9%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Markdown Table Generator",
+			"path": "markdown-table-generator",
+			"description": "Create GitHub-flavored Markdown tables with a visual editor.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M4%2010h16%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%204v16%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Markdown Table Prettifier",
 			"path": "markdown-table-prettifier",
 			"description": "Prettify markdown tables",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2015V9l2%202l2-2v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2013l2%202l2-2m-2%202V9%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Markdown to data",
+			"path": "markdown-to-data",
+			"description": "Convert Markdown table to JSON, YAML, CSV, SQL INSERT, XML, Markdown or XLSX",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M11.5%2020H6a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2h12a2%202%200%200%201%202%202v7.5M4%2010h16M10%204v16m4-1h7m-3-3l3%203l-3%203%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Markdown to DOCX",
@@ -2323,6 +2659,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2015V9l2%202l2-2v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2013l2%202l2-2m-2%202V9%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Markdown to Text",
+			"path": "markdown-to-text",
+			"description": "Convert markdown to plain text",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203v4a1%201%200%200%200%201%201h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2021H7a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7l5%205v11a2%202%200%200%201-2%202z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%209h1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2013h6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2017h6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Markdown toc generator",
 			"path": "markdown-toc-generator",
 			"description": "Generate a TOC from a markdown file/content",
@@ -2333,6 +2675,12 @@
 			"path": "paste-as-markdown",
 			"description": "Paste cells/tables and links from clipboard content as Markdown",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2015V9l2%202l2-2v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2013l2%202l2-2m-2%202V9%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "HTML to PDF",
+			"path": "html-to-pdf",
+			"description": "Generate PDF from HTML content or URL with format selection and auto hide cookie banners",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M17%2017h2a2%202%200%200%200%202-2v-4a2%202%200%200%200-2-2H5a2%202%200%200%200-2%202v4a2%202%200%200%200%202%202h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%209V5a2%202%200%200%200-2-2H9a2%202%200%200%200-2%202v4%22%3E%3C%2Fpath%3E%3Crect%20x%3D%227%22%20y%3D%2213%22%20width%3D%2210%22%20height%3D%228%22%20rx%3D%222%22%3E%3C%2Frect%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "PDF Compressor",
@@ -2383,22 +2731,10 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203l18%2018%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19%2019a2%202%200%200%201-2%202H7a2%202%200%200%201-2-2v-6a2%202%200%200%201%202-2h4m4%200h2a2%202%200%200%201%202%202v2%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2216%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M8%2011V8m.712-3.278A4%204%200%200%201%2016%207v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
-			"name": "TOML Linter",
-			"path": "toml-linter",
-			"description": "Lint and check TOML content",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M15%204v2h3v12h-3v2h5V4M4%204v16h5v-2H6V6h3V4z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "TOML to JSON",
-			"path": "toml-to-json",
-			"description": "Parse and convert TOML to JSON.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M15%204v2h3v12h-3v2h5V4M4%204v16h5v-2H6V6h3V4z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "TOML to YAML",
-			"path": "toml-to-yaml",
-			"description": "Parse and convert TOML to YAML.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M15%204v2h3v12h-3v2h5V4M4%204v16h5v-2H6V6h3V4z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+			"name": "ObjGen to HTML",
+			"path": "objgen-html",
+			"description": "Generate xomplex HTML from TOML like syntax",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%204H5v16h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%204h3v16h-3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "XML formatter",
@@ -2429,6 +2765,24 @@
 			"path": "xslt-tester",
 			"description": "Allows to test XML transformation using XSLT Stylesheets",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%2013V4.5a1.5%201.5%200%200%201%203%200V12%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11%2011.5v-2a1.5%201.5%200%200%201%203%200V12%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2010.5a1.5%201.5%200%200%201%203%200V12%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%2011.5a1.5%201.5%200%200%201%203%200V16a6%206%200%200%201-6%206h-2h.208a6%206%200%200%201-5.012-2.7L7%2019c-.312-.479-1.407-2.388-3.286-5.728a1.5%201.5%200%200%201%20.536-2.022a1.867%201.867%200%200%201%202.28.28L8%2013%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M2.541%205.594a13.487%2013.487%200%200%201%202.46-1.427%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%203.458a13.44%2013.44%200%200%201%203.685%201.612%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "TOML Linter",
+			"path": "toml-linter",
+			"description": "Lint and check TOML content",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M15%204v2h3v12h-3v2h5V4M4%204v16h5v-2H6V6h3V4z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "TOML to JSON",
+			"path": "toml-to-json",
+			"description": "Parse and convert TOML to JSON.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M15%204v2h3v12h-3v2h5V4M4%204v16h5v-2H6V6h3V4z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "TOML to YAML",
+			"path": "toml-to-yaml",
+			"description": "Parse and convert TOML to YAML.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M15%204v2h3v12h-3v2h5V4M4%204v16h5v-2H6V6h3V4z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "YAML Flattener/Unflattener",
