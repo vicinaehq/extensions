@@ -118,7 +118,7 @@ export async function searchMedia(
 	page = 1,
 ): Promise<TrendingResponse> {
 	const params = new URLSearchParams({
-		query,
+		query: encodeURIComponent(query),
 		page: String(page),
 	});
 	const response = await fetchWithTimeout(
