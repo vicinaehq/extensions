@@ -1,0 +1,112 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "freetube",
+  "title": "FreeTube",
+  "description": "Search YouTube, open videos, channels, playlists, and more — all in FreeTube",
+  "categories": [
+    "Media"
+  ],
+  "platforms": [
+    "Linux",
+    "macOS",
+    "Windows"
+  ],
+  "license": "MIT",
+  "author": "nihalxkumar",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "search",
+      "title": "Search YouTube",
+      "description": "Search YouTube in FreeTube",
+      "icon": "iconWhite.png",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "query",
+          "placeholder": "Search query",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "open",
+      "title": "Open in FreeTube",
+      "description": "Open a video, channel, or playlist in FreeTube — auto-detects from URL, ID, or @handle",
+      "icon": "iconWhite.png",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "input",
+          "placeholder": "URL, video ID, @handle, or playlist ID",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "open-trending",
+      "title": "Open Trending",
+      "description": "Open the YouTube Trending page in FreeTube",
+      "icon": "iconWhite.png",
+      "mode": "no-view"
+    },
+    {
+      "name": "open-subscriptions",
+      "title": "Open Subscriptions",
+      "description": "Open your Subscriptions feed in FreeTube",
+      "icon": "iconWhite.png",
+      "mode": "no-view"
+    },
+    {
+      "name": "open-history",
+      "title": "Open History",
+      "description": "Open your watch History in FreeTube",
+      "icon": "iconWhite.png",
+      "mode": "no-view"
+    },
+    {
+      "name": "play-top-result",
+      "title": "Play Top Result",
+      "description": "Search YouTube and immediately play the first result in FreeTube",
+      "icon": "iconWhite.png",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "query",
+          "placeholder": "Search query",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "bookmarks",
+      "title": "Bookmarks",
+      "description": "View all your saved YouTube videos and playlists",
+      "icon": "iconWhite.png",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src tests",
+    "lint": "biome check src tests && vici lint",
+    "test": "node --import tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.23.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^5.9.2"
+  },
+  "version": "0.2.0"
+}
