@@ -63,6 +63,7 @@ export default async function PlayTopResult(
 		? `Playing: ${truncateMiddle(top.title, HUD_TITLE_MAX_LENGTH)}`
 		: "Playing top result in FreeTube";
 
+	await toast.hide();
 	await openInFreeTube(watchUrl(top.videoId), label);
 }
 
