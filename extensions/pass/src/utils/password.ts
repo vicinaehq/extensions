@@ -78,14 +78,22 @@ export async function buildPasswordOptions({
       const pref = preferences.schema![index];
       if (data != "" && pref != undefined) {
         if (pref.type == "otp" && data.startsWith("otpauth")) {
-          const code = await deriveOtpCode(data, preferences);
-          const index = prioritizeOtp ? 0 : options.length;
+          try {
+            const code = await deriveOtpCode(data, preferences);
+            const index = prioritizeOtp ? 0 : options.length;
 
-          options.splice(index, 0, ({
-            title: pref.key,
-            value: code,
-            type: pref.type
-          }));
+            options.splice(index, 0, ({
+              title: pref.key,
+              value: code,
+              type: pref.type
+            }));
+          } catch (error) {
+            const message =
+              error instanceof OtpError
+                ? error.message
+                : "Failed to generate OTP code";
+            warnings.push(message);
+          }
         }
         else {
           options.push({

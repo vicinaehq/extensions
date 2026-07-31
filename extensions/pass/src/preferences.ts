@@ -1,6 +1,6 @@
 import { getPreferenceValues } from "@vicinae/api";
 import { resolveAbsolutePath } from "@/utils/path";
-import { Schema } from "@/types"
+import { Schema } from "@/types";
 
 type RawPreferences = {
   passwordStorePath?: string;
@@ -24,7 +24,7 @@ export type Preferences = {
 
 export function getPreferences(): Preferences {
   const raw = getPreferenceValues<RawPreferences>();
-  const path = raw.passwordStorePath || "~/.password-store";
+  const path = raw.passwordStorePath || process.env.PASSWORD_STORE_DIR || "~/.password-store";
   return {
     passwordStorePath: resolveAbsolutePath(path),
     gpgPassphrase: sanitizeString(raw.gpgPassphrase),
@@ -32,14 +32,20 @@ export function getPreferences(): Preferences {
     otpAfterPassword: raw.otpAfterPassword ?? true,
     lastUsedTtlSeconds: parsePositiveInt(raw.lastUsedTtl, 120),
     action: raw.action || "paste",
-    schema: parseJson(raw.fileSchema)
+    schema: parseJson(raw.fileSchema),
   };
 }
 
-function parseJson(value?: string) {
+function parseJson(value?: string): Schema | null {
   const jsonString = sanitizeString(value);
   if (jsonString == undefined) return null;
-  return JSON.parse(jsonString);
+
+  try {
+    return JSON.parse(jsonString) as Schema;
+  } catch (error) {
+    console.error("Failed to parse file schema preference:", error);
+    return null;
+  }
 }
 
 function sanitizeString(value?: string): string | undefined {
