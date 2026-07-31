@@ -3,6 +3,7 @@ import * as path from "node:path";
 import {
 	Clipboard,
 	Color,
+  LocalStorage,
 	environment,
 	getPreferenceValues,
 	Icon,
@@ -35,6 +36,8 @@ export const ACTION_ORDER: PrimaryAction[] = [
 export const DEFAULT_COLUMNS = 8;
 export const DEFAULT_ITEMS_PER_PAGE = 800;
 
+export const PREVIOUS_SET_ID_KEY = "iconify.previousSetId";
+
 export const getPreferences = () => getPreferenceValues<Preferences>();
 
 export const getPrimaryAction = () =>
@@ -48,6 +51,14 @@ export const getColumnsPreference = () => {
 export const getItemsPerPagePreference = () => {
 	const value = Number.parseInt(getPreferences().itemsPerPage ?? "", 10);
 	return Number.isFinite(value) && value > 0 ? value : DEFAULT_ITEMS_PER_PAGE;
+};
+
+export const setPreviousSetId = async (setId: string) => {
+  await LocalStorage.setItem(PREVIOUS_SET_ID_KEY, setId);
+};
+
+export const getPreviousSetId = async () => {
+  return await LocalStorage.getItem<string>(PREVIOUS_SET_ID_KEY);
 };
 
 export const getIconColor = (launchContext?: { hex?: string }) => {
