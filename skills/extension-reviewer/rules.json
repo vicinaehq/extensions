@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "MANIFEST-001",
+      "title": "Manifest does not match extension behavior",
+      "defaultSeverity": "warning",
+      "guidance": [
+        "Check that titles, descriptions, commands, categories, preferences, capabilities, setup, services, dependencies, and limitations accurately describe the implementation.",
+        "Do not report schema or other mechanically verifiable validity checks owned by CI."
+      ]
+    },
+    {
+      "id": "DEPENDENCY-001",
+      "title": "Dependency choice does not match implementation",
+      "defaultSeverity": "warning",
+      "guidance": [
+        "Flag unused, unexpectedly powerful, incoherent, or needlessly redundant dependencies.",
+        "Recommend a compatible current @vicinae/api version when useful and remind the author to run npm install and commit package-lock.json."
+      ]
+    },
+    {
+      "id": "ASSET-001",
+      "title": "Asset does not match its stated purpose",
+      "defaultSeverity": "warning",
+      "guidance": [
+        "Flag deceptive, executable, meaningfully unauditable, or unexplained generated assets.",
+        "Do not report mechanically verifiable paths, dimensions, or aspect ratios owned by CI, or reject ordinary images merely for using a binary format."
+      ]
+    },
+    {
+      "id": "SECURITY-001",
+      "title": "Unsafe downloaded executable",
+      "defaultSeverity": "blocking",
+      "guidance": [
+        "Reject arbitrary downloaded binaries.",
+        "Allow a justified resource from an established independent source; prefer asking users to install required tools themselves."
+      ]
+    },
+    {
+      "id": "SECURITY-002",
+      "title": "Command or code injection",
+      "defaultSeverity": "blocking",
+      "guidance": [
+        "Flag unsafe shell construction, eval, Function, decoded executable strings, concealed dynamic imports, and equivalent unintended execution paths.",
+        "Do not flag safely parameterized process arguments merely because they contain user input."
+      ]
+    },
+    {
+      "id": "SECURITY-003",
+      "title": "Credential or sensitive-data exposure",
+      "defaultSeverity": "blocking",
+      "guidance": [
+        "Flag credentials embedded in source, logged, sent to unrelated services, or exposed to commands that do not need them."
+      ]
+    },
+    {
+      "id": "PROCESS-001",
+      "title": "Unsafe or unjustified native process execution",
+      "defaultSeverity": "warning",
+      "guidance": [
+        "Identify spawned programs and confirm their purpose matches the extension.",
+        "Flag unsafe execution and children that can outlive Vicinae; allow legitimate documented system-tool dependencies."
+      ]
+    },
+    {
+      "id": "API-001",
+      "title": "Environment-specific behavior duplicates a Vicinae API",
+      "defaultSeverity": "warning",
+      "guidance": [
+        "Actively inspect the trusted current @vicinae/api declarations for a functionally equivalent portable replacement.",
+        "Treat xdg-open, gtk-launch, wmctrl, xdotool, and hyprctl only as examples, not a denylist.",
+        "Allow essential environment-specific behavior when no equivalent Vicinae API exists.",
+        "If the replacement needs a newer API, recommend the minimum compatible version when known, otherwise the trusted current version; remind the author to run npm install and commit package-lock.json."
+      ]
+    },
+    {
+      "id": "NETWORK-001",
+      "title": "Undisclosed or unjustified remote service",
+      "defaultSeverity": "warning",
+      "guidance": [
+        "Confirm remote hosts are legitimate for the stated behavior and flag undisclosed transmission.",
+        "Use blocking severity for deceptive transmission or clearly unsafe endpoints."
+      ]
+    },
+    {
+      "id": "UX-001",
+      "title": "Missing actionable error feedback",
+      "defaultSeverity": "warning",
+      "guidance": [
+        "Require useful feedback for operational failures, missing tools, and unsupported environments.",
+        "Do not require redundant handling when Vicinae already presents the failure clearly."
+      ]
+    },
+    {
+      "id": "UX-002",
+      "title": "Missing loading or empty-state feedback",
+      "defaultSeverity": "warning",
+      "guidance": [
+        "Distinguish observable loading, empty, successful, and failed states.",
+        "Do not require loading UI for effectively immediate work or flows handled by a Vicinae component."
+      ]
+    },
+    {
+      "id": "FUNCTIONALITY-001",
+      "title": "Duplicates native Vicinae functionality",
+      "defaultSeverity": "blocking",
+      "guidance": [
+        "Use the trusted current product documentation and flag obvious replicas with no meaningful distinction, such as a generic emoji picker.",
+        "Allow integrations with external tools or services and extensions providing distinct data, workflows, or capabilities.",
+        "Report only documented, substantially equivalent built-in functionality with no clear added value."
+      ]
+    },
+    {
+      "id": "QUALITY-001",
+      "title": "Obfuscated, minified, dead, or generated code",
+      "defaultSeverity": "warning",
+      "guidance": [
+        "Reject source that cannot be meaningfully audited; otherwise flag dead paths, commented-out development blocks, and unexplained generated code."
+      ]
+    },
+    {
+      "id": "DECEPTION-001",
+      "title": "Behavior does not match its presentation",
+      "defaultSeverity": "blocking",
+      "guidance": [
+        "Flag concrete misleading names, hidden behavior, description mismatches, concealed execution, or unexplained data transmission; do not report vague suspicion."
+      ]
+    }
+  ]
+}
