@@ -56,18 +56,14 @@ export default function Protocols() {
 						actions={
 							<ActionPanel>
 								<Action
-									title="Open in browser"
+									title="Open in terminal"
 									onAction={() => {
-										const source = `https://wayland.app/protocols/${p.id}`;
-										const res = spawnSync("xdg-open", [source], {
-											stdio: "inherit",
-										});
-
-										console.log(res.error);
-										console.log(res.output);
-										console.log(res.stdout);
-										console.log(res.stderr);
+										spawnSync("alacritty", [p.id]);
 									}}
+								/>
+								<Action.OpenInBrowser
+									title="Open in browser"
+									url={`https://wayland.app/protocols/${p.id}`}
 								/>
 							</ActionPanel>
 						}
