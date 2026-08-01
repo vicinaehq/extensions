@@ -78,13 +78,8 @@ function parseDesktopFile(
     let finalCommand = "";
     let isKDE5 = false;
 
-    if (execCommand.includes("systemsettings")) {
-      const parts = execCommand.split(/\s+/);
-      if (parts.length > 1 && parts[1]) {
-        finalModuleId = parts[1];
-        finalCommand = execCommand;
-      }
-    } else if (execCommand.includes("kcmshell6")) {
+    // systemsettings and kcmshell6 both take the module id as the first argument
+    if (execCommand.includes("systemsettings") || execCommand.includes("kcmshell6")) {
       const parts = execCommand.split(/\s+/);
       if (parts.length > 1 && parts[1]) {
         finalModuleId = parts[1];
@@ -135,67 +130,56 @@ function parseDesktopFile(
   }
 }
 
+/**
+ * Scan a directory for .desktop files and collect parsed KCM modules that
+ * haven't been seen yet (by id or display name).
+ */
+function scanDirectory(
+  dir: string,
+  descriptionsMap: Map<string, string>,
+  modules: KCMModule[],
+  seenIds: Set<string>,
+  seenNames: Set<string>,
+  fileFilter: (file: string) => boolean,
+): void {
+  if (!existsSync(dir)) return;
+
+  try {
+    const files = readdirSync(dir);
+    for (const file of files) {
+      if (!fileFilter(file)) continue;
+
+      const module = parseDesktopFile(join(dir, file), descriptionsMap);
+      if (!module) continue;
+
+      const lowerName = module.name.toLowerCase();
+      if (seenIds.has(module.id) || seenNames.has(lowerName)) continue;
+
+      modules.push(module);
+      seenIds.add(module.id);
+      seenNames.add(lowerName);
+    }
+  } catch (error) {
+    console.error(`Error reading ${dir} directory:`, error);
+  }
+}
+
 export async function loadKCMModules(): Promise<KCMModule[]> {
   const descriptionsMap = await loadKCMDescriptions();
   const modules: KCMModule[] = [];
-  const seen = new Set<string>();
+  // Deduplicate by both module id and display name. Different .desktop files
+  // across the scanned directories can map to different IDs but the same
+  // user-facing name (e.g. "Animations" from kcm_animations and
+  // kcm_animations_x11), so tracking name prevents duplicate list entries.
+  const seenIds = new Set<string>();
+  const seenNames = new Set<string>();
 
-  const applicationsDir = "/usr/share/applications";
-  if (existsSync(applicationsDir)) {
-    try {
-      const files = readdirSync(applicationsDir);
-      for (const file of files) {
-        if (file.startsWith("kcm_") && file.endsWith(".desktop")) {
-          const filePath = join(applicationsDir, file);
-          const module = parseDesktopFile(filePath, descriptionsMap);
-          if (module && !seen.has(module.id)) {
-            modules.push(module);
-            seen.add(module.id);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error reading applications directory:", error);
-    }
-  }
+  const isDesktop = (file: string) => file.endsWith(".desktop");
+  const isKcmDesktop = (file: string) => file.startsWith("kcm_") && file.endsWith(".desktop");
 
-  const kservices5Dir = "/usr/share/kservices5";
-  if (existsSync(kservices5Dir)) {
-    try {
-      const files = readdirSync(kservices5Dir);
-      for (const file of files) {
-        if (file.endsWith(".desktop")) {
-          const filePath = join(kservices5Dir, file);
-          const module = parseDesktopFile(filePath, descriptionsMap);
-          if (module && !seen.has(module.id)) {
-            modules.push(module);
-            seen.add(module.id);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error reading kservices5 directory:", error);
-    }
-  }
-
-  const kservices6Dir = "/usr/share/kservices6";
-  if (existsSync(kservices6Dir)) {
-    try {
-      const files = readdirSync(kservices6Dir);
-      for (const file of files) {
-        if (file.endsWith(".desktop")) {
-          const filePath = join(kservices6Dir, file);
-          const module = parseDesktopFile(filePath, descriptionsMap);
-          if (module && !seen.has(module.id)) {
-            modules.push(module);
-            seen.add(module.id);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error reading kservices6 directory:", error);
-    }
-  }
+  scanDirectory("/usr/share/applications", descriptionsMap, modules, seenIds, seenNames, isKcmDesktop);
+  scanDirectory("/usr/share/kservices5", descriptionsMap, modules, seenIds, seenNames, isDesktop);
+  scanDirectory("/usr/share/kservices6", descriptionsMap, modules, seenIds, seenNames, isDesktop);
 
   modules.sort((a, b) => a.name.localeCompare(b.name));
 
