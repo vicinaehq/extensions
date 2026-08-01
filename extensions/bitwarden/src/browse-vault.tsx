@@ -12,6 +12,7 @@ import {
 } from "@vicinae/api";
 import {
   RbwError,
+  RbwNotInstalledError,
   VaultEntry,
   getField,
   getCode,
@@ -61,7 +62,7 @@ async function performAction(
   actionType: "copy" | "paste" = "copy",
 ): Promise<void> {
   if (actionType === "copy") {
-    await Clipboard.copy(value);
+    await Clipboard.copy(value, { concealed: true });
     await showToast(Toast.Style.Success, `Copied ${title}`);
   } else {
     await Clipboard.paste(value);
@@ -74,8 +75,9 @@ export default function Command() {
     entries: [],
     loaded: false,
   });
-  const [searchText, setSearchText] = useState("");
   const [locked, setLocked] = useState(false);
+  const [notInstalled, setNotInstalled] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const loadEntries = useCallback(async () => {
     try {
@@ -90,6 +92,11 @@ export default function Command() {
       entries.sort((a, b) => a.name.localeCompare(b.name));
       setState({ entries, loaded: true });
     } catch (error) {
+      if (error instanceof RbwNotInstalledError) {
+        setNotInstalled(true);
+        setState({ entries: [], loaded: true });
+        return;
+      }
       setState({ entries: [], loaded: true });
       showToast(
         Toast.Style.Failure,
@@ -126,6 +133,18 @@ export default function Command() {
     [loadEntries],
   );
   
+  if (notInstalled) {
+    return (
+      <List>
+        <List.EmptyView
+          icon={Icon.Warning}
+          title="rbw is not installed"
+          description="Install rbw to use this extension. See https://github.com/doy/rbw"
+        />
+      </List>
+    );
+  }
+
   if (locked) {
     return (
       <List>
@@ -483,7 +502,7 @@ function EntryDetailView({ entry }: { entry: VaultEntry }) {
             title="Copy Password"
             icon={Icon.CopyClipboard}
             onAction={async () => {
-              await Clipboard.copy(detail.password);
+              await Clipboard.copy(detail.password, { concealed: true });
               showToast(Toast.Style.Success, "Copied password");
             }}
           />
@@ -492,7 +511,7 @@ function EntryDetailView({ entry }: { entry: VaultEntry }) {
               title="Copy Username"
               icon={Icon.Person}
               onAction={async () => {
-                await Clipboard.copy(detail.user!);
+                await Clipboard.copy(detail.user!, { concealed: true });
                 showToast(Toast.Style.Success, "Copied username");
               }}
             />

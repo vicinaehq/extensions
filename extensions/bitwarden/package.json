@@ -1,14 +1,15 @@
 {
 	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-	"name": "rbw",
-	"title": "rbw",
+	"name": "bitwarden",
+	"title": "Bitwarden (rbw)",
 	"description": "Search, copy and paste credentials from your Bitwarden vault using the rbw CLI",
 	"categories": [
 		"Security"
 	],
 	"license": "MIT",
 	"platforms": [
-		"Linux"
+		"Linux",
+		"macOS"
 	],
 	"author": "bl4zee1g",
 	"contributors": [],

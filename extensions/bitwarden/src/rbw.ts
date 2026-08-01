@@ -22,6 +22,15 @@ export class RbwError extends Error {
   }
 }
 
+export class RbwNotInstalledError extends Error {
+  constructor() {
+    super(
+      "rbw is not installed. Install it with `pacman -S rbw` (Arch), `brew install rbw` (macOS), or from https://github.com/doy/rbw",
+    );
+    this.name = "RbwNotInstalledError";
+  }
+}
+
 async function runRbw(
   args: string[],
   options?: { timeout?: number },
@@ -35,6 +44,9 @@ async function runRbw(
     return stdout;
   } catch (error) {
     const err = error as NodeJS.ErrnoException & { stderr?: string };
+    if (err.code === "ENOENT") {
+      throw new RbwNotInstalledError();
+    }
     throw new RbwError(
       `rbw command failed: ${err.message}`,
       typeof err.stderr === "string" ? err.stderr : undefined,
@@ -47,7 +59,10 @@ export async function isUnlocked(): Promise<boolean> {
   try {
     await runRbw(["unlocked"]);
     return true;
-  } catch {
+  } catch (error) {
+    if (error instanceof RbwNotInstalledError) {
+      throw error;
+    }
     return false;
   }
 }
@@ -57,7 +72,6 @@ export async function listEntries(): Promise<VaultEntry[]> {
   const stdout = await runRbw(["list", "--raw"]);
   return JSON.parse(stdout) as VaultEntry[];
 }
-
 /** Search vault entries by term. */
 export async function searchEntries(term: string): Promise<VaultEntry[]> {
   const stdout = await runRbw(["search", "--raw", term]);
