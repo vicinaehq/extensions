@@ -46,7 +46,7 @@ If you want to submit your own extension to the vicinae store, make sure you fol
 
 ### 1. Read the Guidelines
 
-Review the [extension guidelines](/GUIDELINES.md) and ensure your extension complies with all requirements.
+Review the [extension publication and review rules](/skills/extension-reviewer/SKILL.md) and ensure your extension complies with all requirements.
 
 ### 2. Submit a Pull Request
 
