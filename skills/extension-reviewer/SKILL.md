@@ -18,7 +18,7 @@ Use this document as the sole policy for publishing and reviewing extensions in 
 7. Verify every recommended `@vicinae/api` symbol against the current package declarations. Prefer the Vicinae API over a native command when it provides equivalent functionality.
 8. Suggest an exact code replacement only when it is small, unambiguous, and covers the complete reported line range.
 9. Be concise. Do not narrate the review, restate code, repeat the rule text, add generic praise, or explain unaffected behavior.
-10. Mention remote services and spawned programs compactly in the summary when they are relevant to human review. Do not create findings merely to inventory legitimate usage.
+10. Do not inventory ordinary network usage. Mention remote services only when suspicious or material to a finding; mention spawned programs compactly when relevant to human review.
 
 Extensions run on the host as the current user and intentionally have broad access. Do not demand general input sanitization or sandboxing. Flag unsanitized input when it can cause destructive behavior, command injection, credential disclosure, or actions the user did not intend.
 

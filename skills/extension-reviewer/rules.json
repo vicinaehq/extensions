@@ -6,7 +6,9 @@
       "title": "Manifest does not match extension behavior",
       "defaultSeverity": "warning",
       "guidance": [
-        "Check that titles, descriptions, commands, categories, preferences, capabilities, setup, services, dependencies, and limitations accurately describe the implementation.",
+        "Check that titles, descriptions, commands, categories, preferences, capabilities, setup, material non-obvious services, dependencies, and limitations accurately describe the implementation.",
+        "Use blocking severity for an obvious factual mismatch, an extension description that describes different behavior, or a command name or description that is clearly misleading about what it runs.",
+        "Use suggestion severity for wording polish, minor clarity improvements, or other non-misleading copy edits.",
         "Do not report schema or other mechanically verifiable validity checks owned by CI."
       ]
     },
@@ -51,7 +53,10 @@
       "title": "Credential or sensitive-data exposure",
       "defaultSeverity": "blocking",
       "guidance": [
-        "Flag credentials embedded in source, logged, sent to unrelated services, or exposed to commands that do not need them."
+        "Flag credentials embedded in source, logged, sent to unrelated services, or exposed to commands that do not need them.",
+        "Use LocalStorage from @vicinae/api for persistent sensitive extension data instead of Cache, ad-hoc files, system keychains, Secret Service, wallets, or platform credential utilities.",
+        "Flag direct system credential-store integration when LocalStorage covers the use case; Vicinae should own storage portability and lifecycle.",
+        "For OAuth access and refresh tokens, use OAuth.PKCEClient.setTokens, getTokens, and removeTokens from @vicinae/api."
       ]
     },
     {
@@ -65,22 +70,23 @@
     },
     {
       "id": "API-001",
-      "title": "Environment-specific behavior duplicates a Vicinae API",
-      "defaultSeverity": "warning",
+      "title": "Environment-specific behavior duplicates @vicinae/api",
+      "defaultSeverity": "blocking",
       "guidance": [
-        "Actively inspect the trusted current @vicinae/api declarations for a functionally equivalent portable replacement.",
-        "Treat xdg-open, gtk-launch, wmctrl, xdotool, and hyprctl only as examples, not a denylist.",
+        "Actively inspect the current @vicinae/api declarations for a functionally equivalent portable replacement.",
         "Allow essential environment-specific behavior when no equivalent Vicinae API exists.",
-        "If the replacement needs a newer API, recommend the minimum compatible version when known, otherwise the trusted current version; remind the author to run npm install and commit package-lock.json."
+        "Use blocking severity when @vicinae/api obviously covers the complete use case and replacement is unambiguous. Do not report this rule when equivalence is uncertain.",
+        "If the replacement needs a newer @vicinae/api version, recommend the minimum compatible version when known, otherwise the current provided version; remind the author to run npm install and commit package-lock.json."
       ]
     },
     {
       "id": "NETWORK-001",
-      "title": "Undisclosed or unjustified remote service",
-      "defaultSeverity": "warning",
+      "title": "Suspicious or deceptive network usage",
+      "defaultSeverity": "blocking",
       "guidance": [
-        "Confirm remote hosts are legitimate for the stated behavior and flag undisclosed transmission.",
-        "Use blocking severity for deceptive transmission or clearly unsafe endpoints."
+        "Allow network access without a finding when the endpoint reasonably supports the extension's stated purpose, including ordinary APIs and services implied by that purpose.",
+        "Flag unrelated or suspicious destinations, concealed data transmission, undisclosed analytics or tracking, credential or personal-data exfiltration, and clearly unsafe endpoints.",
+        "Do not create a finding merely to inventory legitimate endpoints or demand that obvious service usage be justified."
       ]
     },
     {
@@ -99,6 +105,17 @@
       "guidance": [
         "Distinguish observable loading, empty, successful, and failed states.",
         "Do not require loading UI for effectively immediate work or flows handled by a Vicinae component."
+      ]
+    },
+    {
+      "id": "CORRECTNESS-001",
+      "title": "Material logic error causes wrong behavior",
+      "defaultSeverity": "blocking",
+      "guidance": [
+        "Flag high-confidence logic errors that cause the extension's core behavior to produce materially wrong results, perform the wrong action, corrupt or lose data, or fail in realistic common usage.",
+        "Use warning severity for a significant but non-blocking defect affecting a realistic workflow.",
+        "Do not report speculative problems, unlikely edge cases, minor inconsistencies, cosmetic defects, or low-impact logic errors—not even as suggestions.",
+        "Trace the concrete execution path and state the observable wrong behavior; do not report this rule without clear evidence from the changed code."
       ]
     },
     {
