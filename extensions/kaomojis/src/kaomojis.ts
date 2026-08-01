@@ -1,4 +1,5 @@
 export const kaomojis: string[] = [
+	"₍^˶ ╸𖥦 ╸˵^₎⟆",
 	"⊹ ࣪ ˖ ໒꒱",
 	"⋆˚꩜｡",
 	"𑣲⋆",
