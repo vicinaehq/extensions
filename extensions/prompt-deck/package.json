@@ -1,0 +1,170 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "prompt-deck",
+  "title": "PromptDeck",
+  "description": "Create reusable AI prompts that run on your selected or copied text. Prompts, selected text, and clipboard text are sent to the LLM provider you configure (OpenAI, Anthropic, or Google, including OpenAI-compatible endpoints).",
+  "categories": [
+    "Productivity",
+    "Developer Tools"
+  ],
+  "keywords": [
+    "ai",
+    "llm",
+    "prompt",
+    "assistant",
+    "openai",
+    "anthropic",
+    "google",
+    "gpt",
+    "claude",
+    "gemini",
+    "ollama"
+  ],
+  "license": "MIT",
+  "author": "tadassuksteris",
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "manage-prompts",
+      "title": "Manage Prompts",
+      "subtitle": "PromptDeck",
+      "description": "Create, edit, and run reusable AI prompts.",
+      "mode": "view",
+      "icon": "icon.png"
+    },
+    {
+      "name": "run-prompt",
+      "title": "Run Prompt",
+      "subtitle": "PromptDeck",
+      "description": "Run a saved prompt by id (used by Quicklinks).",
+      "mode": "view",
+      "icon": "icon.png",
+      "arguments": [
+        {
+          "type": "text",
+          "name": "shortcutId",
+          "placeholder": "Prompt ID",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "prompt-history",
+      "title": "Prompt History",
+      "subtitle": "PromptDeck",
+      "description": "Browse previous prompt runs.",
+      "mode": "view",
+      "icon": "icon.png"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "provider",
+      "type": "dropdown",
+      "title": "Default Provider",
+      "description": "Provider used unless a prompt overrides it.",
+      "required": true,
+      "default": "openai",
+      "data": [
+        {
+          "title": "OpenAI or Compatible",
+          "value": "openai"
+        },
+        {
+          "title": "Anthropic",
+          "value": "anthropic"
+        },
+        {
+          "title": "Google",
+          "value": "google"
+        }
+      ]
+    },
+    {
+      "name": "openaiApiKey",
+      "type": "password",
+      "title": "OpenAI API Key",
+      "description": "Used by the OpenAI provider. Leave blank for local endpoints that need no auth, such as Ollama; hosted ones like OpenRouter still require their own key.",
+      "required": false
+    },
+    {
+      "name": "anthropicApiKey",
+      "type": "password",
+      "title": "Anthropic API Key",
+      "description": "Used when the resolved provider is Anthropic.",
+      "required": false
+    },
+    {
+      "name": "googleApiKey",
+      "type": "password",
+      "title": "Google API Key",
+      "description": "Used when the resolved provider is Google.",
+      "required": false
+    },
+    {
+      "name": "model",
+      "type": "textfield",
+      "title": "Default Model",
+      "description": "Default model id for the default provider.",
+      "required": true,
+      "default": "gpt-4o-mini"
+    },
+    {
+      "name": "baseURL",
+      "type": "textfield",
+      "title": "OpenAI-Compatible Base URL",
+      "description": "Optional base URL for OpenAI-compatible endpoints (Ollama, OpenRouter, ...). Used by the OpenAI provider only.",
+      "required": false,
+      "placeholder": "https://api.openai.com/v1"
+    },
+    {
+      "name": "temperature",
+      "type": "textfield",
+      "title": "Temperature",
+      "description": "Optional default temperature. Blank uses the provider/model default. Values outside the active provider's range are ignored.",
+      "required": false
+    },
+    {
+      "name": "reasoningLevel",
+      "type": "textfield",
+      "title": "Reasoning Level",
+      "description": "Optional default reasoning effort, passed to the provider as-is. Commonly minimal, low, medium, high, xhigh or max — support varies by provider and model. Blank uses the provider default.",
+      "required": false,
+      "placeholder": "medium"
+    },
+    {
+      "name": "maxOutputTokens",
+      "type": "textfield",
+      "title": "Max Output Tokens",
+      "description": "Optional default maximum output tokens. Blank uses the provider/model default.",
+      "required": false
+    },
+    {
+      "name": "enableHistory",
+      "type": "checkbox",
+      "title": "History",
+      "label": "Save prompt run history",
+      "description": "Keep a local history of prompt runs, browsable via the Prompt History command.",
+      "required": false,
+      "default": true
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.21",
+    "@ai-sdk/google": "^4.0.24",
+    "@ai-sdk/openai": "^4.0.20",
+    "@ai-sdk/provider": "^4.0.3",
+    "@vicinae/api": "^0.24.0",
+    "ai": "^7.0.37"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}

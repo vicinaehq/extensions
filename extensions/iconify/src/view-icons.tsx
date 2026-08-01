@@ -14,6 +14,8 @@ import {
 	getColumnsPreference,
 	getIconColor,
 	getItemsPerPagePreference,
+  getPreviousSetId,
+  setPreviousSetId,
 	iconToImage,
 	toDataUri,
 	toSvg,
@@ -107,11 +109,18 @@ export default function ViewIconsCommand({
 	const itemsPerPage = getItemsPerPagePreference();
 	const iconColor = getIconColor(launchContext);
 
-	useEffect(() => {
-		if (!activeSetId && sets.length > 0) {
-			setActiveSetId(sets[0].id);
-		}
-	}, [activeSetId, sets]);
+  useEffect(() => {
+    const initializeActiveSetId = async () => {
+      const previousSetId = await getPreviousSetId();
+      if (previousSetId && sets.some((set) => set.id === previousSetId)) {
+        setActiveSetId(previousSetId);
+      } else if (sets.length > 0) {
+        setActiveSetId(sets[0].id);
+      }
+    };
+
+    initializeActiveSetId();
+  }, [activeSetId, sets]);
 
 	const activeSet = sets.find((set) => set.id === activeSetId) ?? sets[0];
 	const {
@@ -167,6 +176,7 @@ export default function ViewIconsCommand({
 					value={activeSet?.id}
 					onChange={(value) => {
 						setActiveSetId(value);
+            setPreviousSetId(value);
 						setPage(0);
 					}}
 				>

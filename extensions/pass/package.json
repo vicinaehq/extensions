@@ -42,7 +42,7 @@
       "name": "additionalPath",
       "type": "textfield",
       "title": "Additional PATH Entries",
-      "description": "Colon separated paths appended to PATH before invoking gpg/oathtool",
+      "description": "Colon separated paths prepended to PATH before invoking gpg/oathtool",
       "default": "",
       "required": false
     },

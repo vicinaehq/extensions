@@ -112,7 +112,7 @@ export default function SearchSettings(props: LaunchProps) {
                 <ActionPanel>
                   <Action
                     title="Open Settings Module"
-                    icon={Icon.Gear}
+                    icon={Icon.Cog}
                     onAction={() =>
                       openKCMModule(module.name, module.execCommand)
                     }
