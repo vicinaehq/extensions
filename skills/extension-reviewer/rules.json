@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "rules": [
     {
       "id": "MANIFEST-001",
@@ -17,8 +17,7 @@
       "title": "Dependency choice does not match implementation",
       "defaultSeverity": "warning",
       "guidance": [
-        "Flag unused, unexpectedly powerful, incoherent, or needlessly redundant dependencies.",
-        "Recommend a compatible current @vicinae/api version when useful and remind the author to run npm install and commit package-lock.json."
+        "Flag unused, unexpectedly powerful, incoherent, or needlessly redundant dependencies."
       ]
     },
     {
@@ -27,6 +26,7 @@
       "defaultSeverity": "warning",
       "guidance": [
         "Flag deceptive, executable, meaningfully unauditable, or unexplained generated assets.",
+        "Do not inspect the raw bytes of ordinary image assets without concrete evidence that an image is suspicious or mismatched.",
         "Do not report mechanically verifiable paths, dimensions, or aspect ratios owned by CI, or reject ordinary images merely for using a binary format."
       ]
     },
@@ -44,8 +44,11 @@
       "title": "Command or code injection",
       "defaultSeverity": "blocking",
       "guidance": [
-        "Flag unsafe shell construction, eval, Function, decoded executable strings, concealed dynamic imports, and equivalent unintended execution paths.",
-        "Do not flag safely parameterized process arguments merely because they contain user input."
+        "Use blocking severity only when a realistically uncontrolled or surprising value can alter executable syntax and trigger an action the user did not intend.",
+        "Treat deliberate user input and ordinary local identity data, including the current username, as trusted by default. Do not invent adversarial usernames, filenames, or form values without a concrete path by which an external party can control them.",
+        "Scrutinize remote responses, imported or discovered content, file metadata, command output, and similar values whose contents the user cannot reasonably predict. Establish their provenance and the concrete execution path before reporting a finding.",
+        "Flag eval, Function, decoded executable strings, concealed dynamic imports, and shell construction only when that credible execution path exists. Privilege increases impact but does not by itself establish exploitability.",
+        "Do not flag safely parameterized process arguments merely because they contain dynamic data."
       ]
     },
     {
@@ -76,7 +79,7 @@
         "Actively inspect the current @vicinae/api declarations for a functionally equivalent portable replacement.",
         "Allow essential environment-specific behavior when no equivalent Vicinae API exists.",
         "Use blocking severity when @vicinae/api obviously covers the complete use case and replacement is unambiguous. Do not report this rule when equivalence is uncertain.",
-        "If the replacement needs a newer @vicinae/api version, recommend the minimum compatible version when known, otherwise the current provided version; remind the author to run npm install and commit package-lock.json."
+        "Name the verified replacement API, but do not speculate about dependency versions or instruct the author to upgrade, install dependencies, or update the lockfile."
       ]
     },
     {
@@ -105,6 +108,17 @@
       "guidance": [
         "Distinguish observable loading, empty, successful, and failed states.",
         "Do not require loading UI for effectively immediate work or flows handled by a Vicinae component."
+      ]
+    },
+    {
+      "id": "UX-003",
+      "title": "Non-English user-facing text",
+      "defaultSeverity": "blocking",
+      "guidance": [
+        "Require hard-coded user-facing strings such as titles, labels, actions, placeholders, messages, and errors to be in English.",
+        "Allow non-English text when it is content or data, a proper name, or is inherently required by the extension's stated purpose, such as language, translation, dictionary, or region-specific functionality.",
+        "Do not apply this rule to code identifiers, commands, paths, URLs, protocol values, API payloads, test fixtures, or remote user-provided content that is not extension interface copy.",
+        "Report only clear violations; do not guess the language of ambiguous short strings or proper nouns."
       ]
     },
     {

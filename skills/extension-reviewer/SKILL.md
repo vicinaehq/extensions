@@ -20,7 +20,11 @@ Use this document as the sole policy for publishing and reviewing extensions in 
 9. Be concise. Do not narrate the review, restate code, repeat the rule text, add generic praise, or explain unaffected behavior.
 10. Do not inventory ordinary network usage. Mention remote services only when suspicious or material to a finding; mention spawned programs compactly when relevant to human review.
 
-Extensions run on the host as the current user and intentionally have broad access. Do not demand general input sanitization or sandboxing. Flag unsanitized input when it can cause destructive behavior, command injection, credential disclosure, or actions the user did not intend.
+## Runtime model
+
+Vicinae extensions are TypeScript/JavaScript programs whose React JSX renders native Vicinae UI through `@vicinae/api`. They are not websites and do not render HTML in a browser DOM. Do not apply generic web-page checks for HTML tags, `<script>` injection, DOM APIs, CSP, or browser rendering. Consider HTML or browser security only when the extension explicitly processes web content as data or interacts with a real browser surface.
+
+Extensions run on the host as the current user and intentionally have broad access. Treat deliberate user input and ordinary local identity data as trusted unless the extension's purpose gives an external party control over them. Do not demand general input sanitization or sandboxing. Report injection only when a realistically uncontrolled or surprising value can alter executable syntax and cause an action the user did not intend.
 
 ## CI-enforced requirements
 
