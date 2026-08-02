@@ -129,7 +129,8 @@
         "Flag high-confidence logic errors that cause the extension's core behavior to produce materially wrong results, perform the wrong action, corrupt or lose data, or fail in realistic common usage.",
         "Use warning severity for a significant but non-blocking defect affecting a realistic workflow.",
         "Do not report speculative problems, unlikely edge cases, minor inconsistencies, cosmetic defects, or low-impact logic errors—not even as suggestions.",
-        "Trace the concrete execution path and state the observable wrong behavior; do not report this rule without clear evidence from the changed code."
+        "Trace the concrete execution path and state the observable wrong behavior; do not report this rule without clear evidence from the changed code.",
+        "When correctness depends on Vicinae API behavior, verify both supported and unsupported claims against the provided current declarations. Documentation silence and model memory are not evidence that an API member is absent."
       ]
     },
     {
