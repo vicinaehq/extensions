@@ -10,7 +10,7 @@ A Vicinae extension for managing and applying [Floww CLI](https://github.com/dag
 - **Multi-Format Support**: Supports YAML, JSON, and TOML workflow files
 - **Remove Workflow**: Delete workflows directly from the extension
 - **Workflow Validation**: Validate workflows before applying
-- **Fast Loading**: Sub-10ms load times via persistent caching and parallel I/O
+- **Fast Loading**: Parallel workflow loading with cached binary-path resolution
 - **Error Handling**: Graceful handling of missing CLI or configuration
 - **Status Feedback**: Toast notifications for success/error states
 
