@@ -139,21 +139,39 @@ export async function executeFlowwCommandSilent(
  * Check if Floww binary exists and is executable
  */
 export async function isFlowwAvailable(): Promise<boolean> {
+	// Preference takes priority over any cached state — a changed flowwPath
+	// preference must be honored immediately
+	const { flowwPath } = getPreferenceValues<{ flowwPath?: string }>();
+	if (flowwPath) {
+		try {
+			accessSync(flowwPath, constants.X_OK);
+			resolvedBinaryPath = flowwPath;
+			flowwAvailable = true;
+			await LocalStorage.setItem(CACHE_KEY_PATH, flowwPath);
+			return true;
+		} catch {
+			flowwAvailable = false;
+			return false;
+		}
+	}
+
+	// Only positive in-memory results are reused; a negative result always
+	// re-probes so a freshly installed binary is detected on the next refresh
+	if (flowwAvailable === true) return true;
+
 	// LocalStorage cache survives Vicinae process teardown between opens
 	const cachedPath = await LocalStorage.getItem<string>(CACHE_KEY_PATH);
 	if (cachedPath) {
 		try {
 			accessSync(cachedPath, constants.X_OK);
 			resolvedBinaryPath = cachedPath;
+			flowwAvailable = true;
 			return true;
 		} catch {
 			await LocalStorage.removeItem(CACHE_KEY_PATH);
 			await LocalStorage.removeItem(CACHE_KEY_INSTALLED);
 		}
 	}
-
-	// In-memory cache (same process, e.g. refresh after remove)
-	if (flowwAvailable !== null) return flowwAvailable;
 
 	try {
 		const result = await executeFlowwCommandSilent("--version");
