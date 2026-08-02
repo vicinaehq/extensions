@@ -1,0 +1,91 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "gpu-screen-recorder",
+  "title": "GPU Screen Recorder",
+  "description": "Keyboard-first interface for GPU-accelerated screen recording on Wayland via gpu-screen-recorder",
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "lufimio",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "gpu-screen-recorder-logo.png",
+  "commands": [
+    {
+      "name": "main",
+      "title": "GPU Screen Recorder",
+      "subtitle": "Screen recording control panel",
+      "description": "Main control panel for GPU screen recording and instant replay",
+      "mode": "view"
+    },
+    {
+      "name": "toggle-recording",
+      "title": "Toggle Recording",
+      "subtitle": "Toggle screen recording",
+      "description": "Toggle GPU screen recorder's recording function",
+      "mode": "no-view"
+    },
+    {
+      "name": "start-recording",
+      "title": "Start Recording",
+      "subtitle": "Start screen recording",
+      "description": "Start screen recording with default settings",
+      "mode": "no-view"
+    },
+    {
+      "name": "stop-recording",
+      "title": "Stop",
+      "subtitle": "Stop recording or instant replay",
+      "description": "Stop the active recording or instant replay buffer",
+      "mode": "no-view"
+    },
+    {
+      "name": "start-instant-replay",
+      "title": "Start Instant Replay",
+      "subtitle": "Start instant replay buffer",
+      "description": "Start instant replay buffer with default settings",
+      "mode": "no-view"
+    },
+    {
+      "name": "save-instant-replay",
+      "title": "Save Instant Replay",
+      "subtitle": "Save last N seconds",
+      "description": "Save the last N seconds from instant replay buffer",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "open-after-save-replay",
+      "type": "checkbox",
+      "title": "After Saving Replay",
+      "description": "Open the clip after saving an instant replay",
+      "label": "Open Clip",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "open-after-stop-recording",
+      "type": "checkbox",
+      "title": "After Stopping Recording",
+      "description": "Open the output directory after stopping a recording or instant replay",
+      "label": "Open Output Directory",
+      "default": false,
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
