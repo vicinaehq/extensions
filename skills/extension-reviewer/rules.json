@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "rules": [
     {
       "id": "MANIFEST-001",
@@ -57,8 +57,10 @@
       "defaultSeverity": "blocking",
       "guidance": [
         "Flag credentials embedded in source, logged, sent to unrelated services, or exposed to commands that do not need them.",
-        "Use LocalStorage from @vicinae/api for persistent sensitive extension data instead of Cache, ad-hoc files, system keychains, Secret Service, wallets, or platform credential utilities.",
-        "Flag direct system credential-store integration when LocalStorage covers the use case; Vicinae should own storage portability and lifecycle.",
+        "Prefer LocalStorage from @vicinae/api for persistent sensitive extension-owned data when it provides equivalent security, interoperability, and lifecycle behavior.",
+        "Use blocking severity for another persistence mechanism only when LocalStorage clearly covers the complete use case and replacement is unambiguous.",
+        "Allow system keychains, Secret Service, wallets, and platform credential utilities when they are required to interoperate with existing credentials or provide material security behavior that LocalStorage does not establish. Do not infer equivalence merely because LocalStorage can store a string.",
+        "Flag Cache and ad-hoc files when they expose sensitive data or bypass an otherwise equivalent LocalStorage implementation.",
         "For OAuth access and refresh tokens, use OAuth.PKCEClient.setTokens, getTokens, and removeTokens from @vicinae/api."
       ]
     },
