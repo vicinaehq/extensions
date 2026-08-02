@@ -1,4 +1,4 @@
-import { exec } from "node:child_process";
+import { execFile } from "node:child_process";
 import { accessSync, constants } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -10,7 +10,7 @@ import { handleCommandError } from "./error-handler";
 const CACHE_KEY_PATH = "floww_binary_path";
 const CACHE_KEY_INSTALLED = "floww_installed";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 let resolvedBinaryPath: string | null = null;
 let flowwAvailable: boolean | null = null;
@@ -52,14 +52,15 @@ export interface ExecResult {
 }
 
 /**
- * Execute a shell command with proper error handling
+ * Execute a binary directly with an argument array (no shell, no injection)
  */
 export async function executeCommand(
-	command: string,
+	binaryPath: string,
+	args: string[],
 	options: ExecOptions = {},
 ): Promise<ExecResult> {
 	try {
-		const { stdout, stderr } = await execAsync(command, {
+		const { stdout, stderr } = await execFileAsync(binaryPath, args, {
 			timeout: options.timeout || 30000,
 			cwd: options.cwd,
 			env: options.env,
@@ -91,10 +92,9 @@ export async function executeFlowwCommand(
 	args: string[] = [],
 ): Promise<ExecResult> {
 	const binaryPath = resolveFlowwBinary();
-	const command = `"${binaryPath}" ${subcommand} ${args.map((arg) => `"${arg}"`).join(" ")}`;
 
 	try {
-		const result = await executeCommand(command);
+		const result = await executeCommand(binaryPath, [subcommand, ...args]);
 
 		if (!result.success) {
 			const flowwError = handleCommandError(
@@ -132,8 +132,7 @@ export async function executeFlowwCommandSilent(
 	args: string[] = [],
 ): Promise<ExecResult> {
 	const binaryPath = resolveFlowwBinary();
-	const command = `"${binaryPath}" ${subcommand} ${args.map((arg) => `"${arg}"`).join(" ")}`;
-	return executeCommand(command);
+	return executeCommand(binaryPath, [subcommand, ...args]);
 }
 
 /**
