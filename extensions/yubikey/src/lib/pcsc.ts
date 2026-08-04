@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import net from "node:net";
+import { readSerial } from "./mgmt";
 
 /**
  * Native PC/SC client: speaks the `winscard_msg` protocol straight to pcscd, over a unix socket.
@@ -75,6 +76,8 @@ export type PcscErrCode =
   | "not_authorized"
   | "no_reader"
   | "no_card"
+  | "no_such_serial"
+  | "bad_serial"
   | "busy"
   | "card_removed"
   | "protocol"
@@ -305,7 +308,15 @@ export class PcscConnection {
 
   // ----- API -----
 
-  async connect(preferredSerialOrName?: string): Promise<void> {
+  /**
+   * Opens a session on one YubiKey.
+   *
+   * With `serial` set, the key is resolved strictly: every reader holding a card is asked for
+   * its serial number, and the connection only stands on the one that answers with a match.
+   * Nothing is picked by proximity or by name, because silently landing on a different key is
+   * how an operation ends up reading — or deleting — from the wrong one.
+   */
+  async connect(serial?: string): Promise<void> {
     await this.open();
     await this.handshake();
 
@@ -315,8 +326,55 @@ export class PcscConnection {
     if (estRes.readUInt32LE(8) !== RV.OK) throw fromRv(estRes.readUInt32LE(8), "ESTABLISH_CONTEXT");
     this.hContext = estRes.readUInt32LE(4);
 
-    const reader = await this.pickReader(preferredSerialOrName);
+    const withCard = await this.readersWithCard();
 
+    if (!serial) {
+      // No pinning asked for: the YubiKey by name, otherwise the first card. A YubiKey sitting
+      // in an external NFC reader has no "Yubico" in the reader name.
+      const yubi = withCard.find((r) => /yubi/i.test(r.name));
+      await this.attach((yubi ?? withCard[0]).name);
+      return;
+    }
+
+    const wanted = Number(serial);
+    if (!Number.isInteger(wanted) || wanted <= 0) {
+      throw new PcscError(
+        "bad_serial",
+        `"${serial}" is not a YubiKey serial number. It is the decimal number printed by ` +
+          "`ykman list`, digits only.",
+      );
+    }
+
+    let lastFailure: PcscError | null = null;
+    for (const reader of withCard) {
+      try {
+        await this.attach(reader.name);
+      } catch (err) {
+        // A card held exclusively by someone else says nothing about who it is. Keep looking:
+        // the pinned key may well be in the next reader.
+        lastFailure = err instanceof PcscError ? err : lastFailure;
+        continue;
+      }
+      // A key with no management applet (firmware 4 and older) cannot tell us who it is, so it
+      // can never be confirmed as the pinned one.
+      const found = await this.transaction((t) => readSerial(t)).catch(() => null);
+      if (found === wanted) return;
+      await this.detach();
+    }
+
+    // Every candidate was unreachable rather than merely unmatched: report why, since "not
+    // connected" would send the user looking for the wrong problem.
+    if (lastFailure && lastFailure.code === "busy") throw lastFailure;
+
+    throw new PcscError(
+      "no_such_serial",
+      `No YubiKey with serial ${wanted} is connected. Plug it in, or clear the "YubiKey serial" ` +
+        "preference to use whichever key is present.",
+    );
+  }
+
+  /** SCARD_CONNECT on one reader by name. */
+  private async attach(reader: string): Promise<void> {
     // SHARE_SHARED: we do not take the card for ourselves. gpg and the browser keep working;
     // the exclusivity we need is only inside each transaction, which lasts milliseconds.
     const con = Buffer.alloc(4 + MAX_READERNAME + 4 * 5);
@@ -333,14 +391,25 @@ export class PcscConnection {
     this.protocol = conRes.readUInt32LE(4 + MAX_READERNAME + 12);
   }
 
+  /** Lets go of the current card, keeping the context for the next candidate. */
+  private async detach(): Promise<void> {
+    if (!this.hCard) return;
+    const req = Buffer.alloc(12);
+    req.writeInt32LE(this.hCard, 0);
+    req.writeUInt32LE(DISPOSITION.LEAVE, 4);
+    await this.call(CMD.DISCONNECT, req).catch(() => {});
+    this.hCard = 0;
+    this.protocol = 0;
+  }
+
   /**
-   * Lists the readers and picks one with a card present.
+   * Lists the readers that currently hold a card.
    *
    * `GET_READERS_STATE` is the right path: the enum's `SCARD_LIST_READERS` has no handler in the
    * daemon (libpcsclite answers it from a local cache). And it waits for the readers to
    * initialize, which kills the race with systemd's socket activation for free.
    */
-  private async pickReader(preferred?: string): Promise<string> {
+  private async readersWithCard(): Promise<{ name: string; hasCard: boolean }[]> {
     // This command does not follow the rule of the others: the request has no payload, and the
     // answer is always a fixed block of 16 slots, in every version of the protocol. It is the
     // most stable thing here.
@@ -369,15 +438,7 @@ export class PcscConnection {
     if (withCard.length === 0) {
       throw new PcscError("no_card", "Connect the YubiKey");
     }
-
-    // The user's preference, when it matches. Otherwise the YubiKey by name. Otherwise the first
-    // one with a card: a YubiKey in an external NFC reader has no "Yubico" in the reader name.
-    if (preferred) {
-      const hit = withCard.find((r) => r.name.includes(preferred));
-      if (hit) return hit.name;
-    }
-    const yubi = withCard.find((r) => /yubi/i.test(r.name));
-    return (yubi ?? withCard[0]).name;
+    return withCard;
   }
 
   /**
@@ -434,7 +495,7 @@ export class PcscConnection {
     req.writeUInt32LE(apdu.length, 12); // cbSendLength
     req.writeUInt32LE(this.protocol, 16);
     req.writeUInt32LE(8, 20);
-    req.writeUInt32LE(MAX_BUFFER_SIZE, 24); // pcbRecvLength: capacidade do nosso buffer
+    req.writeUInt32LE(MAX_BUFFER_SIZE, 24); // pcbRecvLength: the capacity of our buffer
 
     const res = await this.call(CMD.TRANSMIT, req, apdu);
     const rv = res.readUInt32LE(28);
@@ -442,6 +503,22 @@ export class PcscConnection {
 
     const len = res.readUInt32LE(24);
     return len > 0 ? this.readExactly(len) : Buffer.alloc(0);
+  }
+
+  /**
+   * Drops the connection immediately, rejecting whatever is in flight.
+   *
+   * `close()` is the graceful path: it sends DISCONNECT and waits for the answer, which installs
+   * a new read waiter. There is only one waiter slot, so doing that while a TRANSMIT is still
+   * pending would overwrite the blocked operation's waiter and leave its promise unsettled
+   * forever. Cancelling a touch is exactly that situation: the card holds the transaction for up
+   * to 15s and the answer is never coming.
+   */
+  abort(reason = "The operation was cancelled"): void {
+    if (!this.sock && this.closedReason) return;
+    this.die(new PcscError("io", reason));
+    this.hCard = 0;
+    this.hContext = 0;
   }
 
   async close(): Promise<void> {
@@ -459,7 +536,7 @@ export class PcscConnection {
         await this.call(CMD.RELEASE_CONTEXT, req);
       }
     } catch {
-      // Fechando de qualquer forma.
+      // Closing anyway.
     }
     this.sock?.end();
     this.sock?.destroy();

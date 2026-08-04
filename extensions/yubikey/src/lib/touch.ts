@@ -85,8 +85,9 @@ export function requestTouchCode(credId: string, period: number): TouchHandle {
     cancel = () => finish(() => reject(new OathError("cancelled", "Touch cancelled")), true);
 
     withOwnConnection(async (conn) => {
-      // `withOwnConnection` closes it; we keep a way to close early when cancelled.
-      onCancel = () => conn.close().catch(() => {});
+      // Cancelling aborts instead of closing: a touch CALCULATE is still in flight and the
+      // graceful DISCONNECT would queue behind it, stranding the pending read.
+      onCancel = () => conn.abort("The touch was cancelled");
       return conn.transaction(async (t) => {
         const info = await select(t);
         if (info.challenge) {
@@ -132,7 +133,7 @@ export function waitForCard(): TouchHandle {
     cancel = () => finish(() => reject(new OathError("cancelled", "cancelled")));
 
     withOwnConnection(async (conn) => {
-      onCancel = () => conn.close().catch(() => {});
+      onCancel = () => conn.abort("The wait for the card was cancelled");
       return conn.transaction(async (t) => {
         const info = await select(t);
         if (info.challenge) {

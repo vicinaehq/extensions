@@ -46,6 +46,7 @@ src/
 ├── security-keys.tsx    Command 2: FIDO2 passkeys + PIV certificates (view)
 └── lib/
     ├── pcsc.ts          winscard_msg client: talks to pcscd over its Unix socket
+    ├── mgmt.ts          Management applet: reads the serial that identifies the key
     ├── ykoath.ts        YKOATH protocol: SELECT / LIST / CALCULATE_ALL / VALIDATE
     ├── oath-session.ts  OATH session (owns a reused PC/SC connection)
     ├── piv.ts           PIV protocol: certificate read, PIN metadata

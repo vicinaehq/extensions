@@ -56,7 +56,28 @@ data bytes).
   its id (`"60/Issuer:name"`). `CALCULATE_ALL` returns a *wrong* code for it (the card
   used the 30 s challenge), so it must be recomputed individually with `CALCULATE`.
 - **Device id.** `base64(sha256(salt)[:16])` with `=` stripped, where `salt` is the
-  `0x71` tag from `SELECT`. This is the key `ykman` uses in its keystore.
+  `0x71` tag from `SELECT`. This is the key `ykman` uses in its keystore. It identifies
+  the *OATH application*, not the physical key: see the management applet below for
+  telling two YubiKeys apart.
+
+---
+
+## Management applet — serial number {#mgmt}
+
+AID `a0 00 00 05 27 47 11 17`. Only used to answer "which key is this?".
+
+- **Nothing else carries the serial.** The PC/SC reader name is
+  `Yubico YubiKey OTP+FIDO+CCID 00 00` — the trailing digits are reader index and
+  slot, not identity. The USB descriptor does not publish `iSerialNumber` either
+  (`/sys/.../usb1/1-2/serial` is absent on a 5.7.4 with OTP enabled). So a "use this
+  specific key" preference has to ask the applet.
+- **READ CONFIG** is `00 1D 00 00 00`. The reply is a length byte followed by
+  DeviceInfo TLVs; tag `0x02` is the serial as a big-endian integer.
+- **Firmware 4 and older** have no management applet: the `SELECT` fails, the serial
+  is unknown, and such a key can never be confirmed as the pinned one.
+- **FIDO2 cannot do this.** CTAP2 exposes an AAGUID, which identifies the *model*,
+  not the unit. With two YubiKeys plugged in there is no way to tell which one a
+  passkey deletion would hit, so the extension refuses instead of guessing.
 
 ---
 

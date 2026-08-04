@@ -179,7 +179,7 @@ export class Ctap2 {
     const opts = (this.info.get(0x04) as Map<string, boolean>) ?? new Map();
     return {
       pinSet: opts.get("clientPin") === true,
-      pinRetries: null, // preenchido por pinRetries() sob demanda
+      pinRetries: null, // filled in by pinRetries() on demand
       minPinLength: (this.info.get(0x0d) as number) ?? 4,
       remainingCreds: (this.info.get(0x14) as number) ?? null,
       aaguid: (this.info.get(0x03) as Buffer).toString("hex"),
@@ -264,7 +264,7 @@ export class Ctap2 {
     const existing = (meta.get(0x01) as number) ?? 0;
     if (existing === 0) return creds;
 
-    // enumerateRPsBegin (0x02) → total; depois enumerateRPsGetNextRP (0x03)
+    // enumerateRPsBegin (0x02) → total; then enumerateRPsGetNextRP (0x03)
     const rpBegin = this.credMgmt(0x02, null, token);
     const totalRps = (rpBegin.get(0x05) as number) ?? 0;
     if (totalRps === 0) return creds;

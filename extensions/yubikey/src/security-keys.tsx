@@ -41,8 +41,8 @@ type State = {
   /** Why PIV is missing, if it is. Only this section is affected. */
   pivError: Error | null;
   fido: FidoInfo | null;
-  /** null = still checking; false = no reachable FIDO interface, so passkeys are left out. */
-  fidoSupported: boolean | null;
+  /** Why FIDO2 is missing, if it is: no key, no udev rule, two keys plugged in, a dead read. */
+  fidoError: Error | null;
   loading: boolean;
 };
 
@@ -53,7 +53,7 @@ export default function SecurityKeys() {
     piv: null,
     pivError: null,
     fido: null,
-    fidoSupported: null,
+    fidoError: null,
     loading: true,
   });
 
@@ -73,19 +73,18 @@ export default function SecurityKeys() {
       pivError = err instanceof Error ? err : new Error(String(err));
     }
 
+    // Keep the reason. A missing udev rule, a second key plugged in and a protocol failure all
+    // need different things from the user, and collapsing them into "unavailable" tells them
+    // nothing they can act on.
     let fidoInfo: FidoInfo | null = null;
-    const fidoSupported = fido().available();
-    if (fidoSupported) {
-      fidoInfo = await fido().info().catch(() => null);
+    let fidoError: Error | null = null;
+    try {
+      fidoInfo = await fido().info();
+    } catch (err) {
+      fidoError = err instanceof Error ? err : new Error(String(err));
     }
 
-    setState({
-      piv: pivInfo,
-      pivError,
-      fido: fidoInfo,
-      fidoSupported: fidoSupported && fidoInfo !== null,
-      loading: false,
-    });
+    setState({ piv: pivInfo, pivError, fido: fidoInfo, fidoError, loading: false });
   }, []);
 
   useEffect(() => {
@@ -144,7 +143,7 @@ export default function SecurityKeys() {
 
   // Only when BOTH halves are gone is there nothing left to show. If PIV is down but the FIDO
   // interface answers, the passkey section is still fully usable and the screen stays up.
-  if (state.pivError && !state.loading && state.fidoSupported !== true) {
+  if (state.pivError && state.fidoError && !state.loading) {
     const busy = state.pivError instanceof PcscError && state.pivError.code === "busy";
     return (
       <List>
@@ -177,12 +176,16 @@ export default function SecurityKeys() {
         title={t("keys.fido.section")}
         subtitle={state.fido?.remainingCreds != null ? t("keys.fido.slotsFree", { n: state.fido.remainingCreds }) : undefined}
       >
-        {state.fidoSupported === false ? (
+        {state.fidoError ? (
           <List.Item
             title={t("keys.fido.unavailable")}
-            subtitle={t("keys.fido.unavailable.subtitle")}
+            subtitle={localizeError(state.fidoError)}
             icon={Icon.LockDisabled}
-            detail={<List.Item.Detail markdown={t("keys.fido.unavailable.detail")} />}
+            detail={
+              <List.Item.Detail
+                markdown={t("keys.fido.unavailable.detail", { reason: localizeError(state.fidoError) })}
+              />
+            }
             actions={<ActionPanel>{refresh}</ActionPanel>}
           />
         ) : fidoCreds === null ? (

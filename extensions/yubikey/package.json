@@ -62,7 +62,7 @@
     {
       "name": "serial",
       "title": "YubiKey serial",
-      "description": "Pin the extension to a specific key. Leave empty to use the first one found.",
+      "description": "Only use the key with this serial number, as printed by `ykman list`. OTP and PIV refuse to run when it is not connected. It does not reach FIDO2, which reports no serial: passkeys always require that just one YubiKey is plugged in. Leave empty to use whichever key is present.",
       "type": "textfield",
       "required": false,
       "placeholder": "25349859"

@@ -25,7 +25,7 @@ const BROADCAST_CID = 0xffffffff;
 
 export class HidError extends Error {
   constructor(
-    readonly code: "no_device" | "no_access" | "protocol" | "io",
+    readonly code: "no_device" | "no_access" | "ambiguous_device" | "protocol" | "io",
     message: string,
   ) {
     super(message);
@@ -48,20 +48,21 @@ export class CtapError extends Error {
 const YUBICO_UEVENT = /^HID_ID=[^:]*:0*1050:/im;
 
 /**
- * Finds the /dev/hidrawN of the YubiKey's FIDO interface, by report descriptor.
+ * Lists every Yubico FIDO interface currently present, by report descriptor.
  *
- * Only a verified Yubico interface is ever returned. Falling back to any FIDO authenticator
+ * Only verified Yubico interfaces are ever returned. Falling back to any FIDO authenticator
  * would let this extension enumerate — and permanently delete — credentials on someone else's
  * security key while presenting it as the user's YubiKey.
  */
-export function findFidoDevice(): string | null {
+export function findFidoDevices(): string[] {
   let entries: string[];
   try {
     entries = readdirSync("/sys/class/hidraw");
   } catch {
-    return null;
+    return [];
   }
 
+  const found: string[] = [];
   for (const name of entries) {
     try {
       const desc = readFileSync(`/sys/class/hidraw/${name}/device/report_descriptor`);
@@ -69,14 +70,33 @@ export function findFidoDevice(): string | null {
       if (desc[0] !== 0x06 || desc[1] !== 0xd0 || desc[2] !== 0xf1) continue;
 
       const uevent = readFileSync(`/sys/class/hidraw/${name}/device/uevent`, "utf8");
-      if (YUBICO_UEVENT.test(uevent)) return `/dev/${name}`;
+      if (YUBICO_UEVENT.test(uevent)) found.push(`/dev/${name}`);
     } catch {
       // keep looking
     }
   }
+  return found;
+}
 
-  // No verified Yubico FIDO interface was found.
-  return null;
+/**
+ * The single Yubico FIDO interface to talk to.
+ *
+ * Throws when more than one YubiKey is plugged in. CTAP2 has no serial number and the USB
+ * descriptor does not carry one either, so there is no way to honour the `serial` preference
+ * here, and no way for the user to know which key a deletion would hit. Refusing is the only
+ * answer that cannot destroy a credential on the wrong key.
+ */
+export function findFidoDevice(): string | null {
+  const devices = findFidoDevices();
+  if (devices.length === 0) return null;
+  if (devices.length > 1) {
+    throw new HidError(
+      "ambiguous_device",
+      "More than one YubiKey is connected. FIDO2 gives no serial number to tell them apart, so " +
+        "leave only the key you want to manage plugged in.",
+    );
+  }
+  return devices[0];
 }
 
 export class HidDevice {

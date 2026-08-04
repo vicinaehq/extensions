@@ -70,14 +70,14 @@ export class OathError extends Error {
 }
 
 // ---------------------------------------------------------------------------
-// TLV e APDU
+// TLV and APDU
 // ---------------------------------------------------------------------------
 
 function tlv(tag: number, value: Buffer): Buffer {
   if (value.length < 0x80) {
     return Buffer.concat([Buffer.from([tag, value.length]), value]);
   }
-  // Comprimento longo: 0x80|N seguido de N bytes big-endian.
+  // Long length: 0x80|N followed by N big-endian bytes.
   const lenBytes: number[] = [];
   let len = value.length;
   while (len > 0) {

@@ -1,5 +1,5 @@
 import { Ctap2, type FidoCred, type FidoInfo } from "./ctap2";
-import { CtapError, HidDevice, HidError, findFidoDevice } from "./hid";
+import { CtapError, HidDevice, HidError } from "./hid";
 
 /**
  * Native FIDO2 session: opens /dev/hidraw, negotiates the CTAPHID channel and speaks CTAP2.
@@ -8,11 +8,6 @@ import { CtapError, HidDevice, HidError, findFidoDevice } from "./hid";
  * with no Python and no native addons. Opens per operation: the keys screen is cold.
  */
 export class FidoSession {
-  /** Whether the YubiKey's FIDO interface exists and is reachable. Cheap: only reads sysfs. */
-  available(): boolean {
-    return findFidoDevice() !== null;
-  }
-
   private async withDevice<T>(fn: (ctap: Ctap2) => Promise<T> | T): Promise<T> {
     const dev = new HidDevice();
     await dev.open();

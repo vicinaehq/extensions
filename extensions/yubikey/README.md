@@ -63,6 +63,18 @@ never on disk, never in a process argument.
 > If you use `gpg-agent` / `scdaemon`, add `pcsc-shared` to `~/.gnupg/scdaemon.conf`
 > so it does not hold the reader exclusively.
 
+## Using more than one YubiKey
+
+Set the `YubiKey serial` preference to the number `ykman list` prints, and the OTP and
+PIV screens will only ever talk to that key — asked of the key itself, not guessed from
+the reader name. If it is not plugged in, they say so instead of falling back to another
+key.
+
+FIDO2 is the exception: CTAP2 reports an AAGUID, which identifies the model rather than
+the unit, so nothing can tell two YubiKeys apart over that interface. The passkey screen
+therefore refuses to act while more than one key is connected, rather than risk deleting
+a credential from the wrong one.
+
 ## Installation
 
 ```bash

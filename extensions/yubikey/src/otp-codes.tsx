@@ -215,11 +215,8 @@ export default function OtpCodes() {
       // land; a HUD is the only way left to tell the user the code stayed in the history.
       if (outcome === "purge-failed") await showHUD(t("otp.purge.failed"));
     } catch (err) {
-      await showToast({
-        style: Toast.Style.Failure,
-        title: t("otp.paste.failed"),
-        message: `${label}: ${localizeError(err)}`,
-      });
+      // Same reason as above: pasteAndForget already closed the main window.
+      await showHUD(`${t("otp.paste.failed")} — ${label}: ${localizeError(err)}`);
     }
   }, []);
 
@@ -285,7 +282,10 @@ export default function OtpCodes() {
     setTouching(null);
   }, []);
 
-  if (errCode(state.error) === "locked") {
+  // `wrong_password` lands here too: it means the stored key no longer matches, usually because
+  // the OATH password was changed elsewhere. Without this the screen falls through to an empty
+  // list with no way to type the new password, and the stale key is never replaced.
+  if (errCode(state.error) === "locked" || errCode(state.error) === "wrong_password") {
     return <LockedView onUnlocked={onUnlocked} />;
   }
 
