@@ -69,6 +69,12 @@ type State = {
   error: Error | null;
 };
 
+/** Headline for a load failure: the device cases get their own wording, the rest share one. */
+function errorTitle(err: Error): string {
+  if (!isDeviceProblem(err)) return t("otp.error.title");
+  return (err as PcscError).code === "busy" ? t("device.busy") : t("device.none");
+}
+
 /** Pulls the `code` out of an OathError/PcscError, if there is one. */
 function errCode(err: Error | null): string | undefined {
   if (err instanceof OathError || err instanceof PcscError) return err.code;
@@ -289,13 +295,15 @@ export default function OtpCodes() {
     return <LockedView onUnlocked={onUnlocked} />;
   }
 
-  if (isDeviceProblem(state.error) && state.creds.length === 0) {
+  // Any load failure, not just the handful of device problems: a wrong serial, a missing
+  // applet or a protocol error are just as fatal to the list and just as fixable.
+  if (state.error && state.creds.length === 0) {
     return (
       <List>
         <List.EmptyView
           icon={Icon.XMarkCircle}
-          title={errCode(state.error) === "busy" ? t("device.busy") : t("device.none")}
-          description={state.error ? localizeError(state.error) : undefined}
+          title={errorTitle(state.error)}
+          description={localizeError(state.error)}
           actions={
             <ActionPanel>
               <Action title={t("action.retry")} icon={Icon.ArrowClockwise} onAction={load} />
@@ -315,6 +323,23 @@ export default function OtpCodes() {
       searchBarPlaceholder={t("otp.search")}
       navigationTitle={t("otp.nav")}
     >
+      {state.error && (
+        <List.Section title={t("otp.stale.section")}>
+          <List.Item
+            id="__error__"
+            title={errorTitle(state.error)}
+            subtitle={localizeError(state.error)}
+            icon={Icon.XMarkCircle}
+            accessories={[{ tag: { value: t("otp.stale.tag"), color: Color.Orange } }]}
+            actions={
+              <ActionPanel>
+                <Action title={t("action.retry")} icon={Icon.ArrowClockwise} onAction={load} />
+              </ActionPanel>
+            }
+          />
+        </List.Section>
+      )}
+
       {busyFor > 0 && (
         <List.Section title={t("busy.section")}>
           <List.Item

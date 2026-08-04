@@ -317,6 +317,18 @@ export class PcscConnection {
    * how an operation ends up reading — or deleting — from the wrong one.
    */
   async connect(serial?: string): Promise<void> {
+    // Every failure below happens with a live socket, and often a live pcscd context, already
+    // in hand. The screens retry on their own, so leaking one of each per attempt would pile
+    // up daemon-side handles for as long as the user keeps trying.
+    try {
+      await this.establish(serial);
+    } catch (err) {
+      await this.close().catch(() => {});
+      throw err;
+    }
+  }
+
+  private async establish(serial?: string): Promise<void> {
     await this.open();
     await this.handshake();
 

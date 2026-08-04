@@ -10,8 +10,11 @@ import { CtapError, HidDevice, HidError } from "./hid";
 export class FidoSession {
   private async withDevice<T>(fn: (ctap: Ctap2) => Promise<T> | T): Promise<T> {
     const dev = new HidDevice();
-    await dev.open();
+    // open() is inside the try: it can fail *after* the hidraw descriptor is open (the CTAPHID
+    // INIT handshake runs there), and a descriptor leaked per retry adds up fast on a screen
+    // whose whole job is retrying.
     try {
+      await dev.open();
       const ctap = new Ctap2(dev);
       await ctap.init();
       return await fn(ctap);

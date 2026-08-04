@@ -15,25 +15,11 @@ import {
 } from "@vicinae/api";
 import { type FidoCred, type FidoInfo, fido } from "./lib/fido-session";
 import { localizeError, t } from "./lib/i18n";
-import { PcscError } from "./lib/pcsc";
 import { type PivInfo, type SlotInfo, piv } from "./lib/piv-session";
 
 function fmtDate(epoch?: number): string {
   if (!epoch) return "—";
   return new Date(epoch * 1000).toLocaleDateString("en-US");
-}
-
-/** A device problem deserves an EmptyView, not a raw error. */
-function isDeviceProblem(err: unknown): boolean {
-  return (
-    err instanceof PcscError &&
-    (err.code === "no_daemon" ||
-      err.code === "no_reader" ||
-      err.code === "no_card" ||
-      err.code === "not_authorized" ||
-      err.code === "card_removed" ||
-      err.code === "busy")
-  );
 }
 
 type State = {
@@ -141,26 +127,9 @@ export default function SecurityKeys() {
     }
   }, []);
 
-  // Only when BOTH halves are gone is there nothing left to show. If PIV is down but the FIDO
-  // interface answers, the passkey section is still fully usable and the screen stays up.
-  if (state.pivError && state.fidoError && !state.loading) {
-    const busy = state.pivError instanceof PcscError && state.pivError.code === "busy";
-    return (
-      <List>
-        <List.EmptyView
-          icon={Icon.XMarkCircle}
-          title={busy ? t("device.busy") : isDeviceProblem(state.pivError) ? t("device.none") : t("keys.piv.unavailable")}
-          description={localizeError(state.pivError)}
-          actions={
-            <ActionPanel>
-              <Action title={t("action.retry")} icon={Icon.ArrowClockwise} onAction={load} />
-            </ActionPanel>
-          }
-        />
-      </List>
-    );
-  }
-
+  // No full-screen failure state: the two halves fail for different reasons and each needs its
+  // own explanation. A combined empty view could only show one of them, which is how a user
+  // ends up fixing pcscd while the passkeys were failing on a missing udev rule.
   const refresh = (
     <Action title={t("action.reload")} icon={Icon.ArrowClockwise} shortcut={{ key: "r", modifiers: ["cmd"] }} onAction={load} />
   );

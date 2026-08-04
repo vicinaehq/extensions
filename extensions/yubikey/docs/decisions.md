@@ -58,9 +58,9 @@ Service, and decrypt the Fernet token — all in `node:crypto`.
 
 **Consequences.** A user who already ran `ykman oath ... -r` never sees a password
 prompt. When no Secret Service is available (e.g. a bare sway/Hyprland session), the
-key stays in memory for the session; persisting it in plaintext is offered only
-behind an explicit, off-by-default preference, never silently. Only the derived key
-is ever stored, never the password. See
+key stays in memory for the session and the unlock screen says so, rather than
+claiming it was remembered; there is no plaintext fallback and no preference to
+enable one. Only the derived key is ever stored, never the password. See
 [protocols.md](./protocols.md#secret-service).
 
 ---

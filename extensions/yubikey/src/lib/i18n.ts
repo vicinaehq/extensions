@@ -64,6 +64,9 @@ const strings: Dict = {
   "otp.action.paste": "Paste into field",
   "otp.action.copy": "Copy (kept out of history)",
   "otp.paste.failed": "Couldn't paste",
+  "otp.error.title": "Couldn't read the YubiKey",
+  "otp.stale.section": "Not up to date",
+  "otp.stale.tag": "stale",
   "otp.purge.failed": "Pasted, but the code is still in the clipboard history",
 
   // Touch flow
