@@ -20,6 +20,9 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+/** Outcome of a purge attempt. `absent` means there was no entry to remove in the first place. */
+export type PurgeResult = "removed" | "absent" | "failed";
+
 /**
  * Removes the entry matching `text` from Vicinae's clipboard history.
  *
@@ -30,11 +33,11 @@ function sleep(ms: number) {
  * the code itself is never written into SQL nor passed through another process's argv.
  *
  * This touches another program's internal database. If the schema changes in a Vicinae update,
- * the function warns and gives up: it never lets the exception escape and break the paste,
- * which is what the user actually asked for.
+ * the function warns and reports `failed`: it never lets the exception escape and break the
+ * paste, which is what the user actually asked for.
  */
-export async function purgeFromHistory(text: string): Promise<boolean> {
-  if (!text) return false;
+export async function purgeFromHistory(text: string): Promise<PurgeResult> {
+  if (!text) return "absent";
 
   const hash = createHash("md5").update(text).digest("hex");
 
@@ -43,7 +46,7 @@ export async function purgeFromHistory(text: string): Promise<boolean> {
     sqlite = await import("node:sqlite");
   } catch {
     console.warn("[clipboard] node:sqlite unavailable; the code stays in Vicinae's history");
-    return false;
+    return "failed";
   }
 
   for (let attempt = 0; attempt < PURGE_ATTEMPTS; attempt++) {
@@ -86,21 +89,26 @@ export async function purgeFromHistory(text: string): Promise<boolean> {
           }
         }
 
-        return Number(result.changes) > 0;
+        return Number(result.changes) > 0 ? "removed" : "failed";
       } catch (err) {
         db.close();
         throw err;
       }
     } catch (err) {
       console.warn(`[clipboard] purge failed: ${String(err)}`);
-      return false;
+      return "failed";
     }
   }
 
-  // The entry never showed up. Vicinae may have deduplicated it (it ignores a selection
-  // identical to the current one), in which case there is nothing to remove.
-  return false;
+  // The entry never showed up. The likely reason is that Vicinae deduplicated it (it ignores a
+  // selection identical to the current one), so there is nothing to remove and nothing to warn
+  // about. A schema change would land here too, but it would also have thrown above in every
+  // realistic case, and warning on every deduplicated paste would train the user to ignore it.
+  return "absent";
 }
+
+/** What happened to the pasted code's clipboard-history entry. */
+export type PasteOutcome = "purged" | "kept-by-preference" | "purge-failed";
 
 /**
  * Pastes into the field that was focused and, if the user wants it, erases the history trail.
@@ -108,14 +116,16 @@ export async function purgeFromHistory(text: string): Promise<boolean> {
  * Order matters: `closeMainWindow()` comes BEFORE `paste()`. That is what Vicinae itself does
  * in the native `Action.Paste`: the window has to get out of the way so the compositor gives
  * focus back to the previous window before the keystroke is injected.
+ *
+ * Returns the outcome instead of swallowing it: a purge that silently fails leaves the code in
+ * plain text in the history while the user believes the protection they enabled worked.
  */
-export async function pasteAndForget(text: string): Promise<void> {
+export async function pasteAndForget(text: string): Promise<PasteOutcome> {
   await closeMainWindow();
   await Clipboard.paste(text);
 
-  if (prefs().purgeClipboardHistory !== false) {
-    await purgeFromHistory(text);
-  }
+  if (prefs().purgeClipboardHistory === false) return "kept-by-preference";
+  return (await purgeFromHistory(text)) === "failed" ? "purge-failed" : "purged";
 }
 
 /** Copies without leaving a history trail. Plan B when the paste lands in the wrong window. */

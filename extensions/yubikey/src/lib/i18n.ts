@@ -64,6 +64,7 @@ const strings: Dict = {
   "otp.action.paste": "Paste into field",
   "otp.action.copy": "Copy (kept out of history)",
   "otp.paste.failed": "Couldn't paste",
+  "otp.purge.failed": "Pasted, but the code is still in the clipboard history",
 
   // Touch flow
   "touch.prompt": "Touch the YubiKey",
@@ -97,6 +98,8 @@ const strings: Dict = {
   "unlock.remember.label": "Remember on this machine",
   "unlock.remember.title": "Remember",
   "unlock.remember.info": "Stores the derived key in the same keystore as ykman, encrypted with the system keyring.",
+  "unlock.remember.failed": "Couldn't remember the password",
+  "unlock.remember.failed.detail": "No Secret Service is running (gnome-keyring or KWallet), so the key is kept only until this command closes.",
 
   // Keys & certificates screen
   "keys.nav": "Keys & Certificates",
@@ -140,6 +143,8 @@ const strings: Dict = {
   "keys.piv.meta.until": "Valid until",
   "keys.piv.meta.serial": "Serial",
   "keys.piv.empty.detail": "## Slot {slot} empty\n\nThere is no certificate in this slot.\n\nTo create one, use `ykman`:\n\n```\nykman piv keys generate {slot} pub.pem\nykman piv certificates generate {slot} pub.pem\n```",
+  "keys.piv.unavailable": "PIV unavailable",
+  "keys.piv.unavailable.detail": "## PIV certificates\n\nThe PIV application could not be read:\n\n> {reason}\n\nPIV goes through the smart-card interface (pcscd), so it can fail while the **FIDO2 passkeys** above, which use their own HID interface, keep working.",
   "keys.piv.export": "Export certificate (.pem)",
   "keys.piv.exported": "Certificate exported",
   "keys.piv.exportFailed": "Couldn't export",

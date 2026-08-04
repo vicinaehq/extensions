@@ -83,17 +83,26 @@ export class OathSession {
     });
   }
 
-  /** Unlocks with a password the user typed, and stores the key for next time. */
-  async unlock(password: string, remember: boolean): Promise<void> {
+  /**
+   * Unlocks with a password the user typed, and stores the key for next time.
+   *
+   * Returns whether the key was persisted. A false with `remember` on means there is no Secret
+   * Service to store it in, so it will be asked again next session; the UI says so rather than
+   * letting the user believe it was remembered.
+   */
+  async unlock(password: string, remember: boolean): Promise<boolean> {
     const conn = await this.ensureConnected();
-    await conn.transaction(async (t) => {
+    return conn.transaction(async (t) => {
       const info = await select(t);
-      if (!info.challenge) return; // it was already unlocked
+      if (!info.challenge) return true; // it was already unlocked
       const key = deriveKey(password, info.salt);
       await validate(t, key, info.challenge);
       this.deviceId = info.deviceId;
-      if (remember) await saveAccessKey(info.deviceId, key);
-      else rememberInSession(info.deviceId, key);
+      if (!remember) {
+        rememberInSession(info.deviceId, key);
+        return true;
+      }
+      return saveAccessKey(info.deviceId, key);
     });
   }
 

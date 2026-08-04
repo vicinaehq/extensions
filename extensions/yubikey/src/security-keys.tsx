@@ -38,11 +38,12 @@ function isDeviceProblem(err: unknown): boolean {
 
 type State = {
   piv: PivInfo | null;
+  /** Why PIV is missing, if it is. Only this section is affected. */
+  pivError: Error | null;
   fido: FidoInfo | null;
   /** null = still checking; false = no reachable FIDO interface, so passkeys are left out. */
   fidoSupported: boolean | null;
   loading: boolean;
-  error: Error | null;
 };
 
 export default function SecurityKeys() {
@@ -50,10 +51,10 @@ export default function SecurityKeys() {
 
   const [state, setState] = useState<State>({
     piv: null,
+    pivError: null,
     fido: null,
     fidoSupported: null,
     loading: true,
-    error: null,
   });
 
   // The PIN lives only here, in the command's memory. Never in Cache, LocalStorage or argv.
@@ -61,26 +62,30 @@ export default function SecurityKeys() {
   const [fidoCreds, setFidoCreds] = useState<FidoCred[] | null>(null);
 
   const load = useCallback(async () => {
-    // All native: PIV over CCID, FIDO2 over HID.
+    // The two halves are independent: PIV rides on CCID (pcscd), FIDO2 on its own HID
+    // interface. A machine with no pcscd still manages passkeys, so neither failure is
+    // allowed to take the other section down with it.
+    let pivInfo: PivInfo | null = null;
+    let pivError: Error | null = null;
     try {
-      const pivInfo = await piv().info();
-
-      let fidoInfo: FidoInfo | null = null;
-      const fidoSupported = fido().available();
-      if (fidoSupported) {
-        fidoInfo = await fido().info().catch(() => null);
-      }
-
-      setState({
-        piv: pivInfo,
-        fido: fidoInfo,
-        fidoSupported: fidoSupported && fidoInfo !== null,
-        loading: false,
-        error: null,
-      });
+      pivInfo = await piv().info();
     } catch (err) {
-      setState((prev) => ({ ...prev, loading: false, error: err instanceof Error ? err : new Error(String(err)) }));
+      pivError = err instanceof Error ? err : new Error(String(err));
     }
+
+    let fidoInfo: FidoInfo | null = null;
+    const fidoSupported = fido().available();
+    if (fidoSupported) {
+      fidoInfo = await fido().info().catch(() => null);
+    }
+
+    setState({
+      piv: pivInfo,
+      pivError,
+      fido: fidoInfo,
+      fidoSupported: fidoSupported && fidoInfo !== null,
+      loading: false,
+    });
   }, []);
 
   useEffect(() => {
@@ -137,14 +142,16 @@ export default function SecurityKeys() {
     }
   }, []);
 
-  if (isDeviceProblem(state.error)) {
-    const busy = state.error instanceof PcscError && state.error.code === "busy";
+  // Only when BOTH halves are gone is there nothing left to show. If PIV is down but the FIDO
+  // interface answers, the passkey section is still fully usable and the screen stays up.
+  if (state.pivError && !state.loading && state.fidoSupported !== true) {
+    const busy = state.pivError instanceof PcscError && state.pivError.code === "busy";
     return (
       <List>
         <List.EmptyView
           icon={Icon.XMarkCircle}
-          title={busy ? t("device.busy") : t("device.none")}
-          description={state.error ? localizeError(state.error) : undefined}
+          title={busy ? t("device.busy") : isDeviceProblem(state.pivError) ? t("device.none") : t("keys.piv.unavailable")}
+          description={localizeError(state.pivError)}
           actions={
             <ActionPanel>
               <Action title={t("action.retry")} icon={Icon.ArrowClockwise} onAction={load} />
@@ -262,6 +269,16 @@ export default function SecurityKeys() {
             : undefined
         }
       >
+        {state.pivError ? (
+          <List.Item
+            id="piv-unavailable"
+            title={t("keys.piv.unavailable")}
+            subtitle={localizeError(state.pivError)}
+            icon={Icon.XMarkCircle}
+            detail={<List.Item.Detail markdown={t("keys.piv.unavailable.detail", { reason: localizeError(state.pivError) })} />}
+            actions={<ActionPanel>{refresh}</ActionPanel>}
+          />
+        ) : null}
         {(state.piv?.slots ?? []).map((slot) => (
           <List.Item
             key={slot.slot}

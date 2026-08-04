@@ -36,7 +36,7 @@
       "name": "security-keys",
       "title": "Keys & Certificates",
       "subtitle": "YubiKey",
-      "description": "Manage FIDO2 passkeys, PIV slots and certificates on the YubiKey",
+      "description": "Manage FIDO2 passkeys and view or export PIV certificates on the YubiKey",
       "mode": "view",
       "icon": "keys.png",
       "keywords": [

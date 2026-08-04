@@ -8,6 +8,7 @@ import {
   Icon,
   List,
   Toast,
+  showHUD,
   showToast,
   useNavigation,
 } from "@vicinae/api";
@@ -209,7 +210,10 @@ export default function OtpCodes() {
 
   const deliver = useCallback(async (value: string, label: string) => {
     try {
-      await pasteAndForget(value);
+      const outcome = await pasteAndForget(value);
+      // The main window is already closed at this point, so a toast would have nowhere to
+      // land; a HUD is the only way left to tell the user the code stayed in the history.
+      if (outcome === "purge-failed") await showHUD(t("otp.purge.failed"));
     } catch (err) {
       await showToast({
         style: Toast.Style.Failure,
@@ -466,11 +470,19 @@ function LockedView({ onUnlocked }: { onUnlocked: () => void }) {
     const password = String(values.password ?? "");
     if (!password) return;
 
+    const remember = Boolean(values.remember);
     setLoading(true);
     try {
-      await oath().unlock(password, Boolean(values.remember));
+      const persisted = await oath().unlock(password, remember);
       onUnlocked();
       pop();
+      if (remember && !persisted) {
+        await showToast({
+          style: Toast.Style.Failure,
+          title: t("unlock.remember.failed"),
+          message: t("unlock.remember.failed.detail"),
+        });
+      }
     } catch (err) {
       setLoading(false);
       await showToast({ style: Toast.Style.Failure, title: t("unlock.failed"), message: localizeError(err) });

@@ -205,6 +205,7 @@ export async function loadAccessKey(deviceId: string): Promise<Buffer | null> {
     const imported = await importFromYkman(session, deviceId);
     if (imported) {
       memoryCache.set(deviceId, imported);
+      // Best effort: the key is already in hand, and ykman's entry stays readable next time.
       await createItem(session, { ...OUR_ATTRS, deviceId }, "Vicinae YubiKey OATH", Buffer.from(imported.toString("hex"), "utf8")).catch(() => {});
       return imported;
     }
@@ -218,15 +219,23 @@ export async function loadAccessKey(deviceId: string): Promise<Buffer | null> {
   }
 }
 
-/** Stores the key derived from a password the user typed. */
-export async function saveAccessKey(deviceId: string, key: Buffer): Promise<void> {
+/**
+ * Stores the key derived from a password the user typed.
+ *
+ * Returns false when it could only be kept in memory: with no Secret Service running
+ * (sway/Hyprland without a keyring) the key lasts for this session only, and the caller has to
+ * say so instead of claiming it was remembered.
+ */
+export async function saveAccessKey(deviceId: string, key: Buffer): Promise<boolean> {
   memoryCache.set(deviceId, key);
   let session: Session | null = null;
   try {
     session = await openSession();
     await createItem(session, { ...OUR_ATTRS, deviceId }, "Vicinae YubiKey OATH", Buffer.from(key.toString("hex"), "utf8"));
+    return true;
   } catch {
     // No Secret Service: memory only for this session. Better than plain text on disk.
+    return false;
   } finally {
     session?.bus.close();
   }

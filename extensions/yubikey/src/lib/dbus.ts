@@ -34,6 +34,7 @@ function elementAlignment(sig: string, i: number): number {
     case "g":
     case "v":
       return 1;
+    case "b":
     case "u":
     case "s":
     case "o":
@@ -120,6 +121,10 @@ class Writer {
         return i + 1;
       case "u":
         this.uint32(v as number);
+        return i + 1;
+      // A D-Bus boolean travels as a uint32 that must be exactly 0 or 1.
+      case "b":
+        this.uint32(v ? 1 : 0);
         return i + 1;
       case "s":
       case "o":
@@ -231,6 +236,8 @@ class Reader {
         return this.byte();
       case "u":
         return this.uint32();
+      case "b":
+        return this.uint32() !== 0;
       case "s":
       case "o":
         return this.string();
