@@ -3,10 +3,10 @@ import { prefs } from "./oath-session";
 import { type PivInfo, PivError, type SlotInfo, exportCertificate as exportCert, readInfo, select } from "./piv";
 
 /**
- * Sessão PIV nativa: dona de uma conexão PC/SC própria, separada da sessão OATH.
+ * Native PIV session: owns its own PC/SC connection, separate from the OATH session.
  *
- * A tela de chaves é fria (aberta raramente), então não vale manter conexão viva: abrimos por
- * operação. O certificado e o estado do PIN saem em ~10 ms de qualquer forma.
+ * The keys screen is cold (rarely opened), so keeping a connection alive is not worth it: we
+ * open one per operation. The certificate and the PIN state come back in ~10 ms anyway.
  */
 export class PivSession {
   private async withConnection<T>(fn: (conn: PcscConnection) => Promise<T>): Promise<T> {
@@ -19,12 +19,12 @@ export class PivSession {
     }
   }
 
-  /** Slots, certificados e estado do PIN. Não exige PIN nem escreve nada. */
+  /** Slots, certificates and PIN state. Requires no PIN and writes nothing. */
   async info(): Promise<PivInfo> {
     return this.withConnection((conn) => conn.transaction((t) => readInfo(t)));
   }
 
-  /** Exporta o certificado de um slot em PEM. */
+  /** Exports a slot's certificate as PEM. */
   async exportCertificate(objectId: number): Promise<string> {
     return this.withConnection((conn) =>
       conn.transaction(async (t) => {

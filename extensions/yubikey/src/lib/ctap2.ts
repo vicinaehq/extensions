@@ -3,12 +3,13 @@ import { type CborMap, type CborValue, decode, encode } from "./cbor";
 import { CtapError, HidDevice } from "./hid";
 
 /**
- * CTAP2: getInfo, ClientPin (destravar com o PIN) e CredentialManagement (listar/apagar passkeys).
+ * CTAP2: getInfo, ClientPin (unlocking with the PIN) and CredentialManagement (list/delete
+ * passkeys).
  *
- * A parte sensível é o protocolo de PIN. Um erro na derivação da chave ou no hash do PIN faz o
- * cartão contar uma tentativa errada, e três seguidas bloqueiam o FIDO2 até replugar. Por isso a
- * criptografia daqui foi validada byte a byte contra a biblioteca de referência antes de qualquer
- * envio real (ver os testes).
+ * The delicate part is the PIN protocol. A mistake in the key derivation or in the PIN hash
+ * makes the key count a failed attempt, and three in a row lock FIDO2 until it is replugged.
+ * That is why the crypto here was validated byte for byte against the reference library before
+ * any real request was ever sent.
  */
 
 const CMD = {
@@ -18,19 +19,19 @@ const CMD = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Protocolo de PIN/UV
+// PIN/UV protocol
 // ---------------------------------------------------------------------------
 
 export interface PinProtocol {
   readonly version: number;
-  /** Deriva o segredo compartilhado a partir da chave pública COSE do autenticador. */
+  /** Derives the shared secret from the authenticator's COSE public key. */
   encapsulate(peerCose: CborMap): { keyAgreement: Map<number, number | Buffer>; sharedSecret: Buffer };
   encrypt(key: Buffer, plaintext: Buffer): Buffer;
   decrypt(key: Buffer, ciphertext: Buffer): Buffer;
   authenticate(key: Buffer, message: Buffer): Buffer;
 }
 
-/** Gera um par de chaves P-256 e devolve a chave pública COSE + a privada para o ECDH. */
+/** Generates a P-256 key pair and returns the COSE public key plus the private one for ECDH. */
 function ephemeralKeyAgreement(): {
   cose: Map<number, number | Buffer>;
   privateKey: import("node:crypto").KeyObject;
@@ -41,7 +42,7 @@ function ephemeralKeyAgreement(): {
   const y = Buffer.from(jwk.y, "base64url");
   const cose = new Map<number, number | Buffer>([
     [1, 2], // kty: EC2
-    [3, -25], // alg: ECDH-ES+HKDF-256 (o spec manda este valor mesmo não sendo o usado)
+    [3, -25], // alg: ECDH-ES+HKDF-256 (the spec mandates this value even though it is not what is used)
     [-1, 1], // crv: P-256
     [-2, x],
     [-3, y],
@@ -49,7 +50,7 @@ function ephemeralKeyAgreement(): {
   return { cose, privateKey };
 }
 
-/** Reconstrói a chave pública do autenticador (COSE) como KeyObject para o ECDH. */
+/** Rebuilds the authenticator's public key (COSE) as a KeyObject for the ECDH. */
 function coseToPublicKey(cose: CborMap): import("node:crypto").KeyObject {
   const x = cose.get(-2) as Buffer;
   const y = cose.get(-3) as Buffer;
@@ -65,7 +66,7 @@ function ecdh(privateKey: import("node:crypto").KeyObject, peerCose: CborMap): B
   return diffieHellman({ privateKey, publicKey });
 }
 
-/** Protocolo v1: SHA-256(Z) como chave, AES-256-CBC com IV zero, HMAC truncado em 16 bytes. */
+/** Protocol v1: SHA-256(Z) as the key, AES-256-CBC with a zero IV, HMAC truncated to 16 bytes. */
 class PinProtocolV1 implements PinProtocol {
   readonly version = 1;
   private static IV = Buffer.alloc(16, 0);
@@ -90,7 +91,7 @@ class PinProtocolV1 implements PinProtocol {
   }
 }
 
-/** Protocolo v2: HKDF separa chaves de HMAC e AES; IV aleatório prefixado; HMAC completo. */
+/** Protocol v2: HKDF splits the HMAC and AES keys; random IV prefixed; full HMAC. */
 class PinProtocolV2 implements PinProtocol {
   readonly version = 2;
   private static SALT = Buffer.alloc(32, 0);
@@ -170,7 +171,7 @@ export class Ctap2 {
   async init(): Promise<void> {
     this.info = this.call(CMD.GET_INFO, Buffer.alloc(0));
     const protos = (this.info.get(0x06) as number[]) ?? [1];
-    // Prefere o v2 se a chave suportar.
+    // Prefer v2 when the key supports it.
     this.protocol = pinProtocol(protos.includes(2) ? 2 : 1);
   }
 
@@ -195,25 +196,25 @@ export class Ctap2 {
   }
 
   /**
-   * Obtém um PIN/UV token para gerenciar credenciais.
+   * Gets a PIN/UV token for managing credentials.
    *
-   * ATENÇÃO: um PIN errado consome uma tentativa; três seguidas bloqueiam o FIDO2. A
-   * criptografia daqui é validada offline contra a referência antes de rodar de verdade.
+   * CAREFUL: a wrong PIN consumes an attempt, and three in a row lock FIDO2. The crypto here is
+   * validated offline against the reference before it ever runs for real.
    */
   private getPinToken(pin: string): Buffer {
-    // 1) pega a chave pública efêmera do autenticador
+    // 1) get the authenticator's ephemeral public key
     const ka = this.call(
       CMD.CLIENT_PIN,
       encode(new Map<number, number>([[1, this.protocol.version], [2, CLIENT_PIN_SUB.GET_KEY_AGREEMENT]])),
     );
     const peerCose = ka.get(0x01) as CborMap;
 
-    // 2) deriva o segredo compartilhado e cifra o hash do PIN
+    // 2) derive the shared secret and encrypt the PIN hash
     const { keyAgreement, sharedSecret } = this.protocol.encapsulate(peerCose);
     const pinHash = createHash("sha256").update(Buffer.from(pin, "utf8")).digest().subarray(0, 16);
     const pinHashEnc = this.protocol.encrypt(sharedSecret, pinHash);
 
-    // 3) pede o token, com permissão de gerenciamento de credenciais
+    // 3) ask for the token, with the credential-management permission
     const tokenSupported = this.tokenWithPermissionsSupported();
     const args = new Map<number, number | Buffer | Map<number, number | Buffer>>([
       [1, this.protocol.version],
@@ -236,10 +237,10 @@ export class Ctap2 {
   // ------------- CredentialManagement -------------
 
   private credMgmt(subCmd: number, params: CborValue | null, token: Buffer): CborMap {
-    // Os parâmetros entram no request como um MAPA (não como byte string), mas o
-    // pinUvAuthParam é calculado sobre a codificação deles: authenticate(token, subCmd || cbor(params)).
-    // Embutir os params já codificados faria o encoder envolvê-los num byte string, e o cartão
-    // rejeitaria com INVALID_PARAMETER.
+    // The parameters go into the request as a MAP (not as a byte string), but pinUvAuthParam is
+    // computed over their encoding: authenticate(token, subCmd || cbor(params)). Embedding the
+    // already-encoded params would make the encoder wrap them in a byte string, and the key
+    // would reject it with INVALID_PARAMETER.
     const paramsEncoded = params !== null ? encode(params) : Buffer.alloc(0);
     const msg = Buffer.concat([Buffer.from([subCmd]), paramsEncoded]);
     const authParam = this.protocol.authenticate(token, msg);
@@ -252,13 +253,13 @@ export class Ctap2 {
     return this.call(CMD.CREDENTIAL_MGMT, encode(args));
   }
 
-  /** Lista todas as passkeys residentes. Exige o PIN. */
+  /** Lists every resident passkey. Requires the PIN. */
   async listCredentials(pin: string): Promise<FidoCred[]> {
     const token = this.getPinToken(pin);
     const creds: FidoCred[] = [];
 
-    // getCredsMetadata (0x01) primeiro: se não há credenciais, enumerateRPsBegin retornaria
-    // erro. É o que o cliente de referência faz.
+    // getCredsMetadata (0x01) first: with no credentials, enumerateRPsBegin would return an
+    // error. This is what the reference client does.
     const meta = this.credMgmt(0x01, null, token);
     const existing = (meta.get(0x01) as number) ?? 0;
     if (existing === 0) return creds;
@@ -280,7 +281,7 @@ export class Ctap2 {
     readRp(rpBegin);
     for (let i = 1; i < totalRps; i++) readRp(this.credMgmt(0x03, null, token));
 
-    // para cada RP, enumerateCredentialsBegin (0x04) + GetNextCredential (0x05)
+    // for each RP, enumerateCredentialsBegin (0x04) + GetNextCredential (0x05)
     for (const rp of rps) {
       const params = new Map<number, Buffer>([[1, rp.rpIdHash]]);
       const first = this.credMgmt(0x04, params, token);
@@ -308,7 +309,7 @@ export class Ctap2 {
     return creds;
   }
 
-  /** Apaga uma passkey residente pelo credential id (hex). Exige o PIN. */
+  /** Deletes a resident passkey by credential id (hex). Requires the PIN. */
   async deleteCredential(pin: string, credentialIdHex: string): Promise<void> {
     const token = this.getPinToken(pin);
     // params = { 2: { "id": <credId>, "type": "public-key" } }

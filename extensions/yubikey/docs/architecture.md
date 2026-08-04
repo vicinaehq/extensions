@@ -1,10 +1,10 @@
 # Architecture
 
 This extension talks to a YubiKey from a Vicinae extension (TypeScript + React on
-the `vicinae-node` runtime). It speaks every YubiKey protocol **natively**, with no
-external dependencies: no `ykman`, no `yubikit`, no Python, no native addons. The
-only runtime requirement is a running `pcscd` (present on virtually every Linux
-desktop), plus the standard FIDO udev rule for the passkey screen.
+the `vicinae-node` runtime). It speaks every YubiKey protocol **natively**: no
+`ykman`, no `yubikit`, no Python, no native addons. The runtime requirements are a
+running `pcscd` (present on virtually every Linux desktop), plus the standard FIDO
+udev rule for the passkey screen.
 
 ## Why native
 

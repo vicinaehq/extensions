@@ -2,19 +2,20 @@ import { existsSync } from "node:fs";
 import net from "node:net";
 
 /**
- * Cliente PC/SC nativo: fala o protocolo `winscard_msg` direto com o pcscd, por socket unix.
+ * Native PC/SC client: speaks the `winscard_msg` protocol straight to pcscd, over a unix socket.
  *
- * Existe para não depender de nada. A alternativa seria o `libpcsclite` via addon nativo (o
- * `vici build` gera um bundle único com esbuild, então um `.node` exigiria prebuilds por
- * arquitetura) ou o CLI do ykman em Python (58 MB de RSS e ~1s de boot). Aqui é só `node:net`.
+ * It exists so nothing else has to be installed. The alternatives were `libpcsclite` through a
+ * native addon (`vici build` produces a single esbuild bundle, so a `.node` would need
+ * per-architecture prebuilds) or ykman's Python CLI (58 MB of RSS and ~1s to boot). This is just
+ * `node:net`.
  *
- * O protocolo é simples, mas tem três armadilhas que custam caro se ignoradas, todas tratadas
- * abaixo: a negociação de versão, o framing assimétrico, e o fato de que o campo de estado do
- * reader no fio não usa as constantes públicas da API.
+ * The protocol is simple, but it has three traps that are expensive to ignore, all handled
+ * below: the version negotiation, the asymmetric framing, and the fact that the reader's state
+ * field on the wire does not use the API's public constants.
  */
 
 // ---------------------------------------------------------------------------
-// Protocolo
+// Protocol
 // ---------------------------------------------------------------------------
 
 const CMD = {
@@ -30,12 +31,13 @@ const CMD = {
 } as const;
 
 /**
- * Mandamos 4.4, e não a versão mais nova.
+ * We send 4.4, not the newest version.
  *
- * O servidor aceita qualquer minor no intervalo [PROTOCOL_VERSION_MINOR_SERVER_BACKWARD,
- * o dele], que hoje é [4, 5] no pcsc-lite 2.x. Pedir um minor MAIOR que o dele é rejeitado com
- * SCARD_E_SERVICE_STOPPED. Como 4.4 é o piso aceito desde 2021, ele passa em todo daemon atual.
- * Se mesmo assim falhar, a resposta traz a versão do servidor e re-tentamos com ela.
+ * The server accepts any minor in the range [PROTOCOL_VERSION_MINOR_SERVER_BACKWARD, its own],
+ * which today is [4, 5] on pcsc-lite 2.x. Asking for a minor HIGHER than its own is rejected
+ * with SCARD_E_SERVICE_STOPPED. Since 4.4 has been the accepted floor since 2021, it passes on
+ * every current daemon. If it still fails, the answer carries the server's version and we retry
+ * with that one.
  */
 const PROTO_MAJOR = 4;
 const PROTO_MINOR = 4;
@@ -44,15 +46,15 @@ const MAX_READERNAME = 128;
 const READER_STATE_SIZE = 184;
 const READER_STATE_COUNT = 16;
 
-/** Buffer de resposta de um APDU curto: 256 bytes de dados + 2 de status. */
+/** Response buffer of a short APDU: 256 bytes of data + 2 of status. */
 const MAX_BUFFER_SIZE = 264;
 
 export const SHARE = { EXCLUSIVE: 1, SHARED: 2, DIRECT: 3 } as const;
 export const PROTOCOL = { T0: 1, T1: 2, ANY: 3 } as const;
 export const DISPOSITION = { LEAVE: 0, RESET: 1, UNPOWER: 2, EJECT: 3 } as const;
 
-/** Estado do reader COMO VEM NO FIO. Não confundir com as constantes SCARD_STATE_* da API:
- *  lá, 0x20 é "cartão presente"; aqui, 0x20 é "negociável". Cartão presente é 0x04. */
+/** The reader state AS IT COMES ON THE WIRE. Not to be confused with the API's SCARD_STATE_*
+ *  constants: there, 0x20 is "card present"; here, 0x20 is "negotiable". Card present is 0x04. */
 const WIRE_PRESENT = 0x04;
 
 const RV = {
@@ -89,7 +91,7 @@ export class PcscError extends Error {
   }
 }
 
-/** Traduz um rv do PC/SC para algo que o usuário possa agir a respeito. */
+/** Turns a PC/SC rv into something the user can act on. */
 function fromRv(rv: number, context: string): PcscError {
   switch (rv) {
     case RV.E_SHARING_VIOLATION:
@@ -145,15 +147,16 @@ function socketPath(override?: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Conexão
+// Connection
 // ---------------------------------------------------------------------------
 
 /**
- * Uma conexão com o pcscd.
+ * A connection to pcscd.
  *
- * O protocolo não tem tag de correlação: a resposta não diz a que pedido pertence. Logo, só
- * pode haver **um comando em voo por socket**, e as chamadas são serializadas numa fila.
- * Quem precisa de concorrência (o toque, que trava o cartão por até 15s) abre outro socket.
+ * The protocol has no correlation tag: an answer does not say which request it belongs to. So
+ * there can only be **one command in flight per socket**, and calls are serialized in a queue.
+ * Anything that needs concurrency (the touch, which locks the card for up to 15s) opens another
+ * socket.
  */
 export class PcscConnection {
   private sock: net.Socket | null = null;
@@ -183,13 +186,13 @@ export class PcscConnection {
     resolve(out);
   }
 
-  /** O socket entrega pedaços arbitrários; todo read precisa juntar até ter o tamanho exato. */
+  /** The socket delivers arbitrary chunks; every read has to join them up to the exact size. */
   private readExactly(need: number): Promise<Buffer> {
     if (this.closedReason) return Promise.reject(this.closedReason);
     return new Promise<Buffer>((resolve, reject) => {
       this.waiter = { need, resolve };
       this.pump();
-      // Se o socket morrer no meio, `die()` rejeita por aqui.
+      // If the socket dies midway, `die()` rejects through here.
       this.rejectPending = reject;
     });
   }
@@ -223,8 +226,9 @@ export class PcscConnection {
 
     sock.on("data", (c) => this.onData(c));
 
-    // Fim de conexão sem resposta logo depois do connect é a assinatura do polkit recusando:
-    // o pcscd fecha o fd sem escrever nada quando a sessão não é ativa (SSH, TTY, container).
+    // An end-of-connection with no answer right after connect is polkit's refusal signature:
+    // pcscd closes the fd without writing anything when the session is not active (SSH, TTY,
+    // container).
     sock.on("end", () => {
       this.die(
         new PcscError(
@@ -242,9 +246,9 @@ export class PcscConnection {
     this.sock = sock;
   }
 
-  /** Envia header + payload. O servidor responde SEM header: só o struct (e, no transmit, os dados). */
+  /** Sends header + payload. The server answers WITHOUT a header: only the struct (plus the data on transmit). */
   private send(command: number, payload: Buffer, extra?: Buffer) {
-    if (!this.sock) throw this.closedReason ?? new PcscError("io", "socket fechado");
+    if (!this.sock) throw this.closedReason ?? new PcscError("io", "The socket is closed");
     const header = Buffer.alloc(8);
     header.writeUInt32LE(payload.length, 0);
     header.writeUInt32LE(command, 4);
@@ -274,7 +278,7 @@ export class PcscConnection {
 
     if (res.readUInt32LE(8) === RV.OK) return;
 
-    // O servidor rejeitou nossa versão, mas nos disse a dele. Tenta de novo com ela.
+    // The server rejected our version but told us its own. Try again with that one.
     const theirMinor = res.readInt32LE(4);
     await this.reopen();
 
@@ -313,8 +317,8 @@ export class PcscConnection {
 
     const reader = await this.pickReader(preferredSerialOrName);
 
-    // SHARE_SHARED: não tomamos o cartão para nós. O gpg e o navegador seguem funcionando; a
-    // exclusividade que precisamos é só dentro de cada transação, que dura milissegundos.
+    // SHARE_SHARED: we do not take the card for ourselves. gpg and the browser keep working;
+    // the exclusivity we need is only inside each transaction, which lasts milliseconds.
     const con = Buffer.alloc(4 + MAX_READERNAME + 4 * 5);
     con.writeUInt32LE(this.hContext, 0);
     con.write(reader, 4, "utf8");
@@ -330,15 +334,16 @@ export class PcscConnection {
   }
 
   /**
-   * Lista os readers e escolhe um com cartão presente.
+   * Lists the readers and picks one with a card present.
    *
-   * `GET_READERS_STATE` é o caminho certo: o `SCARD_LIST_READERS` do enum não tem handler no
-   * daemon (o libpcsclite responde do cache local). E ele espera os readers inicializarem, o
-   * que mata de graça a corrida com a ativação por socket do systemd.
+   * `GET_READERS_STATE` is the right path: the enum's `SCARD_LIST_READERS` has no handler in the
+   * daemon (libpcsclite answers it from a local cache). And it waits for the readers to
+   * initialize, which kills the race with systemd's socket activation for free.
    */
   private async pickReader(preferred?: string): Promise<string> {
-    // Este comando não segue a regra dos outros: o pedido não tem payload, e a resposta é sempre
-    // um bloco fixo de 16 slots, em qualquer versão do protocolo. É o ponto mais estável daqui.
+    // This command does not follow the rule of the others: the request has no payload, and the
+    // answer is always a fixed block of 16 slots, in every version of the protocol. It is the
+    // most stable thing here.
     this.send(CMD.GET_READERS_STATE, Buffer.alloc(0));
     const blob = await this.readExactly(READER_STATE_SIZE * READER_STATE_COUNT);
 
@@ -365,8 +370,8 @@ export class PcscConnection {
       throw new PcscError("no_card", "Connect the YubiKey");
     }
 
-    // Preferência do usuário, se casar. Senão, a YubiKey pelo nome. Senão, o primeiro com cartão:
-    // uma YubiKey num leitor NFC externo não tem "Yubico" no nome do reader.
+    // The user's preference, when it matches. Otherwise the YubiKey by name. Otherwise the first
+    // one with a card: a YubiKey in an external NFC reader has no "Yubico" in the reader name.
     if (preferred) {
       const hit = withCard.find((r) => r.name.includes(preferred));
       if (hit) return hit.name;
@@ -376,15 +381,15 @@ export class PcscConnection {
   }
 
   /**
-   * Executa uma sequência de APDUs dentro de uma transação.
+   * Runs a sequence of APDUs inside a transaction.
    *
-   * A transação não é sobre performance nem sobre egoísmo: sem ela, o gpg-agent pode dar SELECT
-   * no applet OpenPGP no meio da nossa sequência (SELECT OATH → VALIDATE → CALCULATE_ALL) e
-   * deselecionar o OATH debaixo de nós. O resultado seria um erro sem explicação, ou pior, dados
-   * do applet errado.
+   * The transaction is not about performance or selfishness: without it, gpg-agent can SELECT
+   * the OpenPGP applet in the middle of our sequence (SELECT OATH → VALIDATE → CALCULATE_ALL)
+   * and deselect OATH from under us. The result would be an unexplained error or, worse, data
+   * from the wrong applet.
    *
-   * A transação dura poucos milissegundos. Quem esbarrar nela leva SHARING_VIOLATION e o
-   * libpcsclite do outro programa já refaz a tentativa sozinho.
+   * The transaction lasts a few milliseconds. Whoever bumps into it gets SHARING_VIOLATION, and
+   * the other program's libpcsclite already retries on its own.
    */
   async transaction<T>(fn: (t: Transmitter) => Promise<T>): Promise<T> {
     return this.run(async () => {
@@ -398,9 +403,9 @@ export class PcscConnection {
   }
 
   private async begin(): Promise<void> {
-    // O daemon devolve SHARING_VIOLATION na hora (já tendo dormido 100ms), não bloqueia. Quem
-    // insiste é o cliente. O libpcsclite faz isso num laço infinito; nós pomos um teto, senão
-    // um gpg travado penduraria a extensão para sempre.
+    // The daemon returns SHARING_VIOLATION right away (after sleeping 100ms), it does not
+    // block. The client is the one that insists. libpcsclite does that in an infinite loop; we
+    // put a ceiling on it, otherwise a stuck gpg would hang the extension forever.
     const DEADLINE = Date.now() + 3000;
     for (;;) {
       const req = Buffer.alloc(8);
@@ -445,7 +450,7 @@ export class PcscConnection {
       if (this.hCard) {
         const req = Buffer.alloc(12);
         req.writeInt32LE(this.hCard, 0);
-        req.writeUInt32LE(DISPOSITION.LEAVE, 4); // deixa o cartão ligado: bom cidadão
+        req.writeUInt32LE(DISPOSITION.LEAVE, 4); // leave the card powered: be a good citizen
         await this.call(CMD.DISCONNECT, req);
       }
       if (this.hContext) {

@@ -3,11 +3,11 @@ import { gunzipSync } from "node:zlib";
 import type { Transmitter } from "./pcsc";
 
 /**
- * O applet PIV da YubiKey, falado direto por APDU.
+ * The YubiKey's PIV applet, spoken directly over APDU.
  *
- * Só leitura por enquanto: listar slots, ler certificados, ver as tentativas de PIN. Escrever
- * (gerar chave, importar, apagar cert) exige a management key, cuja negociação (3DES/AES com
- * desafio-resposta, e a chave protegida por PIN vivendo noutro objeto) fica para uma fase depois.
+ * Read-only for now: list slots, read certificates, check the PIN retries. Writing (generate a
+ * key, import one, delete a cert) requires the management key, whose negotiation (3DES/AES
+ * challenge-response, with the PIN-protected key living in another object) is left for later.
  */
 
 const AID = Buffer.from([0xa0, 0x00, 0x00, 0x03, 0x08]);
@@ -29,12 +29,12 @@ const TAG = {
 const PIN_P2 = 0x80;
 const PIN_LEN = 8;
 
-/** Slot → nome legível e id do objeto que guarda o certificado daquele slot. */
+/** Slot → readable name and the id of the object holding that slot's certificate. */
 export const SLOTS = [
-  { slot: "9a", name: "AUTHENTICATION", label: "Autenticação", objectId: 0x5fc105 },
-  { slot: "9c", name: "SIGNATURE", label: "Assinatura digital", objectId: 0x5fc10a },
-  { slot: "9d", name: "KEY_MANAGEMENT", label: "Gerenciamento de chaves", objectId: 0x5fc10b },
-  { slot: "9e", name: "CARD_AUTH", label: "Autenticação do cartão", objectId: 0x5fc101 },
+  { slot: "9a", name: "AUTHENTICATION", label: "Authentication", objectId: 0x5fc105 },
+  { slot: "9c", name: "SIGNATURE", label: "Digital signature", objectId: 0x5fc10a },
+  { slot: "9d", name: "KEY_MANAGEMENT", label: "Key management", objectId: 0x5fc10b },
+  { slot: "9e", name: "CARD_AUTH", label: "Card authentication", objectId: 0x5fc101 },
 ] as const;
 
 const SW = {
@@ -55,7 +55,7 @@ export class PivError extends Error {
 }
 
 // ---------------------------------------------------------------------------
-// TLV e APDU (o PIV usa TLV com comprimento potencialmente longo)
+// TLV and APDU (PIV uses TLV with a potentially long length)
 // ---------------------------------------------------------------------------
 
 function tlv(tag: number, value: Buffer): Buffer {
@@ -95,7 +95,7 @@ function apdu(ins: number, p1: number, p2: number, data?: Buffer): Buffer {
   return Buffer.concat([head, Buffer.from([data.length]), data]);
 }
 
-/** Envia um APDU e junta as continuações (SW1=0x61). Devolve os dados sem o status. */
+/** Sends an APDU and joins the continuations (SW1=0x61). Returns the data without the status. */
 async function send(t: Transmitter, cmd: Buffer): Promise<{ data: Buffer; sw: number }> {
   let res = await t(cmd);
   const chunks: Buffer[] = [];
@@ -104,7 +104,7 @@ async function send(t: Transmitter, cmd: Buffer): Promise<{ data: Buffer; sw: nu
     const sw2 = res[res.length - 1];
     chunks.push(res.subarray(0, -2));
     if (sw1 === 0x61) {
-      // GET RESPONSE do PIV: 00 C0 00 00 <len>
+      // PIV's GET RESPONSE: 00 C0 00 00 <len>
       res = await t(Buffer.from([0x00, 0xc0, 0x00, 0x00, sw2]));
       continue;
     }
@@ -112,7 +112,7 @@ async function send(t: Transmitter, cmd: Buffer): Promise<{ data: Buffer; sw: nu
   }
 }
 
-/** Traduz o SW de um VERIFY em quantas tentativas restam (0x63CX = X tentativas). */
+/** Turns a VERIFY's SW into how many retries are left (0x63CX = X retries). */
 function retriesFromSw(sw: number): number | null {
   if (sw === SW.AUTH_BLOCKED) return 0;
   if ((sw & 0xfff0) === 0x63c0) return sw & 0x0f;
@@ -156,19 +156,19 @@ export type PivInfo = {
   pinTotal: number | null;
 };
 
-/** Seleciona o applet PIV. Feito no início de cada transação. */
+/** Selects the PIV applet. Done at the start of every transaction. */
 export async function select(t: Transmitter): Promise<void> {
   const { sw } = await send(t, apdu(0xa4, 0x04, 0x00, AID));
   if (sw !== SW.OK) throw new PivError("card", `Could not select PIV (SW=0x${sw.toString(16)})`);
 }
 
-/** Lê o certificado de um slot, ou null se o slot está vazio. */
+/** Reads a slot's certificate, or null if the slot is empty. */
 export async function getCertificate(t: Transmitter, objectId: number): Promise<CertInfo | null> {
   const { data, sw } = await send(t, apdu(INS.GET_DATA, 0x3f, 0xff, tlv(TAG.OBJ_ID, intToBytes(objectId))));
   if (sw === SW.FILE_NOT_FOUND) return null;
-  if (sw !== SW.OK) throw new PivError("card", `Erro ao ler o certificado (SW=0x${sw.toString(16)})`);
+  if (sw !== SW.OK) throw new PivError("card", `Could not read the certificate (SW=0x${sw.toString(16)})`);
 
-  // A resposta é 0x53 { 0x70 <cert> 0x71 <certInfo> }.
+  // The response is 0x53 { 0x70 <cert> 0x71 <certInfo> }.
   const outer = parseTlvs(data).find((x) => x.tag === TAG.OBJ_DATA);
   if (!outer) return null;
   const inner = parseTlvs(outer.value);
@@ -178,7 +178,7 @@ export async function getCertificate(t: Transmitter, objectId: number): Promise<
 
   let der = certTlv.value;
   const certInfo = infoTlv && infoTlv.value.length > 0 ? infoTlv.value[0] : 0;
-  if (certInfo === 1) der = gunzipSync(der); // certificado comprimido
+  if (certInfo === 1) der = gunzipSync(der); // compressed certificate
 
   const x = new X509Certificate(der);
   return {
@@ -191,11 +191,11 @@ export async function getCertificate(t: Transmitter, objectId: number): Promise<
   };
 }
 
-/** Exporta o certificado de um slot em PEM, ou lança se o slot está vazio. */
+/** Exports a slot's certificate as PEM, or throws if the slot is empty. */
 export async function exportCertificate(t: Transmitter, objectId: number): Promise<string> {
   const { data, sw } = await send(t, apdu(INS.GET_DATA, 0x3f, 0xff, tlv(TAG.OBJ_ID, intToBytes(objectId))));
   if (sw === SW.FILE_NOT_FOUND) throw new PivError("no_cert", "There is no certificate in that slot");
-  if (sw !== SW.OK) throw new PivError("card", `Erro ao ler o certificado (SW=0x${sw.toString(16)})`);
+  if (sw !== SW.OK) throw new PivError("card", `Could not read the certificate (SW=0x${sw.toString(16)})`);
 
   const outer = parseTlvs(data).find((x) => x.tag === TAG.OBJ_DATA);
   const inner = outer ? parseTlvs(outer.value) : [];
@@ -209,9 +209,9 @@ export async function exportCertificate(t: Transmitter, objectId: number): Promi
   return new X509Certificate(der).toString(); // PEM
 }
 
-/** Quantas tentativas de PIN restam. Não consome tentativa (usa metadata quando disponível). */
+/** How many PIN retries are left. Does not consume one (uses metadata when available). */
 export async function pinRetries(t: Transmitter): Promise<{ left: number | null; total: number | null }> {
-  // GET METADATA do PIN (YubiKey 5.3+): tag 0x06 = [default, remaining].
+  // PIN GET METADATA (YubiKey 5.3+): tag 0x06 = [default, remaining].
   const { data, sw } = await send(t, apdu(INS.GET_METADATA, 0x00, PIN_P2));
   if (sw === SW.OK) {
     const retries = parseTlvs(data).find((x) => x.tag === TAG.METADATA_RETRIES);
@@ -222,7 +222,7 @@ export async function pinRetries(t: Transmitter): Promise<{ left: number | null;
   return { left: null, total: null };
 }
 
-/** Verifica o PIN. Lança PivError com o número de tentativas restantes se errado. */
+/** Verifies the PIN. Throws PivError with the number of retries left when it is wrong. */
 export async function verifyPin(t: Transmitter, pin: string): Promise<void> {
   const bytes = Buffer.from(pin, "utf8");
   if (bytes.length > PIN_LEN) throw new PivError("pin_invalid", "The PIN cannot be longer than 8 characters");
@@ -236,10 +236,10 @@ export async function verifyPin(t: Transmitter, pin: string): Promise<void> {
   if (left !== null) {
     throw new PivError("pin_invalid", `Wrong PIV PIN. ${left} attempts left.`, left);
   }
-  throw new PivError("card", `Erro ao verificar o PIN (SW=0x${sw.toString(16)})`);
+  throw new PivError("card", `Could not verify the PIN (SW=0x${sw.toString(16)})`);
 }
 
-/** Lê tudo que a tela de chaves mostra do PIV: slots com certificados e o estado do PIN. */
+/** Reads everything the keys screen shows from PIV: slots with certificates and the PIN state. */
 export async function readInfo(t: Transmitter): Promise<PivInfo> {
   await select(t);
 

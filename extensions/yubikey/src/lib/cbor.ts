@@ -1,10 +1,10 @@
 /**
- * CBOR no dialeto que o CTAP2 usa (RFC 8949, forma canônica "CTAP2 canonical").
+ * CBOR in the dialect CTAP2 uses (RFC 8949, the "CTAP2 canonical" form).
  *
- * Só o subconjunto que aparece no protocolo: inteiros, byte strings, text strings, arrays e
- * mapas. A regra canônica que importa: as chaves de um mapa saem ordenadas pelos bytes da
- * codificação (comprimento primeiro, depois lexicográfico), e todo comprimento usa a forma mais
- * curta possível. A YubiKey rejeita CBOR não-canônico.
+ * Only the subset that shows up in the protocol: integers, byte strings, text strings, arrays
+ * and maps. The canonical rule that matters: a map's keys come out ordered by the bytes of
+ * their encoding (length first, then lexicographic), and every length uses the shortest
+ * possible form. The YubiKey rejects non-canonical CBOR.
  */
 
 // ---------------------------------------------------------------------------
@@ -66,7 +66,7 @@ export function encode(value: CborValue): Buffer {
 }
 
 function encodeMap(entries: [number | string, CborValue][]): Buffer {
-  // Ordenação canônica: pelos bytes da chave codificada.
+  // Canonical ordering: by the bytes of the encoded key.
   const encoded = entries.map(([k, v]) => ({
     key: typeof k === "number" ? encode(k) : encode(String(k)),
     val: encode(v),

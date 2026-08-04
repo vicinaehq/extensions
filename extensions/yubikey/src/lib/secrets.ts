@@ -5,15 +5,15 @@ import { join } from "node:path";
 import { DbusConnection, type DbusValue, Variant } from "./dbus";
 
 /**
- * Acesso à chave de acesso do OATH, guardada com segurança.
+ * Storage for the OATH access key.
  *
- * A chave de 16 bytes não extrai as sementes: ela só permite gerar códigos enquanto a YubiKey
- * está plugada. Ainda assim é um segredo, então segue a mesma postura do ykman: nunca em texto
- * puro no disco, guardada no Secret Service (gnome-keyring/KWallet) via D-Bus.
+ * The 16-byte key does not extract the seeds: it only allows generating codes while the YubiKey
+ * is plugged in. It is still a secret, so it follows ykman's own posture: never in plain text on
+ * disk, kept in the Secret Service (gnome-keyring/KWallet) over D-Bus.
  *
- * O ganho grande é a importação: se o usuário já rodou `ykman oath ... -r`, a chave já está no
- * keystore do ykman, cifrada com uma wrap key que também está no Secret Service. Lemos de lá e
- * ele nunca vê um prompt de senha.
+ * The big win is the import path: if the user already ran `ykman oath ... -r`, the key is
+ * already in ykman's keystore, encrypted with a wrap key that also lives in the Secret Service.
+ * We read it from there and they never see a password prompt.
  */
 
 const SECRETS = "org.freedesktop.secrets";
@@ -28,8 +28,8 @@ type Session = { bus: DbusConnection; sessionPath: string };
 async function openSession(): Promise<Session> {
   const bus = new DbusConnection();
   await bus.connect();
-  // Algoritmo "plain": a sessão do D-Bus já é local e autenticada pelo uid; não precisamos do
-  // handshake DH do Secret Service para o nível de proteção que buscamos.
+  // The "plain" algorithm: the D-Bus session is already local and authenticated by uid, so we
+  // do not need the Secret Service's DH handshake for the protection level we are after.
   const [, sessionPath] = await bus.call({
     destination: SECRETS,
     path: SERVICE_PATH,
@@ -75,7 +75,7 @@ async function getSecretValue(session: Session, itemPath: string): Promise<Buffe
     signature: "o",
     args: [session.sessionPath],
   });
-  // Secret struct: (oayays) = (session, params, value, contentType). value é o índice 2.
+  // Secret struct: (oayays) = (session, params, value, contentType). value is index 2.
   const value = (secret as DbusValue[])?.[2];
   return Buffer.isBuffer(value) ? value : null;
 }
@@ -88,7 +88,7 @@ async function createItem(session: Session, attrs: Record<string, string>, label
     "org.freedesktop.Secret.Item.Label": new Variant("s", label),
     "org.freedesktop.Secret.Item.Attributes": new Variant("a{ss}", attrs),
   };
-  // Secret struct (session, params vazio, value, contentType)
+  // Secret struct (session, empty params, value, contentType)
   const secretStruct: DbusValue[] = [session.sessionPath, Buffer.alloc(0), value, "application/octet-stream"];
 
   await session.bus.call({
@@ -102,14 +102,14 @@ async function createItem(session: Session, attrs: Record<string, string>, label
 }
 
 // ---------------------------------------------------------------------------
-// Fernet — para importar o keystore do ykman
+// Fernet, for importing ykman's keystore
 // ---------------------------------------------------------------------------
 
 /**
- * Decifra um token Fernet (o formato que o keystore do ykman usa).
+ * Decrypts a Fernet token (the format ykman's keystore uses).
  *
- * Fernet = versão(0x80) ‖ timestamp(8) ‖ IV(16) ‖ ciphertext ‖ HMAC(32).
- * A key de 32 bytes é `signing(16) ‖ encryption(16)`. Tudo em node:crypto.
+ * Fernet = version(0x80) ‖ timestamp(8) ‖ IV(16) ‖ ciphertext ‖ HMAC(32).
+ * The 32-byte key is `signing(16) ‖ encryption(16)`. All through node:crypto.
  */
 function fernetDecrypt(tokenB64: string, key: Buffer): Buffer | null {
   const token = Buffer.from(tokenB64.replace(/-/g, "+").replace(/_/g, "/"), "base64");
@@ -133,34 +133,34 @@ function fernetDecrypt(tokenB64: string, key: Buffer): Buffer | null {
   }
 }
 
-/** Lê a chave de acesso do keystore do ykman, se o usuário já a lembrou lá. */
+/** Reads the access key from ykman's keystore, if the user already remembered it there. */
 async function importFromYkman(session: Session, deviceId: string): Promise<Buffer | null> {
   let keystore: Record<string, string>;
   try {
     const raw = readFileSync(join(homedir(), ".local", "share", "ykman", "oath_keys.json"), "utf8");
     keystore = JSON.parse(raw);
   } catch {
-    return null; // ykman nunca usado, ou nada lembrado
+    return null; // ykman never used, or nothing remembered
   }
 
   const token = keystore[deviceId];
   if (!token) return null;
 
-  // A wrap key do ykman está no Secret Service com estes atributos (do keyring do Python).
+  // ykman's wrap key sits in the Secret Service under these attributes (from Python keyring).
   const items = await searchItems(session.bus, { service: "ykman", username: "wrap_key" });
   if (items.length === 0) return null;
 
   const wrapKeyRaw = await getSecretValue(session, items[0]);
   if (!wrapKeyRaw) return null;
 
-  // A wrap key é uma chave Fernet em base64url (44 chars) → 32 bytes.
+  // The wrap key is a Fernet key in base64url (44 chars) → 32 bytes.
   const wrapKey = Buffer.from(wrapKeyRaw.toString("utf8").replace(/-/g, "+").replace(/_/g, "/"), "base64");
   if (wrapKey.length !== 32) return null;
 
   const decrypted = fernetDecrypt(token, wrapKey);
   if (!decrypted) return null;
 
-  // O valor guardado é a chave em hex (JSON string). Ver ykman/_cli/oath.py:_validate.
+  // The stored value is the key in hex (a JSON string). See ykman/_cli/oath.py:_validate.
   try {
     const hex = JSON.parse(decrypted.toString("utf8"));
     return typeof hex === "string" ? Buffer.from(hex, "hex") : null;
@@ -173,14 +173,14 @@ async function importFromYkman(session: Session, deviceId: string): Promise<Buff
 // API
 // ---------------------------------------------------------------------------
 
-/** Guarda em memória a chave desta sessão, para não bater no Secret Service a cada operação. */
+/** Holds this session's key in memory, to avoid hitting the Secret Service on every call. */
 const memoryCache = new Map<string, Buffer>();
 
 /**
- * Recupera a chave de acesso do OATH para um device.
+ * Retrieves the OATH access key for a device.
  *
- * Ordem: cache em memória → nosso item no Secret Service → importação do keystore do ykman.
- * Retorna null se nada foi encontrado (aí a UI pede a senha).
+ * Order: memory cache → our own Secret Service item → import from ykman's keystore.
+ * Returns null when nothing was found, and then the UI asks for the password.
  */
 export async function loadAccessKey(deviceId: string): Promise<Buffer | null> {
   const cached = memoryCache.get(deviceId);
@@ -190,7 +190,7 @@ export async function loadAccessKey(deviceId: string): Promise<Buffer | null> {
   try {
     session = await openSession();
 
-    // 1) nosso próprio item
+    // 1) our own item
     const ours = await searchItems(session.bus, { ...OUR_ATTRS, deviceId });
     if (ours.length > 0) {
       const value = await getSecretValue(session, ours[0]);
@@ -201,7 +201,7 @@ export async function loadAccessKey(deviceId: string): Promise<Buffer | null> {
       }
     }
 
-    // 2) importa do ykman (e reescreve no nosso item, para as próximas vezes)
+    // 2) import from ykman (and write it into our own item, for next time)
     const imported = await importFromYkman(session, deviceId);
     if (imported) {
       memoryCache.set(deviceId, imported);
@@ -211,14 +211,14 @@ export async function loadAccessKey(deviceId: string): Promise<Buffer | null> {
 
     return null;
   } catch {
-    // Sem Secret Service (sway/Hyprland sem keyring): cai no cache em memória, que estará vazio.
+    // No Secret Service (sway/Hyprland without a keyring): fall back to the memory cache.
     return memoryCache.get(deviceId) ?? null;
   } finally {
     session?.bus.close();
   }
 }
 
-/** Guarda a chave derivada de uma senha que o usuário digitou. */
+/** Stores the key derived from a password the user typed. */
 export async function saveAccessKey(deviceId: string, key: Buffer): Promise<void> {
   memoryCache.set(deviceId, key);
   let session: Session | null = null;
@@ -226,13 +226,13 @@ export async function saveAccessKey(deviceId: string, key: Buffer): Promise<void
     session = await openSession();
     await createItem(session, { ...OUR_ATTRS, deviceId }, "Vicinae YubiKey OATH", Buffer.from(key.toString("hex"), "utf8"));
   } catch {
-    // Sem Secret Service: fica só em memória por esta sessão. Melhor que texto puro no disco.
+    // No Secret Service: memory only for this session. Better than plain text on disk.
   } finally {
     session?.bus.close();
   }
 }
 
-/** Só em memória, para o caso de o usuário não querer persistir. */
+/** Memory only, for when the user does not want to persist it. */
 export function rememberInSession(deviceId: string, key: Buffer): void {
   memoryCache.set(deviceId, key);
 }

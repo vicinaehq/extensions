@@ -14,16 +14,16 @@ import {
   useNavigation,
 } from "@vicinae/api";
 import { type FidoCred, type FidoInfo, fido } from "./lib/fido-session";
-import { lang, localizeError, t } from "./lib/i18n";
+import { localizeError, t } from "./lib/i18n";
 import { PcscError } from "./lib/pcsc";
 import { type PivInfo, type SlotInfo, piv } from "./lib/piv-session";
 
 function fmtDate(epoch?: number): string {
   if (!epoch) return "—";
-  return new Date(epoch * 1000).toLocaleDateString(lang() === "pt" ? "pt-BR" : "en-US");
+  return new Date(epoch * 1000).toLocaleDateString("en-US");
 }
 
-/** Um problema de dispositivo merece EmptyView, não um erro cru. */
+/** A device problem deserves an EmptyView, not a raw error. */
 function isDeviceProblem(err: unknown): boolean {
   return (
     err instanceof PcscError &&
@@ -39,7 +39,7 @@ function isDeviceProblem(err: unknown): boolean {
 type State = {
   piv: PivInfo | null;
   fido: FidoInfo | null;
-  /** null = ainda checando; false = Python indisponível, passkeys ficam de fora. */
+  /** null = still checking; false = no reachable FIDO interface, so passkeys are left out. */
   fidoSupported: boolean | null;
   loading: boolean;
   error: Error | null;
@@ -56,12 +56,12 @@ export default function SecurityKeys() {
     error: null,
   });
 
-  // O PIN vive só aqui, na memória do comando. Nunca em Cache, LocalStorage nem argv.
+  // The PIN lives only here, in the command's memory. Never in Cache, LocalStorage or argv.
   const [fidoPin, setFidoPin] = useState<string | null>(null);
   const [fidoCreds, setFidoCreds] = useState<FidoCred[] | null>(null);
 
   const load = useCallback(async () => {
-    // Tudo nativo agora: PIV via CCID, FIDO2 via HID. Sem Python.
+    // All native: PIV over CCID, FIDO2 over HID.
     try {
       const pivInfo = await piv().info();
 
@@ -99,7 +99,7 @@ export default function SecurityKeys() {
         });
       } catch (err) {
         await showToast({ style: Toast.Style.Failure, title: t("keys.fido.listFailed"), message: localizeError(err) });
-        load(); // um PIN errado consome tentativa; recarrega para mostrar quantas sobraram
+        load(); // a wrong PIN consumes a retry; reload to show how many are left
         throw err;
       }
     },
@@ -125,7 +125,7 @@ export default function SecurityKeys() {
     [fidoPin, load],
   );
 
-  /** Exporta o certificado de um slot PIV. Nativo, sem PIN (o certificado é público). */
+  /** Exports a PIV slot's certificate. No PIN needed: the certificate is public. */
   const exportCert = useCallback(async (slot: SlotInfo) => {
     try {
       const pem = await piv().exportCertificate(objectIdForSlot(slot.slot));
@@ -340,7 +340,7 @@ export default function SecurityKeys() {
   );
 }
 
-/** Mapeia o slot ("9a") para o id do objeto que guarda o certificado. */
+/** Maps a slot ("9a") to the id of the object holding its certificate. */
 function objectIdForSlot(slot: string): number {
   switch (slot) {
     case "9a":
@@ -352,7 +352,7 @@ function objectIdForSlot(slot: string): number {
     case "9e":
       return 0x5fc101;
     default:
-      throw new Error(`slot desconhecido: ${slot}`);
+      throw new Error(`Unknown slot: ${slot}`);
   }
 }
 
@@ -391,8 +391,8 @@ function PinForm({ retries, onSubmit }: { retries: number | null; onSubmit: (pin
 }
 
 /**
- * Apagar uma passkey pode significar perder o acesso a uma conta para sempre. Um Enter num
- * alerta é fácil demais de dar sem ler, então exigimos digitar o nome do site.
+ * Deleting a passkey can mean losing access to an account for good. An Enter on an alert is
+ * far too easy to hit without reading, so we require typing the site name.
  */
 function ConfirmDelete({ rpId, onConfirm }: { rpId: string; onConfirm: () => Promise<void> }) {
   const [loading, setLoading] = useState(false);

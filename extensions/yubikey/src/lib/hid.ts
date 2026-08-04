@@ -2,12 +2,12 @@ import { closeSync, openSync, readFileSync, readSync, readdirSync, writeSync } f
 import { randomBytes } from "node:crypto";
 
 /**
- * Transporte CTAPHID sobre /dev/hidraw, para falar FIDO2 com a YubiKey.
+ * CTAPHID transport over /dev/hidraw, to speak FIDO2 with the YubiKey.
  *
- * O FIDO2 não passa pelo CCID: usa a interface HID, com pacotes de tamanho fixo. Isto elimina
- * a última dependência de Python. Descoberta pelo report descriptor (Usage Page 0xF1D0).
+ * FIDO2 does not go through CCID: it uses the HID interface, with fixed-size packets. This
+ * removes the last Python dependency. Discovery is by report descriptor (Usage Page 0xF1D0).
  *
- * Ao contrário do OATH, aqui dá para cancelar de verdade: o CTAPHID tem CANCEL e KEEPALIVE.
+ * Unlike OATH, here we can really cancel: CTAPHID has CANCEL and KEEPALIVE.
  */
 
 const PACKET_SIZE = 64;
@@ -33,7 +33,7 @@ export class HidError extends Error {
   }
 }
 
-/** Erro do próprio CTAP (o byte de status de um comando CBOR). */
+/** A CTAP error proper (the status byte of a CBOR command). */
 export class CtapError extends Error {
   constructor(readonly status: number) {
     super(`CTAP status 0x${status.toString(16)}`);
@@ -41,7 +41,19 @@ export class CtapError extends Error {
   }
 }
 
-/** Acha o /dev/hidrawN da interface FIDO da YubiKey pelo report descriptor. */
+/**
+ * Yubico's USB vendor id, as sysfs writes it in the uevent: `HID_ID=bus:VVVVVVVV:PPPPPPPP`,
+ * zero-padded. The vendor id is the stable identifier; the device name is not.
+ */
+const YUBICO_UEVENT = /^HID_ID=[^:]*:0*1050:/im;
+
+/**
+ * Finds the /dev/hidrawN of the YubiKey's FIDO interface, by report descriptor.
+ *
+ * Only a verified Yubico interface is ever returned. Falling back to any FIDO authenticator
+ * would let this extension enumerate — and permanently delete — credentials on someone else's
+ * security key while presenting it as the user's YubiKey.
+ */
 export function findFidoDevice(): string | null {
   let entries: string[];
   try {
@@ -53,26 +65,17 @@ export function findFidoDevice(): string | null {
   for (const name of entries) {
     try {
       const desc = readFileSync(`/sys/class/hidraw/${name}/device/report_descriptor`);
-      // Usage Page 0xF1D0 = FIDO. O descriptor começa com 06 D0 F1.
-      if (desc[0] === 0x06 && desc[1] === 0xd0 && desc[2] === 0xf1) {
-        const uevent = readFileSync(`/sys/class/hidraw/${name}/device/uevent`, "utf8");
-        // Prioriza a Yubico se houver mais de um autenticador FIDO.
-        if (/yubi/i.test(uevent)) return `/dev/${name}`;
-      }
+      // Usage Page 0xF1D0 = FIDO. The descriptor starts with 06 D0 F1.
+      if (desc[0] !== 0x06 || desc[1] !== 0xd0 || desc[2] !== 0xf1) continue;
+
+      const uevent = readFileSync(`/sys/class/hidraw/${name}/device/uevent`, "utf8");
+      if (YUBICO_UEVENT.test(uevent)) return `/dev/${name}`;
     } catch {
-      // segue
+      // keep looking
     }
   }
 
-  // Nenhuma Yubico: pega o primeiro FIDO qualquer.
-  for (const name of entries) {
-    try {
-      const desc = readFileSync(`/sys/class/hidraw/${name}/device/report_descriptor`);
-      if (desc[0] === 0x06 && desc[1] === 0xd0 && desc[2] === 0xf1) return `/dev/${name}`;
-    } catch {
-      // segue
-    }
-  }
+  // No verified Yubico FIDO interface was found.
   return null;
 }
 
@@ -80,10 +83,10 @@ export class HidDevice {
   private fd = -1;
   private channelId = BROADCAST_CID;
 
-  /** Abre o device e negocia um canal (CTAPHID_INIT). */
+  /** Opens the device and negotiates a channel (CTAPHID_INIT). */
   async open(): Promise<void> {
     const path = findFidoDevice();
-    if (!path) throw new HidError("no_device", "No FIDO authenticator found");
+    if (!path) throw new HidError("no_device", "No YubiKey FIDO interface found");
 
     try {
       this.fd = openSync(path, "r+");
@@ -108,13 +111,13 @@ export class HidDevice {
   }
 
   /**
-   * Envia um comando CTAPHID e junta a resposta (init packet + continuations).
+   * Sends a CTAPHID command and reassembles the answer (init packet + continuations).
    *
-   * KEEPALIVE (a chave pedindo para esperar, ex.: aguardando toque) é consumido em silêncio.
-   * ERROR vira exceção.
+   * KEEPALIVE (the key asking us to wait, e.g. while waiting for a touch) is consumed
+   * silently. ERROR becomes an exception.
    */
   private call(cmd: number, data: Buffer): Buffer {
-    // --- envio ---
+    // --- send ---
     let seq = 0;
     let offset = 0;
 
@@ -140,7 +143,7 @@ export class HidDevice {
       seq++;
     }
 
-    // --- recepção ---
+    // --- receive ---
     let response = Buffer.alloc(0);
     let expected = 0;
     let rseq = 0;
@@ -149,11 +152,11 @@ export class HidDevice {
     for (;;) {
       const pkt = this.readPacket();
       const channel = pkt.readUInt32BE(0);
-      if (channel !== this.channelId) continue; // pacote de outro canal
+      if (channel !== this.channelId) continue; // packet from another channel
 
       if (!started) {
         const rcmd = pkt[4];
-        if (rcmd === (TYPE_INIT | CTAPHID.KEEPALIVE)) continue; // esperando (ex.: toque)
+        if (rcmd === (TYPE_INIT | CTAPHID.KEEPALIVE)) continue; // waiting (e.g. for a touch)
         if (rcmd === (TYPE_INIT | CTAPHID.ERROR)) throw new HidError("protocol", `CTAPHID error 0x${pkt[7].toString(16)}`);
         if (rcmd !== (TYPE_INIT | cmd)) throw new HidError("protocol", `Unexpected command 0x${rcmd.toString(16)}`);
 
@@ -176,8 +179,8 @@ export class HidDevice {
   }
 
   /**
-   * Envia um comando CBOR (CTAP2) e devolve os dados da resposta (sem o byte de status).
-   * O primeiro byte da resposta é o status: 0x00 = ok, senão CtapError.
+   * Sends a CBOR (CTAP2) command and returns the response data (without the status byte).
+   * The first byte of the response is the status: 0x00 = ok, anything else is a CtapError.
    */
   sendCbor(command: number, payload: Buffer): Buffer {
     const req = Buffer.concat([Buffer.from([command]), payload]);
@@ -189,7 +192,7 @@ export class HidDevice {
   }
 
   private writePacket(pkt: Buffer) {
-    // No Linux o report id (0x00) vai na frente: o write tem 65 bytes.
+    // On Linux the report id (0x00) goes first: the write is 65 bytes.
     const framed = Buffer.concat([Buffer.from([0x00]), pkt]);
     let written = 0;
     while (written < framed.length) {
@@ -200,7 +203,7 @@ export class HidDevice {
   private readPacket(): Buffer {
     const buf = Buffer.alloc(PACKET_SIZE);
     let read = 0;
-    // Uma leitura costuma trazer o pacote inteiro; o laço cobre leituras curtas.
+    // One read usually brings the whole packet; the loop covers short reads.
     while (read < PACKET_SIZE) {
       const n = readSync(this.fd, buf, read, PACKET_SIZE - read, null);
       if (n <= 0) throw new HidError("io", "Read from the FIDO device returned empty");
@@ -214,7 +217,7 @@ export class HidDevice {
       try {
         closeSync(this.fd);
       } catch {
-        // ignora
+        // ignore
       }
       this.fd = -1;
     }

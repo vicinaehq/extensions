@@ -1,6 +1,6 @@
 import { Color, environment } from "@vicinae/api";
 
-/** Verde acima de 10s, laranja de 10 a 6, vermelho nos últimos 5. */
+/** Green above 10s, orange from 10 down to 6, red for the last 5. */
 export function urgency(remaining: number): "fresh" | "expiring" | "dead" {
   if (remaining <= 5) return "dead";
   if (remaining <= 10) return "expiring";
@@ -25,12 +25,12 @@ const STROKE = {
 } as const;
 
 /**
- * Gera o data-URI de um anel para `secondsLeft` de `period`.
+ * Builds the data-URI of a ring for `secondsLeft` out of `period`.
  *
- * Não é chamado no caminho quente: os anéis são pré-computados por `ringTable` e só consultados.
- * O Vicinae re-serializa a árvore React inteira a cada segundo, então gerar a string e escapá-la
- * por item por segundo apareceria no perfil de CPU. Aqui a string é montada uma vez por (período,
- * segundo) e reusada.
+ * Not called on the hot path: the rings are precomputed by `ringTable` and only looked up.
+ * Vicinae re-serializes the whole React tree every second, so building and escaping the string
+ * per item per second would show up in the CPU profile. Here the string is built once per
+ * (period, second) and reused.
  */
 function buildRing(secondsLeft: number, period: number): string {
   const total = Math.max(period, 1);
@@ -45,8 +45,8 @@ function buildRing(secondsLeft: number, period: number): string {
   const track = environment.appearance === "light" ? "#00000018" : "#FFFFFF20";
   const stroke = STROKE[urgency(left)];
 
-  // Um único <circle> por cima de um trilho, com stroke-dasharray "preenchido resto". Bem menor
-  // que dois círculos completos, e o data-URI é o que domina o payload por segundo.
+  // A single <circle> over a track, with stroke-dasharray "filled rest". Much smaller than two
+  // complete circles, and the data-URI is what dominates the per-second payload.
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">` +
     `<circle cx="16" cy="16" r="13" fill="none" stroke="${track}" stroke-width="3"/>` +
@@ -54,14 +54,15 @@ function buildRing(secondsLeft: number, period: number): string {
     `stroke-linecap="round" stroke-dasharray="${filled.toFixed(1)} ${circ.toFixed(1)}" ` +
     `transform="rotate(-90 16 16)"/></svg>`;
 
-  // base64 cresce 4/3 fixo; encodeURIComponent quase dobra (escapa <, >, ", #, espaço).
+  // base64 grows by a fixed 4/3; encodeURIComponent nearly doubles it (it escapes <, >, ", #, space).
   return `data:image/svg+xml;base64,${Buffer.from(svg, "utf8").toString("base64")}`;
 }
 
 /**
- * Tabela de anéis por período: os 0..period estados, construídos uma vez sob demanda.
+ * Ring table per period: the 0..period states, built once on demand.
  *
- * A UI só faz `ringTable(period)[secondsLeft]`, sem gerar SVG nem escapar nada no tick de 1s.
+ * The UI only does `ringTable(period)[secondsLeft]`, generating no SVG and escaping nothing on
+ * the 1s tick.
  */
 const cache = new Map<number, string[]>();
 

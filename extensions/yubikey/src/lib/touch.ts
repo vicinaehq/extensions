@@ -5,14 +5,15 @@ import { type Code, type CodesResult, OathError, calculate, calculateAll, select
 import { prefs } from "./oath-session";
 
 /**
- * Quanto tempo o cartão fica inacessível depois de um toque abandonado.
+ * How long the card stays unreachable after an abandoned touch.
  *
- * Medido: ~15s. Uma vez que o CALCULATE de uma conta com toque chega ao cartão, o applet fica
- * esperando o dedo e não responde a mais nada até o timeout interno dele.
+ * Measured: ~15s. Once the CALCULATE of a touch account reaches the card, the applet waits for
+ * the finger and answers nothing else until its own internal timeout.
  *
- * Não existe como abortar por software (testado à exaustão: SCardCancel, reset e unpower via
- * pcsc, USBDEVFS_RESET, tudo falha; o timer roda no firmware e a porta USB não corta a energia).
- * Só tocar ou desplugar encerra. A UI convive com isso: espera o cartão, e pede o toque.
+ * There is no way to abort it in software (tested exhaustively: SCardCancel, reset and unpower
+ * through pcsc, USBDEVFS_RESET, all fail; the timer runs in firmware and the USB port does not
+ * cut power). Only touching or unplugging ends it. The UI lives with that: it waits for the
+ * card, and asks for the touch.
  */
 const COOLDOWN_MS = 15_500;
 
@@ -38,9 +39,9 @@ export type TouchHandle = {
 const DEFAULT_TIMEOUT_S = 16;
 
 /**
- * Destrava e resolve a conexão de toque. Usa uma conexão PRÓPRIA (segundo socket), separada da
- * sessão principal, porque o CALCULATE de toque segura a transação por até 15s e congelaria a
- * lista se compartilhasse a conexão.
+ * Unlocks and resolves the touch connection. Uses its OWN connection (a second socket), apart
+ * from the main session, because a touch CALCULATE holds the transaction for up to 15s and
+ * would freeze the list if it shared the connection.
  */
 async function withOwnConnection<T>(fn: (conn: PcscConnection) => Promise<T>): Promise<T> {
   const conn = new PcscConnection(prefs().pcscSocket);
@@ -53,11 +54,11 @@ async function withOwnConnection<T>(fn: (conn: PcscConnection) => Promise<T>): P
 }
 
 /**
- * Pede um código que exige toque físico.
+ * Asks for a code that requires a physical touch.
  *
- * Antes isto spawnava um processo Python de 58 MB; agora é só um segundo socket. Cancelar fecha
- * a conexão, mas o cartão continua preso até o firmware desistir (~15s), então marcamos o
- * cooldown. Se o usuário tocar, o CALCULATE resolve na hora.
+ * This used to spawn a 58 MB Python process; now it is just a second socket. Cancelling closes
+ * the connection, but the card stays held until the firmware gives up (~15s), so we mark the
+ * cooldown. If the user touches the key, the CALCULATE resolves immediately.
  */
 export function requestTouchCode(credId: string, period: number): TouchHandle {
   const timeoutS = Number(prefs().touchTimeout) || DEFAULT_TIMEOUT_S;
@@ -84,7 +85,7 @@ export function requestTouchCode(credId: string, period: number): TouchHandle {
     cancel = () => finish(() => reject(new OathError("cancelled", "Touch cancelled")), true);
 
     withOwnConnection(async (conn) => {
-      // A conexão é fechada por `withOwnConnection`; guardamos como fechar cedo no cancelamento.
+      // `withOwnConnection` closes it; we keep a way to close early when cancelled.
       onCancel = () => conn.close().catch(() => {});
       return conn.transaction(async (t) => {
         const info = await select(t);
@@ -107,10 +108,10 @@ export function requestTouchCode(credId: string, period: number): TouchHandle {
 }
 
 /**
- * Espera o cartão se soltar depois de um toque abandonado, e devolve os códigos.
+ * Waits for the card to free up after an abandoned touch, and returns the codes.
  *
- * Resolve no instante em que o cartão responde: se o usuário tocar, sai na hora; se ignorar, sai
- * quando o firmware desistir (~15s). É um `calculateAll` que fica pendurado na transação.
+ * Resolves the moment the card answers: if the user touches the key, right away; if they ignore
+ * it, when the firmware gives up (~15s). It is a `calculateAll` hanging on the transaction.
  */
 export function waitForCard(): TouchHandle {
   let settled = false;
@@ -141,8 +142,8 @@ export function waitForCard(): TouchHandle {
         return calculateAll(t);
       });
     })
-      // O consumidor trata o resultado como CodesResult; empacotamos no shape de Code para reusar
-      // o TouchHandle. A tela lê via `as unknown`.
+      // The consumer treats the result as CodesResult; we pack it in Code's shape to reuse
+      // TouchHandle. The screen reads it back through `as unknown`.
       .then((codes) => finish(() => resolve(codes as unknown as Code)))
       .catch((err) => finish(() => reject(err)));
   });

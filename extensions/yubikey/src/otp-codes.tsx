@@ -25,7 +25,7 @@ import {
 import { type Code, type Cred, type CodesResult, OathError } from "./lib/ykoath";
 import { PcscError } from "./lib/pcsc";
 
-/** Um problema de dispositivo merece EmptyView, não um erro cru. */
+/** A device problem deserves an EmptyView, not a raw error. */
 function isDeviceProblem(err: unknown): boolean {
   return (
     err instanceof PcscError &&
@@ -43,14 +43,14 @@ const CREDS_KEY = "creds";
 
 const HIDDEN = "••• •••";
 
-/** Agrupa para leitura: 720658 vira "720 658". O que é COLADO nunca leva espaço. */
+/** Grouped for reading: 720658 becomes "720 658". What gets PASTED never has a space. */
 function formatCode(value: string): string {
   if (value.length === 6) return `${value.slice(0, 3)} ${value.slice(3)}`;
   if (value.length === 8) return `${value.slice(0, 4)} ${value.slice(4)}`;
   return value;
 }
 
-/** Uma conta com período diferente de 30 vem com o período no id ("60/GitHub:x"). */
+/** An account with a period other than 30 carries it in the id ("60/GitHub:x"). */
 function displayName(cred: Cred): { title: string; subtitle: string } {
   const issuer = cred.issuer?.replace(/^\d+\//, "") ?? null;
   const label = issuer ? `${issuer} · ${cred.name}` : cred.name;
@@ -68,7 +68,7 @@ type State = {
   error: Error | null;
 };
 
-/** Extrai o `code` de um OathError/PcscError, se houver. */
+/** Pulls the `code` out of an OathError/PcscError, if there is one. */
 function errCode(err: Error | null): string | undefined {
   if (err instanceof OathError || err instanceof PcscError) return err.code;
   return undefined;
@@ -78,8 +78,8 @@ export default function OtpCodes() {
   const { push } = useNavigation();
 
   const [state, setState] = useState<State>(() => {
-    // A lista de contas vem do cache para a tela nunca abrir vazia. Os códigos chegam
-    // logo atrás; até lá cada conta mostra ••• •••.
+    // The account list comes from the cache so the screen never opens empty. The codes
+    // arrive right after; until then every account shows ••• •••.
     const cached = cache.get(CREDS_KEY);
     const creds: Cred[] = cached ? JSON.parse(cached) : [];
     return { creds, codes: {}, loading: true, error: null };
@@ -88,20 +88,20 @@ export default function OtpCodes() {
   const [now, setNow] = useState(() => Date.now() / 1000);
   const [touching, setTouching] = useState<string | null>(null);
 
-  // Enquanto um toque está pendente, o cartão está preso pelo processo do toque.
-  // Qualquer refresh nosso bateria em SCARD_E_SHARING_VIOLATION.
+  // While a touch is pending, the card is held by the touch connection. Any refresh of
+  // ours would hit SCARD_E_SHARING_VIOLATION.
   const touchingRef = useRef(false);
   touchingRef.current = touching !== null;
 
-  // Guardamos o handle para poder matar o processo do toque no Esc (desmonta o comando)
-  // ou numa ação explícita de cancelar. Sem isso, sobra um Python órfão segurando o cartão.
+  // We keep the handle so Esc (which unmounts the command) or an explicit cancel can close
+  // the touch connection. Without it, an orphan connection would keep holding the card.
   const handleRef = useRef<TouchHandle | null>(null);
 
   const load = useCallback(async () => {
     if (touchingRef.current) return;
 
-    // Durante o cooldown o cartão não responde e a chamada não falharia: ficaria pendurada,
-    // travando a tela com o spinner. Melhor não emitir nada e deixar o usuário ver o cache.
+    // During the cooldown the card does not answer, and the call would not fail: it would
+    // hang, freezing the screen on the spinner. Better to send nothing and show the cache.
     if (cooldownRemaining() > 0) {
       setState((prev) => ({ ...prev, loading: false }));
       return;
@@ -109,7 +109,7 @@ export default function OtpCodes() {
 
     try {
       const result = await oath().codes();
-      // Só grava no cache se a lista de contas mudou: cada set é um round-trip de IPC.
+      // Only write to the cache when the account list changed: each set is an IPC round-trip.
       const serialized = JSON.stringify(result.creds);
       if (serialized !== cache.get(CREDS_KEY)) cache.set(CREDS_KEY, serialized);
       setState({ creds: result.creds, codes: result.codes, loading: false, error: null });
@@ -118,15 +118,15 @@ export default function OtpCodes() {
     }
   }, []);
 
-  // Quanto falta, no pior caso, até o cartão voltar a responder. É só uma estimativa para o
-  // contador na tela: quem realmente decide é o `waitForCard` abaixo, que resolve no instante
-  // em que a chave responde (por toque ou por timeout dela).
+  // Worst-case time until the card answers again. Only an estimate for the on-screen
+  // counter: what really decides is `waitForCard` below, which resolves the moment the key
+  // answers (by touch, or by its own timeout).
   const busyFor = Math.ceil(cooldownRemaining() / 1000);
   const waitingRef = useRef<TouchHandle | null>(null);
 
-  // O relógio da tela. Só corre quando há um contador para mover, e alinhado à borda do segundo.
-  // O Vicinae re-serializa a árvore inteira a cada tick, então um tick que não muda nada visível
-  // é puro desperdício, e um setInterval que deriva pode gastar dois no mesmo segundo.
+  // The screen clock. It only runs when there is a counter to move, aligned to the second
+  // boundary. Vicinae re-serializes the whole tree on every tick, so a tick that changes
+  // nothing visible is pure waste, and a drifting setInterval can spend two in one second.
   const hasLiveCode = Object.values(state.codes).some(Boolean);
   const tickActive = hasLiveCode && !state.loading;
   useEffect(() => {
@@ -143,10 +143,11 @@ export default function OtpCodes() {
   }, [tickActive]);
 
   /**
-   * Fica pendurado no cartão até ele se soltar, e então atualiza a tela.
+   * Hangs on the card until it frees up, then refreshes the screen.
    *
-   * Se o usuário tocar na chave, isto resolve na hora: o toque conclui a operação que ficou
-   * pendente e libera o cartão, mesmo sem ninguém lendo o código. É a única saída rápida.
+   * If the user touches the key, this resolves at once: the touch completes the pending
+   * operation and releases the card, even with nobody reading the code. It is the only
+   * fast way out.
    */
   const waitForFreeCard = useCallback(() => {
     if (waitingRef.current) return;
@@ -162,7 +163,7 @@ export default function OtpCodes() {
         setState({ creds: codes.creds, codes: codes.codes, loading: false, error: null });
       })
       .catch(() => {
-        // Desistiu ou a chave sumiu: o load normal (ou o usuário) resolve daqui.
+        // Gave up, or the key is gone: the normal load (or the user) takes it from here.
       })
       .finally(() => {
         waitingRef.current = null;
@@ -172,14 +173,14 @@ export default function OtpCodes() {
   }, []);
 
   useEffect(() => {
-    // Reabrir o comando dentro da janela de 15s cai aqui: o cartão ainda está preso do
-    // cancelamento anterior, então esperamos ele se soltar em vez de mandar um comando que
-    // ficaria pendurado.
+    // Reopening the command inside the 15s window lands here: the card is still held from
+    // the previous cancellation, so we wait for it to free up instead of sending a command
+    // that would just hang.
     if (cooldownRemaining() > 0) waitForFreeCard();
     else load();
 
-    // Esc desmonta o comando. Sem este cleanup, um toque pendente deixaria um processo
-    // Python órfão, e a espera pelo cartão continuaria rodando à toa.
+    // Esc unmounts the command. Without this cleanup, a pending touch would leave its
+    // connection open, and the wait for the card would keep running for nothing.
     return () => {
       handleRef.current?.cancel();
       handleRef.current = null;
@@ -189,8 +190,8 @@ export default function OtpCodes() {
     };
   }, [load, waitForFreeCard]);
 
-  // Recarrega quando a janela de 30s vira. O gatilho é o `validTo` que o cartão nos deu,
-  // não `Date.now() % 30`: assim um relógio adiantado no host não faz o código expirar cedo.
+  // Reload when the 30s window rolls over. The trigger is the `validTo` the card gave us,
+  // not `Date.now() % 30`: that way a fast host clock does not expire the code early.
   const nextExpiry = Object.values(state.codes).reduce<number | null>((min, code) => {
     if (!code) return min;
     return min === null || code.validTo < min ? code.validTo : min;
@@ -218,13 +219,13 @@ export default function OtpCodes() {
     }
   }, []);
 
-  /** Contas de toque (e HOTP) só entregam código sob pedido explícito e com o dedo na chave. */
+  /** Touch (and HOTP) accounts only give a code on explicit request, with a finger on the key. */
   const withTouch = useCallback(
     async (cred: Cred) => {
       if (touchingRef.current) return;
 
-      // Pedir um toque com o cartão ainda preso do cancelamento anterior só resultaria numa
-      // espera silenciosa de até 15s antes de a chave sequer piscar.
+      // Asking for a touch while the card is still held from the previous cancellation would
+      // only buy a silent wait of up to 15s before the key even blinks.
       const busy = Math.ceil(cooldownRemaining() / 1000);
       if (busy > 0) {
         await showToast({
@@ -257,8 +258,8 @@ export default function OtpCodes() {
         setTouching(null);
         handleRef.current = null;
         const code = errCode(err instanceof Error ? err : null);
-        // Tanto o cancelamento quanto o timeout deixam o cartão preso esperando o dedo, então
-        // ficamos pendurados nele; se o usuário tocar, voltamos.
+        // Both cancelling and timing out leave the card waiting for the finger, so we hang on
+        // it; if the user touches the key, we come back.
         if (code === "touch_timeout" || code === "cancelled") waitForFreeCard();
 
         if (code === "cancelled") {
@@ -382,12 +383,12 @@ function CodeItem({
 
   return (
     <List.Item
-      // O id precisa ser estável: sem ele, o re-render de cada segundo pode mover a
-      // seleção e o Enter colaria o código da conta errada.
+      // The id has to be stable: without it, the re-render every second can move the
+      // selection and Enter would paste the wrong account's code.
       id={cred.id}
       title={code ? formatCode(code.value) : HIDDEN}
       subtitle={subtitle}
-      // Na variante B o título é o código, então a busca por nome depende disto.
+      // The title is the code, so searching by name depends on these keywords.
       keywords={[cred.issuer ?? "", cred.name, cred.id].filter(Boolean)}
       icon={Icon.Key}
       accessories={accessories}
@@ -456,7 +457,7 @@ function TouchItem({
   );
 }
 
-/** O OATH está protegido por senha e o ykman não a tem guardada nesta máquina. */
+/** OATH is password-protected and ykman has nothing stored for it on this machine. */
 function LockedView({ onUnlocked }: { onUnlocked: () => void }) {
   const [loading, setLoading] = useState(false);
   const { pop } = useNavigation();

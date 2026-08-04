@@ -9,11 +9,11 @@ const VICINAE_DIR = join(homedir(), ".local", "share", "vicinae");
 const CLIPBOARD_DB = join(VICINAE_DIR, "clipboard.db");
 const CLIPBOARD_DATA = join(VICINAE_DIR, "clipboard-data");
 
-/** O Vicinae grava a seleção de forma assíncrona; damos algumas chances de ela aparecer. */
+/** Vicinae writes the selection asynchronously; we give it a few chances to show up. */
 const PURGE_ATTEMPTS = 8;
 const PURGE_INTERVAL_MS = 120;
 
-/** Só apagamos entradas criadas agora. Protege contra remover algo antigo com o mesmo texto. */
+/** We only delete entries created just now, so an older one with the same text survives. */
 const RECENT_WINDOW_S = 15;
 
 function sleep(ms: number) {
@@ -21,17 +21,17 @@ function sleep(ms: number) {
 }
 
 /**
- * Remove do histórico do Vicinae a entrada correspondente a `text`.
+ * Removes the entry matching `text` from Vicinae's clipboard history.
  *
- * Existe porque `Clipboard.paste()` não aceita a flag `concealed` que o `copy()` aceita:
- * colar um TOTP o grava em clipboard.db e no índice FTS, em texto puro e pesquisável.
+ * This exists because `Clipboard.paste()` does not take the `concealed` flag that `copy()`
+ * does: pasting a TOTP writes it to clipboard.db and to the FTS index, in plain searchable text.
  *
- * O casamento é por md5 do conteúdo (é assim que o Vicinae indexa: `selection.hash_md5`),
- * então o código nunca é escrito em SQL nem passa por argv de outro processo.
+ * Matching is by md5 of the content (that is how Vicinae indexes it: `selection.hash_md5`), so
+ * the code itself is never written into SQL nor passed through another process's argv.
  *
- * Isto mexe no banco interno de outro programa. Se o schema mudar num update do Vicinae,
- * a função avisa e desiste — nunca deixa a exceção subir e quebrar o paste, que é o que
- * o usuário realmente pediu.
+ * This touches another program's internal database. If the schema changes in a Vicinae update,
+ * the function warns and gives up: it never lets the exception escape and break the paste,
+ * which is what the user actually asked for.
  */
 export async function purgeFromHistory(text: string): Promise<boolean> {
   if (!text) return false;
@@ -50,7 +50,7 @@ export async function purgeFromHistory(text: string): Promise<boolean> {
     try {
       const db = new sqlite.DatabaseSync(CLIPBOARD_DB, { timeout: 2000 });
       try {
-        // Sem isto o ON DELETE CASCADE de data_offer não roda.
+        // Without this, data_offer's ON DELETE CASCADE does not run.
         db.exec("PRAGMA foreign_keys = ON");
 
         const cutoff = Math.floor(Date.now() / 1000) - RECENT_WINDOW_S;
@@ -70,14 +70,14 @@ export async function purgeFromHistory(text: string): Promise<boolean> {
           continue;
         }
 
-        // O trigger `selection_ad` limpa o selection_fts, e o CASCADE limpa o data_offer.
+        // The `selection_ad` trigger cleans selection_fts, and the CASCADE cleans data_offer.
         const result = db
           .prepare("DELETE FROM selection WHERE hash_md5 = ? AND created_at >= ?")
           .run(hash, cutoff);
 
         db.close();
 
-        // O conteúdo em si vive num arquivo nomeado pelo id do data_offer.
+        // The content itself lives in a file named after the data_offer id.
         for (const { offerId } of offers) {
           try {
             rmSync(join(CLIPBOARD_DATA, offerId), { force: true });
@@ -97,17 +97,17 @@ export async function purgeFromHistory(text: string): Promise<boolean> {
     }
   }
 
-  // A entrada nunca apareceu. Pode ser que o Vicinae tenha deduplicado (ele ignora uma
-  // seleção idêntica à atual) — nesse caso não há nada a remover.
+  // The entry never showed up. Vicinae may have deduplicated it (it ignores a selection
+  // identical to the current one), in which case there is nothing to remove.
   return false;
 }
 
 /**
- * Cola no campo que estava focado e, se o usuário quiser, apaga o rastro do histórico.
+ * Pastes into the field that was focused and, if the user wants it, erases the history trail.
  *
- * A ordem importa: `closeMainWindow()` vem ANTES de `paste()`. É o que o próprio Vicinae
- * faz no `Action.Paste` nativo — a janela precisa sair da frente para o compositor
- * devolver o foco à janela anterior antes de a tecla ser injetada.
+ * Order matters: `closeMainWindow()` comes BEFORE `paste()`. That is what Vicinae itself does
+ * in the native `Action.Paste`: the window has to get out of the way so the compositor gives
+ * focus back to the previous window before the keystroke is injected.
  */
 export async function pasteAndForget(text: string): Promise<void> {
   await closeMainWindow();
@@ -118,7 +118,7 @@ export async function pasteAndForget(text: string): Promise<void> {
   }
 }
 
-/** Copia sem deixar rastro no histórico. É o plano B quando o paste não chega na janela certa. */
+/** Copies without leaving a history trail. Plan B when the paste lands in the wrong window. */
 export async function copyConcealed(text: string): Promise<void> {
   await Clipboard.copy(text, { concealed: true });
 }

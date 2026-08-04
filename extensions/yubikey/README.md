@@ -6,7 +6,7 @@
 
 <p align="center">
   Use your YubiKey from <a href="https://github.com/vicinaehq/vicinae">Vicinae</a>:
-  TOTP codes, FIDO2 passkeys and PIV certificates, with no external dependencies.
+  TOTP codes, FIDO2 passkeys and PIV certificates, with no Python and no native addons.
 </p>
 
 ---
@@ -48,12 +48,6 @@ password prompt.
 
 The PIN is asked in-app and kept only in memory for the duration of the command —
 never on disk, never in a process argument.
-
-## Language
-
-The interface is available in **English** and **Portuguese**. Set it in the
-extension preferences (`Language`): *Automatic* follows the system locale, or pick
-one explicitly.
 
 ## Requirements
 

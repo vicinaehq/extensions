@@ -5,7 +5,7 @@ All notable changes to this extension are documented here. The format follows
 
 ## [1.0.0] - 2026-07-14
 
-First release. A fully native YubiKey extension, with no external dependencies.
+First release. A YubiKey extension with no Python and no native addons.
 
 ### Added
 
@@ -19,8 +19,6 @@ First release. A fully native YubiKey extension, with no external dependencies.
 - Native protocol stack in pure TypeScript: PC/SC (`winscard_msg`), YKOATH, PIV,
   FIDO2/CTAP2 (CTAPHID + canonical CBOR + PIN protocol v1/v2), and a minimal D-Bus
   client for the Secret Service. No `ykman`, `yubikit`, Python or native addons.
-- English and Portuguese interface, selectable via the `Language` preference
-  (automatic, English or Portuguese).
 
 ### Notes
 

@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "yubikey",
   "title": "YubiKey",
-  "description": "TOTP codes, FIDO2 passkeys and PIV certificates from your YubiKey, fully native with no external dependencies",
+  "description": "Use a YubiKey for TOTP codes, FIDO2 passkeys, and PIV certificates on Linux",
   "icon": "yubikey.png",
   "author": "LLawli",
   "contributors": [],
@@ -51,19 +51,6 @@
     }
   ],
   "preferences": [
-    {
-      "name": "language",
-      "title": "Language",
-      "description": "Language of the extension's interface.",
-      "type": "dropdown",
-      "required": false,
-      "default": "auto",
-      "data": [
-        { "title": "Automatic (system)", "value": "auto" },
-        { "title": "English", "value": "en" },
-        { "title": "Português", "value": "pt" }
-      ]
-    },
     {
       "name": "pcscSocket",
       "title": "pcscd socket",

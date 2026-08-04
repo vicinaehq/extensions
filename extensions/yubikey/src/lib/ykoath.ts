@@ -1,12 +1,11 @@
 import { createHash, createHmac, pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
 import type { Transmitter } from "./pcsc";
-import { PcscError } from "./pcsc";
 
 /**
- * O protocolo YKOATH, falado direto com o applet da YubiKey.
+ * The YKOATH protocol, spoken directly to the YubiKey's applet.
  *
- * Referência: https://developers.yubico.com/OATH/YKOATH_Protocol.html
- * (conferido contra a implementação do yubikit, que é a que o `ykman` usa)
+ * Reference: https://developers.yubico.com/OATH/YKOATH_Protocol.html
+ * (checked against yubikit's implementation, which is the one `ykman` uses)
  */
 
 const AID = Buffer.from([0xa0, 0x00, 0x00, 0x05, 0x27, 0x21, 0x01]);
@@ -33,7 +32,7 @@ const TAG = {
 
 const SW = {
   OK: 0x9000,
-  MORE_DATA: 0x61, // SW1; SW2 = quantos bytes faltam
+  MORE_DATA: 0x61, // SW1; SW2 = how many bytes are left
   AUTH_REQUIRED: 0x6982,
   WRONG_PASSWORD: 0x6a80,
   NO_SUCH_APPLET: 0x6a82,
@@ -45,7 +44,7 @@ const DEFAULT_PERIOD = 30;
 export type OathType = "TOTP" | "HOTP";
 
 export type Cred = {
-  /** O id como o cartão o conhece, incluindo o prefixo de período quando != 30. */
+  /** The id as the card knows it, including the period prefix when it is not 30. */
   id: string;
   issuer: string | null;
   name: string;
@@ -108,7 +107,7 @@ function parseTlvs(buf: Buffer): Tlv[] {
   return out;
 }
 
-/** APDU curto. Nenhum comando OATH passa de 255 bytes de dados, então não precisamos de extended. */
+/** Short APDU. No OATH command exceeds 255 bytes of data, so extended ones are not needed. */
 function apdu(ins: number, p1: number, p2: number, data?: Buffer): Buffer {
   const head = Buffer.from([0x00, ins, p1, p2]);
   if (!data || data.length === 0) return Buffer.concat([head, Buffer.from([0x00])]);
@@ -116,10 +115,10 @@ function apdu(ins: number, p1: number, p2: number, data?: Buffer): Buffer {
 }
 
 /**
- * Envia um APDU e junta as continuações.
+ * Sends an APDU and joins the continuations.
  *
- * Sem isto, uma resposta maior que 255 bytes chega truncada e em silêncio: com muitas contas,
- * o CALCULATE_ALL simplesmente perderia metade delas sem erro nenhum.
+ * Without this, a response longer than 255 bytes arrives truncated and silently: with many
+ * accounts, CALCULATE_ALL would simply lose half of them without any error.
  */
 async function send(t: Transmitter, cmd: Buffer): Promise<Buffer> {
   let res = await t(cmd);
@@ -157,20 +156,20 @@ async function send(t: Transmitter, cmd: Buffer): Promise<Buffer> {
 }
 
 // ---------------------------------------------------------------------------
-// Sessão
+// Session
 // ---------------------------------------------------------------------------
 
 export type SelectInfo = {
   version: string;
-  /** Identifica a chave. Derivado do salt, é o que o ykman usa como chave do keystore. */
+  /** Identifies the key. Derived from the salt, it is what ykman uses as its keystore key. */
   deviceId: string;
-  /** O salt do PBKDF2. */
+  /** The PBKDF2 salt. */
   salt: Buffer;
-  /** Só vem quando o applet está trancado; é o desafio a responder no VALIDATE. */
+  /** Only present when the applet is locked; the challenge to answer in VALIDATE. */
   challenge: Buffer | null;
 };
 
-/** Seleciona o applet. Precisa ser refeito a cada transação: o gpg pode ter trocado de applet. */
+/** Selects the applet. Must be redone every transaction: gpg may have switched applets. */
 export async function select(t: Transmitter): Promise<SelectInfo> {
   const res = await send(t, apdu(INS.SELECT, 0x04, 0x00, AID));
   const tags = parseTlvs(res);
@@ -187,22 +186,22 @@ export async function select(t: Transmitter): Promise<SelectInfo> {
     version: version ? Array.from(version).join(".") : "?",
     deviceId: createHash("sha256").update(salt).digest().subarray(0, 16).toString("base64").replace(/=+$/, ""),
     salt,
-    // Presente ⇔ trancado. É assim que se sabe que precisa de senha.
+    // Present ⇔ locked. This is how we know a password is needed.
     challenge: challenge && challenge.length > 0 ? challenge : null,
   };
 }
 
-/** Deriva a chave de acesso a partir da senha. Parâmetros ditados pelo cartão, não por nós. */
+/** Derives the access key from the password. The parameters are the card's, not ours. */
 export function deriveKey(password: string, salt: Buffer): Buffer {
   return pbkdf2Sync(Buffer.from(password, "utf8"), salt, 1000, 16, "sha1");
 }
 
 /**
- * Destrava o applet.
+ * Unlocks the applet.
  *
- * É um desafio-resposta mútuo: além de provarmos que temos a chave, o cartão prova o mesmo
- * respondendo ao nosso desafio. A verificação da volta não é enfeite — sem ela, um cartão
- * impostor poderia aceitar qualquer coisa e nos alimentar códigos falsos.
+ * It is a mutual challenge-response: besides proving we hold the key, the card proves the same
+ * by answering our challenge. Verifying the way back is not decoration: without it, an impostor
+ * card could accept anything and feed us fake codes.
  */
 export async function validate(t: Transmitter, key: Buffer, challenge: Buffer): Promise<void> {
   const response = createHmac("sha1", key).update(challenge).digest();
@@ -219,7 +218,7 @@ export async function validate(t: Transmitter, key: Buffer, challenge: Buffer): 
   }
 }
 
-/** Uma conta com período diferente de 30 carrega o período no próprio id: "60/Issuer:nome". */
+/** An account with a period other than 30 carries it in the id itself: "60/Issuer:name". */
 function parseCredId(id: string, type: OathType): { issuer: string | null; name: string; period: number } {
   const m = id.match(/^(?:(\d+)\/)?(?:([^:]+):)?(.*)$/);
   const period = m?.[1] ? Number(m[1]) : type === "TOTP" ? DEFAULT_PERIOD : 0;
@@ -246,11 +245,12 @@ function challengeFor(timestamp: number, period: number): Buffer {
 export type CodesResult = { creds: Cred[]; codes: Record<string, Code | null> };
 
 /**
- * Calcula todos os códigos de uma vez.
+ * Calculates every code at once.
  *
- * É a única operação que revela quais contas exigem toque: o cartão responde com a tag 0x7C no
- * lugar do código. O comando LIST não traz essa informação, e confiar nele faria a extensão
- * tratar uma conta de toque como comum, falhando sem explicação.
+ * It is the only operation that reveals which accounts require a touch: the card answers with
+ * tag 0x7C in place of the code. The LIST command does not carry that information, and trusting
+ * it would make the extension treat a touch account as an ordinary one, failing with no
+ * explanation.
  */
 export async function calculateAll(t: Transmitter, timestamp = Date.now() / 1000): Promise<CodesResult> {
   const ts = Math.floor(timestamp);
@@ -261,7 +261,7 @@ export async function calculateAll(t: Transmitter, timestamp = Date.now() / 1000
   const creds: Cred[] = [];
   const codes: Record<string, Code | null> = {};
 
-  // A resposta vem aos pares: 0x71 <nome> seguido do resultado daquela conta.
+  // The response comes in pairs: 0x71 <name> followed by that account's result.
   for (let i = 0; i + 1 < tags.length; i += 2) {
     const nameTlv = tags[i];
     const valueTlv = tags[i + 1];
@@ -275,7 +275,7 @@ export async function calculateAll(t: Transmitter, timestamp = Date.now() / 1000
     creds.push({ id, issuer, name, period: period || DEFAULT_PERIOD, type, touch });
 
     if (valueTlv.tag !== TAG.TRUNCATED) {
-      // HOTP e contas de toque não vêm com código, por natureza.
+      // HOTP and touch accounts come without a code, by their very nature.
       codes[id] = null;
       continue;
     }
@@ -283,9 +283,9 @@ export async function calculateAll(t: Transmitter, timestamp = Date.now() / 1000
     if (period === DEFAULT_PERIOD) {
       codes[id] = decodeTruncated(valueTlv.value, DEFAULT_PERIOD, ts);
     } else {
-      // O cartão calculou esta conta com o desafio de 30s, que é o que mandamos. Para um período
-      // diferente, esse código está ERRADO: é preciso recalcular a conta individualmente com o
-      // desafio certo. O ykman faz o mesmo.
+      // The card computed this account with the 30s challenge, which is what we sent. For a
+      // different period that code is WRONG: the account has to be recalculated individually
+      // with the right challenge. ykman does the same.
       codes[id] = await calculate(t, id, period, ts);
     }
   }
@@ -293,7 +293,7 @@ export async function calculateAll(t: Transmitter, timestamp = Date.now() / 1000
   return { creds, codes };
 }
 
-/** Calcula uma conta só. Numa conta de toque, isto BLOQUEIA até o dedo ou ~15s de timeout. */
+/** Calculates a single account. On a touch account this BLOCKS until the finger, or ~15s. */
 export async function calculate(
   t: Transmitter,
   credId: string,
@@ -313,10 +313,4 @@ export async function calculate(
   if (!truncated) throw new OathError("card", "The YubiKey did not return a code");
 
   return decodeTruncated(truncated, p, ts);
-}
-
-/** Traduz erros de baixo nível para algo que a UI possa mostrar sem vazar detalhe de protocolo. */
-export function describeError(err: unknown): string {
-  if (err instanceof OathError || err instanceof PcscError) return err.message;
-  return String(err);
 }

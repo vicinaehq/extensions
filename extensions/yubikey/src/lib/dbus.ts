@@ -2,15 +2,15 @@ import net from "node:net";
 import { userInfo } from "node:os";
 
 /**
- * Cliente D-Bus mínimo, só o suficiente para o Secret Service.
+ * Minimal D-Bus client, just enough for the Secret Service.
  *
- * Não usamos uma lib pronta de propósito: as puras-JS trazem uma árvore de dependências
- * (event-stream, xml2js, ...) que não quero carregar para dentro de um plugin de segurança,
- * e as rápidas dependem de addon nativo, que o `vici build` (esbuild → bundle único) não
- * empacota. O subconjunto do protocolo que o Secret Service exige é pequeno.
+ * Not using an off-the-shelf library is deliberate: the pure-JS ones drag in a dependency tree
+ * (event-stream, xml2js, ...) that has no business inside a security extension, and the fast
+ * ones need a native addon, which `vici build` (esbuild → single bundle) does not package. The
+ * subset of the protocol the Secret Service requires is small.
  *
- * Implementa: handshake SASL EXTERNAL, marshalling little-endian dos tipos que usamos
- * (s, o, a{ss}, variantes), e method calls com correlação por serial.
+ * Implements: the SASL EXTERNAL handshake, little-endian marshalling of the types we use
+ * (s, o, a{ss}, variants), and method calls correlated by serial.
  */
 
 type Sig = string;
@@ -27,7 +27,7 @@ function pad(len: number, align: number): number {
   return (align - (len % align)) % align;
 }
 
-/** Alinhamento (em bytes) do primeiro elemento de um array cujo tipo começa em sig[i]. */
+/** Alignment (in bytes) of the first element of an array whose type starts at sig[i]. */
 function elementAlignment(sig: string, i: number): number {
   switch (sig[i]) {
     case "y":
@@ -52,12 +52,12 @@ function elementAlignment(sig: string, i: number): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Serializa para D-Bus (little-endian) sobre um buffer que cresce.
+ * Serializes to D-Bus (little-endian) over a growing buffer.
  *
- * Trabalha num único buffer contíguo, e não numa lista de pedaços, porque o alinhamento do
- * D-Bus é relativo ao início da MENSAGEM: um array reserva 4 bytes de comprimento e só depois
- * sabe o valor, então precisamos voltar e preenchê-lo no lugar. Com um buffer contíguo isso é
- * um `writeUInt32LE` na posição; com pedaços viraria uma dança de índices frágil.
+ * It works on a single contiguous buffer rather than a list of chunks because D-Bus alignment
+ * is relative to the start of the MESSAGE: an array reserves 4 bytes for its length and only
+ * learns the value later, so we have to go back and fill it in place. With a contiguous buffer
+ * that is one `writeUInt32LE` at a position; with chunks it would be a fragile index dance.
  */
 class Writer {
   private buf = Buffer.alloc(256);
@@ -107,12 +107,12 @@ class Writer {
     this.byte(0);
   }
 
-  /** Serializa um único valor completo da assinatura `sig`. */
+  /** Serializes one complete value of signature `sig`. */
   marshal(sig: Sig, value: DbusValue) {
     this.one(sig, 0, value);
   }
 
-  /** Escreve o item que começa em sig[i]; devolve o índice logo após o tipo consumido. */
+  /** Writes the item starting at sig[i]; returns the index just past the consumed type. */
   private one(sig: Sig, i: number, v: DbusValue): number {
     switch (sig[i]) {
       case "y":
@@ -147,11 +147,11 @@ class Writer {
         this.align(4);
         const lenPos = this.len;
         this.ensure(4);
-        this.len += 4; // reserva o comprimento
+        this.len += 4; // reserve the length
 
-        // O comprimento do array conta a partir do PRIMEIRO elemento, já alinhado. O padding
-        // entre o campo de comprimento e o primeiro elemento não entra na conta, então alinhamos
-        // aqui, antes de marcar o início dos dados.
+        // The array length counts from the FIRST element, already aligned. The padding between
+        // the length field and the first element does not count, so we align here, before
+        // marking where the data starts.
         const isDict = sig[elemStart] === "{";
         this.align(elementAlignment(sig, elemStart));
         const dataStart = this.len;
@@ -243,8 +243,8 @@ class Reader {
       case "a": {
         const elem = sig.slice(1);
         const len = this.uint32();
-        // O comprimento conta a partir do primeiro elemento já alinhado, então alinhamos ANTES
-        // de calcular onde o array termina.
+        // The length counts from the first already-aligned element, so we align BEFORE working
+        // out where the array ends.
         this.align(elementAlignment(sig, 1));
         const end = this.pos + len;
         if (elem[0] === "{") {
@@ -302,7 +302,7 @@ function readOneSig(sig: string, i: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// Conexão D-Bus
+// D-Bus connection
 // ---------------------------------------------------------------------------
 
 const MESSAGE_TYPE = { METHOD_CALL: 1, METHOD_RETURN: 2, ERROR: 3, SIGNAL: 4 } as const;
@@ -341,7 +341,7 @@ export class DbusConnection {
     });
     await this.authenticate();
     this.sock.on("data", (c) => this.onData(c));
-    // Hello: obrigatório antes de qualquer outra chamada.
+    // Hello: mandatory before any other call.
     await this.call({
       destination: "org.freedesktop.DBus",
       path: "/org/freedesktop/DBus",
@@ -350,7 +350,7 @@ export class DbusConnection {
     });
   }
 
-  /** Handshake SASL EXTERNAL: autentica pelo uid do socket, sem senha. */
+  /** SASL EXTERNAL handshake: authenticates by the socket's uid, with no password. */
   private authenticate(): Promise<void> {
     const uid = (process.getuid?.() ?? userInfo().uid).toString();
     const uidHex = Buffer.from(uid, "utf8").toString("hex");
@@ -382,10 +382,10 @@ export class DbusConnection {
   private tryParse(): boolean {
     if (this.buf.length < 16) return false;
     const r = new Reader(this.buf);
-    r.byte(); // endianness (assumimos 'l')
+    r.byte(); // endianness (we assume 'l')
     const type = r.byte();
     r.byte(); // flags
-    r.byte(); // versão
+    r.byte(); // version
     const bodyLen = r.uint32();
     const serial = r.uint32();
     const fieldsLen = this.buf.readUInt32LE(r.pos);
@@ -394,7 +394,7 @@ export class DbusConnection {
     const bodyStart = headerEnd + pad(headerEnd, 8);
     if (this.buf.length < bodyStart + bodyLen) return false;
 
-    // Parse dos campos de cabeçalho para achar reply serial, assinatura e nome de erro.
+    // Parse the header fields to find the reply serial, signature and error name.
     const fields = new Reader(this.buf);
     fields.pos = r.pos;
     const fieldArr = fields.read("a(yv)") as DbusValue[];
@@ -464,7 +464,7 @@ export class DbusConnection {
     headW.byte(0x6c); // 'l' little-endian
     headW.byte(MESSAGE_TYPE.METHOD_CALL);
     headW.byte(0); // flags
-    headW.byte(1); // versão
+    headW.byte(1); // version
     headW.uint32(body.length);
     headW.uint32(serial);
     headW.marshal(
