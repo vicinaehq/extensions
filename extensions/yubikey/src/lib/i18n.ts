@@ -149,6 +149,7 @@ const strings: Dict = {
   "keys.piv.unavailable.detail": "## PIV certificates\n\nThe PIV application could not be read:\n\n> {reason}\n\nPIV goes through the smart-card interface (pcscd), so it can fail while the **FIDO2 passkeys** above, which use their own HID interface, keep working.",
   "keys.piv.export": "Export certificate (.pem)",
   "keys.piv.exported": "Certificate exported",
+  "keys.piv.exportedAlready": "Already exported",
   "keys.piv.exportFailed": "Couldn't export",
 
   // Key state

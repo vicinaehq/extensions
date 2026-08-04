@@ -66,6 +66,11 @@ export function requestTouchCode(credId: string, period: number): TouchHandle {
   let settled = false;
   let cancel: () => void = () => {};
   let onCancel: (() => void) | null = null;
+  // Cancellation is tracked on its own, not through `onCancel` alone: connecting takes a
+  // moment, and a cancel that lands in that window has nothing to call yet. Without this the
+  // request would go on to send the touch CALCULATE and hold the card for the full timeout,
+  // long after the user gave up on it.
+  let cancelled = false;
 
   const promise = new Promise<Code>((resolve, reject) => {
     const finish = (fn: () => void, abandoned: boolean) => {
@@ -74,6 +79,7 @@ export function requestTouchCode(credId: string, period: number): TouchHandle {
       clearTimeout(timer);
       if (abandoned) setCooldown();
       else clearCooldown();
+      cancelled = true;
       onCancel?.();
       fn();
     };
@@ -88,6 +94,10 @@ export function requestTouchCode(credId: string, period: number): TouchHandle {
       // Cancelling aborts instead of closing: a touch CALCULATE is still in flight and the
       // graceful DISCONNECT would queue behind it, stranding the pending read.
       onCancel = () => conn.abort("The touch was cancelled");
+      if (cancelled) {
+        conn.abort("The touch was cancelled");
+        throw new OathError("cancelled", "Touch cancelled");
+      }
       return conn.transaction(async (t) => {
         const info = await select(t);
         if (info.challenge) {
@@ -118,6 +128,8 @@ export function waitForCard(): TouchHandle {
   let settled = false;
   let cancel: () => void = () => {};
   let onCancel: (() => void) | null = null;
+  // Same race as in requestTouchCode: a cancel during connect has no abort to call yet.
+  let cancelled = false;
 
   const promise = new Promise<Code>((resolve, reject) => {
     const finish = (fn: () => void) => {
@@ -125,6 +137,7 @@ export function waitForCard(): TouchHandle {
       settled = true;
       clearTimeout(timer);
       clearCooldown();
+      cancelled = true;
       onCancel?.();
       fn();
     };
@@ -134,6 +147,10 @@ export function waitForCard(): TouchHandle {
 
     withOwnConnection(async (conn) => {
       onCancel = () => conn.abort("The wait for the card was cancelled");
+      if (cancelled) {
+        conn.abort("The wait for the card was cancelled");
+        throw new OathError("cancelled", "cancelled");
+      }
       return conn.transaction(async (t) => {
         const info = await select(t);
         if (info.challenge) {

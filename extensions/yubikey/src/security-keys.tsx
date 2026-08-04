@@ -115,12 +115,36 @@ export default function SecurityKeys() {
     [fidoPin, load],
   );
 
-  /** Exports a PIV slot's certificate. No PIN needed: the certificate is public. */
+  /**
+   * Exports a PIV slot's certificate. No PIN needed: the certificate is public.
+   *
+   * Never overwrites. The slot alone is not a unique name — the same slot holds a different
+   * certificate after a renewal, and the file may not even be ours — so the write refuses when
+   * the path is taken (`wx`) and falls back to a name carrying the certificate's fingerprint.
+   * Re-exporting the same certificate then lands on the same file and says so.
+   */
   const exportCert = useCallback(async (slot: SlotInfo) => {
     try {
       const pem = await piv().exportCertificate(objectIdForSlot(slot.slot));
-      const path = join(homedir(), `yubikey-piv-${slot.slot}.pem`);
-      writeFileSync(path, pem, { mode: 0o600 });
+      const base = join(homedir(), `yubikey-piv-${slot.slot}`);
+      const fingerprint = slot.cert?.fingerprint.slice(0, 12) ?? "";
+
+      let path = `${base}.pem`;
+      try {
+        writeFileSync(path, pem, { mode: 0o600, flag: "wx" });
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code !== "EEXIST") throw err;
+        path = `${base}-${fingerprint}.pem`;
+        try {
+          writeFileSync(path, pem, { mode: 0o600, flag: "wx" });
+        } catch (err2) {
+          if ((err2 as NodeJS.ErrnoException).code !== "EEXIST") throw err2;
+          // Same slot, same fingerprint: this exact certificate is already on disk.
+          await showToast({ style: Toast.Style.Success, title: t("keys.piv.exportedAlready"), message: path });
+          return;
+        }
+      }
+
       await showToast({ style: Toast.Style.Success, title: t("keys.piv.exported"), message: path });
     } catch (err) {
       await showToast({ style: Toast.Style.Failure, title: t("keys.piv.exportFailed"), message: localizeError(err) });

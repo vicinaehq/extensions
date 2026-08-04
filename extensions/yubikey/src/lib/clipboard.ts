@@ -80,16 +80,20 @@ export async function purgeFromHistory(text: string): Promise<PurgeResult> {
 
         db.close();
 
-        // The content itself lives in a file named after the data_offer id.
+        // The content itself lives in a file named after the data_offer id. The database row
+        // going away is not enough: while that file is there, the code is still on disk in
+        // plain text, so a failure here is a failed purge and has to be reported as one.
+        let blobsGone = true;
         for (const { offerId } of offers) {
           try {
             rmSync(join(CLIPBOARD_DATA, offerId), { force: true });
           } catch (err) {
+            blobsGone = false;
             console.warn(`[clipboard] could not remove blob ${offerId}: ${String(err)}`);
           }
         }
 
-        return Number(result.changes) > 0 ? "removed" : "failed";
+        return Number(result.changes) > 0 && blobsGone ? "removed" : "failed";
       } catch (err) {
         db.close();
         throw err;
