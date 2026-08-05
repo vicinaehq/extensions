@@ -1,0 +1,84 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "dms-integration",
+  "title": "DMS",
+  "description": "Integrate Vicinae into DankMaterialShell",
+  "categories": [
+    "System"
+  ],
+  "license": "MIT",
+  "author": "AurelienJt",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "vicinae-dms-logo.png",
+  "commands": [
+    {
+      "name": "dsearch",
+      "title": "Search Files",
+      "subtitle": "Search files with dsearch",
+      "description": "Searches system files with DMS `dsearch utility` (Make sure it is installed. running and listening on port localhost:43654). Cool file icons included 😃",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "folder_specifier",
+          "type": "text",
+          "placeholder": "folder"
+        }
+      ]
+    },
+    {
+      "name": "dsearch_index",
+      "title": "Reindex Files for Search",
+      "description": "Reindex files for DMS dsearch utility. Asynchronous operation, may take some time depending on the number of files to index.",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "reindex_mode",
+          "type": "dropdown",
+          "placeholder": "Quick Reindex",
+          "required": true,
+          "data": [
+            {
+              "title": "Quick Reindex",
+              "value": "quick"
+            },
+            {
+              "title": "Full Reindex",
+              "value": "full"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dsettings",
+      "title": "Settings",
+      "subtitle": "Opens DMS settings panel",
+      "description": "Opens DMS settings panel",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "dsearch_port",
+      "description": "API Port used by the dsearch API to listen for requests. Leave empty for default value (43654).",
+      "title": "dsearch API Port (Default: 43654)",
+      "required": false,
+      "type": "textfield"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.7",
+    "undici": "^7.24.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "typescript": "^5.9.2"
+  }
+}
