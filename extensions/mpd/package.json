@@ -1,0 +1,54 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "mpd",
+  "title": "MPD",
+  "description": "Browse and control your Music Player Daemon library — view the play queue with album art, browse albums, and search songs.",
+  "categories": [
+    "Media"
+  ],
+  "license": "MIT",
+  "author": "psic4t",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "queue",
+      "title": "Show Play Queue",
+      "subtitle": "MPD",
+      "description": "Show the current MPD play queue with album covers; jump to or remove songs.",
+      "mode": "view"
+    },
+    {
+      "name": "albums",
+      "title": "Show Albums",
+      "subtitle": "MPD",
+      "description": "Browse all albums sorted by last added; play an album or append it to the queue.",
+      "mode": "view"
+    },
+    {
+      "name": "songs",
+      "title": "Search Songs",
+      "subtitle": "MPD",
+      "description": "Search the MPD library by song title, artist, or album; play a song or add it to the queue.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "test": "tsx --test src/mpd/client.test.ts src/mpd/queue.test.ts src/mpd/albumart-paths.test.ts src/mpd/albumart.test.ts src/mpd/albums.test.ts src/mpd/albums-cache.test.ts src/mpd/prewarm.test.ts src/mpd/songs.test.ts src/util/format.test.ts src/util/albums.test.ts src/util/buffered-setter.test.ts src/util/errors.test.ts src/util/songs.test.ts src/util/uri.test.ts src/util/timeout.test.ts src/util/radio-browser.test.ts src/util/image-validate.test.ts src/mpd/stream-art-paths.test.ts src/util/art-source.test.ts src/util/webradiodb.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.15",
+    "mpc-js": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.2.14",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.2"
+  }
+}
