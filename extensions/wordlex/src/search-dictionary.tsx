@@ -277,10 +277,9 @@ export default function SearchDictionary() {
                 key={result.word}
                 id={result.word}
                 title={result.word}
-                subtitle={result.pos_list
+                subtitle={`(${result.pos_list
                   .map((p) => POS_LABELS[p] ?? p)
-                  .join(", ")}
-                accessories={[{ text: truncate(result.short_def, 50) }]}
+                  .join(", ")})`}
                 detail={
                   <List.Item.Detail
                     markdown={
@@ -336,10 +335,4 @@ export default function SearchDictionary() {
       )}
     </List>
   );
-}
-
-/** Truncate a string to a maximum length, appending "…" if truncated. */
-function truncate(s: string, maxLen: number): string {
-  if (s.length <= maxLen) return s;
-  return s.slice(0, maxLen - 1) + "…";
 }
