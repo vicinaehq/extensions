@@ -15,10 +15,10 @@ Search **150,000+ English words** with definitions, synonyms, antonyms, and sema
 | Shortcut | Action |
 |----------|--------|
 | `Enter` | View full definition |
-| `Cmd+C` | Copy definition |
-| `Cmd+Shift+P` | Paste word into active app |
-| `Cmd+W` | Open in Wiktionary |
-| `Cmd+O` | Open in WordLex desktop app |
+| `Cmd/Ctrl+C` | Copy definition |
+| `Cmd/Ctrl+Shift+P` | Paste word into active app |
+| `Cmd/Ctrl+W` | Open in Wiktionary |
+| `Cmd/Ctrl+O` | Open in WordLex desktop app |
 
 ## Prerequisites
 
