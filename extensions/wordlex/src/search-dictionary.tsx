@@ -151,6 +151,9 @@ export default function SearchDictionary() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  // Current search text (trimmed) so the empty view can tell "not searched
+  // yet" apart from "searched, no matches".
+  const [query, setQuery] = useState("");
 
   // Cache: word (lowercase) → WordDetail. Lives in a ref for O(1) stable lookup.
   const detailCache = useRef<Map<string, WordDetail>>(new Map());
@@ -192,6 +195,7 @@ export default function SearchDictionary() {
       if (searchTimer.current) clearTimeout(searchTimer.current);
 
       const query = text.trim();
+      setQuery(query);
       if (!query) {
         searchSeq.current++;
         setResults([]);
@@ -261,6 +265,12 @@ export default function SearchDictionary() {
           title="WordLex Not Found"
           description="Make sure WordLex is installed and the 'wordlex' command is available on your PATH."
           icon={Icon.ExclamationMark}
+        />
+      ) : query !== "" && !isLoading && results.length === 0 ? (
+        <List.EmptyView
+          title="No Results Found"
+          description={`No words match "${query}"`}
+          icon={Icon.XMarkCircle}
         />
       ) : results.length === 0 ? (
         <List.EmptyView
