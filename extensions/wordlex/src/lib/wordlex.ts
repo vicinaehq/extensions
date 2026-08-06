@@ -25,18 +25,21 @@ export const cmdModifier: KeyModifier = isMac ? "cmd" : "ctrl";
 
 /** Launch the WordLex desktop app with a word pre-loaded in the search bar. */
 export function openInWordLex(word: string) {
-  try {
-    const child = spawn("wordlex", ["--search", word], {
-      detached: true,
-      stdio: "ignore",
-    });
-    child.unref();
-  } catch {
+  const child = spawn("wordlex", ["--search", word], {
+    detached: true,
+    stdio: "ignore",
+  });
+  // spawn reports a missing binary asynchronously via the 'error' event, so a
+  // try/catch around spawn never fires. Surface the failure to the user here.
+  child.on("error", () => {
     showToast({
       style: Toast.Style.Failure,
       title: "Could not open WordLex",
+      message:
+        "Is WordLex installed? Make sure the 'wordlex' command is available on your PATH.",
     });
-  }
+  });
+  child.unref();
 }
 
 /**
