@@ -9,7 +9,7 @@
  * must be on $PATH).
  */
 
-import { execFile, execFileSync, spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { showToast, Toast } from "@vicinae/api";
 import type { KeyModifier } from "@vicinae/api";
@@ -36,31 +36,6 @@ export function openInWordLex(word: string) {
       style: Toast.Style.Failure,
       title: "Could not open WordLex",
     });
-  }
-}
-
-/**
- * Look up a word and return its full detail (all senses, synonyms, antonyms, relations).
- * Returns null if the word is not found.
- * Throws an Error if the binary is missing or the DB is unavailable.
- */
-export function lookupWord(word: string): WordDetail | null {
-  const sanitized = word.trim().toLowerCase();
-  if (!sanitized) return null;
-
-  try {
-    const stdout = execFileSync("wordlex", ["--cli-json", sanitized], {
-      timeout: EXEC_TIMEOUT_MS,
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-
-    const trimmed = stdout.trim();
-    if (trimmed === "null" || !trimmed) return null;
-
-    return JSON.parse(trimmed) as WordDetail;
-  } catch (err: unknown) {
-    throw toWordLexError(err);
   }
 }
 
@@ -98,24 +73,15 @@ export async function searchWordsAsync(
 }
 
 /**
- * Fetch a random word's full detail from the database.
+ * Fetch a random word's full detail from the database, without blocking the
+ * UI thread.
  * Returns null if no word is found (unlikely but possible on empty DB).
  */
-export function randomWord(): WordDetail | null {
-  try {
-    const stdout = execFileSync("wordlex", ["--random-json"], {
-      timeout: EXEC_TIMEOUT_MS,
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+export async function randomWordAsync(): Promise<WordDetail | null> {
+  const trimmed = await runWordlexJson(["--random-json"]);
+  if (!trimmed || trimmed === "null") return null;
 
-    const trimmed = stdout.trim();
-    if (trimmed === "null" || !trimmed) return null;
-
-    return JSON.parse(trimmed) as WordDetail;
-  } catch (err: unknown) {
-    throw toWordLexError(err);
-  }
+  return JSON.parse(trimmed) as WordDetail;
 }
 
 /** Run `wordlex <args>` asynchronously and return trimmed stdout. */

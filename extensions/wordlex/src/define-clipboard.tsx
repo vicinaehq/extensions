@@ -21,7 +21,7 @@ import {
   Keyboard,
 } from "@vicinae/api";
 
-import { lookupWord, openInWordLex, cmdModifier } from "./lib/wordlex";
+import { lookupWordAsync, openInWordLex, cmdModifier } from "./lib/wordlex";
 import {
   formatWordDetailMarkdown,
   formatWordDetailPlainText,
@@ -70,7 +70,7 @@ export default function DefineClipboard() {
 
         setWord(firstWord);
 
-        const result = lookupWord(firstWord);
+        const result = await lookupWordAsync(firstWord);
 
         if (!result) {
           setMarkdown(

@@ -3,18 +3,77 @@
  *
  * Fetches a random word from the WordLex database and displays its full
  * definition in a Detail view. Great for vocabulary building.
+ *
+ * The lookup runs asynchronously so the Detail view can show a loading
+ * state and a meaningful error message (with toast) when WordLex is missing.
  */
 
-import { Detail, ActionPanel, Action, Icon, Keyboard } from "@vicinae/api";
+import { useEffect, useState } from "react";
+import {
+  Detail,
+  ActionPanel,
+  Action,
+  Icon,
+  showToast,
+  Toast,
+  Keyboard,
+} from "@vicinae/api";
 
-import { randomWord, openInWordLex, cmdModifier } from "./lib/wordlex";
+import { randomWordAsync, openInWordLex, cmdModifier } from "./lib/wordlex";
 import {
   formatWordDetailMarkdown,
   formatWordDetailPlainText,
 } from "./lib/formatter";
+import type { WordDetail } from "./lib/types";
 
 export default function RandomWord() {
-  const detail = randomWord();
+  const [detail, setDetail] = useState<WordDetail | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    randomWordAsync()
+      .then((result) => {
+        if (cancelled) return;
+        setDetail(result);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Unknown error";
+        setError(message);
+        setIsLoading(false);
+        showToast({
+          style: Toast.Style.Failure,
+          title: "WordLex Error",
+          message,
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <Detail
+        navigationTitle="Random Word"
+        markdown="# 🎲 Fetching a random word…"
+      />
+    );
+  }
+
+  if (error) {
+    return (
+      <Detail
+        navigationTitle="Random Word"
+        markdown={`# 🎲 Could not fetch a random word\n\n*${error}*`}
+      />
+    );
+  }
 
   if (!detail) {
     return (
