@@ -42,12 +42,14 @@ function normalizeItemType(value: unknown): ItemType {
 			return "login";
 		case "note":
 			return "note";
+		case "creditcard":
 		case "credit_card":
 			return "credit_card";
 		case "identity":
 			return "identity";
 		case "alias":
 			return "alias";
+		case "sshkey":
 		case "ssh_key":
 			return "ssh_key";
 		case "wifi":

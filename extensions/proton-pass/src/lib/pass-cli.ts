@@ -105,6 +105,10 @@ const ERROR_PATTERNS: ReadonlyArray<{
 			/failed to connect/i,
 		],
 	},
+	{
+		type: "no_totp",
+		patterns: [/no totp fields found in this item/i],
+	},
 ];
 
 function classifyCliError(text: string): PassCliErrorType {
@@ -162,6 +166,10 @@ function normalizeCliError(error: unknown, cliPath: string): PassCliError {
 			"Network error. Check your connection and try again.",
 			"network_error",
 		);
+	}
+
+	if (type === "no_totp") {
+		return new PassCliError("No TOTP fields found for this item.", "no_totp");
 	}
 
 	const safeDetails =
@@ -333,10 +341,7 @@ export async function getTotp(
 			typeof value === "string" && value.trim().length > 0,
 	);
 	if (!first)
-		throw new PassCliError(
-			"No TOTP fields found for this item.",
-			"invalid_output",
-		);
+		throw new PassCliError("No TOTP fields found for this item.", "no_totp");
 	return first.trim();
 }
 
@@ -374,29 +379,4 @@ export async function generatePassword(
 	if (options.includeNumbers !== undefined)
 		args.push("--numbers", options.includeNumbers ? "true" : "false");
 	return parseGeneratedPassword(await runCli(args));
-}
-
-/**
- * Map items to results with a bounded number of concurrent CLI invocations.
- * Used when probing every item would otherwise spawn a process per item.
- */
-export async function mapWithConcurrency<T, R>(
-	items: T[],
-	limit: number,
-	fn: (item: T, index: number) => Promise<R>,
-): Promise<R[]> {
-	const results = new Array<R>(items.length);
-	let next = 0;
-
-	async function worker(): Promise<void> {
-		while (next < items.length) {
-			const index = next++;
-			results[index] = await fn(items[index], index);
-		}
-	}
-
-	await Promise.all(
-		Array.from({ length: Math.min(limit, items.length) }, () => worker()),
-	);
-	return results;
 }

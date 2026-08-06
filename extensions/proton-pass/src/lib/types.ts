@@ -64,6 +64,7 @@ export type PassCliErrorType =
 	| "keyring_error"
 	| "timeout"
 	| "invalid_output"
+	| "no_totp"
 	| "unknown";
 
 export class PassCliError extends Error {

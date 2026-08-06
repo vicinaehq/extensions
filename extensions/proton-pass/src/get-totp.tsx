@@ -232,8 +232,10 @@ async function probeItems(
 			try {
 				const code = await getTotp(item.shareId, item.itemId);
 				onEntry({ item, code });
-			} catch {
-				// Item has no TOTP field.
+			} catch (error) {
+				if (!(error instanceof PassCliError && error.type === "no_totp")) {
+					throw error;
+				}
 			}
 		}
 	}
