@@ -76,16 +76,6 @@ export function formatWordDetailMarkdown(detail: WordDetail): string {
 }
 
 /**
- * Format a concise one-line definition string for copy-to-clipboard or HUD display.
- */
-export function formatShortDefinition(detail: WordDetail): string {
-  if (detail.senses.length === 0) return detail.word;
-  const first = detail.senses[0];
-  const pos = POS_LABELS[first.pos] ?? first.pos;
-  return `${detail.word} (${pos}): ${first.definition}`;
-}
-
-/**
  * Format the full word detail as a plain-text string for clipboard copy.
  */
 export function formatWordDetailPlainText(detail: WordDetail): string {

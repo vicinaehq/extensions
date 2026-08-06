@@ -1,7 +1,7 @@
 {
   "name": "wordlex",
   "title": "WordLex Dictionary",
-  "description": "Instantly search 150,000+ words with definitions, synonyms, antonyms, and relations — fully offline.",
+  "description": "Instantly search 150,000+ words with definitions, synonyms, antonyms, and relations — fully offline. Requires the locally installed WordLex desktop app.",
   "categories": [
     "Productivity",
     "Data"
@@ -50,7 +50,6 @@
     "@typescript-eslint/eslint-plugin": "^8.59.4",
     "@typescript-eslint/parser": "^8.59.4",
     "eslint": "^10.4.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
     "prettier": "^3.8.3",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.59.4"
