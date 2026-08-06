@@ -207,8 +207,13 @@ export default function SearchDictionary() {
       setIsLoading(true);
       setHasError(false);
 
+      // Advance the search generation NOW, on every text change, so any
+      // search still in flight from a previous keystroke is immediately
+      // invalidated. Bumping it only inside the debounce callback would let
+      // an earlier response commit under a newer query.
+      const seq = ++searchSeq.current;
+
       searchTimer.current = setTimeout(() => {
-        const seq = ++searchSeq.current;
         searchWordsAsync(query)
           .then((searchResults) => {
             if (seq !== searchSeq.current) return searchResults;
