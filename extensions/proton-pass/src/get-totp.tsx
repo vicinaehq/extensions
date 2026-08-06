@@ -61,7 +61,14 @@ export default function Command() {
 				return;
 			}
 
-			const items = await listItems();
+			const { items, failedVaults } = await listItems();
+			if (failedVaults.length > 0) {
+				await showToast(
+					Toast.Style.Failure,
+					"Some vaults failed to load",
+					`Failed to load items from: ${failedVaults.join(", ")}`,
+				);
+			}
 			const entries: TotpEntry[] = [];
 			// Probe every item: the item list output does not include TOTP info,
 			// so we check each item and keep only the ones that yield a code.

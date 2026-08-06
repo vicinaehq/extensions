@@ -32,11 +32,8 @@ function VaultItems({ vault }: { vault: Vault }) {
 	const load = useCallback(async () => {
 		setIsLoading(true);
 		try {
-			setItems(
-				(await listItems(vault.shareId)).sort((a, b) =>
-					a.title.localeCompare(b.title),
-				),
-			);
+			const { items } = await listItems(vault.shareId);
+			setItems(items.sort((a, b) => a.title.localeCompare(b.title)));
 		} catch (e) {
 			await showToast(
 				Toast.Style.Failure,

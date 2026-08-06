@@ -263,23 +263,30 @@ async function listItemsFromVault(
 		.map((item) => normalizeItem(item, vaultName));
 }
 
-export async function listItems(shareId?: string): Promise<Item[]> {
+export async function listItems(
+	shareId?: string,
+): Promise<{ items: Item[]; failedVaults: string[] }> {
 	if (shareId) {
 		const vaults = await listVaults();
 		const vault = vaults.find((v) => v.shareId === shareId);
-		return listItemsFromVault(shareId, vault?.name ?? "Unknown Vault");
+		return {
+			items: await listItemsFromVault(shareId, vault?.name ?? "Unknown Vault"),
+			failedVaults: [],
+		};
 	}
 
 	const vaults = await listVaults();
 	const allItems: Item[] = [];
+	const failedVaults: string[] = [];
 	for (const vault of vaults) {
 		try {
 			allItems.push(...(await listItemsFromVault(vault.shareId, vault.name)));
 		} catch (error) {
 			console.error(`Failed to list items from vault ${vault.name}:`, error);
+			failedVaults.push(vault.name);
 		}
 	}
-	return allItems;
+	return { items: allItems, failedVaults };
 }
 
 export async function getItem(item: Item): Promise<ItemDetail> {

@@ -104,13 +104,20 @@ export default function Command() {
 			}
 
 			try {
-				const [loadedVaults, loadedItems] = await Promise.all([
-					listVaults(),
-					listItems(),
-				]);
+				const [loadedVaults, { items: loadedItems, failedVaults }] =
+					await Promise.all([listVaults(), listItems()]);
 				setVaults(loadedVaults);
 				setItems(loadedItems.sort((a, b) => a.title.localeCompare(b.title)));
-				if (cacheEnabled) await writeVaultCache(loadedVaults, loadedItems);
+				if (failedVaults.length > 0) {
+					// Keep the partial list visible but avoid caching incomplete data.
+					await showToast(
+						Toast.Style.Failure,
+						"Some vaults failed to load",
+						`Failed to load items from: ${failedVaults.join(", ")}`,
+					);
+				} else if (cacheEnabled) {
+					await writeVaultCache(loadedVaults, loadedItems);
+				}
 			} catch (e) {
 				if (showingCache) {
 					// Keep rendering the cached list; surface the refresh failure.
