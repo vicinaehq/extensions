@@ -234,7 +234,10 @@ export default function SearchDictionary() {
           })
           .catch((err) => {
             if (seq !== searchSeq.current) return;
+            // Clear any matches from a previous query so the error empty view
+            // (rendered only when results.length === 0) is actually shown.
             setHasError(true);
+            setResults([]);
             showToast({
               style: Toast.Style.Failure,
               title: "WordLex Error",
