@@ -6,7 +6,7 @@
  * as markdown on the right when an item is selected.
  *
  * Data flow:
- * 1. onSearchTextChange → `wordlex --search-json <prefix>`
+ * 1. onSearchTextChange → debounced `wordlex --search-json <prefix>` (async)
  * 2. User highlights an item → `wordlex --cli-json <word>` → markdown detail
  * 3. Actions: copy definition, paste word, open in WordLex GUI, open on Wiktionary
  *
@@ -19,9 +19,16 @@
  *   and does not update it on subsequent re-renders, so the first 5 results
  *   are pre-loaded before items appear. Remaining items show the short_def
  *   from search results as a meaningful fallback.
+ *
+ * Responsiveness:
+ * - All process calls are asynchronous (non-blocking), so the loading state
+ *   can render and the UI never freezes while lookups run.
+ * - Input is debounced to avoid spawning processes on every keystroke.
+ * - A monotonically increasing sequence number discards stale responses so a
+ *   slower earlier search never overwrites newer results.
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   List,
   Detail,
@@ -34,8 +41,8 @@ import {
 } from "@vicinae/api";
 
 import {
-  searchWords,
-  lookupWord,
+  searchWordsAsync,
+  lookupWordAsync,
   openInWordLex,
   cmdModifier,
 } from "./lib/wordlex";
@@ -46,10 +53,52 @@ import {
 import { POS_LABELS } from "./lib/types";
 import type { SearchResult, WordDetail } from "./lib/types";
 
+const SEARCH_DEBOUNCE_MS = 200;
+const PRELOAD_COUNT = 5;
+
 // ─── Full-screen Detail view (pushed via Action.Push) ───────
 
 function WordDetailView({ word }: { word: string }) {
-  const detail = lookupWord(word);
+  // undefined = loading, null = not found, WordDetail = found
+  const [detail, setDetail] = useState<WordDetail | null | undefined>(
+    undefined
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setDetail(undefined);
+    setError(null);
+
+    lookupWordAsync(word)
+      .then((result) => {
+        if (!cancelled) setDetail(result);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Unknown error");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [word]);
+
+  if (error) {
+    return (
+      <Detail navigationTitle={word} markdown={`# ${word}\n\n*${error}*`} />
+    );
+  }
+
+  if (detail === undefined) {
+    return (
+      <Detail
+        navigationTitle={word}
+        markdown={`# ${word}\n\n*Loading definition…*`}
+      />
+    );
+  }
 
   if (!detail) {
     return (
@@ -108,64 +157,85 @@ export default function SearchDictionary() {
   // Bumping this counter forces a re-render so items pick up newly cached details.
   const [, setDetailVersion] = useState(0);
 
-  /** Load a word's full detail into the cache (sync). No-op if already cached. */
-  const loadDetail = useCallback((word: string) => {
-    const key = word.toLowerCase();
-    if (detailCache.current.has(key)) return;
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Monotonic sequence so only the latest search's response is applied.
+  const searchSeq = useRef(0);
 
-    try {
-      const detail = lookupWord(word);
-      if (detail) {
+  useEffect(() => {
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    };
+  }, []);
+
+  /** Load a word's full detail into the cache (async). No-op if already cached. */
+  const loadDetail = useCallback((word: string): Promise<void> => {
+    const key = word.toLowerCase();
+    if (detailCache.current.has(key)) return Promise.resolve();
+
+    return lookupWordAsync(word)
+      .then((detail) => {
+        if (!detail) return;
         detailCache.current.set(key, detail);
         setDetailVersion((v) => v + 1);
-      }
-    } catch (err) {
-      showToast({
-        style: Toast.Style.Failure,
-        title: "Lookup Failed",
-        message: err instanceof Error ? err.message : "Unknown error",
+      })
+      .catch((err) => {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Lookup Failed",
+          message: err instanceof Error ? err.message : "Unknown error",
+        });
       });
-    }
   }, []);
 
   const handleSearchChange = useCallback(
     (text: string) => {
-      if (!text.trim()) {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+
+      const query = text.trim();
+      if (!query) {
+        searchSeq.current++;
         setResults([]);
+        setIsLoading(false);
+        setHasError(false);
         return;
       }
 
       setIsLoading(true);
       setHasError(false);
 
-      try {
-        const searchResults = searchWords(text);
+      searchTimer.current = setTimeout(() => {
+        const seq = ++searchSeq.current;
+        searchWordsAsync(query)
+          .then((searchResults) => {
+            if (seq !== searchSeq.current) return searchResults;
 
-        // Pre-load details for the first few visible results BEFORE setting
-        // state. Vicinae's native renderer reads List.Item.Detail markdown on
-        // first mount and does not update it on subsequent re-renders, so the
-        // data must be cached before items appear. We cap at 5 to avoid
-        // blocking the UI (50 results × ~50ms each = 2.5s freeze).
-        const PRELOAD_COUNT = 5;
-        for (
-          let i = 0;
-          i < Math.min(searchResults.length, PRELOAD_COUNT);
-          i++
-        ) {
-          loadDetail(searchResults[i].word);
-        }
-
-        setResults(searchResults);
-      } catch (err) {
-        setHasError(true);
-        showToast({
-          style: Toast.Style.Failure,
-          title: "WordLex Error",
-          message: err instanceof Error ? err.message : "Unknown error",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+            // Pre-load details for the first few visible results BEFORE setting
+            // state. Vicinae's native renderer reads List.Item.Detail markdown
+            // on first mount and does not update it on subsequent re-renders,
+            // so the data must be cached before items appear. The lookups run
+            // in parallel and asynchronously so the UI stays responsive.
+            const preloads = searchResults
+              .slice(0, PRELOAD_COUNT)
+              .map((result) => loadDetail(result.word));
+            return Promise.allSettled(preloads).then(() => searchResults);
+          })
+          .then((searchResults) => {
+            if (seq !== searchSeq.current) return;
+            setResults(searchResults);
+          })
+          .catch((err) => {
+            if (seq !== searchSeq.current) return;
+            setHasError(true);
+            showToast({
+              style: Toast.Style.Failure,
+              title: "WordLex Error",
+              message: err instanceof Error ? err.message : "Unknown error",
+            });
+          })
+          .finally(() => {
+            if (seq === searchSeq.current) setIsLoading(false);
+          });
+      }, SEARCH_DEBOUNCE_MS);
     },
     [loadDetail]
   );
