@@ -9,7 +9,7 @@
  * must be on $PATH).
  */
 
-import { execSync, spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { showToast, Toast } from "@vicinae/api";
 import type { KeyModifier } from "@vicinae/api";
 import type { WordDetail, SearchResult } from "./types";
@@ -46,7 +46,7 @@ export function lookupWord(word: string): WordDetail | null {
   if (!sanitized) return null;
 
   try {
-    const stdout = execSync(`wordlex --cli-json "${sanitized}"`, {
+    const stdout = execFileSync("wordlex", ["--cli-json", sanitized], {
       timeout: EXEC_TIMEOUT_MS,
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
@@ -79,7 +79,7 @@ export function searchWords(prefix: string): SearchResult[] {
   if (!sanitized) return [];
 
   try {
-    const stdout = execSync(`wordlex --search-json "${sanitized}"`, {
+    const stdout = execFileSync("wordlex", ["--search-json", sanitized], {
       timeout: EXEC_TIMEOUT_MS,
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
@@ -109,7 +109,7 @@ export function searchWords(prefix: string): SearchResult[] {
  */
 export function randomWord(): WordDetail | null {
   try {
-    const stdout = execSync(`wordlex --random-json`, {
+    const stdout = execFileSync("wordlex", ["--random-json"], {
       timeout: EXEC_TIMEOUT_MS,
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
