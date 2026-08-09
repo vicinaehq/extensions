@@ -224,11 +224,12 @@ type ReminderActionsProps = {
 };
 
 function ReminderActions({ reminder, reload, locale }: ReminderActionsProps) {
-	const mutate = async (operation: (current: Reminder) => Reminder) => {
+	const mutate = async (operation: (current: Reminder) => Reminder): Promise<boolean> => {
 		try {
 			await store.mutate(reminder.id, reminder.revision, operation);
 			await stopNotificationHelper(reminder.pendingNotification?.unitName);
 			await reload();
+			return true;
 		} catch (error) {
 			await toastError(
 				error instanceof ReminderConflictError
@@ -237,10 +238,11 @@ function ReminderActions({ reminder, reload, locale }: ReminderActionsProps) {
 				error,
 			);
 			await reload();
+			return false;
 		}
 	};
 	const snooze = async (target: Date) => {
-		await mutate((current) =>
+		const succeeded = await mutate((current) =>
 			current.recurrence
 				? {
 						...current,
@@ -258,6 +260,7 @@ function ReminderActions({ reminder, reload, locale }: ReminderActionsProps) {
 						pendingNotification: undefined,
 					},
 		);
+		if (!succeeded) return;
 		await showToast({
 			style: Toast.Style.Success,
 			title: "Reminder snoozed",
