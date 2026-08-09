@@ -14,6 +14,10 @@ export const ConventionalCommit = ({ gitFile }: { gitFile: string }) => {
   const [commitType, setcommitType] = useState("");
   const [commitScope, setCommitScope] = useState("");
   const [breakingChange, setbreakingChange] = useState(false);
+  const [commitMessageError, setCommitMessageError] = useState<
+    string | undefined
+  >();
+  const [commitTypeError, setCommitTypeError] = useState<string | undefined>();
   const { push } = useNavigation();
 
   useEffect(() => {
@@ -31,11 +35,18 @@ export const ConventionalCommit = ({ gitFile }: { gitFile: string }) => {
           <Action
             title="Commit"
             onAction={async () => {
+              if (!commitType) {
+                setCommitTypeError("Commit type is required");
+              }
+              if (!commitMessage) {
+                setCommitMessageError("Commit message is required");
+              }
+              if (!commitType || !commitMessage) return;
               const scope = commitScope ? `(${commitScope})` : "";
               const breaking = breakingChange ? "!" : "";
               const fullCommitMessage = `${commitType}${scope}${breaking}: ${commitMessage}`;
-              writeFile(gitFile, fullCommitMessage);
-              closeMainWindow();
+              await writeFile(gitFile, fullCommitMessage);
+              await closeMainWindow();
             }}
           />
           <Action
@@ -52,6 +63,7 @@ export const ConventionalCommit = ({ gitFile }: { gitFile: string }) => {
         title="Type"
         value={commitType}
         onChange={setcommitType}
+        error={commitTypeError}
       >
         <Form.Dropdown.Item
           value="feat"
@@ -84,6 +96,7 @@ export const ConventionalCommit = ({ gitFile }: { gitFile: string }) => {
         title="Commit message"
         onChange={setcommitMessage}
         id="commit-message"
+        error={commitMessageError}
       />
     </Form>
   );

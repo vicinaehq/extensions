@@ -5,7 +5,7 @@ import {
   installScripts,
 } from "../utils/scriptInstaller";
 import { SCRIPT_NAMES } from "../utils/scripts";
-import { Alert, confirmAlert } from "@vicinae/api";
+import { Alert, confirmAlert, showToast, Toast } from "@vicinae/api";
 import { execSync } from "child_process";
 
 export type ScriptsStatus = {
@@ -22,31 +22,40 @@ export const useSetup = () => {
   });
 
   const handleInstallBoth = async () => {
-    const confirmed = await confirmAlert({
-      title: "Install Git Editor Scripts",
-      message:
-        "This will install two executable scripts to your system:\n\n" +
-        "• git-vicinae-editor\n" +
-        "• git-vicinae-sequence-editor\n\n" +
-        `These scripts will be placed in ${getUserBinPath()} and your git configuration will be updated to use them.`,
-      primaryAction: {
-        title: "Install Scripts",
-        style: Alert.ActionStyle.Default,
-      },
-      dismissAction: {
-        title: "Cancel",
-      },
-    });
-    if (!confirmed) return;
-    configureGit();
-    installScripts();
-    const editorPath = findScriptInPath(SCRIPT_NAMES.editor);
-    const sequenceEditorPath = findScriptInPath(SCRIPT_NAMES.sequenceEditor);
-    setStatus({
-      editorPath,
-      sequenceEditorPath,
-      allInstalled: !!(editorPath && sequenceEditorPath),
-    });
+    try {
+      const confirmed = await confirmAlert({
+        title: "Install Git Editor Scripts",
+        message:
+          "This will install two executable scripts to your system:\n\n" +
+          "• git-vicinae-editor\n" +
+          "• git-vicinae-sequence-editor\n\n" +
+          `These scripts will be placed in ${getUserBinPath()} and your git configuration will be updated to use them.`,
+        primaryAction: {
+          title: "Install Scripts",
+          style: Alert.ActionStyle.Default,
+        },
+        dismissAction: {
+          title: "Cancel",
+        },
+      });
+      if (!confirmed) return;
+      installScripts();
+      configureGit();
+      const editorPath = findScriptInPath(SCRIPT_NAMES.editor);
+      const sequenceEditorPath = findScriptInPath(SCRIPT_NAMES.sequenceEditor);
+      setStatus({
+        editorPath,
+        sequenceEditorPath,
+        allInstalled: !!(editorPath && sequenceEditorPath),
+      });
+    } catch (error) {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Error during installation and configuration",
+        message: String(error),
+      });
+      console.error("Error during installation and configuration:", error);
+    }
   };
 
   const handleConfigureGit = async () => {

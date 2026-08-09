@@ -24,6 +24,7 @@ A visual interface for `git rebase -i` with full control over your commits:
 - **Change commit actions** - Quick shortcuts for common operations:
   - `p` - Pick
   - `e` - Edit
+  - `s` - Squash
   - `r` - Reword
   - `f` - Fixup
   - `d` - Drop

@@ -3,7 +3,7 @@ set -e
 
 FILE="$1"
 
-vicinae cmd launch @FredrikMWold/git-editor:git-commit $FILE
+vicinae cmd launch @FredrikMWold/git-editor:git-commit "$FILE"
 
 # Wait until Vicinae writes to the file
 inotifywait \\
@@ -22,7 +22,7 @@ set -e
 
 FILE="$1"
 
-vicinae cmd launch @FredrikMWold/git-editor:git-sequence $FILE
+vicinae cmd launch @FredrikMWold/git-editor:git-sequence "$FILE"
 
 # Wait until Vicinae writes to the file
 inotifywait \\
