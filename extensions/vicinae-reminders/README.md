@@ -10,7 +10,7 @@ Natural-language one-off and recurring reminders for Vicinae on systemd Linux.
 - `notify-send` with actions and waiting support
 - a graphical notification service with action buttons
 
-Non-systemd, headless, and actionless notification environments are not supported. X11 and Wayland are supported. Reminders missed while logged out are delivered after the next graphical login.
+Non-systemd, headless, and actionless notification environments are not supported. X11 and Wayland are supported. Reminders due while the notification service is unavailable are delivered when it becomes available again.
 
 ## Usage
 
