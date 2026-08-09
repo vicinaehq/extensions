@@ -48,10 +48,11 @@ export function resolveReminderPaths(
 }
 
 export function reminderPathsFromDirectories(dataDir: string, stateDir: string): ReminderPaths {
-	const defaults = resolveReminderPaths();
 	const runtimeDir = path.join(dataDir, "runtime");
+	const configHome = path.join(path.dirname(dataDir), "config");
+	const configDir = path.join(configHome, "vicinae-reminders");
+	const unitDir = path.join(configHome, "systemd", "user");
 	return {
-		...defaults,
 		dataDir,
 		remindersDir: path.join(dataDir, "reminders"),
 		runtimeDir,
@@ -60,5 +61,9 @@ export function reminderPathsFromDirectories(dataDir: string, stateDir: string):
 		infrastructureManifestPath: path.join(runtimeDir, "infrastructure.json"),
 		stateDir,
 		workerStatusPath: path.join(stateDir, "worker-status.json"),
+		configDir,
+		unitDir,
+		servicePath: path.join(unitDir, "vicinae-reminders.service"),
+		timerPath: path.join(unitDir, "vicinae-reminders.timer"),
 	};
 }

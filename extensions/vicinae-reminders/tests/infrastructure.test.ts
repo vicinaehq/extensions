@@ -1,4 +1,4 @@
-import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -197,8 +197,10 @@ describe("ensureInfrastructure", () => {
 
 	it("removes legacy units and worker while preserving reminder data", async () => {
 		const fixture = await infrastructureFixture();
+		expect(fixture.paths.unitDir).toContain(fixture.root);
 		const reminder = newReminder("keep me", new Date(Date.now() + 60_000));
 		await new ReminderStore(fixture.paths).create(reminder);
+		await mkdir(fixture.paths.unitDir, { recursive: true });
 		await writeFile(fixture.paths.servicePath, "legacy service");
 		await writeFile(fixture.paths.timerPath, "legacy timer");
 		await writeFile(fixture.paths.workerPath, "legacy worker");

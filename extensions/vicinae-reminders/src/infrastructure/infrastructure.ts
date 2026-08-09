@@ -275,12 +275,6 @@ async function removeLegacyScheduler(
 	await rm(paths.servicePath, { force: true });
 	await rm(paths.timerPath, { force: true });
 	await rm(paths.workerPath, { force: true });
-	await rm(
-		path.join(path.dirname(paths.dataDir), "systemd", "timers", `stamp-${LEGACY_TIMER_NAME}`),
-		{
-			force: true,
-		},
-	);
 	await runner(systemctlPath, ["--user", "daemon-reload"]);
 	await runner(systemctlPath, [
 		"--user",
