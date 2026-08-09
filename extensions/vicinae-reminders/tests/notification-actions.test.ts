@@ -9,7 +9,11 @@ import { reminderPathsFromDirectories } from "../src/platform/paths";
 import { ReminderStore } from "../src/storage/store";
 import { runNotificationHelper } from "../src/worker/notification-actions";
 import { SystemdNotificationDispatcher } from "../src/worker/notification-dispatcher";
-import type { NotificationAction, ReminderNotifier } from "../src/worker/notifier";
+import {
+	type NotificationAction,
+	NotifySendNotifier,
+	type ReminderNotifier,
+} from "../src/worker/notifier";
 
 const roots: string[] = [];
 
@@ -156,6 +160,29 @@ describe("notification action helper", () => {
 		const retained = await store.get(reminder.id);
 		expect(retained?.pendingNotification).toBeUndefined();
 		expect(retained?.lastError).toContain("daemon unavailable");
+	});
+
+	it("clears pending state when the notification client times out", async () => {
+		const { store, root } = await makeStore();
+		const due = new Date("2026-08-08T10:00:00.000Z");
+		const { reminder, pending } = await createPending(store, "Retry timeout", due);
+		const executable = path.join(root, "stuck-notify");
+		await writeFile(executable, "#!/bin/sh\nsleep 2\n");
+		await chmod(executable, 0o755);
+
+		await expect(
+			runNotificationHelper(
+				store,
+				new NotifySendNotifier(executable, 25),
+				reminder.id,
+				pending.token,
+				() => due,
+			),
+		).rejects.toMatchObject({ killed: true });
+		const retained = await store.get(reminder.id);
+		expect(retained?.pendingNotification).toBeUndefined();
+		expect(retained?.lastAttemptAt).toBe(due.toISOString());
+		expect(retained?.failureCount).toBe(1);
 	});
 });
 

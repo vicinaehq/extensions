@@ -9,7 +9,7 @@ import { reminderPathsFromDirectories } from "../src/platform/paths";
 import { ReminderConflictError, ReminderStore } from "../src/storage/store";
 import { completeNotificationAction } from "../src/worker/notification-actions";
 import type { NotificationDispatcher } from "../src/worker/notification-dispatcher";
-import { NotifySendNotifier } from "../src/worker/notifier";
+import { DEFAULT_NOTIFICATION_TIMEOUT_MS, NotifySendNotifier } from "../src/worker/notifier";
 import { processDueReminders } from "../src/worker/processor";
 
 const temporaryDirectories: string[] = [];
@@ -338,7 +338,7 @@ describe("notify-send transport", () => {
 		const args = (await readFile(output, "utf8")).trim().split("\n");
 		expect(args.at(-1)).toBe(hostile);
 		expect(args).toContain("--urgency=normal");
-		expect(args).toContain("--expire-time=0");
+		expect(args).toContain(`--expire-time=${DEFAULT_NOTIFICATION_TIMEOUT_MS}`);
 		expect(args).toContain("--wait");
 		expect(args).toContain(`--icon=${notificationIcon}`);
 		expect(args.filter((argument) => argument.startsWith("--action="))).toEqual([

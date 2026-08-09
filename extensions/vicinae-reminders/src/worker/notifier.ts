@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
+export const DEFAULT_NOTIFICATION_TIMEOUT_MS = 60 * 60_000;
 
 export interface ReminderNotifier {
 	send(text: string): Promise<NotificationAction>;
@@ -19,7 +20,7 @@ export type NotificationAction =
 export class NotifySendNotifier implements ReminderNotifier {
 	constructor(
 		private readonly executable = "notify-send",
-		private readonly timeoutMs?: number,
+		private readonly timeoutMs = DEFAULT_NOTIFICATION_TIMEOUT_MS,
 		private readonly icon = "appointment-soon",
 		private readonly extensionMarker?: string,
 		private readonly markerPollMs = 1_000,
@@ -48,7 +49,7 @@ export class NotifySendNotifier implements ReminderNotifier {
 					"--app-name=Reminders",
 					`--icon=${this.icon}`,
 					"--urgency=normal",
-					"--expire-time=0",
+					`--expire-time=${this.timeoutMs}`,
 					"--wait",
 					...actions,
 					summary,

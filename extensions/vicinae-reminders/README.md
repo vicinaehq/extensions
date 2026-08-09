@@ -27,7 +27,7 @@ Date parsing is English; Automatic chooses UK or US numeric date order from the 
 
 Vicinae checks for due reminders once per minute while it is running.
 
-Notifications provide **Complete** and **Snooze...** actions. Clicking or closing a notification does not complete it.
+Notifications provide **Complete** and **Snooze...** actions. Clicking or closing a notification does not complete it. Unanswered notifications expire after one hour and are retried.
 
 ## Development
 
