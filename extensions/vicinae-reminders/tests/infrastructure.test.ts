@@ -5,15 +5,14 @@ import { afterEach, describe, expect, it } from "vitest";
 import { newReminder } from "../src/domain/model";
 import {
 	type CommandRunner,
-	cleanupInfrastructure,
 	ensureInfrastructure,
 	findBusctl,
 	findNodeRuntime,
 	findNotifySend,
 	findSystemctl,
+	loadInfrastructure,
 	notificationCapabilities,
 } from "../src/infrastructure/infrastructure";
-import { renderServiceUnit, renderTimerUnit } from "../src/infrastructure/units";
 import { reminderPathsFromDirectories } from "../src/platform/paths";
 import { ReminderStore } from "../src/storage/store";
 
@@ -40,33 +39,6 @@ async function executable(directory: string, name: string): Promise<string> {
 	return file;
 }
 
-describe("systemd units", () => {
-	it("quotes paths containing spaces, %, quotes, and backslashes without shell interpolation", () => {
-		const unit = renderServiceUnit({
-			nodePath: `/tmp/node path/100%/it's\\node`,
-			workerPath: `/tmp/worker path/worker.mjs`,
-			notificationIconPath: `/tmp/icon path/100%/icon.png`,
-			notifySendPath: `/opt/notify"send/bin`,
-			dataDir: `/tmp/data;$(touch /tmp/pwned)`,
-			stateDir: `/tmp/state\\dir`,
-		});
-		const execStart = unit.split("\n").find((line) => line.startsWith("ExecStart="));
-		expect(execStart).toBe(
-			`ExecStart="/tmp/node path/100%%/it's\\\\node" "/tmp/worker path/worker.mjs" "--data-dir" "/tmp/data;$(touch /tmp/pwned)" "--state-dir" "/tmp/state\\\\dir" "--notify-send" "/opt/notify\\"send/bin" "--icon" "/tmp/icon path/100%%/icon.png"`,
-		);
-		expect(unit).not.toContain("'$(");
-	});
-
-	it("renders timer scheduling and safety-critical fields", () => {
-		const timer = renderTimerUnit();
-		expect(timer).toContain("OnCalendar=*-*-* *:*:00");
-		expect(timer).toContain("AccuracySec=1s");
-		expect(timer).toContain("RandomizedDelaySec=0");
-		expect(timer).toContain("Persistent=true");
-		expect(timer).toContain("Unit=vicinae-reminders.service");
-	});
-});
-
 describe("findNodeRuntime", () => {
 	it("rejects an injected Node runtime older than 20", async () => {
 		const directory = await temporaryDirectory();
@@ -84,7 +56,7 @@ describe("findNodeRuntime", () => {
 		expect(await findNodeRuntime({ VICINAE_REMINDERS_NODE: node }, runner)).toBe(node);
 	});
 
-	it("continues past an old candidate and selects a later compatible runtime", async () => {
+	it("continues past an old candidate", async () => {
 		const directory = await temporaryDirectory();
 		const oldNode = await executable(directory, "old-node");
 		const currentNode = await executable(directory, "node");
@@ -99,7 +71,7 @@ describe("findNodeRuntime", () => {
 });
 
 describe("findNotifySend", () => {
-	it("requires the portable wait and action options", async () => {
+	it("requires action and wait support", async () => {
 		const directory = await temporaryDirectory();
 		const notifySend = await executable(directory, "notify-send");
 		const runner: CommandRunner = async (_file, args) => ({
@@ -111,7 +83,7 @@ describe("findNotifySend", () => {
 		).rejects.toThrow("--action");
 	});
 
-	it("continues past an incompatible client and selects a capable one", async () => {
+	it("continues past an incompatible client", async () => {
 		const directory = await temporaryDirectory();
 		const oldNotifySend = await executable(directory, "old-notify-send");
 		const notifySend = await executable(directory, "notify-send");
@@ -134,7 +106,7 @@ describe("findNotifySend", () => {
 });
 
 describe("system service discovery", () => {
-	it("uses non-FHS systemctl and busctl paths supplied by the environment", async () => {
+	it("uses executable paths supplied by the environment", async () => {
 		const directory = await temporaryDirectory();
 		const systemctl = await executable(directory, "systemctl");
 		const busctl = await executable(directory, "busctl");
@@ -143,7 +115,7 @@ describe("system service discovery", () => {
 		expect(await findBusctl({ VICINAE_REMINDERS_BUSCTL: busctl }, runner)).toBe(busctl);
 	});
 
-	it("requires a live notification service with action support", async () => {
+	it("requires a notification service with action support", async () => {
 		const runner: CommandRunner = async () => ({
 			stdout: 'as 3 "actions" "body" "persistence"\n',
 			stderr: "",
@@ -162,94 +134,93 @@ describe("system service discovery", () => {
 	});
 });
 
-describe("ensureInfrastructure and cleanupInfrastructure", () => {
-	it("is idempotent, upgrades changed workers, and preserves reminder data on cleanup", async () => {
-		const root = await temporaryDirectory();
-		const dataDir = path.join(root, "data");
-		const stateDir = path.join(root, "state");
-		const paths = reminderPathsFromDirectories(dataDir, stateDir);
-		const node = await executable(root, "node");
-		const notifySend = await executable(root, "notify-send");
-		const systemctl = await executable(root, "systemctl");
-		const systemdRun = await executable(root, "systemd-run");
-		const busctl = await executable(root, "busctl");
-		const workerSource = path.join(root, "worker.mjs");
-		const iconSource = path.join(root, "icon.png");
-		await writeFile(workerSource, "#!/usr/bin/env node\nconsole.log('one')\n");
-		await writeFile(iconSource, "icon-one");
-		const calls: Array<{ file: string; args: string[] }> = [];
-		const runner: CommandRunner = async (file, args) => {
-			calls.push({ file, args });
-			if (file === node && args[0] === "--version") return { stdout: "v20.12.0\n", stderr: "" };
-			if (file === notifySend && args[0] === "--help")
-				return { stdout: "--action --wait --expire-time\n", stderr: "" };
-			if (file === busctl && args.includes("GetCapabilities"))
-				return { stdout: 'as 2 "actions" "body"\n', stderr: "" };
-			if (file === node && args[0] === paths.workerPath)
-				return { stdout: "worker 1.0.0\n", stderr: "" };
-			if (file === systemctl && args.includes("is-enabled"))
-				return { stdout: "enabled\n", stderr: "" };
-			if (file === systemctl && args.includes("is-active"))
-				return { stdout: "active\n", stderr: "" };
-			return { stdout: "", stderr: "" };
-		};
-		const env = {
+async function infrastructureFixture() {
+	const root = await temporaryDirectory();
+	const paths = reminderPathsFromDirectories(path.join(root, "data"), path.join(root, "state"));
+	const node = await executable(root, "node");
+	const notifySend = await executable(root, "notify-send");
+	const systemctl = await executable(root, "systemctl");
+	const systemdRun = await executable(root, "systemd-run");
+	const busctl = await executable(root, "busctl");
+	const workerSource = path.join(root, "worker.cjs");
+	const iconSource = path.join(root, "icon.png");
+	await writeFile(workerSource, "#!/usr/bin/env node\nconsole.log('one')\n");
+	await writeFile(iconSource, "icon-one");
+	const calls: Array<{ file: string; args: string[] }> = [];
+	const runner: CommandRunner = async (file, args) => {
+		calls.push({ file, args });
+		if (file === node && args[0] === "--version") return { stdout: "v20.12.0\n", stderr: "" };
+		if (file === notifySend && args[0] === "--help")
+			return { stdout: "--action --wait --expire-time\n", stderr: "" };
+		if (file === busctl && args.includes("GetCapabilities"))
+			return { stdout: 'as 2 "actions" "body"\n', stderr: "" };
+		if (file === node && args[0] === workerSource)
+			return { stdout: "vicinae-reminders-worker 1.6.0\n", stderr: "" };
+		return { stdout: "", stderr: "" };
+	};
+	const options = {
+		workerSourcePath: workerSource,
+		iconSourcePath: iconSource,
+		paths,
+		env: {
 			VICINAE_REMINDERS_NODE: node,
 			VICINAE_REMINDERS_NOTIFY_SEND: notifySend,
 			VICINAE_REMINDERS_SYSTEMCTL: systemctl,
 			VICINAE_REMINDERS_SYSTEMD_RUN: systemdRun,
 			VICINAE_REMINDERS_BUSCTL: busctl,
-		};
-		const first = await ensureInfrastructure({
-			workerSourcePath: workerSource,
-			iconSourcePath: iconSource,
-			paths,
-			env,
-			runner,
-		});
-		const firstCallCount = calls.length;
-		const firstService = await readFile(paths.servicePath, "utf8");
-		const second = await ensureInfrastructure({
-			workerSourcePath: workerSource,
-			iconSourcePath: iconSource,
-			paths,
-			env,
-			runner,
-		});
-		expect(second.installedAt).toBe(first.installedAt);
-		expect(calls.slice(firstCallCount).some((call) => call.args.includes("daemon-reload"))).toBe(
-			false,
-		);
-		expect(calls.slice(firstCallCount).some((call) => call.args.includes("restart"))).toBe(false);
-		await writeFile(iconSource, "icon-two");
-		const iconUpdated = await ensureInfrastructure({
-			workerSourcePath: workerSource,
-			iconSourcePath: iconSource,
-			paths,
-			env,
-			runner,
-		});
-		expect(iconUpdated.notificationIconSha256).not.toBe(first.notificationIconSha256);
-		expect(await readFile(paths.notificationIconPath, "utf8")).toBe("icon-two");
-		await writeFile(workerSource, "#!/usr/bin/env node\nconsole.log('two')\n");
-		const upgraded = await ensureInfrastructure({
-			workerSourcePath: workerSource,
-			iconSourcePath: iconSource,
-			paths,
-			env,
-			runner,
-		});
-		expect(calls.some((call) => call.args.includes("restart"))).toBe(true);
-		expect(await readFile(paths.servicePath, "utf8")).toBe(firstService);
-		expect(upgraded.workerSha256).not.toBe(first.workerSha256);
-		expect(upgraded.systemctlPath).toBe(systemctl);
-		expect(upgraded.notificationCapabilities).toContain("actions");
-		expect(await readFile(paths.notificationIconPath, "utf8")).toBe("icon-two");
+		},
+		runner,
+	};
+	return { root, paths, workerSource, iconSource, systemctl, calls, options };
+}
 
+describe("ensureInfrastructure", () => {
+	it("stores metadata and the icon without copying a permanent worker", async () => {
+		const fixture = await infrastructureFixture();
+		const first = await ensureInfrastructure(fixture.options);
+		expect(first.workerSourcePath).toBe(fixture.workerSource);
+		expect(await readFile(fixture.paths.notificationIconPath, "utf8")).toBe("icon-one");
+		await expect(readFile(fixture.paths.workerPath)).rejects.toMatchObject({ code: "ENOENT" });
+		await expect(readFile(fixture.paths.servicePath)).rejects.toMatchObject({ code: "ENOENT" });
+		await expect(readFile(fixture.paths.timerPath)).rejects.toMatchObject({ code: "ENOENT" });
+
+		const callCount = fixture.calls.length;
+		const cached = await loadInfrastructure(fixture.options);
+		expect(cached).toEqual(first);
+		expect(fixture.calls).toHaveLength(callCount);
+
+		await writeFile(fixture.iconSource, "icon-two");
+		const updated = await ensureInfrastructure(fixture.options);
+		expect(updated.notificationIconSha256).not.toBe(first.notificationIconSha256);
+		expect(await readFile(fixture.paths.notificationIconPath, "utf8")).toBe("icon-two");
+	});
+
+	it("removes legacy units and worker while preserving reminder data", async () => {
+		const fixture = await infrastructureFixture();
 		const reminder = newReminder("keep me", new Date(Date.now() + 60_000));
-		await new ReminderStore(paths).create(reminder);
-		await cleanupInfrastructure(paths, runner);
-		expect(await new ReminderStore(paths).get(reminder.id)).toEqual(reminder);
-		await expect(readFile(paths.notificationIconPath)).rejects.toMatchObject({ code: "ENOENT" });
+		await new ReminderStore(fixture.paths).create(reminder);
+		await writeFile(fixture.paths.servicePath, "legacy service");
+		await writeFile(fixture.paths.timerPath, "legacy timer");
+		await writeFile(fixture.paths.workerPath, "legacy worker");
+		await writeFile(
+			fixture.paths.infrastructureManifestPath,
+			JSON.stringify({ infrastructureVersion: 4 }),
+		);
+
+		await ensureInfrastructure(fixture.options);
+		expect(await new ReminderStore(fixture.paths).get(reminder.id)).toEqual(reminder);
+		for (const file of [
+			fixture.paths.servicePath,
+			fixture.paths.timerPath,
+			fixture.paths.workerPath,
+		]) {
+			await expect(readFile(file)).rejects.toMatchObject({ code: "ENOENT" });
+		}
+		expect(
+			fixture.calls.some(
+				(call) => call.file === fixture.systemctl && call.args.includes("disable"),
+			),
+		).toBe(true);
+		expect(fixture.calls.some((call) => call.args.includes("daemon-reload"))).toBe(true);
 	});
 });

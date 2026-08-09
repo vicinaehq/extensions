@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { constants } from "node:fs";
-import { access, chmod, mkdir, readFile, rm } from "node:fs/promises";
+import { access, chmod, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { SCHEMA_VERSION } from "../domain/model";
@@ -9,16 +9,19 @@ import type { ReminderPaths } from "../platform/paths";
 import { resolveReminderPaths } from "../platform/paths";
 import { atomicWriteFile, atomicWriteJson } from "../storage/atomic";
 import { ReminderStore } from "../storage/store";
-import { renderServiceUnit, renderTimerUnit, SERVICE_NAME, TIMER_NAME } from "./units";
 
 const execFileAsync = promisify(execFile);
-export const INFRASTRUCTURE_VERSION = 4;
-export const WORKER_VERSION = "1.5.0";
+const LEGACY_SERVICE_NAME = "vicinae-reminders.service";
+const LEGACY_TIMER_NAME = "vicinae-reminders.timer";
+
+export const INFRASTRUCTURE_VERSION = 5;
+export const WORKER_VERSION = "1.6.0";
 
 export type InfrastructureManifest = {
 	infrastructureVersion: number;
 	workerVersion: string;
 	schemaVersion: number;
+	workerSourcePath: string;
 	workerSha256: string;
 	notificationIconSha256: string;
 	nodePath: string;
@@ -178,23 +181,6 @@ export async function findBusctl(
 	);
 }
 
-export async function findLoginctl(
-	env: NodeJS.ProcessEnv = process.env,
-	runner: CommandRunner = runCommand,
-): Promise<string> {
-	return findExecutable(
-		"loginctl",
-		[
-			env.VICINAE_REMINDERS_LOGINCTL ?? "",
-			"/usr/bin/loginctl",
-			"/bin/loginctl",
-			"/usr/local/bin/loginctl",
-			...pathCandidates("loginctl", env),
-		],
-		runner,
-	);
-}
-
 export async function notificationCapabilities(
 	busctlPath: string,
 	runner: CommandRunner = runCommand,
@@ -246,6 +232,64 @@ async function writeIfChanged(
 	return true;
 }
 
+async function readManifest(paths: ReminderPaths): Promise<InfrastructureManifest | undefined> {
+	try {
+		return JSON.parse(await readFile(paths.infrastructureManifestPath, "utf8"));
+	} catch {
+		return undefined;
+	}
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+	try {
+		await access(filePath);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+async function removeLegacyScheduler(
+	paths: ReminderPaths,
+	systemctlPath: string,
+	runner: CommandRunner,
+	force = false,
+): Promise<void> {
+	const hasLegacyFiles =
+		force ||
+		(
+			await Promise.all([
+				fileExists(paths.servicePath),
+				fileExists(paths.timerPath),
+				fileExists(paths.workerPath),
+			])
+		).some(Boolean);
+	if (!hasLegacyFiles) return;
+	await runner(systemctlPath, ["--user", "disable", "--now", LEGACY_TIMER_NAME]).catch(
+		() => undefined,
+	);
+	await runner(systemctlPath, ["--user", "stop", LEGACY_SERVICE_NAME]).catch(() => undefined);
+	await runner(systemctlPath, ["--user", "clean", "--what=state", LEGACY_TIMER_NAME]).catch(
+		() => undefined,
+	);
+	await rm(paths.servicePath, { force: true });
+	await rm(paths.timerPath, { force: true });
+	await rm(paths.workerPath, { force: true });
+	await rm(
+		path.join(path.dirname(paths.dataDir), "systemd", "timers", `stamp-${LEGACY_TIMER_NAME}`),
+		{
+			force: true,
+		},
+	);
+	await runner(systemctlPath, ["--user", "daemon-reload"]);
+	await runner(systemctlPath, [
+		"--user",
+		"reset-failed",
+		LEGACY_SERVICE_NAME,
+		LEGACY_TIMER_NAME,
+	]).catch(() => undefined);
+}
+
 export type EnsureInfrastructureOptions = {
 	workerSourcePath: string;
 	iconSourcePath: string;
@@ -263,8 +307,8 @@ export async function ensureInfrastructure(
 	const store = new ReminderStore(paths);
 	await store.ensureDirectories();
 	await store.migrate();
-	await mkdir(paths.unitDir, { recursive: true, mode: 0o700 });
 
+	const existingManifest = await readManifest(paths);
 	const [
 		nodePath,
 		notifySendPath,
@@ -289,25 +333,22 @@ export async function ensureInfrastructure(
 			"A running systemd user manager is required; log in through a systemd-managed graphical session",
 		);
 	}
-	const capabilities = await notificationCapabilities(busctlPath, runner);
+	const notificationCapabilitiesValue = await notificationCapabilities(busctlPath, runner);
+	await removeLegacyScheduler(
+		paths,
+		systemctlPath,
+		runner,
+		Boolean(existingManifest && existingManifest.infrastructureVersion < INFRASTRUCTURE_VERSION),
+	);
+
 	const workerSha256 = createHash("sha256").update(workerBytes).digest("hex");
 	const notificationIconSha256 = createHash("sha256").update(notificationIconBytes).digest("hex");
-	const service = renderServiceUnit({
-		nodePath,
-		workerPath: paths.workerPath,
-		notificationIconPath: paths.notificationIconPath,
-		notifySendPath,
-		dataDir: paths.dataDir,
-		stateDir: paths.stateDir,
-	});
-	const timer = renderTimerUnit();
-
-	const workerChanged = await writeIfChanged(paths.workerPath, workerBytes, 0o755);
 	await writeIfChanged(paths.notificationIconPath, notificationIconBytes, 0o644);
 	const manifest: InfrastructureManifest = {
 		infrastructureVersion: INFRASTRUCTURE_VERSION,
 		workerVersion: WORKER_VERSION,
 		schemaVersion: SCHEMA_VERSION,
+		workerSourcePath: options.workerSourcePath,
 		workerSha256,
 		notificationIconSha256,
 		nodePath,
@@ -315,116 +356,70 @@ export async function ensureInfrastructure(
 		systemctlPath,
 		systemdRunPath,
 		busctlPath,
-		notificationCapabilities: capabilities,
+		notificationCapabilities: notificationCapabilitiesValue,
 		installedAt: new Date().toISOString(),
 	};
-	let existingManifest: InfrastructureManifest | undefined;
-	try {
-		existingManifest = JSON.parse(await readFile(paths.infrastructureManifestPath, "utf8"));
-	} catch {
-		existingManifest = undefined;
-	}
 	if (
-		workerChanged ||
-		!existingManifest ||
-		existingManifest.infrastructureVersion !== manifest.infrastructureVersion ||
-		existingManifest.workerVersion !== manifest.workerVersion ||
-		existingManifest.schemaVersion !== manifest.schemaVersion ||
-		existingManifest.workerSha256 !== manifest.workerSha256 ||
-		existingManifest.notificationIconSha256 !== manifest.notificationIconSha256 ||
-		existingManifest.nodePath !== manifest.nodePath ||
-		existingManifest.notifySendPath !== manifest.notifySendPath ||
-		existingManifest.systemctlPath !== manifest.systemctlPath ||
-		existingManifest.systemdRunPath !== manifest.systemdRunPath ||
-		existingManifest.busctlPath !== manifest.busctlPath ||
-		JSON.stringify(existingManifest.notificationCapabilities) !==
-			JSON.stringify(manifest.notificationCapabilities)
+		existingManifest &&
+		JSON.stringify({ ...existingManifest, installedAt: manifest.installedAt }) ===
+			JSON.stringify(manifest)
 	) {
-		await atomicWriteJson(paths.infrastructureManifestPath, manifest);
-	} else {
 		manifest.installedAt = existingManifest.installedAt;
+	} else {
+		await atomicWriteJson(paths.infrastructureManifestPath, manifest);
 	}
-
-	await runner(nodePath, [paths.workerPath, "--version"], { timeout: 10_000 });
-	const serviceChanged = await writeIfChanged(paths.servicePath, service, 0o644);
-	const timerChanged = await writeIfChanged(paths.timerPath, timer, 0o644);
-	if (serviceChanged || timerChanged) await runner(systemctlPath, ["--user", "daemon-reload"]);
-	await runner(systemctlPath, ["--user", "enable", "--now", TIMER_NAME]);
-	if (serviceChanged || timerChanged) {
-		await runner(systemctlPath, ["--user", "restart", TIMER_NAME]);
-	}
-	const enabled = await runner(systemctlPath, ["--user", "is-enabled", TIMER_NAME]);
-	const active = await runner(systemctlPath, ["--user", "is-active", TIMER_NAME]);
-	if (enabled.stdout.trim() !== "enabled" || active.stdout.trim() !== "active") {
-		throw new Error(
-			`Reminder timer is not healthy (enabled=${enabled.stdout.trim()}, active=${active.stdout.trim()})`,
-		);
-	}
+	await runner(nodePath, [options.workerSourcePath, "--version"], { timeout: 10_000 });
 	return manifest;
+}
+
+export async function loadInfrastructure(
+	options: EnsureInfrastructureOptions,
+): Promise<InfrastructureManifest> {
+	const paths = options.paths ?? resolveReminderPaths(options.env);
+	const manifest = await readManifest(paths);
+	if (
+		manifest?.infrastructureVersion === INFRASTRUCTURE_VERSION &&
+		manifest.workerVersion === WORKER_VERSION &&
+		manifest.schemaVersion === SCHEMA_VERSION &&
+		manifest.workerSourcePath === options.workerSourcePath &&
+		path.isAbsolute(manifest.workerSourcePath)
+	) {
+		try {
+			const [workerBytes, installedIconBytes, sourceIconBytes] = await Promise.all([
+				readFile(options.workerSourcePath),
+				readFile(paths.notificationIconPath),
+				readFile(options.iconSourcePath),
+			]);
+			if (
+				createHash("sha256").update(workerBytes).digest("hex") === manifest.workerSha256 &&
+				createHash("sha256").update(installedIconBytes).digest("hex") ===
+					manifest.notificationIconSha256 &&
+				createHash("sha256").update(sourceIconBytes).digest("hex") ===
+					manifest.notificationIconSha256
+			) {
+				return manifest;
+			}
+		} catch {
+			// Rebuild missing or changed runtime metadata below.
+		}
+	}
+	return ensureInfrastructure(options);
 }
 
 async function installedSystemctlPath(
 	paths: ReminderPaths,
 	runner: CommandRunner,
 ): Promise<string> {
-	try {
-		const manifest = JSON.parse(
-			await readFile(paths.infrastructureManifestPath, "utf8"),
-		) as Partial<InfrastructureManifest>;
-		if (manifest.systemctlPath && path.isAbsolute(manifest.systemctlPath)) {
+	const manifest = await readManifest(paths);
+	if (manifest?.systemctlPath && path.isAbsolute(manifest.systemctlPath)) {
+		try {
 			await access(manifest.systemctlPath, constants.X_OK);
-			await runner(manifest.systemctlPath, ["--version"], { timeout: 5_000 });
 			return manifest.systemctlPath;
+		} catch {
+			// Fall through to discovery.
 		}
-	} catch {
-		// Fall back to discovery for pre-v4 or missing infrastructure metadata.
 	}
 	return findSystemctl(process.env, runner);
-}
-
-export async function cleanupInfrastructure(
-	paths = resolveReminderPaths(),
-	runner: CommandRunner = runCommand,
-): Promise<void> {
-	const systemctlPath = await installedSystemctlPath(paths, runner);
-	try {
-		const helpers = await runner(systemctlPath, [
-			"--user",
-			"list-units",
-			"--type=service",
-			"--all",
-			"--plain",
-			"--no-legend",
-			"vicinae-reminder-notification-*.service",
-		]);
-		const unitNames = helpers.stdout
-			.split("\n")
-			.map((line) => line.trim().split(/\s+/, 1)[0])
-			.filter((name) => /^vicinae-reminder-notification-[0-9a-f-]+\.service$/.test(name));
-		if (unitNames.length > 0) {
-			await runner(systemctlPath, ["--user", "stop", ...unitNames]).catch(() => undefined);
-			await runner(systemctlPath, ["--user", "reset-failed", ...unitNames]).catch(() => undefined);
-		}
-	} catch {
-		// Continue removing the permanent infrastructure even if helper discovery fails.
-	}
-	await runner(systemctlPath, ["--user", "disable", "--now", TIMER_NAME]).catch(() => undefined);
-	await runner(systemctlPath, ["--user", "stop", SERVICE_NAME]).catch(() => undefined);
-	await runner(systemctlPath, ["--user", "clean", "--what=state", TIMER_NAME]).catch(
-		() => undefined,
-	);
-	await rm(paths.servicePath, { force: true });
-	await rm(paths.timerPath, { force: true });
-	await rm(paths.workerPath, { force: true });
-	await rm(paths.notificationIconPath, { force: true });
-	await rm(paths.infrastructureManifestPath, { force: true });
-	await rm(path.join(path.dirname(paths.dataDir), "systemd", "timers", `stamp-${TIMER_NAME}`), {
-		force: true,
-	});
-	await runner(systemctlPath, ["--user", "daemon-reload"]);
-	await runner(systemctlPath, ["--user", "reset-failed", SERVICE_NAME, TIMER_NAME]).catch(
-		() => undefined,
-	);
 }
 
 export async function stopNotificationHelper(

@@ -24,11 +24,7 @@ import {
 	setReminderRecurrence,
 } from "./domain/recurrence";
 import { collectDiagnostics, diagnosticsMarkdown } from "./infrastructure/diagnostics";
-import {
-	cleanupInfrastructure,
-	ensureInfrastructure,
-	stopNotificationHelper,
-} from "./infrastructure/infrastructure";
+import { ensureInfrastructure, stopNotificationHelper } from "./infrastructure/infrastructure";
 import { ReminderConflictError, type ReminderScan, ReminderStore } from "./storage/store";
 import { createReminderFromInput } from "./ui/new-reminder-form";
 import { notificationIconSourcePath } from "./ui/notification-icon";
@@ -185,31 +181,6 @@ function DiagnosticsView() {
 						title={loading ? "Refreshing…" : "Refresh"}
 						icon={Icon.RotateClockwise}
 						onAction={refresh}
-					/>
-					<Action
-						title="Remove Reminder Infrastructure"
-						icon={Icon.Trash}
-						style="destructive"
-						onAction={async () => {
-							const confirmed = await confirmAlert({
-								title: "Remove reminder infrastructure?",
-								message:
-									"The timer, service, and installed worker will be removed. Reminder data will be kept.",
-								primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive },
-							});
-							if (!confirmed) return;
-							try {
-								await cleanupInfrastructure();
-								await showToast({
-									style: Toast.Style.Success,
-									title: "Infrastructure removed",
-									message: "Reminder data was kept",
-								});
-								await refresh();
-							} catch (error) {
-								await toastError("Cleanup failed", error);
-							}
-						}}
 					/>
 				</ActionPanel>
 			}

@@ -39,7 +39,7 @@ export class SystemdNotificationDispatcher implements NotificationDispatcher {
 				"--property=UMask=0077",
 				"--",
 				this.manifest.nodePath,
-				this.paths.workerPath,
+				this.manifest.workerSourcePath,
 				"--notification-helper",
 				"--reminder-id",
 				reminder.id,
@@ -53,6 +53,8 @@ export class SystemdNotificationDispatcher implements NotificationDispatcher {
 				this.manifest.notifySendPath,
 				"--icon",
 				this.paths.notificationIconPath,
+				"--extension-marker",
+				this.manifest.workerSourcePath,
 			],
 			{ timeout: 15_000, windowsHide: true, maxBuffer: 64 * 1024 },
 		);

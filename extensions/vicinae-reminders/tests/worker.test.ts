@@ -364,4 +364,19 @@ describe("notify-send transport", () => {
 		await chmod(script, 0o755);
 		expect(await new NotifySendNotifier(script).send("Group these")).toBe("snooze-1h");
 	});
+
+	it("stops waiting when the extension asset is removed", async () => {
+		const { root } = await temporaryStore();
+		const script = path.join(root, "waiting-notify");
+		const marker = path.join(root, "worker.cjs");
+		await writeFile(script, "#!/bin/sh\nsleep 5\n");
+		await writeFile(marker, "extension asset");
+		await chmod(script, 0o755);
+		const notification = new NotifySendNotifier(script, undefined, "icon", marker, 10).send(
+			"Uninstall check",
+		);
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		await rm(marker);
+		expect(await notification).toBe("extension-removed");
+	});
 });

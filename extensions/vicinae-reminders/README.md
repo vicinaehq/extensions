@@ -25,6 +25,8 @@ renew the certificate on 18 August at 9
 
 Date parsing is English; Automatic chooses UK or US numeric date order from the system region. Date-only reminders default to 09:00. Reminders can be completed, edited, snoozed, repeated, or deleted.
 
+Vicinae checks for due reminders once per minute while it is running.
+
 Notifications provide **Complete** and **Snooze...** actions. Clicking or closing a notification does not complete it.
 
 ## Development
@@ -38,9 +40,5 @@ npm run lint
 npm run build
 ```
 
-Additional systemd checks are available through `lifecycle:check`, `worker:check`, and `actions:check`.
+Additional integration checks are available through `worker:check` and `actions:check`.
 The bundled PNG icon is rendered from `assets/icon.svg`.
-
-## Uninstalling
-
-Use **Diagnostics → Remove Reminder Infrastructure** before uninstalling. This removes the worker and systemd units but keeps reminder data.

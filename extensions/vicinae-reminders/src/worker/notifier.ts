@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
@@ -12,6 +13,7 @@ export type NotificationAction =
 	| "snooze-10m"
 	| "snooze-1h"
 	| "snooze-tomorrow"
+	| "extension-removed"
 	| "closed";
 
 export class NotifySendNotifier implements ReminderNotifier {
@@ -19,6 +21,8 @@ export class NotifySendNotifier implements ReminderNotifier {
 		private readonly executable = "notify-send",
 		private readonly timeoutMs?: number,
 		private readonly icon = "appointment-soon",
+		private readonly extensionMarker?: string,
+		private readonly markerPollMs = 1_000,
 	) {}
 
 	private async sendNotification(
@@ -26,25 +30,44 @@ export class NotifySendNotifier implements ReminderNotifier {
 		text: string,
 		actions: string[],
 	): Promise<string> {
-		const result = await execFileAsync(
-			this.executable,
-			[
-				"--app-name=Reminders",
-				`--icon=${this.icon}`,
-				"--urgency=normal",
-				"--expire-time=0",
-				"--wait",
-				...actions,
-				summary,
-				text,
-			],
-			{
-				timeout: this.timeoutMs,
-				windowsHide: true,
-				maxBuffer: 64 * 1024,
-			},
-		);
-		return result.stdout.trim();
+		if (this.extensionMarker && !existsSync(this.extensionMarker)) return "extension-removed";
+		const controller = new AbortController();
+		let markerRemoved = false;
+		const markerWatcher = this.extensionMarker
+			? setInterval(() => {
+					if (!existsSync(this.extensionMarker as string)) {
+						markerRemoved = true;
+						controller.abort();
+					}
+				}, this.markerPollMs)
+			: undefined;
+		try {
+			const result = await execFileAsync(
+				this.executable,
+				[
+					"--app-name=Reminders",
+					`--icon=${this.icon}`,
+					"--urgency=normal",
+					"--expire-time=0",
+					"--wait",
+					...actions,
+					summary,
+					text,
+				],
+				{
+					timeout: this.timeoutMs,
+					windowsHide: true,
+					maxBuffer: 64 * 1024,
+					signal: controller.signal,
+				},
+			);
+			return result.stdout.trim();
+		} catch (error) {
+			if (markerRemoved) return "extension-removed";
+			throw error;
+		} finally {
+			if (markerWatcher) clearInterval(markerWatcher);
+		}
 	}
 
 	async send(text: string): Promise<NotificationAction> {
@@ -52,6 +75,7 @@ export class NotifySendNotifier implements ReminderNotifier {
 			"--action=complete=Complete",
 			"--action=snooze-menu=Snooze...",
 		]);
+		if (primaryAction === "extension-removed") return "extension-removed";
 		if (primaryAction === "complete") return "complete";
 		if (primaryAction !== "snooze-menu") return "closed";
 
@@ -60,6 +84,7 @@ export class NotifySendNotifier implements ReminderNotifier {
 			"--action=snooze-1h=1 hour",
 			"--action=snooze-tomorrow=Tomorrow at 09:00",
 		]);
+		if (snoozeAction === "extension-removed") return "extension-removed";
 		return snoozeAction === "snooze-10m" ||
 			snoozeAction === "snooze-1h" ||
 			snoozeAction === "snooze-tomorrow"

@@ -2,7 +2,7 @@
 
 ## Runtime
 
-A systemd user timer scans for due reminders once per minute. The independent worker is bundled as CommonJS and runs on Node.js 20+. Executable paths are discovered, validated, and stored as absolute paths.
+Vicinae's native interval scheduler scans for due reminders once per minute. The notification helper is bundled as CommonJS and runs on Node.js 20+. Executable paths are discovered, validated, and stored as absolute paths.
 
 ## Storage
 
@@ -14,4 +14,4 @@ Recurring reminders store local calendar dates and wall-clock times. This preser
 
 ## Notifications
 
-Each notification runs in its own transient systemd service, so waiting for an action does not block other reminders. Notification text is passed as an argument, never through a shell. Only the explicit **Complete** action completes a reminder.
+Each notification runs in its own transient systemd service, so waiting for an action does not block other reminders. The helper watches its bundled extension asset and exits if the extension is removed. Notification text is passed as an argument, never through a shell. Only the explicit **Complete** action completes a reminder.

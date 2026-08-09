@@ -65,6 +65,14 @@
 					"required": false
 				}
 			]
+		},
+		{
+			"name": "check-reminders",
+			"title": "Check Reminders",
+			"subtitle": "Reminders",
+			"description": "Check for due reminders",
+			"mode": "no-view",
+			"interval": "1m"
 		}
 	],
 	"scripts": {
@@ -78,7 +86,6 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"lifecycle:check": "tsx scripts/lifecycle-check.ts",
 		"worker:check": "npm run build:worker && tsx scripts/worker-integration-check.ts",
 		"actions:check": "npm run build:worker && tsx scripts/action-lifecycle-check.ts"
 	},
@@ -98,5 +105,5 @@
 		"typescript": "^5.9.0",
 		"vitest": "^3.2.0"
 	},
-	"version": "1.5.0"
+	"version": "1.6.0"
 }

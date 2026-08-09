@@ -1,58 +1,44 @@
 import { execFile } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
 import { newReminder } from "../src/domain/model";
-import { INFRASTRUCTURE_VERSION, WORKER_VERSION } from "../src/infrastructure/infrastructure";
 import { reminderPathsFromDirectories } from "../src/platform/paths";
-import { atomicWriteJson } from "../src/storage/atomic";
 import { ReminderStore } from "../src/storage/store";
 
 const run = promisify(execFile);
 
+async function pendingReminder(store: ReminderStore, text: string) {
+	const reminder = newReminder(text, new Date(Date.now() - 1_000));
+	await store.create(reminder);
+	const token = randomUUID();
+	await store.mutate(reminder.id, reminder.revision, (current) => ({
+		...current,
+		pendingNotification: {
+			token,
+			claimedAt: new Date().toISOString(),
+			unitName: `vicinae-reminder-notification-${reminder.id}-${token}.service`,
+		},
+	}));
+	return { reminder, token };
+}
+
 async function main(): Promise<void> {
-	const systemctl = process.env.VICINAE_REMINDERS_SYSTEMCTL ?? "systemctl";
-	const systemdRun = process.env.VICINAE_REMINDERS_SYSTEMD_RUN ?? "systemd-run";
-	const busctl = process.env.VICINAE_REMINDERS_BUSCTL ?? "busctl";
 	const root = await mkdtemp(path.join(os.tmpdir(), "vicinae-reminders-worker-check-"));
 	try {
 		const workerPath = path.resolve("assets/worker.cjs");
-		const workerBytes = await readFile(workerPath);
-		const notificationIconBytes = await readFile(path.resolve("assets/icon.png"));
 		const paths = reminderPathsFromDirectories(path.join(root, "data"), path.join(root, "state"));
 		const store = new ReminderStore(paths);
 		await store.ensureDirectories();
-		await writeFile(paths.notificationIconPath, notificationIconBytes);
-		const reminder = newReminder(
+		await writeFile(paths.notificationIconPath, await readFile(path.resolve("assets/icon.png")));
+
+		const hostile = await pendingReminder(
+			store,
 			`literal $(touch ${path.join(root, "pwned")}) text`,
-			new Date(Date.now() - 1_000),
 		);
-		await store.create(reminder);
-		const token = randomUUID();
-		await store.mutate(reminder.id, reminder.revision, (current) => ({
-			...current,
-			pendingNotification: {
-				token,
-				claimedAt: new Date().toISOString(),
-				unitName: `vicinae-reminder-notification-${reminder.id}-${token}.service`,
-			},
-		}));
-		await atomicWriteJson(paths.infrastructureManifestPath, {
-			infrastructureVersion: INFRASTRUCTURE_VERSION,
-			workerVersion: WORKER_VERSION,
-			schemaVersion: reminder.schemaVersion,
-			workerSha256: createHash("sha256").update(workerBytes).digest("hex"),
-			notificationIconSha256: createHash("sha256").update(notificationIconBytes).digest("hex"),
-			nodePath: process.execPath,
-			notifySendPath: path.join(root, "fake-notify.mjs"),
-			systemctlPath: systemctl,
-			systemdRunPath: systemdRun,
-			busctlPath: busctl,
-			notificationCapabilities: ["actions"],
-			installedAt: new Date().toISOString(),
-		});
 		const capturePath = path.join(root, "captured.json");
 		const notifierPath = path.join(root, "fake-notify.mjs");
 		await writeFile(
@@ -66,9 +52,9 @@ async function main(): Promise<void> {
 				workerPath,
 				"--notification-helper",
 				"--reminder-id",
-				reminder.id,
+				hostile.reminder.id,
 				"--token",
-				token,
+				hostile.token,
 				"--data-dir",
 				paths.dataDir,
 				"--state-dir",
@@ -77,50 +63,63 @@ async function main(): Promise<void> {
 				notifierPath,
 				"--icon",
 				paths.notificationIconPath,
+				"--extension-marker",
+				workerPath,
 			],
 			{ env: { ...process.env, REMINDER_CAPTURE: capturePath }, timeout: 15_000 },
 		);
 		const captured = JSON.parse(await readFile(capturePath, "utf8")) as string[];
-		if (captured.at(-1) !== reminder.text) throw new Error("Worker did not preserve reminder text");
-		if (await store.get(reminder.id))
+		if (captured.at(-1) !== hostile.reminder.text)
+			throw new Error("Worker did not preserve reminder text");
+		if (await store.get(hostile.reminder.id))
 			throw new Error("Worker did not complete the delivered reminder");
-		await atomicWriteJson(paths.infrastructureManifestPath, {
-			infrastructureVersion: INFRASTRUCTURE_VERSION,
-			workerVersion: WORKER_VERSION,
-			schemaVersion: reminder.schemaVersion,
-			workerSha256: "stale-worker-fingerprint",
-			notificationIconSha256: createHash("sha256").update(notificationIconBytes).digest("hex"),
-			nodePath: process.execPath,
-			notifySendPath: notifierPath,
-			systemctlPath: systemctl,
-			systemdRunPath: systemdRun,
-			busctlPath: busctl,
-			notificationCapabilities: ["actions"],
-			installedAt: new Date().toISOString(),
-		});
-		await run(
+
+		const uninstall = await pendingReminder(store, "Stop after uninstall");
+		const extensionMarker = path.join(root, "extension-worker.cjs");
+		const startedMarker = path.join(root, "notify-started");
+		const waitingNotifier = path.join(root, "waiting-notify.mjs");
+		await writeFile(extensionMarker, "present");
+		await writeFile(
+			waitingNotifier,
+			`#!/usr/bin/env node\nimport { writeFileSync } from "node:fs";\nwriteFileSync(${JSON.stringify(startedMarker)}, "started");\nsetTimeout(() => {}, 10_000);\n`,
+		);
+		await chmod(waitingNotifier, 0o755);
+		const helper = run(
 			process.execPath,
 			[
 				workerPath,
 				"--notification-helper",
 				"--reminder-id",
-				reminder.id,
+				uninstall.reminder.id,
 				"--token",
-				token,
+				uninstall.token,
 				"--data-dir",
 				paths.dataDir,
 				"--state-dir",
 				paths.stateDir,
+				"--notify-send",
+				waitingNotifier,
+				"--icon",
+				paths.notificationIconPath,
+				"--extension-marker",
+				extensionMarker,
 			],
 			{ timeout: 15_000 },
-		).then(
-			() => {
-				throw new Error("Worker accepted a stale fingerprint");
-			},
-			(error: { stderr?: string }) => {
-				if (!error.stderr?.includes("fingerprint does not match")) throw error;
-			},
 		);
+		for (let attempt = 0; attempt < 100; attempt += 1) {
+			try {
+				await readFile(startedMarker);
+				break;
+			} catch {
+				await delay(25);
+			}
+		}
+		await rm(extensionMarker);
+		await helper;
+		const retained = await store.get(uninstall.reminder.id);
+		if (!retained || retained.pendingNotification || retained.lastError)
+			throw new Error("Helper did not exit cleanly after extension removal");
+
 		await readFile(path.join(root, "pwned")).then(
 			() => {
 				throw new Error("Hostile reminder text was executed");
@@ -130,7 +129,7 @@ async function main(): Promise<void> {
 			},
 		);
 		process.stdout.write(
-			"Verified bundled notification helper actions, persistence, and literal argv handling\n",
+			"Verified notification actions, literal arguments, and uninstall-aware helper exit\n",
 		);
 	} finally {
 		await rm(root, { recursive: true, force: true });

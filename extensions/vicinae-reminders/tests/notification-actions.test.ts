@@ -124,6 +124,22 @@ describe("notification action helper", () => {
 		expect(retained?.lastError).toContain("without choosing an action");
 	});
 
+	it("clears pending state when the extension is removed", async () => {
+		const { store } = await makeStore();
+		const due = new Date("2026-08-08T10:00:00.000Z");
+		const { reminder, pending } = await createPending(store, "Still due", due);
+		await runNotificationHelper(
+			store,
+			notifier("extension-removed"),
+			reminder.id,
+			pending.token,
+			() => due,
+		);
+		const retained = await store.get(reminder.id);
+		expect(retained?.pendingNotification).toBeUndefined();
+		expect(retained?.lastError).toBeUndefined();
+	});
+
 	it("retains a reminder when notification delivery fails", async () => {
 		const { store } = await makeStore();
 		const due = new Date("2026-08-08T10:00:00.000Z");
@@ -151,9 +167,10 @@ describe("transient systemd dispatch", () => {
 		await writeFile(executable, `#!/bin/sh\nprintf '%s\\n' "$@" > "${output}"\n`);
 		await chmod(executable, 0o755);
 		const manifest: InfrastructureManifest = {
-			infrastructureVersion: 4,
-			workerVersion: "1.5.0",
+			infrastructureVersion: 5,
+			workerVersion: "1.6.0",
 			schemaVersion: 2,
+			workerSourcePath: "/extension/assets/worker.cjs",
 			workerSha256: "hash",
 			notificationIconSha256: "icon-hash",
 			nodePath: "/usr/bin/node",
@@ -176,5 +193,7 @@ describe("transient systemd dispatch", () => {
 		expect(args).not.toContain(reminder.text);
 		expect(args).toContain(reminder.id);
 		expect(args).toContain("--notification-helper");
+		expect(args).toContain("/extension/assets/worker.cjs");
+		expect(args).toContain("--extension-marker");
 	});
 });

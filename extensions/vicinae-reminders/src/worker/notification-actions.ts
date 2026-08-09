@@ -6,7 +6,10 @@ function errorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
 }
 
-function snoozeTarget(action: Exclude<NotificationAction, "complete" | "closed">, now: Date): Date {
+function snoozeTarget(
+	action: Exclude<NotificationAction, "complete" | "closed" | "extension-removed">,
+	now: Date,
+): Date {
 	if (action === "snooze-10m") return new Date(now.getTime() + 10 * 60_000);
 	if (action === "snooze-1h") return new Date(now.getTime() + 60 * 60_000);
 	const tomorrow = new Date(now);
@@ -25,6 +28,14 @@ export async function completeNotificationAction(
 	try {
 		await store.mutate(reminderId, undefined, (current) => {
 			if (current.pendingNotification?.token !== token) return current;
+			if (action === "extension-removed") {
+				return {
+					...current,
+					pendingNotification: undefined,
+					lastAttemptAt: now.toISOString(),
+					lastError: undefined,
+				};
+			}
 			if (action === "closed") {
 				return {
 					...current,
