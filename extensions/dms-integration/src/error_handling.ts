@@ -1,6 +1,7 @@
 export type ApiError = { title: string; detail: string };
 export type ErrorWithCode = { code?: string; message?: string };
 
+/* Checks error for title and detail fields. */
 export function isApiError(error: unknown): error is ApiError {
   return (
     typeof error === "object" &&
@@ -11,6 +12,7 @@ export function isApiError(error: unknown): error is ApiError {
     typeof (error as { detail: unknown }).detail === "string"
   );
 }
+/* Safely returns the error message for a given error. */
 export function getErrorMessage(error: unknown): string {
   if (isApiError(error)) {
     return `${error.title}: ${error.detail}`;

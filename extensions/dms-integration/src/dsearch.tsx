@@ -39,7 +39,8 @@ async function loadHits(
 export default function ControlledList(
   props: LaunchProps<{ arguments: Arguments }>,
 ) {
-  const [searchText, setSearchText] = useState("");
+  console.log(props.fallbackText ?? "No Fallback");
+  const [searchText, setSearchText] = useState(props.fallbackText ?? "");
   const [hits, setHits] = useState<PrettyHit[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchMode, setSearchMode] = useState<SearchMode>(SEARCH_MODES.all);

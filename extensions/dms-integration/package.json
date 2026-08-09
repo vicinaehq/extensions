@@ -56,7 +56,16 @@
       "subtitle": "Opens DMS settings panel",
       "description": "Opens DMS settings panel",
       "mode": "no-view"
+    },
+    {
+      "name": "dnotepad",
+      "title": "Notepad",
+      "subtitle": "Toggles DMS notepad",
+      "description": "Toggles DMS notepad",
+      "mode": "no-view"
+
     }
+
   ],
   "preferences": [
     {

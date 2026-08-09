@@ -4,18 +4,18 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
-/** Opens the DMS settings panel by executing the DMS IPC command. */
+/** Toggles the DMS notepad via IPC */
 export default async function launchSettings() {
-  const toast = await showToast(Toast.Style.Animated, "Opening settings...");
+  const toast = await showToast(Toast.Style.Animated, "Opening notes...");
 
   try {
-    await execFileAsync("dms", ["ipc", "settings", "focusOrToggle"]);
+    await execFileAsync("dms", ["ipc", "notepad", "toggle"]);
     toast.style = Toast.Style.Success;
-    toast.title = "Settings opened";
+    toast.title = "Notepad opened";
     await closeMainWindow();
   } catch (error) {
     toast.style = Toast.Style.Failure;
-    toast.title = "Failed to open settings";
-    console.error("Error opening settings:", error);
+    toast.title = "Failed to open notepad";
+    console.error("Error opening notepad:", error);
   }
 }
