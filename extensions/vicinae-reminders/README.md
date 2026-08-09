@@ -1,6 +1,6 @@
 # Vicinae Reminders
 
-Natural-language one-off and recurring reminders for Vicinae on systemd Linux.
+One-off and recurring reminders with natural-language dates for Vicinae on systemd Linux.
 
 ## Requirements
 
