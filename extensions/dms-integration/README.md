@@ -23,3 +23,6 @@ If you would like to add more features, do feel free to open a PR, or suggest it
 
 - `Settings` (Settings)  
   Opens the DMS settings panel.
+
+- `Notepad` (Notepad)  
+  Opens the DMS notepad.

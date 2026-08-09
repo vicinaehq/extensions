@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "dms-integration",
   "title": "DMS",
-  "description": "Integrate Vicinae into DankMaterialShell",
+  "description": "Integrate DankMaterialShell into Vicinae.",
   "categories": [
     "System"
   ],
@@ -16,7 +16,7 @@
       "name": "dsearch",
       "title": "Search Files",
       "subtitle": "Search files with dsearch",
-      "description": "Searches system files with DMS `dsearch utility` (Make sure it is installed. running and listening on port localhost:43654). Cool file icons included 😃",
+      "description": "Searches system files with DMS `dsearch utility` (Make sure it is installed, running and listening. Default port is 43654).",
       "mode": "view",
       "arguments": [
         {

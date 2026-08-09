@@ -127,9 +127,9 @@ export async function fetchData(
     type: searchMode,
     folder,
   });
-  console.log(
-    `Fetching data with query: ${normalizedQuery}, mode: ${searchMode}, folder: ${folder}`,
-  );
+  // console.log(
+  //   `Fetching data with query: ${normalizedQuery}, mode: ${searchMode}, folder: ${folder}`,
+  // );
 
   try {
     const { statusCode, body } = await request(

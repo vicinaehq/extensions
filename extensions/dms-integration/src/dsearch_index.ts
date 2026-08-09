@@ -12,6 +12,16 @@ import { getErrorMessage } from "./error_handling";
 const REINDEX_ENDPOINT = `http://localhost:${dsearch_port}/reindex`;
 const SYNC_ENDPOINT = `http://localhost:${dsearch_port}/sync`;
 
+async function postAndEnsureSuccess(endpoint: string) {
+  const response = await request(endpoint, { method: "POST" });
+  const body = await response.body.text();
+  if (response.statusCode !== 200 || body.trim().toLowerCase() === "error") {
+    throw new Error(
+      `HTTP ${response.statusCode}${body ? `: ${body.trim()}` : ""}`,
+    );
+  }
+}
+
 /** Triggers quick/full indexing through the DMS backend based on the selected command argument. */
 export default async function dsearchIndex(
   props: LaunchProps<{ arguments: Arguments }>,
@@ -25,7 +35,7 @@ export default async function dsearchIndex(
       "Starting Quick Indexing...",
     );
     try {
-      await request(SYNC_ENDPOINT, { method: "POST" });
+      await postAndEnsureSuccess(SYNC_ENDPOINT);
       toast.style = Toast.Style.Success;
       toast.title = "Quick reindexing started successfully";
     } catch (error) {
@@ -39,7 +49,7 @@ export default async function dsearchIndex(
       "Starting Full Indexing...",
     );
     try {
-      await request(REINDEX_ENDPOINT, { method: "POST" });
+      await postAndEnsureSuccess(REINDEX_ENDPOINT);
       toast.style = Toast.Style.Success;
       toast.title = "Full reindexing started successfully";
     } catch (error) {
