@@ -23,7 +23,7 @@ submit the report Friday at 3pm
 renew the certificate on 18 August at 9
 ```
 
-Date language follows the system locale and can be set to English (UK) or English (US). Date-only reminders default to 09:00. Reminders can be completed, edited, snoozed, repeated, or deleted.
+Date parsing is English; Automatic chooses UK or US numeric date order from the system region. Date-only reminders default to 09:00. Reminders can be completed, edited, snoozed, repeated, or deleted.
 
 Notifications provide **Complete** and **Snooze...** actions. Clicking or closing a notification does not complete it.
 
