@@ -2,6 +2,14 @@
 
 One-off and recurring reminders with natural-language dates for Vicinae on systemd Linux.
 
+## Features
+
+- Schedule reminders for specific calendar dates and times
+- Repeat reminders daily, weekly, fortnightly or monthly
+- Complete or snooze reminders from desktop notifications
+- View, edit, reschedule, snooze, complete or delete upcoming reminders
+- Keep reminders due and retry notifications until they are handled
+
 ## Requirements
 
 - Vicinae 0.24+
@@ -23,7 +31,7 @@ submit the report Friday at 3pm
 renew the certificate on 18 August at 9
 ```
 
-Date parsing is English; Automatic chooses UK or US numeric date order from the system region. Date-only reminders default to 09:00. Reminders can be completed, edited, snoozed, repeated, or deleted.
+Date parsing is English; Automatic chooses UK or US numeric date order from the system region. Date-only reminders default to 09:00.
 
 Vicinae checks for due reminders once per minute while it is running.
 
