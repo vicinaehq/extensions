@@ -1,0 +1,109 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "reminders",
+	"title": "Reminders",
+	"description": "One-off and recurring reminders with natural-language dates on systemd Linux",
+	"icon": "icon.png",
+	"author": "wy3z",
+	"license": "MIT",
+	"categories": [
+		"Productivity"
+	],
+	"platforms": [
+		"Linux"
+	],
+	"preferences": [
+		{
+			"name": "dateLanguage",
+			"title": "Date Language",
+			"description": "Controls natural-language dates and numeric date order.",
+			"type": "dropdown",
+			"required": true,
+			"default": "auto",
+			"data": [
+				{
+					"title": "Automatic",
+					"value": "auto"
+				},
+				{
+					"title": "English (UK)",
+					"value": "en-GB"
+				},
+				{
+					"title": "English (US)",
+					"value": "en-US"
+				}
+			]
+		},
+		{
+			"name": "notificationIcon",
+			"title": "Notification Icon",
+			"description": "Custom desktop notification icon; defaults to the bundled icon.",
+			"type": "file",
+			"required": false
+		}
+	],
+	"commands": [
+		{
+			"name": "remind",
+			"title": "Remind Me",
+			"subtitle": "Reminders",
+			"description": "Create a natural-language reminder",
+			"mode": "view",
+			"keywords": [
+				"remind",
+				"reminder",
+				"remind me",
+				"set reminder",
+				"remember"
+			],
+			"arguments": [
+				{
+					"name": "reminder",
+					"placeholder": "what and when",
+					"type": "text",
+					"required": false
+				}
+			]
+		},
+		{
+			"name": "check-reminders",
+			"title": "Check Reminders",
+			"subtitle": "Reminders",
+			"description": "Check for due reminders",
+			"mode": "no-view",
+			"interval": "1m"
+		}
+	],
+	"scripts": {
+		"build:worker": "esbuild src/worker.ts --bundle --platform=node --format=cjs --target=node20 --outfile=assets/worker.cjs --banner:js='#!/usr/bin/env node'",
+		"prepare": "npm run build:worker",
+		"build": "npm run build:worker && vici build",
+		"dev": "npm run build:worker && vici develop",
+		"format": "biome format --write src tests scripts package.json tsconfig.json biome.json README.md DESIGN.md",
+		"format:check": "biome format src tests scripts package.json tsconfig.json biome.json README.md DESIGN.md",
+		"lint": "biome check src tests scripts package.json tsconfig.json biome.json && vici lint",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"worker:check": "npm run build:worker && tsx scripts/worker-integration-check.ts",
+		"actions:check": "npm run build:worker && tsx scripts/action-lifecycle-check.ts"
+	},
+	"dependencies": {
+		"@vicinae/api": "0.24.0",
+		"chrono-node": "2.10.1",
+		"proper-lockfile": "4.1.2",
+		"react": "19.1.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.2",
+		"@types/node": "^24.0.0",
+		"@types/proper-lockfile": "^4.1.4",
+		"@types/react": "^19.1.0",
+		"esbuild": "^0.25.0",
+		"tsx": "^4.20.0",
+		"typescript": "^5.9.0",
+		"vitest": "^3.2.0"
+	},
+	"version": "1.6.0"
+}
