@@ -6,7 +6,7 @@
       "title": "Manifest does not match extension behavior",
       "defaultSeverity": "warning",
       "guidance": [
-        "Check that titles, descriptions, commands, categories, preferences, capabilities, setup, material non-obvious services, dependencies, and limitations accurately describe the implementation.",
+        "Check that titles, descriptions, commands, categories, preferences, capabilities, setup, material non-obvious services, dependencies, and limitations accurately describe the implementation. The description does NOT need to exhaustively list dependencies.",
         "Use blocking severity for an obvious factual mismatch, an extension description that describes different behavior, or a command name or description that is clearly misleading about what it runs.",
         "Use suggestion severity for wording polish, minor clarity improvements, or other non-misleading copy edits.",
         "Do not report schema or other mechanically verifiable validity checks owned by CI."
