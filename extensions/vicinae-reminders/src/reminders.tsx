@@ -440,7 +440,6 @@ export default function Reminders({
 	return (
 		<List
 			isLoading={loading || creating}
-			filtering
 			searchBarPlaceholder="Reminder and time"
 			searchText={searchText}
 			onSearchTextChange={setSearchText}
@@ -465,7 +464,6 @@ export default function Reminders({
 							? formatDue(parsedInput.due, locale)
 							: (reminderInputError ?? "Type what to remember and when it is due")
 					}
-					keywords={reminderInput ? [reminderInput] : undefined}
 					icon={reminderInputError ? Icon.Warning : Icon.PlusCircle}
 					actions={
 						<ActionPanel>
