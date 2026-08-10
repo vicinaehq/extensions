@@ -1,8 +1,8 @@
 {
 	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-	"name": "vicinae-reminders",
+	"name": "reminders",
 	"title": "Reminders",
-	"description": "English-language reminders for systemd Linux; requires Node.js 20+, action-capable notify-send, and a graphical notification service",
+	"description": "One-off and recurring reminders with natural-language dates on systemd Linux",
 	"icon": "icon.png",
 	"author": "wy3z",
 	"license": "MIT",
