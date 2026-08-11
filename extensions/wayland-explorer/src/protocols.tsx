@@ -1,4 +1,11 @@
-import { Action, ActionPanel, Color, type ImageLike, List } from "@vicinae/api";
+import {
+	Action,
+	ActionPanel,
+	Color,
+	Icon,
+	type ImageLike,
+	List,
+} from "@vicinae/api";
 import { useProtocols } from "./hooks";
 import type { Source, Stability } from "./client";
 
@@ -29,26 +36,42 @@ function sourceToIcon(source: Source): ImageLike {
 }
 
 export default function Protocols() {
-	const { protocols, isLoading } = useProtocols();
+	const { protocols, error, isLoading } = useProtocols();
 
 	return (
 		<List
 			isLoading={isLoading}
 			searchBarPlaceholder={"Search for protocols..."}
 		>
-			<List.EmptyView
-				title="No protocol matches your search"
-				description="The protocol you are looking for may not yet be listed on wayland.app"
-				icon={{ source: "wayland.svg" }}
-				actions={
-					<ActionPanel>
-						<Action.OpenInBrowser
-							title="Go to wayland.app"
-							url={`https://wayland.app`}
-						/>
-					</ActionPanel>
-				}
-			/>
+			{!error ? (
+				<List.EmptyView
+					title="No protocol matches your search"
+					description="The protocol you are looking for may not yet be listed on wayland.app"
+					icon={{ source: "wayland.svg" }}
+					actions={
+						<ActionPanel>
+							<Action.OpenInBrowser
+								title="Go to wayland.app"
+								url={`https://wayland.app`}
+							/>
+						</ActionPanel>
+					}
+				/>
+			) : (
+				<List.EmptyView
+					title="Failed to fetch protocols"
+					description="wayland.app might be down or changed the format"
+					icon={{ source: Icon.XMarkCircle, tintColor: Color.Red }}
+					actions={
+						<ActionPanel>
+							<Action.OpenInBrowser
+								title="Go to wayland.app"
+								url={`https://wayland.app`}
+							/>
+						</ActionPanel>
+					}
+				/>
+			)}
 			<List.Section title={"Wayland Protocols"}>
 				{protocols.map((p) => (
 					<List.Item
