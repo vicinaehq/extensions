@@ -20,6 +20,12 @@ export default function BrowseCategories() {
 					title="Failed to load categories"
 					description={error.message}
 				/>
+			) : !isLoading && visible.length === 0 ? (
+				<List.EmptyView
+					title="No categories"
+					description="The package index returned no categories."
+					icon={Icon.Folder}
+				/>
 			) : null}
 
 			<List.Section title="Categories" subtitle={`${visible.length}`}>

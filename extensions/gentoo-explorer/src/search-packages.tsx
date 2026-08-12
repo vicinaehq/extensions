@@ -1,5 +1,5 @@
-import { Icon, List } from "@vicinae/api";
-import { useState } from "react";
+import { Icon, List, Toast, showToast } from "@vicinae/api";
+import { useEffect, useState } from "react";
 import {
 	type PackageSummary,
 	getLatestPackages,
@@ -21,7 +21,20 @@ export default function SearchPackages() {
 	const [query, setQuery] = useState("");
 	const [overlay, setOverlay] = useState("");
 
-	const { data: overlays } = useApi((signal) => getOverlays(signal), []);
+	const { data: overlays, error: overlaysError } = useApi(
+		(signal) => getOverlays(signal),
+		[],
+	);
+
+	useEffect(() => {
+		if (overlaysError) {
+			showToast({
+				style: Toast.Style.Failure,
+				title: "Failed to load overlay filter",
+				message: overlaysError.message,
+			});
+		}
+	}, [overlaysError]);
 
 	const { data, isLoading, error } = useApi<Results>(
 		async (signal) => {

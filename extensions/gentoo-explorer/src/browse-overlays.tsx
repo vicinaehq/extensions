@@ -85,6 +85,12 @@ export default function BrowseOverlays() {
 					title="Failed to load overlays"
 					description={error.message}
 				/>
+			) : !isLoading && sorted.length === 0 ? (
+				<List.EmptyView
+					title="No overlays"
+					description="The overlay index returned no overlays."
+					icon={Icon.Layers}
+				/>
 			) : null}
 
 			<List.Section title="Overlays" subtitle={`${sorted.length}`}>

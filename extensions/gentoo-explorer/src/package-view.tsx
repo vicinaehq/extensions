@@ -197,6 +197,11 @@ export const PackageView = ({
 					title="Failed to load package"
 					description={error.message}
 				/>
+			) : !isLoading && (pkg?.ebuilds.length ?? 0) === 0 ? (
+				<List.EmptyView
+					title="No ebuilds"
+					description={`No indexed ebuild found for ${atom}.`}
+				/>
 			) : null}
 
 			<List.Section title={atom} subtitle={pkg?.overlay}>

@@ -16,6 +16,12 @@ export default function GentooNews() {
 					title="Failed to load news"
 					description={error.message}
 				/>
+			) : !isLoading && (news?.length ?? 0) === 0 ? (
+				<List.EmptyView
+					title="No news"
+					description="The Gentoo news feed is currently empty."
+					icon={Icon.Rss}
+				/>
 			) : null}
 
 			<List.Section title="Gentoo News">

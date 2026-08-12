@@ -22,6 +22,11 @@ const UseFlagPackagesView = ({ flag }: { flag: string }) => {
 					title="Failed to load packages"
 					description={error.message}
 				/>
+			) : !isLoading && (packages?.length ?? 0) === 0 ? (
+				<List.EmptyView
+					title="No packages"
+					description={`No package uses the ${flag} flag.`}
+				/>
 			) : null}
 
 			<List.Section title={`USE ${flag}`} subtitle={`${packages?.length ?? 0}`}>
@@ -46,6 +51,12 @@ export default function SearchUseFlags() {
 				<List.EmptyView
 					title="Failed to load USE flags"
 					description={error.message}
+				/>
+			) : !isLoading && (flags?.length ?? 0) === 0 ? (
+				<List.EmptyView
+					title="No USE flags"
+					description="The package index returned no USE flags."
+					icon={Icon.Flag}
 				/>
 			) : null}
 

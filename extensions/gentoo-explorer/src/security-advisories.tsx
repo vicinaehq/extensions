@@ -98,6 +98,12 @@ export default function SecurityAdvisories() {
 					title="Failed to load advisories"
 					description={error.message}
 				/>
+			) : !isLoading && (advisories?.length ?? 0) === 0 ? (
+				<List.EmptyView
+					title="No advisories"
+					description="No security advisories are currently listed."
+					icon={Icon.Warning}
+				/>
 			) : null}
 
 			<List.Section
