@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="wg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#94ceff" />
+      <stop offset="50%" stop-color="#58a6ff" />
+      <stop offset="100%" stop-color="#3a7bd5" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0d1117" />
+  <rect x="1.5" y="1.5" width="61" height="61" rx="13" fill="none" stroke="#30363d" stroke-width="1" />
+  <!-- Simplified Daidalos wing pair -->
+  <!-- Left wing -->
+  <g transform="translate(28,34) scale(0.036,-0.036)">
+    <path fill="url(#wg)"
+      d="M-50 700 C-200 500 -500 200 -600 -100 C-500 0 -350 100 -200 200 C-350 -50 -400 -200 -450 -400 C-300 -200 -150 -50 0 50 C-200 -200 -250 -350 -300 -550 C-150 -350 -50 -150 50 -50 C-50 -300 -80 -450 -100 -600 C0 -400 50 -200 100 -50 L0 200 C-100 400 -50 600 -50 700Z" />
+  </g>
+  <!-- Right wing (mirrored) -->
+  <g transform="translate(36,34) scale(0.036,-0.036)">
+    <path fill="url(#wg)"
+      d="M50 700 C200 500 500 200 600 -100 C500 0 350 100 200 200 C350 -50 400 -200 450 -400 C300 -200 150 -50 0 50 C200 -200 250 -350 300 -550 C150 -350 50 -150 -50 -50 C50 -300 80 -450 100 -600 C0 -400 -50 -200 -100 -50 L0 200 C100 400 50 600 50 700Z" />
+  </g>
+</svg>
