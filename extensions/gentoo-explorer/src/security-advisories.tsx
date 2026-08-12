@@ -1,4 +1,12 @@
-import { Action, ActionPanel, Color, Detail, Icon, List } from "@vicinae/api";
+import {
+	Action,
+	ActionPanel,
+	Color,
+	Detail,
+	Icon,
+	Keyboard,
+	List,
+} from "@vicinae/api";
 import { type Glsa, getGlsa } from "./api";
 import { useApi } from "./hooks";
 
@@ -123,6 +131,9 @@ export default function SecurityAdvisories() {
 									title="Open on Security.gentoo.org"
 									icon={Icon.Globe01}
 									url={glsa.url}
+									shortcut={
+										Keyboard.Shortcut.Common.Open as Keyboard.Shortcut.Common
+									}
 								/>
 								<Action.CopyToClipboard
 									title="Copy GLSA ID"

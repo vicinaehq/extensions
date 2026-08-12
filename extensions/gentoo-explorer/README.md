@@ -4,7 +4,7 @@ Explore the Gentoo ecosystem from Vicinae, powered by the [ebuilds.info](https:/
 
 ## Commands
 
-- **Search Packages**: search packages across 400+ indexed overlays, with a category filter. An empty query shows the most recently added ebuilds.
+- **Search Packages**: search packages across 400+ indexed overlays, with an overlay filter. An empty query shows the most recently added ebuilds.
 - **Browse Overlays**: browse indexed overlays and drill into their packages.
 - **Browse Categories**: browse package categories and their contents.
 - **Search USE Flags**: look up USE flags and the packages that use them.

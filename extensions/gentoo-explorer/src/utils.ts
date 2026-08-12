@@ -42,28 +42,3 @@ export const partitionAccountPackages = <T extends PackageSummary>(
 
 	return { main, accounts };
 };
-
-const decodeEntities = (text: string) =>
-	text
-		.replace(/&amp;/g, "&")
-		.replace(/&lt;/g, "<")
-		.replace(/&gt;/g, ">")
-		.replace(/&quot;/g, '"')
-		.replace(/&#39;/g, "'")
-		.replace(/&nbsp;/g, " ");
-
-export const htmlToMarkdown = (html: string) =>
-	decodeEntities(
-		html
-			.replace(/<a\s+[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gis, "[$2]($1)")
-			.replace(/<(strong|b)>(.*?)<\/\1>/gis, "**$2**")
-			.replace(/<(em|i)>(.*?)<\/\1>/gis, "*$2*")
-			.replace(/<code>(.*?)<\/code>/gis, "`$1`")
-			.replace(/<h([1-6])[^>]*>(.*?)<\/h\1>/gis, "\n\n## $2\n\n")
-			.replace(/<li[^>]*>(.*?)<\/li>/gis, "\n- $1")
-			.replace(/<br\s*\/?>/gi, "\n")
-			.replace(/<\/p>/gi, "\n\n")
-			.replace(/<[^>]+>/g, ""),
-	)
-		.replace(/\n{3,}/g, "\n\n")
-		.trim();

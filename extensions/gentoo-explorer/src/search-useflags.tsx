@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Icon, Keyboard, List } from "@vicinae/api";
 import { SITE_URL, getUseFlagPackages, getUseFlags } from "./api";
 import { useApi } from "./hooks";
 import { PackageListItem } from "./package-list-item";
@@ -72,6 +72,9 @@ export default function SearchUseFlags() {
 									title="Open on Ebuilds.info"
 									icon={Icon.Globe01}
 									url={`${SITE_URL}/useflag/${flag.name}`}
+									shortcut={
+										Keyboard.Shortcut.Common.Open as Keyboard.Shortcut.Common
+									}
 								/>
 							</ActionPanel>
 						}

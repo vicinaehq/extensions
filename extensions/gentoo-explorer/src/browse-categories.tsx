@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Icon, Keyboard, List } from "@vicinae/api";
 import { SITE_URL, getCategories } from "./api";
 import { FilteredPackageList } from "./filtered-package-list";
 import { useApi } from "./hooks";
@@ -47,6 +47,9 @@ export default function BrowseCategories() {
 									title="Open on Ebuilds.info"
 									icon={Icon.Globe01}
 									url={`${SITE_URL}/category/${cat.name}`}
+									shortcut={
+										Keyboard.Shortcut.Common.Open as Keyboard.Shortcut.Common
+									}
 								/>
 							</ActionPanel>
 						}

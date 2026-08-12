@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Color, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Color, Icon, Keyboard, List } from "@vicinae/api";
 import { type Overlay, getOverlays, overlayUrl } from "./api";
 import { FilteredPackageList } from "./filtered-package-list";
 import { useApi } from "./hooks";
@@ -53,6 +53,7 @@ const OverlayItem = ({ overlay }: { overlay: Overlay }) => (
 					title="Open on Ebuilds.info"
 					icon={Icon.Globe01}
 					url={overlayUrl(overlay.name)}
+					shortcut={Keyboard.Shortcut.Common.Open as Keyboard.Shortcut.Common}
 				/>
 				{overlay.homepage?.startsWith("http") ? (
 					<Action.OpenInBrowser

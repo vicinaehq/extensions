@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Color, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Color, Icon, Keyboard, List } from "@vicinae/api";
 import { useState } from "react";
 import {
 	type DepEdge,
@@ -141,6 +141,7 @@ const EbuildItem = ({
 						title="Open on Ebuilds.info"
 						icon={Icon.Globe01}
 						url={packageUrl(pkg.category, pkg.name)}
+						shortcut={Keyboard.Shortcut.Common.Open as Keyboard.Shortcut.Common}
 					/>
 					{pkg.homepage?.startsWith("http") ? (
 						<Action.OpenInBrowser
@@ -237,6 +238,9 @@ const DepItem = ({ edge, rootAtom }: { edge: DepEdge; rootAtom: string }) => {
 							title="Open on Ebuilds.info"
 							icon={Icon.Globe01}
 							url={packageUrl(category, name)}
+							shortcut={
+								Keyboard.Shortcut.Common.Open as Keyboard.Shortcut.Common
+							}
 						/>
 					) : null}
 				</ActionPanel>

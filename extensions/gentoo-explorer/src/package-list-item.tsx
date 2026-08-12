@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Icon, Keyboard, List } from "@vicinae/api";
 import { type PackageSummary, packageUrl } from "./api";
 import { PackageView } from "./package-view";
 import { overlayColor } from "./utils";
@@ -40,6 +40,7 @@ export const PackageListItem = ({
 						title="Open on Ebuilds.info"
 						icon={Icon.Globe01}
 						url={packageUrl(pkg.category, pkg.name)}
+						shortcut={Keyboard.Shortcut.Common.Open as Keyboard.Shortcut.Common}
 					/>
 				</ActionPanel>
 			}

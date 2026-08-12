@@ -97,10 +97,6 @@ export type NewsItem = {
 	publishedAt: string;
 };
 
-export type NewsArticle = NewsItem & {
-	contentHtml: string;
-};
-
 export type Glsa = {
 	id: number;
 	glsaId: string;
@@ -198,9 +194,6 @@ export const getUseFlagPackages = (flag: string, signal?: AbortSignal) =>
 
 export const getNews = (signal?: AbortSignal) =>
 	get<NewsItem[]>("/news", undefined, signal);
-
-export const getNewsArticle = (slug: string, signal?: AbortSignal) =>
-	get<NewsArticle>(`/news/${slug}`, undefined, signal);
 
 export const getGlsa = (signal?: AbortSignal) =>
 	get<Glsa[]>("/glsa", undefined, signal);
