@@ -1,0 +1,70 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "gentoo-explorer",
+	"title": "Gentoo Explorer",
+	"description": "Search Gentoo packages across 400+ overlays, browse categories and USE flags, and follow Gentoo news and security advisories, powered by ebuilds.info",
+	"categories": ["System"],
+	"license": "MIT",
+	"author": "aurelleb",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "icon.png",
+	"commands": [
+		{
+			"name": "search-packages",
+			"title": "Search Packages",
+			"subtitle": "Gentoo",
+			"description": "Search Gentoo packages across all indexed overlays",
+			"mode": "view"
+		},
+		{
+			"name": "browse-overlays",
+			"title": "Browse Overlays",
+			"subtitle": "Gentoo",
+			"description": "Browse indexed Gentoo overlays and their packages",
+			"mode": "view"
+		},
+		{
+			"name": "browse-categories",
+			"title": "Browse Categories",
+			"subtitle": "Gentoo",
+			"description": "Browse Gentoo package categories",
+			"mode": "view"
+		},
+		{
+			"name": "search-useflags",
+			"title": "Search USE Flags",
+			"subtitle": "Gentoo",
+			"description": "Search USE flags and the packages that use them",
+			"mode": "view"
+		},
+		{
+			"name": "gentoo-news",
+			"title": "Gentoo News",
+			"subtitle": "Gentoo",
+			"description": "Read the latest Gentoo project news",
+			"mode": "view"
+		},
+		{
+			"name": "security-advisories",
+			"title": "Security Advisories",
+			"subtitle": "Gentoo",
+			"description": "Browse Gentoo Linux Security Advisories (GLSA)",
+			"mode": "view"
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"format": "biome format --write src",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.25.0"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.2",
+		"@biomejs/biome": "2.3.2"
+	}
+}
