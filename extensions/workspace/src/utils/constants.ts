@@ -1,0 +1,14 @@
+export const STORAGE_KEY_ONBOARDING_COMPLETED = "workspace-onboarding-completed";
+export const STORAGE_KEY_WORKSPACES = "workspace-workspaces";
+export const STORAGE_KEY_PINNED_PROJECTS = "workspace-pinned-projects";
+export const STORAGE_KEY_APP = "workspace-default-app";
+export const STORAGE_KEY_WORKSPACE_APPS = "workspace-workspace-app";
+export const STORAGE_KEY_TERMINAL_APP = "workspace-terminal-app";
+export const STORAGE_KEY_SHOW_FZF_STATUS = "workspace-show-fzf-status";
+export const STORAGE_KEY_SHOW_GIT_STATUS = "workspace-show-git-status";
+export const STORAGE_KEY_SHOW_RECENT_PROJECTS = "workspace-show-recent-projects";
+export const STORAGE_KEY_RECENT_PROJECTS_COUNT = "workspace-recent-projects-count";
+export const STORAGE_KEY_RECENT_PROJECTS = "workspace-recent-projects";
+export const STORAGE_KEY_VIEW_MODE = "workspace-view-mode";
+export const STORAGE_KEY_PROJECTS_CACHE = "workspace-projects-cache";
+export const DEFAULT_RECENT_PROJECTS_COUNT = 5;
