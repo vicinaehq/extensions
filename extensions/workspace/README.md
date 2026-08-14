@@ -6,12 +6,38 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-Manage and access all your projects and folders from one place.
+Search, pin, and open projects from every folder you work in.
 
-Workspace is a [Vicinae](https://vicinae.com) extension that gives you a central hub for all your projects across multiple directories.
+Workspace is a [Vicinae](https://vicinae.com) extension for Linux and macOS. Add parent folders and it lists every project inside, with git status, per-workspace apps, and a JSON backup of your setup.
 
-> [!TIP]
-> **Not just for developers!** Perfect for code, design assets, writing, or any folder-based workflows.
+## Screenshots
+
+![Pinned and recent projects with git status](./.github/assets/screenshot-1.png)
+
+[See more screenshots](./.github/assets/)
+
+## Features
+
+- Fuzzy search, with fzf when it is installed
+- Pin favorites and keep recent projects at the top
+- Git branch, dirty files, and ahead/behind
+- List or grid view
+- Default app, plus a different app per workspace
+- Import and export settings as JSON
+
+## Getting started
+
+1. Run **Manage Workspaces** and add the folders that contain your projects.
+2. Set a default app (and a terminal, if you want) in **Workspace Settings**.
+3. Open **Workspace**, search, and hit enter.
+
+Pin the `Workspace` command in Vicinae if you want the fastest loop.
+
+## Commands
+
+- **Workspace** – Search and open projects
+- **Manage Workspaces** – Add, remove, and reorder workspace folders
+- **Workspace Settings** – Apps, view mode, integrations, and backup
 
 ## Installation
 
@@ -25,45 +51,6 @@ npm run build
 
 See the [Vicinae extension docs](https://docs.vicinae.com/extensions/create) for more detail.
 
-## Key Features
-
-- Blazing-fast fzf-style fuzzy search
-- Unified list of all projects from your configured workspace folders
-- Instant open in your default (or per-workspace) application
-- **Grid and List Views**: Toggle between Grid and List views seamlessly.
-- **Recent Projects**: Automatically tracks your most recently opened projects.
-- **Import/Export Settings**: Backup and restore all your workspaces, pins, and configurations to a single JSON file.
-- Git status: current branch + pending changes
-- Pin favorite projects
-- Add, remove, and reorder workspace folders
-
-## Screenshots
-
-![Main project list with pinned items and Git status](./.github/assets/screenshot-1.png)
-
-> Main Workspace command with pinned projects, Git status, and fast search.
-
-![Manage Workspaces view](./.github/assets/screenshot-2.png)
-
-> Adding, removing, and reordering workspace folders + per-workspace app overrides.
-
-## Getting Started
-
-1. Run **Manage Workspaces** to add your project root folders.
-2. Configure your default application and preferred view mode in **Workspace Settings**.
-3. Use the **Workspace** command to search and open projects instantly.
-4. Export your settings to keep a backup of your workspaces and pinned projects.
-
-## Commands
-
-- **Workspace** – Search and open projects
-- **Manage Workspaces** – Add/remove/reorder workspace folders
-- **Workspace Settings** – Apps, View Mode, and Backup/Restore settings
-
-## Creator's Note
-
-Pin the `Workspace` command in Vicinae for the fastest loop: open the launcher, jump to Workspace, type a project name or pick a pinned one.
-
 ## Contributing
 
-Contributions welcome! Open an issue or submit a pull request on GitHub.
+Open an issue or a pull request.
