@@ -9,6 +9,7 @@ export const WORKSPACE_EXTENSION = ".code-workspace";
 // Note: needs to match Preferences.vscodeFlavour values
 export const VSCODE_EXECUTABLES: Record<string, string> = {
     Code: "code",
+    "Code - OSS": "code",
     Cursor: "cursor",
     VSCodium: "codium",
     Antigravity: "antigravity",
@@ -18,6 +19,7 @@ export const VSCODE_EXECUTABLES: Record<string, string> = {
 
 const VSCODE_SHARED_STORAGE_DIRS: Record<string, string> = {
     "Code": ".vscode-shared",
+    "Code - OSS": ".vscode-oss-shared",
     "Cursor": ".cursor-shared",
     "VSCodium": ".vscode-oss-shared",
     "Antigravity": ".antigravity-shared",
