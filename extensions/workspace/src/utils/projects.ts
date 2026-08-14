@@ -1,4 +1,5 @@
 import { Project, RecentProject } from "@/types";
+import { isPathInside } from "@/utils/paths";
 
 export function filterProjectsByQuery(projects: Project[], searchText: string, showGitStatus: boolean): Project[] {
   if (!searchText) {
@@ -82,4 +83,33 @@ export function organizeProjects({
     workspaces.some((workspace) => (projectsByWorkspace[workspace]?.length ?? 0) > 0);
 
   return { hasVisibleProjects, pinnedList, projectsByWorkspace, recentList };
+}
+
+export function keepSavedProjectPaths(
+  savedPaths: string[],
+  projectPaths: Set<string>,
+  configuredWorkspaces: string[],
+  scannedWorkspaces: string[],
+): string[] {
+  return savedPaths.filter((savedPath) =>
+    shouldKeepSavedPath(savedPath, projectPaths, configuredWorkspaces, scannedWorkspaces),
+  );
+}
+
+function shouldKeepSavedPath(
+  savedPath: string,
+  projectPaths: Set<string>,
+  configuredWorkspaces: string[],
+  scannedWorkspaces: string[],
+): boolean {
+  if (projectPaths.has(savedPath)) {
+    return true;
+  }
+
+  const workspace = configuredWorkspaces.find((root) => isPathInside(root, savedPath));
+  if (!workspace) {
+    return false;
+  }
+
+  return !scannedWorkspaces.some((root) => isPathInside(root, savedPath));
 }

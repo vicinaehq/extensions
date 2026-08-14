@@ -38,7 +38,7 @@ export async function checkoutGitBranch(repoPath: string, branch: string): Promi
 }
 
 export async function getCommitLog(repoPath: string): Promise<GitCommit[]> {
-  if (!(await isGitAvailable())) return [];
+  await ensureGitAvailable();
 
   try {
     const { stdout } = await execFileAsync("git", ["log", "-n", "50", "--pretty=format:%H|%an|%ar|%s"], {
@@ -60,7 +60,7 @@ export async function getCommitLog(repoPath: string): Promise<GitCommit[]> {
         };
       });
   } catch {
-    return [];
+    throw new Error("Failed to load commit history");
   }
 }
 
@@ -99,7 +99,7 @@ export async function getGitStatus(repoPath: string): Promise<GitStatus | null> 
 }
 
 export async function getLocalBranches(repoPath: string): Promise<string[]> {
-  if (!(await isGitAvailable())) return [];
+  await ensureGitAvailable();
 
   try {
     const { stdout } = await execFileAsync("git", ["branch", "--format=%(refname:short)"], {
@@ -112,7 +112,7 @@ export async function getLocalBranches(repoPath: string): Promise<string[]> {
       .map((branch) => branch.trim())
       .filter(Boolean);
   } catch {
-    return [];
+    throw new Error("Failed to list git branches");
   }
 }
 
@@ -140,6 +140,12 @@ export async function pullGitBranch(repoPath: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+async function ensureGitAvailable(): Promise<void> {
+  if (!(await isGitAvailable())) {
+    throw new Error("Git is not available");
   }
 }
 

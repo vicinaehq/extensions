@@ -30,3 +30,8 @@ export function isExistingFile(filePath: string): boolean {
 export function isExistingDirectory(dirPath: string): boolean {
   return existsSync(dirPath) && lstatSync(dirPath).isDirectory();
 }
+
+export function isPathInside(parent: string, child: string): boolean {
+  const normalizedParent = parent.endsWith(path.sep) ? parent.slice(0, -1) : parent;
+  return child === normalizedParent || child.startsWith(normalizedParent + path.sep);
+}

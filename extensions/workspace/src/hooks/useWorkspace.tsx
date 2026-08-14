@@ -8,6 +8,7 @@ import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { App, ExportedSettings, Project, RecentProject, ViewMode } from "@/types";
 import { getFzfPath } from "@/utils/fzf";
 import { isGitAvailable } from "@/utils/git";
+import { keepSavedProjectPaths } from "@/utils/projects";
 import { exportSettingsToDownloads, importSettingsFromFile } from "@/utils/storage";
 
 export interface UseWorkspaceReturn {
@@ -125,12 +126,14 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
 
     pruneMissingProjects(
       pd.projects,
+      ws.workspaces,
+      pd.scannedWorkspaceRoots,
       rp.pinnedProjects,
       rp.recentProjects,
       rp.updatePinnedProjects,
       rp.updateRecentProjects,
     );
-  }, [discover, pd.hasScanned, pd.projects]);
+  }, [discover, pd.hasScanned, pd.projects, pd.scannedWorkspaceRoots, ws.workspaces]);
 
   return {
     applyImportedSettings,
@@ -174,26 +177,32 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
 
 function pruneMissingProjects(
   projects: Project[],
+  workspaces: string[],
+  scannedWorkspaceRoots: string[],
   pinnedProjects: string[],
   recentProjects: RecentProject[],
   updatePinnedProjects: (projects: string[]) => Promise<void>,
   updateRecentProjects: (projects: RecentProject[]) => Promise<void>,
 ) {
-  if (projects.length === 0) return;
-
   const projectPaths = new Set(projects.map((project) => project.fullPath));
 
   if (pinnedProjects.length > 0) {
-    const nextPinned = pinnedProjects.filter((path) => projectPaths.has(path));
+    const nextPinned = keepSavedProjectPaths(pinnedProjects, projectPaths, workspaces, scannedWorkspaceRoots);
     if (nextPinned.length !== pinnedProjects.length) {
       void updatePinnedProjects(nextPinned);
     }
   }
 
   if (recentProjects.length > 0) {
-    const nextRecent = recentProjects.filter((entry) => projectPaths.has(entry.path));
+    const nextRecent = keepSavedProjectPaths(
+      recentProjects.map((entry) => entry.path),
+      projectPaths,
+      workspaces,
+      scannedWorkspaceRoots,
+    );
     if (nextRecent.length !== recentProjects.length) {
-      void updateRecentProjects(nextRecent);
+      const keep = new Set(nextRecent);
+      void updateRecentProjects(recentProjects.filter((entry) => keep.has(entry.path)));
     }
   }
 }

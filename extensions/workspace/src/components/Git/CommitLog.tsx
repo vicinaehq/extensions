@@ -1,4 +1,5 @@
-import { Action, ActionPanel, List } from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, showToast, Toast } from "@vicinae/api";
+import { useEffect } from "react";
 
 import { useCachedPromise } from "@/hooks/useCachedPromise";
 
@@ -10,16 +11,21 @@ interface CommitLogProps {
 }
 
 export default function CommitLog({ project }: CommitLogProps) {
-  const { data, isLoading } = useCachedPromise(
+  const { data, error, isLoading, revalidate } = useCachedPromise(
     async (path: string) => {
       const [commits, remoteUrl] = await Promise.all([getCommitLog(path), getRemoteUrl(path)]);
       return { commits, remoteUrl };
     },
     [project.fullPath],
-    {
-      initialData: { commits: [], remoteUrl: null },
-    },
   );
+
+  useEffect(() => {
+    if (!error || isLoading || !data?.commits.length) {
+      return;
+    }
+
+    void showToast({ message: error.message, style: Toast.Style.Failure, title: "Couldn't load commits" });
+  }, [data, error, isLoading]);
 
   return (
     <List
@@ -27,6 +33,17 @@ export default function CommitLog({ project }: CommitLogProps) {
       navigationTitle={`Commit Log - ${project.name}`}
       searchBarPlaceholder="Search commits..."
     >
+      {error && !isLoading && !data?.commits.length && (
+        <List.EmptyView
+          actions={
+            <ActionPanel>
+              <Action icon={Icon.ArrowClockwise} onAction={revalidate} title="Retry" />
+            </ActionPanel>
+          }
+          description={error.message}
+          title="Couldn't Load Commits"
+        />
+      )}
       {(data?.commits ?? []).map((commit) => (
         <List.Item
           accessories={[{ text: commit.author, tooltip: "Author" }, { text: commit.relativeTime }]}

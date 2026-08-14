@@ -148,6 +148,9 @@ function WorkspaceCommand() {
           title="No Workspaces"
         />
       )}
+      {workspaces.length > 0 && searchText && !isLoading && !hasVisibleProjects && (
+        <EmptyView actions={listActions} description="Try a different search." title="No Matching Projects" />
+      )}
       {workspaces.length > 0 && !isLoading && !searchText && !hasVisibleProjects && (
         <EmptyView
           actions={listActions}

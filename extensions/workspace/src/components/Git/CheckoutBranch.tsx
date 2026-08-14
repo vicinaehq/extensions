@@ -1,4 +1,5 @@
 import { Action, ActionPanel, Icon, List, showToast, Toast, useNavigation } from "@vicinae/api";
+import { useEffect } from "react";
 
 import { useCachedPromise } from "@/hooks/useCachedPromise";
 
@@ -14,15 +15,15 @@ export default function CheckoutBranch({ onBranchChanged, project }: CheckoutBra
   const { pop } = useNavigation();
   const currentBranch = project.gitStatus?.branch;
 
-  const { data: branches, isLoading } = useCachedPromise(
-    async (path: string) => {
-      return await getLocalBranches(path);
-    },
-    [project.fullPath],
-    {
-      initialData: [],
-    },
-  );
+  const { data: branches, error, isLoading, revalidate } = useCachedPromise(getLocalBranches, [project.fullPath]);
+
+  useEffect(() => {
+    if (!error || isLoading || !branches?.length) {
+      return;
+    }
+
+    void showToast({ message: error.message, style: Toast.Style.Failure, title: "Couldn't load branches" });
+  }, [branches, error, isLoading]);
 
   const handleCheckout = async (branch: string) => {
     if (branch === currentBranch) {
@@ -51,6 +52,17 @@ export default function CheckoutBranch({ onBranchChanged, project }: CheckoutBra
       navigationTitle={`Checkout Branch - ${project.name}`}
       searchBarPlaceholder="Search branches..."
     >
+      {error && !isLoading && !branches?.length && (
+        <List.EmptyView
+          actions={
+            <ActionPanel>
+              <Action icon={Icon.ArrowClockwise} onAction={revalidate} title="Retry" />
+            </ActionPanel>
+          }
+          description={error.message}
+          title="Couldn't Load Branches"
+        />
+      )}
       {(branches ?? []).map((branch) => {
         const isCurrent = branch === currentBranch;
         return (

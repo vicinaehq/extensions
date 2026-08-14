@@ -17,11 +17,18 @@ type ProjectsCache = {
 
 let memoryCache: ProjectsCache | null = null;
 
+type WorkspaceScan = {
+  ok: boolean;
+  projects: Project[];
+  workspacePath: string;
+};
+
 export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean, ready: boolean, enabled = true) {
   const [projects, setProjects] = useState<Project[]>(() => memoryCache?.projects ?? []);
   const [cachedWorkspaces, setCachedWorkspaces] = useState<string[]>(() => memoryCache?.workspaces ?? []);
   const [isLoading, setIsLoading] = useState(() => memoryCache == null);
   const [hasScanned, setHasScanned] = useState(false);
+  const [scannedWorkspaceRoots, setScannedWorkspaceRoots] = useState<string[]>([]);
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
@@ -66,10 +73,16 @@ export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean
     }
 
     async function refresh() {
-      const listed = (await Promise.all(workspaces.map(listProjects))).flat();
+      const scans = await Promise.all(workspaces.map(scanWorkspace));
       if (cancelled) {
         return;
       }
+
+      const previous = memoryCache?.projects ?? [];
+      const scannedRoots = scans.filter((scan) => scan.ok).map((scan) => scan.workspacePath);
+      const listed = scans.flatMap((scan) =>
+        scan.ok ? scan.projects : previous.filter((project) => project.parentFolder === scan.workspacePath),
+      );
 
       const previousByPath = new Map((memoryCache?.projects ?? []).map((project) => [project.fullPath, project]));
       const listedWithStaleGit = listed.map((project) => ({
@@ -78,6 +91,7 @@ export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean
       }));
 
       remember({ projects: listedWithStaleGit, showGitStatus, workspaces }, setProjects, setCachedWorkspaces);
+      setScannedWorkspaceRoots(scannedRoots);
       setHasScanned(true);
       setIsLoading(false);
 
@@ -125,6 +139,7 @@ export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean
     isLoading,
     loadData,
     projects,
+    scannedWorkspaceRoots,
   };
 }
 
@@ -146,19 +161,23 @@ function persist(cache: ProjectsCache) {
   void LocalStorage.setItem(STORAGE_KEY_PROJECTS_CACHE, JSON.stringify(cache));
 }
 
-async function listProjects(workspacePath: string): Promise<Project[]> {
+async function scanWorkspace(workspacePath: string): Promise<WorkspaceScan> {
   try {
     const entries = await readdir(workspacePath, { withFileTypes: true });
 
-    return entries
-      .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((entry) => ({
-        fullPath: path.join(workspacePath, entry.name),
-        name: entry.name,
-        parentFolder: workspacePath,
-      }));
+    return {
+      ok: true,
+      projects: entries
+        .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((entry) => ({
+          fullPath: path.join(workspacePath, entry.name),
+          name: entry.name,
+          parentFolder: workspacePath,
+        })),
+      workspacePath,
+    };
   } catch {
-    return [];
+    return { ok: false, projects: [], workspacePath };
   }
 }
