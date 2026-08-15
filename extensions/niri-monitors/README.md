@@ -17,7 +17,7 @@ Manage your connected displays without leaving the launcher. Turn monitors on or
 - The `niri msg` command available on your `PATH` (installed automatically with niri)
 
 ## Usage
-
+Run **Monitor Settings** to see a list of your connected displays. Each row shows the monitor's current rotation and scale at a glance, so you can check your setup without opening the action panel.
 Run **Manage Monitors** to see a list of your connected displays. Each row shows the monitor's current rotation and scale at a glance, so you can check your setup without opening the action panel.
 
 Select a monitor to choose between two ways of changing its settings:
