@@ -1,0 +1,34 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "niri-monitors",
+  "title": "Niri Monitors",
+  "description": "Manage connected monitors, scales, rotation, power states for Niri Wayland compositor",
+  "categories": [],
+  "license": "MIT",
+  "author": "xwaleedahmad",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "niri-monitors",
+      "title": "Monitor Settings",
+      "description": "Manage and configure connected monitors",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
