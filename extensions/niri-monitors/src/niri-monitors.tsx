@@ -35,7 +35,9 @@ export default function ManageMonitors() {
   useEffect(() => {
     loadOutputs();
   }, []);
+
   const outputList = Object.values(outputs);
+  const enabledCount = outputList.filter((o) => o.logical !== null).length;
 
   const handleToggleMonitor = async (
     outputName: string,
@@ -129,7 +131,7 @@ export default function ManageMonitors() {
               key={monitor.name}
               title={monitor.name}
               icon={isEnabled ? Icon.Monitor : Icon.EyeDisabled}
-              subtitle={`${monitor.make} - ${monitorResolution}@${monitorRefreshRate}`}
+              subtitle={`${monitor.make} ${isEnabled ? `- ${monitorResolution}@${monitorRefreshRate}` : ""}`}
               accessories={
                 isEnabled
                   ? [
@@ -156,14 +158,14 @@ export default function ManageMonitors() {
                       <PersistMonitorConfig
                         monitor={monitor}
                         onRefresh={loadOutputs}
-                        monitorCount={outputList.length}
+                        enabledCount={enabledCount}
                       />
                     }
                   />
 
                   {/* Quick Actions Section */}
                   <ActionPanel.Section title="Quick Actions">
-                    {outputList.length > 1 && (
+                    {(!isEnabled || enabledCount > 1) && (
                       <Action
                         title={isEnabled ? "Disable Monitor" : "Enable Monitor"}
                         icon={isEnabled ? Icon.EyeDisabled : Icon.Eye}

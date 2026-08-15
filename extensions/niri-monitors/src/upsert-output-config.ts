@@ -11,9 +11,10 @@ export interface OutputConfigUpdate {
 }
 
 const MONITORS_FILENAME = "monitors.kdl";
+const HEADER_COMMENT =
+  "// This file is generated and managed by the Vicinae Niri Monitors extension.\n\n";
 
 function getNiriConfigPath(): string {
-  // Mirrors niri's own lookup order (short of a --config CLI override, which we have no way to know about from here).
   const explicit = process.env.NIRI_CONFIG;
   if (explicit) return explicit;
   const base = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
@@ -28,18 +29,34 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function findOutputBlock(
-  config: string,
-  outputName: string,
-): { bodyStart: number; bodyEnd: number } | null {
-  const headerRegex = new RegExp(
-    `output\\s+"${escapeRegExp(outputName)}"\\s*\\{`,
-    "i",
-  );
-  const match = headerRegex.exec(config);
-  if (!match) return null;
+interface OutputBlock {
+  name: string;
+  blockStart: number;
+  blockEnd: number;
+  bodyStart: number;
+  bodyEnd: number;
+  fullBlock: string;
+}
 
-  const bodyStart = match.index + match[0].length;
+function isInsideBlockComment(text: string, index: number): boolean {
+  const blockCommentRegex = /\/\*[\s\S]*?\*\//g;
+  let match: RegExpExecArray | null;
+  while ((match = blockCommentRegex.exec(text)) !== null) {
+    if (index >= match.index && index < match.index + match[0].length) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function parseOutputBlockAt(
+  config: string,
+  matchIndex: number,
+  outputName: string,
+  headerLength: number,
+): OutputBlock | null {
+  const blockStart = matchIndex;
+  const bodyStart = matchIndex + headerLength;
   let depth = 1;
   let i = bodyStart;
   while (i < config.length && depth > 0) {
@@ -47,9 +64,54 @@ function findOutputBlock(
     else if (config[i] === "}") depth--;
     i++;
   }
-  if (depth !== 0) return null; // unbalanced braces — leave the file untouched
+  if (depth !== 0) return null; // Unbalanced braces
 
-  return { bodyStart, bodyEnd: i - 1 };
+  return {
+    name: outputName,
+    blockStart,
+    blockEnd: i,
+    bodyStart,
+    bodyEnd: i - 1,
+    fullBlock: config.slice(blockStart, i),
+  };
+}
+
+function findActiveOutputBlocks(config: string): OutputBlock[] {
+  // Matches `output "name" {` at start of line (excluding commented lines //, /-, #)
+  const regex = /^[ \t]*output\s+"([^"]+)"\s*\{/gm;
+  const blocks: OutputBlock[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(config)) !== null) {
+    if (isInsideBlockComment(config, match.index)) continue;
+    const block = parseOutputBlockAt(
+      config,
+      match.index,
+      match[1],
+      match[0].length,
+    );
+    if (block) {
+      blocks.push(block);
+      regex.lastIndex = block.blockEnd;
+    }
+  }
+  return blocks;
+}
+
+function findSingleActiveOutputBlock(
+  config: string,
+  outputName: string,
+): OutputBlock | null {
+  const regex = new RegExp(
+    `^[ \\t]*output\\s+"${escapeRegExp(outputName)}"\\s*\\{`,
+    "gm",
+  );
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(config)) !== null) {
+    if (isInsideBlockComment(config, match.index)) continue;
+    return parseOutputBlockAt(config, match.index, outputName, match[0].length);
+  }
+  return null;
 }
 
 function setValueLine(body: string, keyword: string, value: string): string {
@@ -72,38 +134,54 @@ function setBareLine(body: string, keyword: string, present: boolean): string {
   return body;
 }
 
-function hasMonitorsInclude(config: string): boolean {
-  // Matches `include "monitors.kdl"`, `include './monitors.kdl'`,
-  // and the optional=true variant, with either quote style.
-  const includeRegex = new RegExp(
-    `include\\s+(?:optional=\\S+\\s+)?["']\\.?/?${escapeRegExp(MONITORS_FILENAME)}["']`,
+function hasActiveMonitorsInclude(config: string): boolean {
+  const stripped = config.replace(/\/\*[\s\S]*?\*\//g, "");
+  const regex = new RegExp(
+    `^[ \\t]*include\\s+(?:optional=\\S+\\s+)?["']\\.?/?${escapeRegExp(MONITORS_FILENAME)}["']`,
+    "m",
   );
-  return includeRegex.test(config);
+  return regex.test(stripped);
 }
 
-/**
- * Makes sure config.kdl includes monitors.kdl. Only ever prepends a
- * single `include` line — never touches the rest of config.kdl, and
- * does nothing if the include is already there (from a previous save,
- * or one the user added themselves).
- */
-async function ensureMonitorsIncluded(): Promise<void> {
-  const configPath = getNiriConfigPath();
-
-  let config = "";
-  try {
-    config = await readFile(configPath, "utf-8");
-  } catch {
-    config = ""; // no main config file yet — we'll create a minimal one
+function ensureActiveInclude(config: string): {
+  config: string;
+  modified: boolean;
+} {
+  if (hasActiveMonitorsInclude(config)) {
+    return { config, modified: false };
   }
 
-  if (hasMonitorsInclude(config)) return;
+  // Check if a line comment or node comment exists for include
+  const commentedRegex = new RegExp(
+    `^[ \\t]*(?://|/-)[ \\t]*include\\s+(?:optional=\\S+\\s+)?["']\\.?/?${escapeRegExp(MONITORS_FILENAME)}["']`,
+    "m",
+  );
 
+  if (commentedRegex.test(config)) {
+    const newConfig = config.replace(
+      commentedRegex,
+      `include "${MONITORS_FILENAME}"`,
+    );
+    return { config: newConfig, modified: true };
+  }
+
+  // Prepend include at top
   const includeLine = `include "${MONITORS_FILENAME}"\n`;
-  config = config.length > 0 ? `${includeLine}\n${config}` : includeLine;
+  const newConfig =
+    config.length > 0 ? `${includeLine}\n${config}` : includeLine;
+  return { config: newConfig, modified: true };
+}
 
-  await mkdir(dirname(configPath), { recursive: true });
-  await writeFile(configPath, config, "utf-8");
+function formatNewOutputBlock(
+  outputName: string,
+  update: OutputConfigUpdate,
+): string {
+  let body = "\n";
+  body = setBareLine(body, "off", !update.enabled);
+  body = setValueLine(body, "mode", `"${update.mode}"`);
+  body = setValueLine(body, "scale", `${update.scale}`);
+  body = setValueLine(body, "transform", `"${update.transform}"`);
+  return `output "${outputName}" {${body}}\n`;
 }
 
 export async function upsertOutputConfig(
@@ -111,73 +189,105 @@ export async function upsertOutputConfig(
   update: OutputConfigUpdate,
 ): Promise<boolean> {
   try {
-    await ensureMonitorsIncluded();
-
+    const configPath = getNiriConfigPath();
     const monitorsPath = getMonitorsConfigPath();
+
+    let mainConfig = "";
+    try {
+      mainConfig = await readFile(configPath, "utf-8");
+    } catch {
+      mainConfig = "";
+    }
+
     let monitorsConfig = "";
     try {
       monitorsConfig = await readFile(monitorsPath, "utf-8");
     } catch {
-      monitorsConfig = ""; // no monitors.kdl yet — we'll create one
+      monitorsConfig = "";
     }
 
-    const existing = findOutputBlock(monitorsConfig, outputName);
-    let body = existing
-      ? monitorsConfig.slice(existing.bodyStart, existing.bodyEnd)
-      : "\n";
+    let mainConfigModified = false;
 
-    body = setBareLine(body, "off", !update.enabled);
-    body = setValueLine(body, "mode", `"${update.mode}"`);
-    body = setValueLine(body, "scale", `${update.scale}`);
-    body = setValueLine(body, "transform", `"${update.transform}"`);
+    // 1. Ensure active include directive in main config
+    const includeResult = ensureActiveInclude(mainConfig);
+    if (includeResult.modified) {
+      mainConfig = includeResult.config;
+      mainConfigModified = true;
+    }
 
-    if (existing) {
+    // 2. Find and migrate all active output blocks from config.kdl
+    const activeMainBlocks = findActiveOutputBlocks(mainConfig);
+    if (activeMainBlocks.length > 0) {
+      for (const block of activeMainBlocks) {
+        // If this output is not yet in monitors.kdl, copy its block over
+        if (!findSingleActiveOutputBlock(monitorsConfig, block.name)) {
+          monitorsConfig =
+            monitorsConfig.trimEnd().length > 0
+              ? `${monitorsConfig.trimEnd()}\n\n${block.fullBlock}\n`
+              : `${block.fullBlock}\n`;
+        }
+      }
+
+      // Remove migrated active blocks from config.kdl (in reverse to preserve indices)
+      for (let i = activeMainBlocks.length - 1; i >= 0; i--) {
+        const block = activeMainBlocks[i];
+        const before = mainConfig.slice(0, block.blockStart).trimEnd();
+        const after = mainConfig.slice(block.blockEnd).trimStart();
+        mainConfig = before + (after ? `\n\n${after}` : "\n");
+      }
+      mainConfigModified = true;
+    }
+
+    // 3. Upsert the target monitor in monitorsConfig
+    const existingInMonitors = findSingleActiveOutputBlock(
+      monitorsConfig,
+      outputName,
+    );
+    if (existingInMonitors) {
+      let body = monitorsConfig.slice(
+        existingInMonitors.bodyStart,
+        existingInMonitors.bodyEnd,
+      );
+      body = setBareLine(body, "off", !update.enabled);
+      body = setValueLine(body, "mode", `"${update.mode}"`);
+      body = setValueLine(body, "scale", `${update.scale}`);
+      body = setValueLine(body, "transform", `"${update.transform}"`);
+
       monitorsConfig =
-        monitorsConfig.slice(0, existing.bodyStart) +
+        monitorsConfig.slice(0, existingInMonitors.bodyStart) +
         body +
-        monitorsConfig.slice(existing.bodyEnd);
+        monitorsConfig.slice(existingInMonitors.bodyEnd);
     } else {
-      const block = `output "${outputName}" {${body}}\n`;
+      const newBlock = formatNewOutputBlock(outputName, update);
       monitorsConfig =
         monitorsConfig.trimEnd().length > 0
-          ? `${monitorsConfig.trimEnd()}\n\n${block}`
-          : block;
+          ? `${monitorsConfig.trimEnd()}\n\n${newBlock}`
+          : newBlock;
+    }
+
+    // 4. Ensure header comment at the top of monitors.kdl
+    if (
+      !monitorsConfig
+        .trimStart()
+        .startsWith(
+          "// This file is generated and managed by the Vicinae Niri Monitors extension.",
+        )
+    ) {
+      monitorsConfig = `${HEADER_COMMENT}${monitorsConfig.trimStart()}`;
+    }
+
+    // 5. Write files
+    if (mainConfigModified) {
+      await mkdir(dirname(configPath), { recursive: true });
+      await writeFile(configPath, mainConfig, "utf-8");
     }
 
     await mkdir(dirname(monitorsPath), { recursive: true });
     await writeFile(monitorsPath, monitorsConfig, "utf-8");
+
     return true;
   } catch (error) {
     handleError("Failed to update niri config", error);
     return false;
   }
 }
-
-/**
- * Writes the given monitor settings into a dedicated monitors.kdl file
- * next to niri's main config, and makes sure config.kdl includes it.
- *
- * - If monitors.kdl doesn't exist yet, it's created with just this
- *   monitor's `output "<name>" { ... }` block, and an `include
- *   "monitors.kdl"` line is added to the top of config.kdl.
- * - If monitors.kdl already exists, only that monitor's block is
- *   updated or inserted — any other monitors already configured in
- *   the file are left exactly as they were.
- * - config.kdl itself is never rewritten wholesale — at most, one
- *   include line is prepended to it, once.
- *
- * niri live-reloads both files on save (included files are watched
- * too), so no extra reload step is needed. If the resulting KDL were
- * ever invalid, niri keeps the last known-good config and shows its
- * own desktop notification rather than crashing — so a bad write here
- * is recoverable, not catastrophic.
- *
- * Known limitations:
- * - This does a text-level match on `output "name" {` and won't
- *   recognize a block disabled with a `/-` node comment — it would
- *   (incorrectly) edit inside it.
- * - If a monitor's settings are already defined directly inside
- *   config.kdl (rather than in monitors.kdl), that block is left as
- *   is and could conflict with the one written here. Move any
- *   existing output blocks into monitors.kdl to avoid that.
- */

@@ -13,7 +13,7 @@ import { upsertOutputConfig } from "./upsert-output-config";
 
 interface Props {
   monitor: Output;
-  monitorCount: number;
+  enabledCount: number;
   onRefresh?: () => Promise<void>;
 }
 
@@ -26,12 +26,14 @@ interface FormValues {
 
 export default function PersistMonitorConfig({
   monitor,
-  monitorCount,
+  enabledCount,
   onRefresh,
 }: Props) {
   const { pop } = useNavigation();
 
   const isEnabled = monitor.logical !== null;
+  const canToggle = !isEnabled || enabledCount > 1;
+
   const currentScale = monitor.logical?.scale ?? 1.0;
   const currentTransform = normalizeTransform(
     monitor.logical?.transform ?? "normal",
@@ -55,7 +57,7 @@ export default function PersistMonitorConfig({
     if (!confirmed) return;
 
     const success = await upsertOutputConfig(monitor.name, {
-      enabled: monitorCount > 1 ? (formValues.enabled ?? true) : true,
+      enabled: canToggle ? (formValues.enabled ?? true) : true,
       mode: formValues.mode,
       scale: parseFloat(formValues.scale),
       transform: formValues.transform,
@@ -89,7 +91,7 @@ export default function PersistMonitorConfig({
       />
       <Form.Description title="Port Name" text={monitor.name} />
 
-      {monitorCount > 1 && (
+      {canToggle && (
         <Form.Checkbox
           id="enabled"
           label="Monitor Enabled"
