@@ -8,7 +8,7 @@ import {
 } from "@vicinae/api";
 import type { Output } from "./types";
 import { COMMON_SCALES, TRANSFORMS } from "./types";
-import { normalizeTransform, formatMode, showSuccess } from "./utils";
+import { normalizeTransform, formatMode, showSuccess } from "./global-utils";
 import { upsertOutputConfig } from "./upsert-output-config";
 
 interface Props {

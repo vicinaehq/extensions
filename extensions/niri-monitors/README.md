@@ -26,6 +26,8 @@ Select a monitor to choose between two ways of changing its settings:
 
 Runtime-only changes that apply instantly via `niri msg` and reset the next time niri restarts. Good for testing a setting or a temporary change.
 
+> **Note:** Quick actions apply directly to your active session and **take precedence over saved configuration** until you restart or reload Niri.
+
 | Action                   | Shortcut          |
 | ------------------------ | ----------------- |
 | Enable / disable monitor | `Cmd + D`         |
@@ -49,12 +51,6 @@ niri live-reloads its config on save, so the change applies immediately with no 
 ## How it works
 
 Quick actions run entirely through niri's IPC interface (`niri msg`). Persistent settings are written straight to your niri config file, found in the same place niri itself looks: the `$NIRI_CONFIG` environment variable if set, otherwise `$XDG_CONFIG_HOME/niri/config.kdl`, falling back to `~/.config/niri/config.kdl`.
-
-## Limitations
-
-- Disabled monitors don't show a resolution, scale, or rotation, since niri has no logical output to report for them.
-- Custom resolutions or refresh rates outside what your monitor reports aren't supported — only modes niri already knows about.
-- If an output block in your config has been disabled with a `/-` comment, persistent settings will still edit inside it rather than recognizing it's commented out.
 
 ## Development
 

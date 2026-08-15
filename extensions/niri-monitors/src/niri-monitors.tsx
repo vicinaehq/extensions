@@ -9,7 +9,7 @@ import {
   runNiriAction,
   runNiriCommand,
   showSuccess,
-} from "./utils";
+} from "./global-utils";
 import PersistMonitorConfig from "./persist-monitor-config";
 import NiriNotFound from "./niri-not-found";
 

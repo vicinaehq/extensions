@@ -27,6 +27,8 @@ export type Output = {
   logical: LogicalOutput | null;
 };
 
+export const COMMON_SCALES = [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
+
 export const TRANSFORMS = [
   { label: "Normal", value: "normal" },
   { label: "90° Clockwise", value: "90" },
@@ -38,4 +40,18 @@ export const TRANSFORMS = [
   { label: "Flipped 270°", value: "flipped-270" },
 ];
 
-export const COMMON_SCALES = [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
+export interface OutputConfigUpdate {
+  enabled: boolean;
+  mode: string;
+  scale: number;
+  transform: string;
+}
+
+export interface OutputBlock {
+  name: string;
+  blockStart: number;
+  blockEnd: number;
+  bodyStart: number;
+  bodyEnd: number;
+  fullBlock: string;
+}
