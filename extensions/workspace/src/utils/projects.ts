@@ -106,10 +106,26 @@ function shouldKeepSavedPath(
     return true;
   }
 
-  const workspace = configuredWorkspaces.find((root) => isPathInside(root, savedPath));
+  const workspace = mostSpecificWorkspace(savedPath, configuredWorkspaces);
   if (!workspace) {
     return false;
   }
 
-  return !scannedWorkspaces.some((root) => isPathInside(root, savedPath));
+  return !scannedWorkspaces.includes(workspace);
+}
+
+function mostSpecificWorkspace(savedPath: string, configuredWorkspaces: string[]): string | undefined {
+  let workspace: string | undefined;
+
+  for (const root of configuredWorkspaces) {
+    if (!isPathInside(root, savedPath)) {
+      continue;
+    }
+
+    if (!workspace || root.length > workspace.length) {
+      workspace = root;
+    }
+  }
+
+  return workspace;
 }
