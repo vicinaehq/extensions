@@ -10,8 +10,13 @@ export function parseCount(
     return { ok: true, value: fallback };
   }
 
-  const n = Number.parseInt(raw.trim(), 10);
-  if (!Number.isFinite(n) || n < 1) {
+  const trimmed = raw.trim();
+  if (!/^\d+$/.test(trimmed)) {
+    return { ok: false, message: "Enter a whole number of at least 1." };
+  }
+
+  const n = Number(trimmed);
+  if (!Number.isSafeInteger(n) || n < 1) {
     return { ok: false, message: "Enter a whole number of at least 1." };
   }
   if (n > MAX_COUNT) {
@@ -30,8 +35,8 @@ export function parseQuery(query: string): { count?: number; kind?: Kind } {
   const match = QUERY_RE.exec(trimmed);
   if (!match) return {};
 
-  const count = Number.parseInt(match[1], 10);
-  if (!Number.isFinite(count) || count < 1 || count > MAX_COUNT) return {};
+  const count = Number(match[1]);
+  if (!Number.isSafeInteger(count) || count < 1 || count > MAX_COUNT) return {};
 
   const suffix = match[2]?.toLowerCase();
   let kind: Kind | undefined;
