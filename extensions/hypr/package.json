@@ -6,7 +6,9 @@
     "System"
   ],
   "license": "MIT",
-  "platforms": ["Linux"],
+  "platforms": [
+    "Linux"
+  ],
   "author": "nino-mau",
   "contributors": [],
   "scripts": {
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
+    "@types/node": "^26.2.0",
     "typescript": "^5.9.2"
   },
   "icon": "extension_icon.png",
