@@ -32,6 +32,7 @@ export default function Command() {
 				}
 
 				const all: HistoryItem[] = [];
+				let readProfiles = 0;
 				for (const profile of profiles) {
 					try {
 						const db = await openHistoryDb(profile.path);
@@ -50,9 +51,15 @@ export default function Command() {
 						}
 						stmt.free();
 						db.close();
+						readProfiles++;
 					} catch {
 						// profile without a readable History db; skip
 					}
+				}
+
+				if (readProfiles === 0) {
+					setError("Could not read any Helium history database.");
+					return;
 				}
 
 				all.sort((a, b) => b.lastVisit.getTime() - a.lastVisit.getTime());

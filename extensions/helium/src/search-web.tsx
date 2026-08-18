@@ -24,11 +24,12 @@ function normalizeURL(url: string): string {
 export default function Command() {
 	const [searchText, setSearchText] = useState("");
 	const [engine, setEngine] = useState<SearchEngine | null>(null);
+	const [engineError, setEngineError] = useState<string | null>(null);
 	const [suggestions, setSuggestions] = useState<string[]>([]);
 	const abortRef = useRef<AbortController | null>(null);
 
 	useEffect(() => {
-		void getSearchEngine().then(setEngine);
+		void getSearchEngine().then(setEngine).catch((e) => setEngineError(e instanceof Error ? e.message : String(e)));
 	}, []);
 
 	useEffect(() => {
@@ -75,39 +76,45 @@ export default function Command() {
 
 	return (
 		<List
-			isLoading={!engine}
+			isLoading={!engine && !engineError}
 			searchText={searchText}
 			onSearchTextChange={setSearchText}
 			searchBarPlaceholder={`Search the web with ${engineName}`}
 			throttle
 		>
-			{items.map((item) => (
-				<List.Item
-					key={item.id}
-					icon={item.type === "url" ? getFavicon(item.url, Icon.Link) : Icon.MagnifyingGlass}
-					title={item.type === "url" ? `Open ${item.query}` : item.query}
-					subtitle={item.type === "url" ? "Open URL" : `Search with ${engineName}`}
-					actions={
-						<ActionPanel>
-							<Action
-								title={item.type === "url" ? "Open URL" : "Search"}
-								icon={item.type === "url" ? Icon.Link : Icon.MagnifyingGlass}
-								onAction={async () => {
-									await closeMainWindow();
-									await open(item.url, "helium");
-								}}
-							/>
-							<Action.CopyToClipboard title="Copy URL" content={item.url} />
-							<Action.CopyToClipboard title="Copy Query" content={item.query} />
-						</ActionPanel>
-					}
-				/>
-			))}
-			<List.EmptyView
-				title="Start typing to search"
-				description={`Search with ${engineName}, Helium's default search engine`}
-				icon={Icon.MagnifyingGlass}
-			/>
+			{engineError ? (
+				<List.EmptyView title="Could not determine Helium's search engine" description={engineError} icon={Icon.Exclamationmark} />
+			) : (
+				<>
+					{items.map((item) => (
+						<List.Item
+							key={item.id}
+							icon={item.type === "url" ? getFavicon(item.url, Icon.Link) : Icon.MagnifyingGlass}
+							title={item.type === "url" ? `Open ${item.query}` : item.query}
+							subtitle={item.type === "url" ? "Open URL" : `Search with ${engineName}`}
+							actions={
+								<ActionPanel>
+									<Action
+										title={item.type === "url" ? "Open URL" : "Search"}
+										icon={item.type === "url" ? Icon.Link : Icon.MagnifyingGlass}
+										onAction={async () => {
+											await closeMainWindow();
+											await open(item.url, "helium");
+										}}
+									/>
+									<Action.CopyToClipboard title="Copy URL" content={item.url} />
+									<Action.CopyToClipboard title="Copy Query" content={item.query} />
+								</ActionPanel>
+							}
+						/>
+					))}
+					<List.EmptyView
+						title="Start typing to search"
+						description={`Search with ${engineName}, Helium's default search engine`}
+						icon={Icon.MagnifyingGlass}
+					/>
+				</>
+			)}
 		</List>
 	);
 }

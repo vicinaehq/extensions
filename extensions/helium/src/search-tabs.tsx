@@ -4,7 +4,6 @@ import {
 	activateTab,
 	closeTab,
 	ensureDebuggingFlag,
-	ensureSessionRestore,
 	isHeliumRunning,
 	launchHelium,
 	listTabs,
@@ -120,12 +119,10 @@ function DebugSetupActions({ onDone }: { onDone: () => Promise<void> }) {
 	const enableAndRestart = async () => {
 		try {
 			const flagsPath = ensureDebuggingFlag();
-			if (await quitHelium()) {
-				// Helium is stopped: make sure the relaunch restores the previous
-				// session instead of opening an empty new tab page.
-				ensureSessionRestore();
-			}
-			launchHelium([]);
+			const restarted = await quitHelium();
+			// --restore-last-session applies to this launch only, so the user's
+			// configured startup behavior is left untouched.
+			launchHelium(restarted ? ["--restore-last-session"] : []);
 			await closeMainWindow();
 			await showToast({
 				style: Toast.Style.Success,

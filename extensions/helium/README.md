@@ -20,7 +20,7 @@ Search bookmarks, history, tabs, and the web, and open windows in the [Helium](h
 ## Notes
 
 - Bookmarks, history, and the default search engine are read directly from Helium's local profile files.
-- **Search Web** uses the search engine configured in Helium's settings and fetches suggestions from it (network access).
+- **Search Web** uses the search engine configured in Helium's settings and fetches suggestions from it. If that endpoint is unavailable or returns no suggestions, the query is sent to Google's suggestion endpoint as a fallback (network access).
 - List items show site favicons: open tabs use the favicon Helium reports, while bookmarks, history, and typed URLs fetch one from Google's favicon service (network access). Entries without a reachable favicon fall back to a built-in icon.
 - **Search Tabs** talks to Helium over its remote debugging endpoint, which Chromium can only enable when the browser starts. No manual setup is needed in most cases: windows and tabs opened through this extension launch Helium with an ephemeral debugging port that is discovered automatically. If Helium was started some other way without debugging, **Search Tabs** offers a one-click action that writes `--remote-debugging-port=9222` to `~/.config/helium-browser-flags.conf` and restarts Helium.
 - The `helium-browser` (or `helium`) binary must be available on your `PATH` for the window and tab commands.

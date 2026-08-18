@@ -1,9 +1,9 @@
 import { spawn } from "node:child_process";
-import { appendFileSync, existsSync, readFileSync, readlinkSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync, readlinkSync } from "node:fs";
 import { homedir } from "node:os";
 import { delimiter, join } from "node:path";
 import { getPreferenceValues } from "@vicinae/api";
-import { HELIUM_DATA_DIR, getHeliumProfiles } from "./utils";
+import { HELIUM_DATA_DIR } from "./utils";
 
 type HeliumPreferences = {
 	profile_dir: string;
@@ -139,29 +139,6 @@ export async function quitHelium(): Promise<boolean> {
 	}
 
 	return !isPidAlive(pid);
-}
-
-/**
- * Make sure Helium restores the previous session on next start. Chromium's
- * default when the preference is unset is "open the new tab page", which
- * would drop the user's open tabs after a restart. Only called while Helium
- * is stopped, so the Preferences file is not being rewritten concurrently.
- */
-export function ensureSessionRestore(): void {
-	const { profiles } = getHeliumProfiles();
-	for (const profile of profiles) {
-		const prefsPath = join(HELIUM_DATA_DIR, profile.path, "Preferences");
-		try {
-			const prefs = JSON.parse(readFileSync(prefsPath, "utf-8")) as {
-				session?: { restore_on_startup?: number };
-			};
-			if (prefs.session?.restore_on_startup === 1) continue;
-			prefs.session = { ...prefs.session, restore_on_startup: 1 };
-			writeFileSync(prefsPath, JSON.stringify(prefs));
-		} catch {
-			// unreadable or locked profile; skip
-		}
-	}
 }
 
 /**
