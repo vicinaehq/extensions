@@ -56,7 +56,7 @@ Times use a 24-hour clock. If start is later than end, the window runs overnight
 Install and start [Vicinae](https://docs.vicinae.com/), then:
 
 ```bash
-git clone https://github.com/TiageMiguel/coffee-vicinae.git
+git clone https://github.com/tiagem/coffee-vicinae.git
 cd coffee-vicinae
 npm install
 npm run build
