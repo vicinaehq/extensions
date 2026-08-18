@@ -18,12 +18,12 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.22.2"
+    "@vicinae/api": "^0.26.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
+    "@biomejs/biome": "^2.5.9",
     "@types/node": "^26.2.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   },
   "icon": "extension_icon.png",
   "commands": [
