@@ -1,0 +1,159 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "coffee",
+  "title": "Coffee",
+  "description": "Keep your machine awake \u2014 indefinitely, for a duration, until a time, while an app runs, or on a weekly schedule.",
+  "categories": [
+    "Productivity",
+    "System"
+  ],
+  "keywords": [
+    "caffeine",
+    "caffeinate",
+    "awake",
+    "sleep",
+    "idle",
+    "inhibit"
+  ],
+  "platforms": [
+    "Linux",
+    "macOS"
+  ],
+  "license": "MIT",
+  "author": "tiagemiguel",
+  "version": "1.0.0",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension-icon.png",
+  "commands": [
+    {
+      "name": "coffee",
+      "title": "Coffee",
+      "subtitle": "Coffee",
+      "description": "See caffeination status and control it from one place",
+      "mode": "view"
+    },
+    {
+      "name": "caffeinate",
+      "title": "Caffeinate",
+      "subtitle": "Coffee",
+      "description": "Keep the machine awake indefinitely",
+      "mode": "no-view"
+    },
+    {
+      "name": "decaffeinate",
+      "title": "Decaffeinate",
+      "subtitle": "Coffee",
+      "description": "Allow the machine to sleep again",
+      "mode": "no-view"
+    },
+    {
+      "name": "caffeinate-toggle",
+      "title": "Toggle Caffeination",
+      "subtitle": "Coffee",
+      "description": "Toggle between caffeinated and decaffeinated",
+      "mode": "no-view"
+    },
+    {
+      "name": "caffeinate-for",
+      "title": "Caffeinate For",
+      "subtitle": "Coffee",
+      "description": "Keep the machine awake for a set duration",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "duration",
+          "placeholder": "Duration (e.g. 45m, 1h30m)",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "caffeinate-until",
+      "title": "Caffeinate Until",
+      "subtitle": "Coffee",
+      "description": "Keep the machine awake until a time. Type 5pm, or pick a date.",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "time",
+          "placeholder": "Time (e.g. 5pm, 17:30)",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "caffeinate-while",
+      "title": "Caffeinate While",
+      "subtitle": "Coffee",
+      "description": "Keep the machine awake while an app or process is running",
+      "mode": "view"
+    },
+    {
+      "name": "schedule",
+      "title": "Schedule Caffeination",
+      "subtitle": "Coffee",
+      "description": "Add, pause, and delete weekly caffeination schedules",
+      "mode": "view"
+    },
+    {
+      "name": "status",
+      "title": "Caffeination Status",
+      "subtitle": "Coffee",
+      "description": "Show the current caffeination status",
+      "mode": "no-view",
+      "interval": "1m"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "prevent-display",
+      "title": "Inhibit",
+      "description": "Prevent the display from sleeping (idle inhibit / caffeinate -d)",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Prevent display sleep"
+    },
+    {
+      "name": "prevent-system",
+      "title": "",
+      "description": "Prevent the system from sleeping (sleep inhibit / caffeinate -i)",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Prevent system sleep"
+    },
+    {
+      "name": "prevent-lid",
+      "title": "",
+      "description": "On Linux, also block sleep when the lid is closed.",
+      "type": "checkbox",
+      "required": false,
+      "default": false,
+      "label": "Prevent lid-close sleep (Linux)"
+    },
+    {
+      "name": "prevent-disk",
+      "title": "",
+      "description": "On macOS, prevent the disk from idle-sleeping (caffeinate -m).",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Prevent disk sleep (macOS)"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.25.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
