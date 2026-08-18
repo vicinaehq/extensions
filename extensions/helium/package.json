@@ -1,0 +1,94 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "helium",
+	"title": "Helium",
+	"description": "Search bookmarks, history, tabs, and the web, and open windows in the Helium browser.",
+	"categories": ["Web"],
+	"license": "MIT",
+	"platforms": ["Linux"],
+	"author": "AdityaZxxx",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension-icon.png",
+	"commands": [
+		{
+			"name": "search-bookmarks",
+			"title": "Search Bookmarks",
+			"subtitle": "Helium",
+			"description": "Search bookmarks from the Helium browser.",
+			"mode": "view"
+		},
+		{
+			"name": "search-history",
+			"title": "Search History",
+			"subtitle": "Helium",
+			"description": "Search browsing history from the Helium browser.",
+			"mode": "view"
+		},
+		{
+			"name": "open-new-tab",
+			"title": "New Tab",
+			"subtitle": "Helium",
+			"description": "Open a new tab in the Helium browser.",
+			"mode": "no-view"
+		},
+		{
+			"name": "search-tabs",
+			"title": "Search Tabs",
+			"subtitle": "Helium",
+			"description": "Search and switch open tabs in the Helium browser.",
+			"mode": "view"
+		},
+		{
+			"name": "search-web",
+			"title": "Search Web",
+			"subtitle": "Helium",
+			"description": "Search the web with Helium's default search engine.",
+			"mode": "view"
+		},
+		{
+			"name": "open-new-window",
+			"title": "New Window",
+			"subtitle": "Helium",
+			"description": "Open a new Helium browser window.",
+			"mode": "no-view"
+		},
+		{
+			"name": "open-private-window",
+			"title": "New Private Window",
+			"subtitle": "Helium",
+			"description": "Open a new private (incognito) Helium browser window.",
+			"mode": "no-view"
+		}
+	],
+	"preferences": [
+		{
+			"name": "debug_port",
+			"required": false,
+			"type": "textfield",
+			"description": "Optional override of the remote debugging port used for Search Tabs. Leave empty to auto-detect.",
+			"title": "Debug Port"
+		},
+		{
+			"name": "profile_dir",
+			"required": false,
+			"type": "textfield",
+			"description": "Location of the Helium user data directory, relative to your home directory.",
+			"default": ".config/net.imput.helium",
+			"title": "Profile Directory"
+		}
+	],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.22.2",
+		"sql.js": "^1.13.0"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.2",
+		"@types/sql.js": "^1.4.9"
+	}
+}
