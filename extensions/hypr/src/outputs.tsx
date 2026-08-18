@@ -1,4 +1,4 @@
-import { MonitorList } from './monitor-list';
+import { MonitorList } from './components/monitor-list';
 
 export default function Outputs() {
   return (

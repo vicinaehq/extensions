@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Icon, List } from '@vicinae/api';
 import { useHyprctlData } from './hooks';
 import type { HyprWorkspace } from './types';
-import { focusHyprTarget } from './utils';
+import { focusHyprTarget } from './utils/dispatch';
 
 export default function Workspaces() {
   const [workspaces, isLoading] = useHyprctlData<HyprWorkspace[]>(

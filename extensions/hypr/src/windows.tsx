@@ -8,11 +8,14 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { useHyprctlData } from './hooks';
 import type { HyprClient } from './types';
-import { focusHyprTarget, formatResolution, formatWorkspace } from './utils';
+import { focusHyprTarget } from './utils/dispatch';
+import { formatResolution, formatWorkspace } from './utils/format';
 
-type NativeWindow = Awaited<ReturnType<typeof WindowManagement.getWindows>>[number];
+type NativeWindow = Awaited<
+  ReturnType<typeof WindowManagement.getWindows>
+>[number];
 
-export default function Windows() {
+export function Windows() {
   const [clients, isLoading] = useHyprctlData<HyprClient[]>(
     'clients',
     [],
