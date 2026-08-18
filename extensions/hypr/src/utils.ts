@@ -18,10 +18,16 @@ const xkbEvdevOffset = 8;
 let evdevKeycodes: Record<number, string> | undefined;
 let hyprctlCheckPromise: Promise<void> | undefined;
 
+/**
+ * Capitalizes the first character of a string.
+ */
 export function capitalizeFirst(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+/**
+ * Runs a hyprctl command and parses its JSON output.
+ */
 export async function getHyprctlJson<T>(command: string): Promise<T> {
   await ensureHyprRuntimeAvailable();
   const args = ['-j', ...command.split(' ').filter(Boolean)];
@@ -34,6 +40,9 @@ export async function getHyprctlJson<T>(command: string): Promise<T> {
   return JSON.parse(stdout) as T;
 }
 
+/**
+ * Switches the active workspace to the requested layout.
+ */
 export async function switchToLayout(layout: Layout) {
   try {
     const activeWorkspace =
@@ -57,14 +66,22 @@ export async function switchToLayout(layout: Layout) {
   }
 }
 
+/**
+ * Focuses a window, monitor, or workspace using the available Hyprland API.
+ */
 export async function focusHyprTarget(target: HyprFocusTarget, value: string) {
   try {
     await ensureHyprRuntimeAvailable();
-    await execFileAsync('hyprctl', [getHyprFocusCommand(target, value)], {
-      timeout: 10000,
-    }).catch((error: unknown) => {
-      throw normalizeHyprError(error);
-    });
+    try {
+      await runHyprctlCommand(getLegacyHyprFocusArgs(target, value));
+    } catch {
+      await runHyprctlCommand(getLuaHyprFocusArgs(target, value)).catch(
+        (error: unknown) => {
+          throw normalizeHyprError(error);
+        }
+      );
+    }
+
     await closeMainWindow({ popToRootType: PopToRootType.Immediate });
     return true;
   } catch (error) {
@@ -73,6 +90,20 @@ export async function focusHyprTarget(target: HyprFocusTarget, value: string) {
   }
 }
 
+/**
+ * Runs hyprctl with the given arguments and rejects textual command errors.
+ */
+async function runHyprctlCommand(args: string[]) {
+  const { stdout } = await execFileAsync('hyprctl', args, {
+    timeout: 10000,
+  });
+
+  ensureHyprctlCommandSucceeded(stdout);
+}
+
+/**
+ * Logs an error and displays a normalized failure toast.
+ */
 export function handleError(title: string, error: unknown) {
   console.error(error);
   const normalizedError = normalizeHyprError(error);
@@ -84,11 +115,17 @@ export function handleError(title: string, error: unknown) {
   });
 }
 
+/**
+ * Verifies that the current environment can communicate with Hyprland.
+ */
 async function ensureHyprRuntimeAvailable() {
   ensureHyprlandSession();
   await ensureHyprctlAvailable();
 }
 
+/**
+ * Throws when the extension is not running inside a Hyprland session.
+ */
 function ensureHyprlandSession() {
   if (process.env.HYPRLAND_INSTANCE_SIGNATURE) {
     return;
@@ -97,6 +134,9 @@ function ensureHyprlandSession() {
   throw new Error('This extension only works in a Hyprland session.');
 }
 
+/**
+ * Checks that the hyprctl executable and Hyprland IPC are available.
+ */
 async function ensureHyprctlAvailable() {
   hyprctlCheckPromise ??= execFileAsync('hyprctl', ['version'], {
     timeout: 10000,
@@ -110,6 +150,9 @@ async function ensureHyprctlAvailable() {
   await hyprctlCheckPromise;
 }
 
+/**
+ * Converts process and Hyprland errors into user-facing error messages.
+ */
 function normalizeHyprError(error: unknown) {
   if (!(error instanceof Error)) {
     return new Error('Unknown error');
@@ -143,16 +186,25 @@ function normalizeHyprError(error: unknown) {
   return error;
 }
 
+/**
+ * Detects errors caused by a missing Hyprland session environment variable.
+ */
 function isMissingHyprlandSessionError(message: string) {
   return /HYPRLAND_INSTANCE_SIGNATURE/u.test(message);
 }
 
+/**
+ * Detects errors indicating that Hyprland IPC cannot be reached.
+ */
 function isUnavailableHyprlandIpcError(message: string) {
   return /(instance signature|socket|ipc|connection|connect|broken pipe)/iu.test(
     message
   );
 }
 
+/**
+ * Formats optional dimensions as a resolution string.
+ */
 export function formatResolution(width?: number, height?: number) {
   if (width === undefined || height === undefined) {
     return 'Unknown';
@@ -161,6 +213,9 @@ export function formatResolution(width?: number, height?: number) {
   return `${width}x${height}`;
 }
 
+/**
+ * Formats an optional refresh rate with two decimal places.
+ */
 export function formatRefreshRate(refreshRate?: number) {
   if (refreshRate === undefined) {
     return 'Unknown';
@@ -169,14 +224,23 @@ export function formatRefreshRate(refreshRate?: number) {
   return `${refreshRate.toFixed(2)}Hz`;
 }
 
+/**
+ * Formats a layer surface rectangle as dimensions and coordinates.
+ */
 export function formatRect(surface: HyprLayerSurface) {
   return `${surface.w}x${surface.h}+${surface.x}+${surface.y}`;
 }
 
+/**
+ * Displays a workspace name, falling back to its numeric identifier.
+ */
 export function formatWorkspace(id: number, name: string) {
   return name || id.toString();
 }
 
+/**
+ * Flattens monitor-level layer data into a list of layer surfaces.
+ */
 export function flattenLayers(
   layers: HyprLayersResponse
 ): FlatHyprLayerSurface[] {
@@ -196,6 +260,9 @@ export function flattenLayers(
   );
 }
 
+/**
+ * Maps a numeric layer level to its Hyprland layer name.
+ */
 function getLayerName(level: number) {
   const layers: Record<number, string> = {
     0: 'background',
@@ -209,6 +276,9 @@ function getLayerName(level: number) {
 
 type HyprFocusTarget = 'window' | 'monitor' | 'workspace';
 
+/**
+ * Builds the hyprctl arguments for changing a workspace layout.
+ */
 function getSwitchLayoutArgs(activeWorkspaceId: number, layout: Layout) {
   return [
     'eval',
@@ -216,6 +286,9 @@ function getSwitchLayoutArgs(activeWorkspaceId: number, layout: Layout) {
   ];
 }
 
+/**
+ * Throws when hyprctl reports an error in otherwise successful output.
+ */
 function ensureHyprctlCommandSucceeded(stdout: string) {
   const output = stdout.trim();
 
@@ -224,24 +297,48 @@ function ensureHyprctlCommandSucceeded(stdout: string) {
   }
 }
 
-function getHyprFocusCommand(target: HyprFocusTarget, value: string) {
-  const luaValue = escapeLuaString(value);
-
+/**
+ * Builds legacy hyprctl dispatch arguments for focusing a target.
+ */
+function getLegacyHyprFocusArgs(target: HyprFocusTarget, value: string) {
   if (target === 'window') {
-    return `[[BATCH]]dispatch focuswindow address:${value};eval hl.dispatch(hl.dsp.focus({window="address:${luaValue}"}))`;
+    return ['dispatch', 'focuswindow', `address:${value}`];
   }
 
   if (target === 'monitor') {
-    return `[[BATCH]]dispatch focusmonitor ${value};eval hl.dispatch(hl.dsp.focus({monitor="${luaValue}"}))`;
+    return ['dispatch', 'focusmonitor', value];
   }
 
-  return `[[BATCH]]dispatch workspace ${value};eval hl.dispatch(hl.dsp.focus({workspace="${luaValue}"}))`;
+  return ['dispatch', 'workspace', value];
 }
 
+/**
+ * Builds Lua-based hyprctl dispatch arguments for focusing a target.
+ */
+function getLuaHyprFocusArgs(target: HyprFocusTarget, value: string) {
+  const luaValue = escapeLuaString(value);
+
+  if (target === 'window') {
+    return ['dispatch', `hl.dsp.focus({window="address:${luaValue}"})`];
+  }
+
+  if (target === 'monitor') {
+    return ['dispatch', `hl.dsp.focus({monitor="${luaValue}"})`];
+  }
+
+  return ['dispatch', `hl.dsp.focus({workspace="${luaValue}"})`];
+}
+
+/**
+ * Escapes backslashes and quotes for use inside a Lua string literal.
+ */
 function escapeLuaString(value: string) {
   return value.replace(/\\/gu, '\\\\').replace(/"/gu, '\\"');
 }
 
+/**
+ * Converts raw Hyprland bindings into the display model used by the extension.
+ */
 export function mapHyprBinds(rawBinds: HyprctlBind[]): HyprBind[] {
   return rawBinds.map((bind) => {
     const rawKey = getBindKey(bind);
@@ -271,6 +368,9 @@ export function mapHyprBinds(rawBinds: HyprctlBind[]): HyprBind[] {
   });
 }
 
+/**
+ * Gets a binding's named key or converts its numeric keycode.
+ */
 function getBindKey(bind: HyprctlBind) {
   if (bind.key) {
     return bind.key;
@@ -283,10 +383,16 @@ function getBindKey(bind: HyprctlBind) {
   return '';
 }
 
+/**
+ * Combines a dispatcher and optional argument into display text.
+ */
 function formatBindDispatch(dispatcher: string, arg: string) {
   return arg ? `${dispatcher} ${arg}` : dispatcher;
 }
 
+/**
+ * Loads and caches Linux evdev keycode names from the kernel header.
+ */
 function loadEvdevKeycodes(): Record<number, string> {
   if (evdevKeycodes) {
     return evdevKeycodes;
@@ -316,12 +422,18 @@ function loadEvdevKeycodes(): Record<number, string> {
   return evdevKeycodes;
 }
 
+/**
+ * Converts an XKB keycode to an evdev key name when available.
+ */
 function keycodeToKey(keycode: number) {
   const evdevCode = keycode - xkbEvdevOffset;
 
   return loadEvdevKeycodes()[evdevCode] ?? `code:${keycode}`;
 }
 
+/**
+ * Converts Hyprland's modifier bitmask into readable modifier names.
+ */
 function modmaskToString(modmask: number) {
   const modifiers: string[] = [];
 
@@ -344,6 +456,9 @@ function modmaskToString(modmask: number) {
   return modifiers.join(' + ');
 }
 
+/**
+ * Converts raw mouse binding names into readable labels.
+ */
 function mapMouseKey(key: string) {
   const normalizedKey = key.replace(/\s+/gu, '').toLowerCase();
   const mouseKeys: Record<string, string> = {
