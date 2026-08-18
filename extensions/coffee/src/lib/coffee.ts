@@ -1,7 +1,7 @@
 import { Schedule, Session, SessionMode, Status } from "./types";
 import { readState, updateState } from "./state";
-import { detectBackend, isPidAlive, startInhibit, stopPid } from "./inhibit";
-import { createScheduleId, activeWindow, sortDays } from "./schedule";
+import { detectBackend, isPidAlive, processIdentityMatches, startInhibit, stopPid } from "./inhibit";
+import { ActiveWindow, createScheduleId, activeWindow, sortDays } from "./schedule";
 import { formatClock, formatDuration } from "./time";
 
 export interface CaffeinateRequest {
@@ -39,6 +39,7 @@ export function caffeinate(request: CaffeinateRequest): Status {
 
   const session: Session = {
     pid: started.pid,
+    processIdentity: started.processIdentity,
     mode: request.mode,
     startedAt: Date.now(),
     endsAt: request.waitPid ? null : until,
@@ -76,17 +77,23 @@ export function coffeeStatsSummary(now = new Date()): CoffeeStatsSummary {
 
 export function decaffeinate(options?: { skipActiveSchedule?: boolean }): Status {
   const state = readState();
-  const window = options?.skipActiveSchedule
-    ? state.schedules.map((schedule) => activeWindow(schedule)).find(Boolean)
-    : null;
+  const windows = options?.skipActiveSchedule
+    ? (state.schedules.map((schedule) => activeWindow(schedule)).filter(Boolean) as ActiveWindow[])
+    : [];
+  const skipUntilById = new Map<string, number>();
+  for (const window of windows) {
+    skipUntilById.set(window.schedule.id, window.endsAt);
+  }
 
   stopCurrent("manual");
 
   const next = updateState((current) => {
     current.session = null;
-    if (window) {
+    if (skipUntilById.size > 0) {
       current.schedules = current.schedules.map((schedule) =>
-        schedule.id === window.schedule.id ? { ...schedule, skipUntil: window.endsAt } : schedule,
+        skipUntilById.has(schedule.id)
+          ? { ...schedule, skipUntil: skipUntilById.get(schedule.id) ?? schedule.skipUntil }
+          : schedule,
       );
     }
   });
@@ -166,7 +173,15 @@ function reconcile() {
   return updateState((state) => {
     const session = state.session;
     if (!session) return;
+    if (!session.processIdentity) {
+      state.session = null;
+      return;
+    }
     if (!isPidAlive(session.pid)) {
+      state.session = null;
+      return;
+    }
+    if (!processIdentityMatches(session.pid, session.processIdentity)) {
       state.session = null;
       return;
     }
@@ -179,7 +194,10 @@ function reconcile() {
 
 function stopCurrent(_reason: string): void {
   const session = readState().session;
-  if (session && isPidAlive(session.pid)) stopPid(session.pid);
+  if (!session || !session.processIdentity) return;
+  if (isPidAlive(session.pid) && processIdentityMatches(session.pid, session.processIdentity)) {
+    stopPid(session.pid);
+  }
 }
 
 function reasonFor(request: CaffeinateRequest): string {

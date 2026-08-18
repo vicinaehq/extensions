@@ -16,6 +16,7 @@ export type InhibitBackend = "caffeinate" | "systemd-inhibit" | "gnome-session-i
 
 export interface Session {
   pid: number;
+  processIdentity: string | null;
   mode: SessionMode;
   startedAt: number;
   endsAt: number | null;

@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { accessSync, constants } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { accessSync, constants, readFileSync } from "node:fs";
 import { InhibitBackend } from "./types";
 import { prefs } from "./prefs";
 
@@ -7,6 +8,12 @@ export interface SpawnInhibitOptions {
   durationSec?: number;
   waitPid?: number;
   reason: string;
+}
+
+export interface StartedInhibit {
+  pid: number;
+  backend: InhibitBackend;
+  processIdentity: string | null;
 }
 
 const CAFFEINATE = "/usr/bin/caffeinate";
@@ -47,7 +54,7 @@ export function stopPid(pid: number): void {
   }
 }
 
-export function startInhibit(options: SpawnInhibitOptions): { pid: number; backend: InhibitBackend } {
+export function startInhibit(options: SpawnInhibitOptions): StartedInhibit {
   const backend = detectBackend();
   const child =
     backend === "caffeinate"
@@ -60,7 +67,19 @@ export function startInhibit(options: SpawnInhibitOptions): { pid: number; backe
   if (!child.pid) {
     throw new Error("Failed to start the inhibit process");
   }
-  return { pid: child.pid, backend };
+
+  // Best-effort startup check: if backend exits immediately, surface it as failure.
+  if (!isPidAlive(child.pid)) {
+    throw new Error(`Failed to start ${backend} inhibitor process.`);
+  }
+
+  return { pid: child.pid, backend, processIdentity: getProcessIdentity(child.pid) };
+}
+
+export function processIdentityMatches(pid: number, expected: string | null): boolean {
+  if (!expected) return false;
+  const current = getProcessIdentity(pid);
+  return current !== null && current === expected;
 }
 
 function spawnCaffeinate(options: SpawnInhibitOptions) {
@@ -160,4 +179,35 @@ function executable(path: string): boolean {
 function onPath(name: string): boolean {
   const paths = (process.env.PATH ?? "").split(":");
   return paths.some((dir) => dir.length > 0 && executable(`${dir}/${name}`));
+}
+
+function getProcessIdentity(pid: number): string | null {
+  if (!isPidAlive(pid)) return null;
+
+  if (process.platform === "linux") {
+    try {
+      const comm = readFileSync(`/proc/${pid}/comm`, "utf8").trim();
+      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+      const close = stat.lastIndexOf(")");
+      if (close === -1) return null;
+      const after = stat.slice(close + 2).trim().split(/\s+/);
+      const startTicks = after[19];
+      if (!startTicks) return null;
+      return `${comm}:${startTicks}`;
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    const output = execFileSync("ps", ["-o", "comm=", "-o", "lstart=", "-p", String(pid)], {
+      encoding: "utf8",
+      timeout: 1000,
+    })
+      .trim()
+      .replace(/\s+/g, " ");
+    return output.length > 0 ? output : null;
+  } catch {
+    return null;
+  }
 }
