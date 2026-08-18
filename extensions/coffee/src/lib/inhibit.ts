@@ -63,14 +63,38 @@ export function startInhibit(options: SpawnInhibitOptions): StartedInhibit {
         ? spawnSystemd(options)
         : spawnGnome(options);
 
+  let spawnErrorMessage: string | null = null;
+  let stderrOutput = "";
+  child.on("error", (error: Error) => {
+    spawnErrorMessage = error.message;
+  });
+  child.stderr?.on("data", (chunk: Buffer | string) => {
+    stderrOutput += chunk.toString();
+  });
+
   child.unref();
   if (!child.pid) {
     throw new Error("Failed to start the inhibit process");
   }
 
-  // Best-effort startup check: if backend exits immediately, surface it as failure.
+  // Observe a short startup window to catch spawn errors and early nonzero exits.
+  waitStartupGracePeriod(child.pid, 250);
+
+  if (spawnErrorMessage) {
+    throw new Error(`Failed to start ${backend} inhibitor process: ${spawnErrorMessage}`);
+  }
+
+  if (child.exitCode !== null && child.exitCode !== 0) {
+    const diagnostic = stderrOutput.trim();
+    throw new Error(
+      diagnostic.length > 0
+        ? `${backend} inhibitor exited early: ${diagnostic}`
+        : `${backend} inhibitor exited early with code ${child.exitCode}.`,
+    );
+  }
+
   if (!isPidAlive(child.pid)) {
-    throw new Error(`Failed to start ${backend} inhibitor process.`);
+    throw new Error(`${backend} inhibitor exited before activation.`);
   }
 
   return { pid: child.pid, backend, processIdentity: getProcessIdentity(child.pid) };
@@ -179,6 +203,14 @@ function executable(path: string): boolean {
 function onPath(name: string): boolean {
   const paths = (process.env.PATH ?? "").split(":");
   return paths.some((dir) => dir.length > 0 && executable(`${dir}/${name}`));
+}
+
+function waitStartupGracePeriod(pid: number, durationMs: number): void {
+  const end = Date.now() + durationMs;
+  const lock = new Int32Array(new SharedArrayBuffer(4));
+  while (Date.now() < end && isPidAlive(pid)) {
+    Atomics.wait(lock, 0, 0, 20);
+  }
 }
 
 function getProcessIdentity(pid: number): string | null {
