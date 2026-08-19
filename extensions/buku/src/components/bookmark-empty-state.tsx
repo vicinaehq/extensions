@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, Keyboard, List, openCommandPreferences } from "@vicinae/api";
+import { Action, ActionPanel, Icon, Keyboard, List, openExtensionPreferences } from "@vicinae/api";
 import { BUKU_MISSING_HINT, isBukuMissing } from "../lib/buku";
 import { describeError } from "../lib/toast";
 import { BookmarkForm } from "./bookmark-form";
@@ -38,7 +38,7 @@ export function BookmarkEmptyState({ hasBookmarks, error, loading, onReload }: B
         actions={
           <ActionPanel>
             {reload}
-            <Action title="Open Extension Preferences" icon={Icon.Cog} onAction={() => openCommandPreferences()} />
+            <Action title="Open Extension Preferences" icon={Icon.Cog} onAction={openExtensionPreferences} />
           </ActionPanel>
         }
       />
