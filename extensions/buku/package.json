@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "buku",
+  "title": "Buku",
+  "description": "Browse, add, edit, and tag your buku bookmarks. Requires the buku command line tool to be installed.",
+  "categories": [
+    "Productivity",
+    "Web"
+  ],
+  "license": "MIT",
+  "author": "msclp",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "search-bookmarks",
+      "title": "Search Bookmarks",
+      "description": "Browse, edit, and delete your buku bookmarks",
+      "mode": "view",
+      "subtitle": "buku"
+    },
+    {
+      "name": "add-bookmark",
+      "title": "Add Bookmark",
+      "description": "Save a new bookmark to buku",
+      "mode": "view",
+      "subtitle": "buku"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "additionalPath",
+      "type": "textfield",
+      "title": "Additional PATH Entries",
+      "description": "Colon separated directories prepended to PATH when running buku. Set this if buku lives somewhere Vicinae does not search, such as ~/.local/bin.",
+      "placeholder": "~/.local/bin:/opt/homebrew/bin",
+      "default": "",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.26.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^24.13.3",
+    "typescript": "^5.9.2"
+  }
+}
