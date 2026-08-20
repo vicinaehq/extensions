@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { closeMainWindow, showHUD, trash } from "@vicinae/api";
-import { getPrefs, expandPath } from "./lib/preferences";
+import { getPrefs, expandPath, isNativeHandoff } from "./lib/preferences";
 import { formatDateTokens } from "./lib/dateFormat";
 import {
 	TEMP_PATH,
@@ -87,6 +87,16 @@ export default function Scrot() {
 		if (!activeBackendId) return;
 		const result = await captureScreenshot(mode, activeBackendId);
 		if (!result) return;
+
+		// In native hand-off the desktop tool already wrote the screenshot to the
+		// save directory and owns the notification pointing at it. Running the
+		// Vicinae pipeline over it would save a second copy under a fresh
+		// timestamp and show the preview the preference promises to skip.
+		if (isNativeHandoff()) {
+			refreshRecent();
+			if (prefs.autoclose_vicinae) closeMainWindow();
+			return;
+		}
 
 		// Auto-annotate if the preference is set and an annotator is configured
 		if (prefs.use_editor && activeAnnotatorId) {
