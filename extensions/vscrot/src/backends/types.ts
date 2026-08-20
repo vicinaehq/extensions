@@ -15,6 +15,12 @@ export interface CaptureBackend {
 	readonly supportedModes: CaptureMode[];
 	isAvailable(): boolean;
 	/**
+	 * Whether "monitor" capture can be pointed at a specific output. Spectacle
+	 * and similar tools only capture the monitor the cursor is on, so offering a
+	 * picker for them would promise a choice the tool cannot honour.
+	 */
+	readonly targetsNamedOutput?: boolean;
+	/**
 	 * Displays this backend can target, when it can enumerate them itself.
 	 * The returned `id` is what the monitor command passes back as `outputName`.
 	 */

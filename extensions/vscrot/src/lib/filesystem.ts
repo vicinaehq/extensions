@@ -29,6 +29,30 @@ process.on("exit", () => {
 	}
 });
 
+// Vicinae kills extension workers rather than letting them exit, so the handler
+// above often never runs. Sweep leftovers from previous runs on startup, old
+// enough that a command still in progress cannot own them.
+const STALE_AFTER_MS = 60 * 60 * 1000;
+
+const sweepStaleCaptures = (): void => {
+	try {
+		const root = os.tmpdir();
+		for (const entry of fs.readdirSync(root)) {
+			if (!entry.startsWith("vscrot-")) continue;
+			const dir = path.join(root, entry);
+			if (dir === TEMP_DIR) continue;
+			const age = Date.now() - fs.statSync(dir).mtimeMs;
+			if (age > STALE_AFTER_MS) {
+				fs.rmSync(dir, { recursive: true, force: true });
+			}
+		}
+	} catch (e) {
+		console.error("Failed to sweep stale captures", e);
+	}
+};
+
+sweepStaleCaptures();
+
 export const getSavePath = (
 	prefs: Preferences,
 	customFilename?: string,
