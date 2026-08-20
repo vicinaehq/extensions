@@ -1,4 +1,3 @@
-import { execSync } from "node:child_process";
 import { isCommandAvailable } from "../backends/utils";
 
 export type PackageManager = "pacman" | "apt" | "dnf" | "brew" | "winget";
@@ -7,7 +6,7 @@ export interface ToolInfo {
 	id: string;
 	displayName: string;
 	description: string;
-	category: "capture" | "annotate" | "clipboard" | "dependency";
+	category: "capture" | "annotate" | "dependency";
 	checkCommand: string | null; // null = bundled npm package, always present
 	packages: Partial<Record<PackageManager, string>>;
 	notes?: string;
@@ -180,32 +179,6 @@ export const TOOLS_DATABASE: ToolInfo[] = [
 			apt: "sudo apt install pinta",
 			dnf: "sudo dnf install pinta",
 			brew: "brew install pinta",
-		},
-	},
-	// ── Clipboard tools ──────────────────────────────────────────────────────
-	{
-		id: "wl-clipboard",
-		displayName: "wl-clipboard",
-		description:
-			"Wayland clipboard utilities (wl-copy / wl-paste) - required on Wayland",
-		category: "clipboard",
-		checkCommand: "wl-copy",
-		packages: {
-			pacman: "sudo pacman -S wl-clipboard",
-			apt: "sudo apt install wl-clipboard",
-			dnf: "sudo dnf install wl-clipboard",
-		},
-	},
-	{
-		id: "xclip",
-		displayName: "xclip",
-		description: "X11 clipboard tool - fallback when wl-copy is unavailable",
-		category: "clipboard",
-		checkCommand: "xclip",
-		packages: {
-			pacman: "sudo pacman -S xclip",
-			apt: "sudo apt install xclip",
-			dnf: "sudo dnf install xclip",
 		},
 	},
 	// ── Dependencies ─────────────────────────────────────────────────────────

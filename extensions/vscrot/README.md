@@ -67,7 +67,7 @@ VScrot auto-detects the best available tool in priority order. You can override 
 | Tool | Modes | Notes | Link |
 |---|---|---|---|
 | **screenshot-desktop** | full · monitor | npm package bundled with the extension. Uses Win32 GDI - no additional install needed. | [screenshot-desktop](https://github.com/bencevans/screenshot-desktop) |
-| **flameshot** | area · full | Available for Windows via the official installer. | [flameshot.org](https://flameshot.org) |
+| **flameshot** | area · full | Available for Windows via the official installer, and the only backend offering area capture there. Must be on `PATH` — the installer does not always add it. | [flameshot.org](https://flameshot.org) |
 
 ---
 
@@ -82,12 +82,13 @@ After capture, the preview offers an **Annotate** action using your active annot
 |---|---|---|---|
 | **satty** | Auto-reload | Linux (Wayland) | [gabm/Satty](https://github.com/gabm/Satty) |
 | **swappy** | Auto-reload | Linux (Wayland) | [jtheoof/swappy](https://github.com/jtheoof/swappy) |
+| **Spectacle** | Manual save | Linux (Wayland · X11) | [spectacle](https://apps.kde.org/spectacle/) |
 | **GIMP** | Manual save | Linux · macOS · Windows | [gimp.org](https://www.gimp.org) |
 | **Pinta** | Manual save | Linux · macOS · Windows | [pinta-project.com](https://www.pinta-project.com) |
 | **Paint** (mspaint) | Manual save | Windows (built-in) | - |
 | **None** | - | All | Disables the Annotate action |
 
-Auto-detection priority: satty → swappy → GIMP → Pinta → Paint
+Auto-detection priority: satty → swappy → Spectacle → GIMP → Pinta → Paint
 
 ---
 

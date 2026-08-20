@@ -11,7 +11,6 @@ import {
 const CATEGORY_TITLES: Record<string, string> = {
 	capture: "Capture Tools",
 	annotate: "Annotation Tools",
-	clipboard: "Clipboard Tools",
 	dependency: "Dependencies",
 };
 
@@ -64,7 +63,6 @@ export default function ManageTools() {
 	const categories = [
 		"capture",
 		"annotate",
-		"clipboard",
 		"dependency",
 	] as const;
 

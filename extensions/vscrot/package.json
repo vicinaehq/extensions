@@ -129,7 +129,7 @@
       "name": "annotation_tool",
       "type": "dropdown",
       "title": "Annotation Tool",
-      "description": "Tool used to annotate screenshots. Auto-reload tools (Satty, swappy) reload the preview automatically. Manual tools (GIMP, Pinta, Paint) require you to save and use Refresh Preview.",
+      "description": "Tool used to annotate screenshots. Auto-reload tools (Satty, swappy) reload the preview automatically. Manual tools (Spectacle, GIMP, Pinta, Paint) require you to save and use Refresh Preview.",
       "default": "auto",
       "required": true,
       "data": [
