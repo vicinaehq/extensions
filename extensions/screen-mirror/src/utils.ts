@@ -64,6 +64,7 @@ export async function startScreenMirror({
 	target,
 	setActiveMirror,
 }: ScreenMirrorProps): Promise<boolean> {
+	let child: ReturnType<typeof spawn> | null = null;
 	try {
 		const activeSession = await getActiveMirrorSession();
 		if (activeSession) {
@@ -86,7 +87,7 @@ export async function startScreenMirror({
 			return false;
 		}
 
-		const child = spawn(
+		child = spawn(
 			"wl-mirror",
 			["--fullscreen-output", target, "--fullscreen", source],
 			{
@@ -115,6 +116,13 @@ export async function startScreenMirror({
 		showSuccess("Screen mirroring started successfully.");
 		return true;
 	} catch (error) {
+		if (child?.pid) {
+			try {
+				process.kill(child.pid, "SIGTERM");
+			} catch {
+				// Process already exited
+			}
+		}
 		handleError("Failed to start screen mirroring.", error);
 		setActiveMirror?.(null);
 		return false;

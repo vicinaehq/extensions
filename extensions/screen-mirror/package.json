@@ -3,7 +3,12 @@
   "name": "screen-mirror",
   "title": "Screen Mirror",
   "description": "Mirror display outputs on wlroots-compatible Wayland compositors using wl-mirror",
-  "categories": [],
+  "categories": [
+    "System"
+  ],
+  "platforms": [
+    "Linux"
+  ],
   "license": "MIT",
   "author": "xwaleedahmad",
   "contributors": [],

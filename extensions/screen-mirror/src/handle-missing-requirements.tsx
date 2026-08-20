@@ -23,7 +23,7 @@ wlr-randr is required to manage outputs for a wayland compositor.
 `;
 
 const MONITORS_REQ_NOT_MET = `## Not enough monitors connected 
-You need atleast two monitors one for source and one for target to start screen mirroring. Please connect atleast two monitors to your system and try again. 
+You need at least two monitors one for source and one for target to start screen mirroring. Please connect at least two monitors to your system and try again.
 `;
 
 type Reason =
