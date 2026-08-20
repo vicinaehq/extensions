@@ -33,7 +33,7 @@ export type Session = "wayland" | "x11" | "darwin" | "win32";
  * screen capture protocol" even though the binary is installed and the session
  * is Wayland. Backends listed here are only eligible on a wlroots compositor.
  */
-const WLROOTS_ONLY = new Set(["grim", "grimblast"]);
+const WLROOTS_ONLY = new Set([grimBackend.id, grimblastBackend.id]);
 
 const isWlrootsCompositor = (): boolean => {
 	if (
@@ -65,18 +65,36 @@ const preferredBackendForDesktop = (): string | null => {
  * Which display environments each backend can actually drive. Availability on
  * PATH is not enough: an installed Wayland tool cannot capture an X11 session
  * and vice versa, so a compatibility check has to run before the priority order.
+ *
+ * Keys come from the backend objects rather than being written out by hand. A
+ * table keyed by literals silently disables any backend whose key drifts from
+ * its id — which is exactly what happened when scrot, whose module is named
+ * x11-scrot, was listed under the module name instead of its id.
  */
 const BACKEND_SESSIONS: Record<string, Session[]> = {
-	grimblast: ["wayland"],
-	grim: ["wayland"],
-	spectacle: ["wayland", "x11"],
-	"gnome-screenshot": ["wayland", "x11"],
-	flameshot: ["wayland", "x11"],
-	maim: ["x11"],
-	"x11-scrot": ["x11"],
-	screencapture: ["darwin"],
-	"screenshot-desktop": ["darwin", "win32"],
+	[grimblastBackend.id]: ["wayland"],
+	[grimBackend.id]: ["wayland"],
+	[spectacleBackend.id]: ["wayland", "x11"],
+	[gnomeScreenshotBackend.id]: ["wayland", "x11"],
+	// Flameshot is the only backend offering area capture on Windows; the
+	// bundled screenshot-desktop covers full and monitor only.
+	[flameshotBackend.id]: ["wayland", "x11", "win32"],
+	[maimBackend.id]: ["x11"],
+	[x11ScrotBackend.id]: ["x11"],
+	[screencaptureBackend.id]: ["darwin"],
+	[screenshotDesktopBackend.id]: ["darwin", "win32"],
 };
+
+// A backend missing from the table above is unreachable, which is a packaging
+// mistake rather than a runtime condition a user can act on. Surface it in the
+// log instead of letting the command report "no screenshot tool found".
+for (const backend of ALL_BACKENDS) {
+	if (!BACKEND_SESSIONS[backend.id]) {
+		console.error(
+			`vscrot: backend "${backend.id}" has no session compatibility entry and will never be selected`,
+		);
+	}
+}
 
 export const detectSession = (): Session => {
 	if (process.platform === "darwin") return "darwin";
