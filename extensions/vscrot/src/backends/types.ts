@@ -1,5 +1,14 @@
 export type CaptureMode = "area" | "window" | "monitor" | "full";
 
+export type CaptureOptions = {
+	/**
+	 * Whether the capture tool may show its own notification. Suppressed when
+	 * Vicinae owns the preview, because that notification would point at a
+	 * temporary file the extension deletes.
+	 */
+	notify?: boolean;
+};
+
 export interface CaptureBackend {
 	readonly id: string;
 	readonly displayName: string;
@@ -14,5 +23,6 @@ export interface CaptureBackend {
 		mode: CaptureMode,
 		outputPath: string,
 		outputName?: string,
+		options?: CaptureOptions,
 	): Promise<void>;
 }

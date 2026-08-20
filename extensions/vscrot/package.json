@@ -108,6 +108,24 @@
       ]
     },
     {
+      "name": "post_capture",
+      "type": "dropdown",
+      "title": "After Capture",
+      "description": "Where the screenshot is handled once taken. Vicinae preview keeps it in a temporary file and offers save, copy and annotate actions. Native hand-off saves it straight to the screenshot directory and leaves the desktop tool's own notification and editor in charge.",
+      "default": "vicinae",
+      "required": false,
+      "data": [
+        {
+          "title": "Preview in Vicinae",
+          "value": "vicinae"
+        },
+        {
+          "title": "Hand off to the native tool",
+          "value": "native"
+        }
+      ]
+    },
+    {
       "name": "annotation_tool",
       "type": "dropdown",
       "title": "Annotation Tool",
@@ -126,6 +144,10 @@
         {
           "title": "swappy (auto-reload)",
           "value": "swappy"
+        },
+        {
+          "title": "Spectacle (manual save)",
+          "value": "spectacle"
         },
         {
           "title": "GIMP (manual save)",
