@@ -1,12 +1,14 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "hypr",
-  "description": "Inspect Hyprland monitors, workspaces, windows, layers, outputs, and keybinds.",
+  "description": "Inspect Hyprland monitors, workspaces, windows, layers, outputs, and keybinds, and switch workspace layouts.",
   "categories": [
     "System"
   ],
   "license": "MIT",
-  "platforms": ["Linux"],
+  "platforms": [
+    "Linux"
+  ],
   "author": "nino-mau",
   "contributors": [],
   "scripts": {
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
+    "@types/node": "^26.2.0",
     "typescript": "^5.9.2"
   },
   "icon": "extension_icon.png",
@@ -50,6 +53,13 @@
       "title": "Monitors",
       "subtitle": "Show active Hyprland monitors",
       "description": "Display active Hyprland monitors.",
+      "mode": "view"
+    },
+    {
+      "name": "switch-layout",
+      "title": "Switch Layout",
+      "subtitle": "Switch layout for active workspace",
+      "description": "Switch the tiling layout for the active Hyprland workspace.",
       "mode": "view"
     },
     {

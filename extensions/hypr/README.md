@@ -12,3 +12,4 @@ Commands:
 - `monitors`: active monitors from `hyprctl -j monitors`
 - `windows`: clients from `hyprctl -j clients`
 - `keybinds`: keybinds from `hyprctl -j binds`, add description to your commands to get any meaningful information from this
+- `switch-layout`: switch the tiling layout of the active workspace via `hyprctl eval hl.workspace_rule(...)`
