@@ -1,6 +1,5 @@
-import { execSync } from "node:child_process";
 import type { AnnotatorBackend } from "./types";
-import { isCommandAvailable, shellEscape } from "../backends/utils";
+import { isCommandAvailable, run } from "../backends/utils";
 
 export const swappyAnnotator: AnnotatorBackend = {
 	id: "swappy",
@@ -10,7 +9,6 @@ export const swappyAnnotator: AnnotatorBackend = {
 	isAvailable: () => isCommandAvailable("swappy"),
 
 	annotate: async (imagePath: string) => {
-		const p = shellEscape(imagePath);
-		execSync(`swappy -f "${p}" -o "${p}"`);
+		run("swappy", ["-f", imagePath, "-o", imagePath]);
 	},
 };

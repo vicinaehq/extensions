@@ -1,11 +1,12 @@
 import { exec } from "node:child_process";
-import { unlinkSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, unlinkSync } from "node:fs";
+import { dirname } from "node:path";
 import { closeMainWindow, showHUD } from "@vicinae/api";
 import { TEMP_PATH, getSavePath } from "./filesystem";
 import { getPrefs, isNativeHandoff } from "./preferences";
-import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
 import { getBackend } from "../backends";
+import { isCancellation } from "../backends/errors";
+import { stderrOf } from "../backends/utils";
 import type { CaptureMode } from "../backends/types";
 
 export const captureScreenshot = async (
@@ -43,18 +44,19 @@ export const captureScreenshot = async (
 		}
 		await backend.capture(mode, target, outputName, { notify: native });
 		exec("vicinae open");
-		return target;
+		// Some tools exit cleanly when the user dismisses the selector
+		// (gnome-screenshot -a among them) and simply write nothing.
+		return existsSync(target) ? target : null;
 	} catch (e) {
 		exec("vicinae open");
-		// A cancellation (ESC in slurp/slop) exits non-zero, writes no file and
-		// says nothing on stderr. Anything else is a real failure worth reporting.
-		const stderr = String(
-			(e as { stderr?: Buffer | string }).stderr ?? "",
-		).trim();
-		if (existsSync(target) || stderr !== "") {
-			const detail = stderr.split("\n").pop() || (e as Error).message;
-			showHUD(`${backend.displayName} failed: ${detail}`);
-		}
+		// Backends raise CaptureCancelled when the user backed out, and that is
+		// the only outcome worth passing over in silence. Everything else — a
+		// missing helper program, an unsupported compositor protocol, a tool that
+		// produced nothing within its timeout — gets reported.
+		if (isCancellation(e)) return null;
+		const stderr = stderrOf(e);
+		const detail = stderr.split("\n").pop() || (e as Error).message;
+		showHUD(`${backend.displayName} failed: ${detail}`);
 		return null;
 	}
 };

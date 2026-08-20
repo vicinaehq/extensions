@@ -1,6 +1,5 @@
-import { execSync } from "node:child_process";
 import type { CaptureBackend, CaptureMode } from "./types";
-import { shellEscape } from "./utils";
+import { run, runInteractiveCapture } from "./utils";
 
 export const screencaptureBackend: CaptureBackend = {
 	id: "screencapture",
@@ -10,13 +9,12 @@ export const screencaptureBackend: CaptureBackend = {
 	isAvailable: () => process.platform === "darwin",
 
 	capture: async (mode: CaptureMode, outputPath: string) => {
-		const out = shellEscape(outputPath);
 		if (mode === "area") {
-			execSync(`screencapture -i "${out}"`);
+			runInteractiveCapture("screencapture", ["-i", outputPath], outputPath);
 		} else if (mode === "window") {
-			execSync(`screencapture -w "${out}"`);
+			runInteractiveCapture("screencapture", ["-w", outputPath], outputPath);
 		} else {
-			execSync(`screencapture "${out}"`);
+			run("screencapture", [outputPath]);
 		}
 	},
 };

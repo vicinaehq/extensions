@@ -1,6 +1,5 @@
-import { execSync } from "node:child_process";
 import type { CaptureBackend, CaptureMode } from "./types";
-import { isCommandAvailable, shellEscape } from "./utils";
+import { isCommandAvailable, run, runInteractiveCapture } from "./utils";
 
 export const gnomeScreenshotBackend: CaptureBackend = {
 	id: "gnome-screenshot",
@@ -10,13 +9,20 @@ export const gnomeScreenshotBackend: CaptureBackend = {
 	isAvailable: () => isCommandAvailable("gnome-screenshot"),
 
 	capture: async (mode: CaptureMode, outputPath: string) => {
-		const out = shellEscape(outputPath);
 		if (mode === "area") {
-			execSync(`gnome-screenshot -a -f "${out}"`);
+			runInteractiveCapture(
+				"gnome-screenshot",
+				["-a", "-f", outputPath],
+				outputPath,
+			);
 		} else if (mode === "window") {
-			execSync(`gnome-screenshot -w -f "${out}"`);
+			runInteractiveCapture(
+				"gnome-screenshot",
+				["-w", "-f", outputPath],
+				outputPath,
+			);
 		} else {
-			execSync(`gnome-screenshot -f "${out}"`);
+			run("gnome-screenshot", ["-f", outputPath]);
 		}
 	},
 };

@@ -1,6 +1,5 @@
 import { Action, ActionPanel, Detail, Icon } from "@vicinae/api";
-import { execSync } from "node:child_process";
-import { shellEscape } from "../backends/utils";
+import { run } from "../backends/utils";
 
 interface PreviewDetailProps {
 	imagePath: string;
@@ -29,9 +28,7 @@ export function PreviewDetail({
 }: PreviewDetailProps) {
 	let dimensions = "unknown";
 	try {
-		dimensions = execSync(`identify -format "%wx%h" "${shellEscape(imagePath)}"`)
-			.toString()
-			.trim();
+		dimensions = run("identify", ["-format", "%wx%h", imagePath]);
 	} catch {
 		// imagemagick not installed - skip
 	}
