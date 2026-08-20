@@ -27,40 +27,42 @@ You need atleast two monitors one for source and one for target to start screen 
 `;
 
 type Reason =
-  "wl-mirror-not-found" | "monitors-req-not-met" | "wlr-randr-not-found";
+	| "wl-mirror-not-found"
+	| "monitors-req-not-met"
+	| "wlr-randr-not-found";
 
 const handleErrorReason = (reason: Reason) => {
-  switch (reason) {
-    case "wl-mirror-not-found":
-      return WL_MIRROR_NOT_FOUND;
-    case "monitors-req-not-met":
-      return MONITORS_REQ_NOT_MET;
-    case "wlr-randr-not-found":
-      return WLR_RANDR_NOT_FOUND;
-    default:
-      return "Unknown error";
-  }
+	switch (reason) {
+		case "wl-mirror-not-found":
+			return WL_MIRROR_NOT_FOUND;
+		case "monitors-req-not-met":
+			return MONITORS_REQ_NOT_MET;
+		case "wlr-randr-not-found":
+			return WLR_RANDR_NOT_FOUND;
+		default:
+			return "Unknown error";
+	}
 };
 
 export default function HandleMissingRequirements({
-  onRefresh,
-  reason,
+	onRefresh,
+	reason,
 }: {
-  onRefresh: () => Promise<void>;
-  reason: Reason;
+	onRefresh: () => Promise<void>;
+	reason: Reason;
 }) {
-  return (
-    <Detail
-      markdown={handleErrorReason(reason)}
-      actions={
-        <ActionPanel>
-          <Action
-            title="Retry Connection"
-            icon={Icon.RotateClockwise}
-            onAction={onRefresh}
-          />
-        </ActionPanel>
-      }
-    />
-  );
+	return (
+		<Detail
+			markdown={handleErrorReason(reason)}
+			actions={
+				<ActionPanel>
+					<Action
+						title="Retry Connection"
+						icon={Icon.RotateClockwise}
+						onAction={onRefresh}
+					/>
+				</ActionPanel>
+			}
+		/>
+	);
 }

@@ -28,6 +28,7 @@ export type Output = {
 };
 
 export type ActiveMirrorSession = {
+	pid?: number;
 	source: string;
 	target: string;
 };
