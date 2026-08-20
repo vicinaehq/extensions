@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { closeMainWindow } from "@vicinae/api";
-import fs from "node:fs";
+import { closeMainWindow, showHUD, trash } from "@vicinae/api";
 import { getPrefs, expandPath } from "./lib/preferences";
 import { formatDateTokens } from "./lib/dateFormat";
 import {
@@ -106,7 +105,10 @@ export default function Scrot() {
 		}
 
 		// Close if autoclose is on and at least one auto-action ran
-		if ((prefs.copy_to_clipboard || prefs.save_to_file) && prefs.autoclose_vicinae) {
+		if (
+			(prefs.copy_to_clipboard || prefs.save_to_file) &&
+			prefs.autoclose_vicinae
+		) {
 			closeMainWindow();
 			return;
 		}
@@ -138,8 +140,14 @@ export default function Scrot() {
 		setActiveAnnotatorId(id);
 	};
 
-	const handleDeleteFile = (filePath: string) => {
-		fs.unlinkSync(filePath);
+	const handleDeleteFile = async (filePath: string) => {
+		try {
+			await trash(filePath);
+		} catch (e) {
+			console.error("Failed to move screenshot to trash", e);
+			showHUD("Could not move the screenshot to the trash");
+			return;
+		}
 		refreshRecent();
 	};
 

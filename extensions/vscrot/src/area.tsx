@@ -30,7 +30,7 @@ export default function CaptureArea() {
 
 	useEffect(() => {
 		Promise.all([
-			resolveBackend(prefs.screenshot_tool ?? "auto"),
+			resolveBackend(prefs.screenshot_tool ?? "auto", "area"),
 			resolveAnnotator(prefs.annotation_tool ?? "auto"),
 		]).then(([backend, annotator]) => {
 			const bid = backend?.id ?? null;

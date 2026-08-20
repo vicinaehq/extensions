@@ -30,7 +30,7 @@ export default function CaptureAll() {
 
 	useEffect(() => {
 		Promise.all([
-			resolveBackend(prefs.screenshot_tool ?? "auto"),
+			resolveBackend(prefs.screenshot_tool ?? "auto", "full"),
 			resolveAnnotator(prefs.annotation_tool ?? "auto"),
 		]).then(([backend, annotator]) => {
 			const bid = backend?.id ?? null;

@@ -3,7 +3,12 @@ import { execSync } from "node:child_process";
 import { List, Action, ActionPanel, Icon, closeMainWindow } from "@vicinae/api";
 import { getPrefs } from "./lib/preferences";
 import { formatDateTokens } from "./lib/dateFormat";
-import { TEMP_PATH, getSavePath, saveImageFile } from "./lib/filesystem";
+import {
+	TEMP_PATH,
+	getSavePath,
+	removeTempCapture,
+	saveImageFile,
+} from "./lib/filesystem";
 import { copyToClipboard } from "./lib/clipboard";
 import { annotateWith } from "./lib/annotate";
 import { captureScreenshot } from "./lib/capture";
@@ -32,7 +37,7 @@ export default function CaptureMonitor() {
 	useEffect(() => {
 		(async () => {
 			const [backend, annotator] = await Promise.all([
-				resolveBackend(prefs.screenshot_tool ?? "auto"),
+				resolveBackend(prefs.screenshot_tool ?? "auto", "monitor"),
 				resolveAnnotator(prefs.annotation_tool ?? "auto"),
 			]);
 
@@ -51,7 +56,22 @@ export default function CaptureMonitor() {
 					return;
 				}
 			} catch {
-				// hyprctl unavailable — fall through to slurp-based capture
+				// hyprctl unavailable — try the backend's own display enumeration
+			}
+
+			if (backend?.listDisplays) {
+				try {
+					const displays = await backend.listDisplays();
+					if (displays.length > 0) {
+						setMonitors(
+							displays.map((d) => ({ name: d.id, description: d.name })),
+						);
+						setPhase("selecting");
+						return;
+					}
+				} catch (e) {
+					console.error("Failed to list displays", e);
+				}
 			}
 
 			// No monitor list available: fall back to slurp selection in the backend
@@ -120,7 +140,11 @@ export default function CaptureMonitor() {
 					setLastCapture(null);
 					setPhase("selecting");
 				}}
-				onDiscard={() => setLastCapture(null)}
+				onDiscard={() => {
+					removeTempCapture();
+					setLastCapture(null);
+					setPhase("selecting");
+				}}
 			/>
 		);
 	}

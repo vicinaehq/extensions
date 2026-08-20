@@ -34,9 +34,17 @@ export const captureScreenshot = async (
 		await backend.capture(mode, TEMP_PATH, outputName);
 		exec("vicinae open");
 		return TEMP_PATH;
-	} catch {
-		// User cancelled selection (e.g. ESC in slurp) or tool error - surface nothing
+	} catch (e) {
 		exec("vicinae open");
+		// A cancellation (ESC in slurp/slop) exits non-zero, writes no file and
+		// says nothing on stderr. Anything else is a real failure worth reporting.
+		const stderr = String(
+			(e as { stderr?: Buffer | string }).stderr ?? "",
+		).trim();
+		if (existsSync(TEMP_PATH) || stderr !== "") {
+			const detail = stderr.split("\n").pop() || (e as Error).message;
+			showHUD(`${backend.displayName} failed: ${detail}`);
+		}
 		return null;
 	}
 };
