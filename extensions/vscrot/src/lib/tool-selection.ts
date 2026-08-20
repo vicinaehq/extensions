@@ -1,7 +1,7 @@
 import { LocalStorage } from "@vicinae/api";
-import { ALL_BACKENDS, getBackend } from "../backends";
+import { ALL_BACKENDS, getBackend, getBackendForMode } from "../backends";
 import { ALL_ANNOTATORS, getAnnotator } from "../annotators";
-import type { CaptureBackend } from "../backends/types";
+import type { CaptureBackend, CaptureMode } from "../backends/types";
 import type { AnnotatorBackend } from "../annotators/types";
 
 const CAPTURE_KEY = "active_capture_tool";
@@ -16,9 +16,13 @@ export const getInstalledAnnotators = (): AnnotatorBackend[] =>
 /** Resolves the active backend: LocalStorage → preference → auto-detect. */
 export const resolveBackend = async (
 	prefToolId: string,
+	mode?: CaptureMode,
 ): Promise<CaptureBackend | null> => {
 	const saved = await LocalStorage.getItem<string>(CAPTURE_KEY);
 	const id = saved ?? prefToolId;
+	// A command that knows its mode needs a backend that supports that mode in
+	// this session, not merely the globally configured one.
+	if (mode !== undefined) return getBackendForMode(id, mode);
 	const backend = getBackend(id);
 	// If the saved tool is no longer installed, fall back to auto-detect
 	if (backend && !backend.isAvailable()) return getBackend("auto");

@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
-import { closeMainWindow } from "@vicinae/api";
-import { getPrefs } from "./lib/preferences";
+import { Detail, closeMainWindow } from "@vicinae/api";
+import { getPrefs, isNativeHandoff } from "./lib/preferences";
 import { formatDateTokens } from "./lib/dateFormat";
-import { TEMP_PATH, getSavePath, saveImageFile } from "./lib/filesystem";
+import {
+	TEMP_PATH,
+	getSavePath,
+	removeTempCapture,
+	saveImageFile,
+} from "./lib/filesystem";
 import { copyToClipboard } from "./lib/clipboard";
 import { annotateWith } from "./lib/annotate";
 import { captureScreenshot } from "./lib/capture";
@@ -13,6 +18,9 @@ import { PreviewDetail } from "./components/PreviewDetail";
 export default function CaptureAll() {
 	const prefs = getPrefs();
 	const [lastCapture, setLastCapture] = useState<string | null>(null);
+	const [finished, setFinished] = useState(false);
+	const [savedPath, setSavedPath] = useState<string | null>(null);
+	const [discarded, setDiscarded] = useState(false);
 	const [activeBackendId, setActiveBackendId] = useState<string | null>(null);
 	const [activeAnnotatorId, setActiveAnnotatorId] = useState<string | null>(
 		null,
@@ -24,13 +32,24 @@ export default function CaptureAll() {
 	};
 
 	const capture = async (backendId: string) => {
+		setFinished(false);
 		const result = await captureScreenshot("full", backendId);
-		if (result) setLastCapture(result);
+		if (result) {
+			// In native hand-off the desktop tool owns the result: it is already
+			// saved where the user wants it, so Vicinae reports rather than previews.
+			if (isNativeHandoff()) {
+				setSavedPath(result);
+				if (prefs.autoclose_vicinae) closeMainWindow();
+			} else {
+				setLastCapture(result);
+			}
+		}
+		setFinished(true);
 	};
 
 	useEffect(() => {
 		Promise.all([
-			resolveBackend(prefs.screenshot_tool ?? "auto"),
+			resolveBackend(prefs.screenshot_tool ?? "auto", "full"),
 			resolveAnnotator(prefs.annotation_tool ?? "auto"),
 		]).then(([backend, annotator]) => {
 			const bid = backend?.id ?? null;
@@ -50,7 +69,9 @@ export default function CaptureAll() {
 
 	const handleSave = () => {
 		if (!lastCapture) return;
-		saveImageFile(lastCapture, getSavePath(prefs));
+		const destination = getSavePath(prefs);
+		saveImageFile(lastCapture, destination);
+		setSavedPath(destination);
 		setLastCapture(null);
 		if (prefs.autoclose_vicinae) closeMainWindow();
 	};
@@ -61,7 +82,25 @@ export default function CaptureAll() {
 		if (shouldReload) refreshPreview();
 	};
 
-	if (!lastCapture) return null;
+	if (!lastCapture) {
+		if (discarded) {
+			return <Detail markdown="## Screenshot discarded" />;
+		}
+		if (savedPath) {
+			return (
+				<Detail markdown={`## Screenshot saved\n\n\`${savedPath}\``} />
+			);
+		}
+		return (
+			<Detail
+				markdown={
+					finished
+						? "## No screenshot captured\n\nThe selection was cancelled, or the capture tool reported an error."
+						: "## Capturing...\n\nCapturing every monitor."
+				}
+			/>
+		);
+	}
 
 	return (
 		<PreviewDetail
@@ -81,7 +120,11 @@ export default function CaptureAll() {
 				setLastCapture(null);
 				if (activeBackendId) capture(activeBackendId);
 			}}
-			onDiscard={() => setLastCapture(null)}
+			onDiscard={() => {
+				removeTempCapture();
+				setDiscarded(true);
+				setLastCapture(null);
+			}}
 		/>
 	);
 }

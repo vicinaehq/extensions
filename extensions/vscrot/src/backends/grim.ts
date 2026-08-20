@@ -6,6 +6,7 @@ export const grimBackend: CaptureBackend = {
 	id: "grim",
 	displayName: "grim + slurp (Wayland)",
 	supportedModes: ["area", "window", "monitor", "full"],
+	targetsNamedOutput: true,
 
 	isAvailable: () => isCommandAvailable("grim") && isCommandAvailable("slurp"),
 

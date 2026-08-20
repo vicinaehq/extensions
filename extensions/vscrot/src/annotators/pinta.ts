@@ -1,6 +1,5 @@
-import { exec } from "node:child_process";
 import type { AnnotatorBackend } from "./types";
-import { isCommandAvailable, shellEscape } from "../backends/utils";
+import { isCommandAvailable, launchDetached } from "../backends/utils";
 
 export const pintaAnnotator: AnnotatorBackend = {
 	id: "pinta",
@@ -10,8 +9,6 @@ export const pintaAnnotator: AnnotatorBackend = {
 	isAvailable: () => isCommandAvailable("pinta"),
 
 	annotate: async (imagePath: string) => {
-		await new Promise<void>((resolve) => {
-			exec(`pinta "${shellEscape(imagePath)}"`, () => resolve());
-		});
+		await launchDetached("pinta", [imagePath]);
 	},
 };

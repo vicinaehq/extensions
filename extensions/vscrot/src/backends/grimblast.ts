@@ -13,6 +13,7 @@ export const grimblastBackend: CaptureBackend = {
 	id: "grimblast",
 	displayName: "grimblast (Hyprland)",
 	supportedModes: ["area", "window", "monitor", "full"],
+	targetsNamedOutput: true,
 
 	isAvailable: () => isCommandAvailable("grimblast"),
 

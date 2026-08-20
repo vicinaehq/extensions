@@ -1,5 +1,6 @@
 import { sattyAnnotator } from "./satty";
 import { swappyAnnotator } from "./swappy";
+import { spectacleAnnotator } from "./spectacle";
 import { gimpAnnotator } from "./gimp";
 import { pintaAnnotator } from "./pinta";
 import { mspaintAnnotator } from "./mspaint";
@@ -12,6 +13,7 @@ export type { AnnotatorBackend, AnnotationMode } from "./types";
 export const ALL_ANNOTATORS: AnnotatorBackend[] = [
 	sattyAnnotator,
 	swappyAnnotator,
+	spectacleAnnotator,
 	gimpAnnotator,
 	pintaAnnotator,
 	mspaintAnnotator,

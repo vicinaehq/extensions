@@ -29,7 +29,7 @@ export const annotateWith = async (
 
 	// Manual-save: open the editor in the background, stay in Vicinae
 	try {
-		annotator.annotate(imagePath);
+		await annotator.annotate(imagePath);
 	} catch (e) {
 		console.error("Failed to launch annotator", e);
 		showHUD(`Failed to open ${annotator.displayName}`);

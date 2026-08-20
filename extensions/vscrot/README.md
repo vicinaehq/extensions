@@ -93,14 +93,8 @@ Auto-detection priority: satty → swappy → GIMP → Pinta → Paint
 
 ## Clipboard Tools
 
-Images are copied to the clipboard using platform-native tools with automatic fallback:
-
-| Tool | Platform | Link |
-|---|---|---|
-| **wl-copy** (wl-clipboard) | Linux Wayland (primary) | [wl-clipboard](https://github.com/bugaevc/wl-clipboard) |
-| **xclip** | Linux X11 (fallback) | [xclip](https://github.com/astrand/xclip) |
-| **pbcopy** | macOS (built-in) | - |
-| PowerShell clipboard | Windows (built-in) | - |
+Images are copied through Vicinae's own clipboard API (`Clipboard.copy`), so no
+external clipboard tool is required on any platform.
 
 ---
 

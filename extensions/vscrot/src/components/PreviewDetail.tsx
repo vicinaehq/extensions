@@ -38,7 +38,11 @@ export function PreviewDetail({
 
 	return (
 		<Detail
-			markdown={`![Preview](${imagePath}?${Date.now()})`}
+			// A query string appended to a filesystem path is not cache-busting: the
+			// renderer looks for a file literally named "capture.png?1234" and shows a
+			// broken image. Use a file:// URI and carry the cache-buster in the
+			// fragment, which is not part of the path.
+			markdown={`![Preview](file://${imagePath}#${Date.now()})`}
 			navigationTitle="Screenshot Preview"
 			actions={
 				<ActionPanel>
