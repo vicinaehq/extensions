@@ -1,5 +1,5 @@
 import { exec } from "node:child_process";
-import { existsSync, mkdirSync, unlinkSync } from "node:fs";
+import { existsSync, mkdirSync, statSync, unlinkSync } from "node:fs";
 import { dirname } from "node:path";
 import { closeMainWindow, showHUD } from "@vicinae/api";
 import { TEMP_PATH, getSavePath } from "./filesystem";
@@ -35,6 +35,12 @@ export const captureScreenshot = async (
 	const native = isNativeHandoff();
 	const target = native ? getSavePath(getPrefs()) : TEMP_PATH;
 	if (native) mkdirSync(dirname(target), { recursive: true });
+	// The native target is the user's own screenshot directory, and nothing
+	// reserves the formatted filename there: a name the user has captured before
+	// — certain with a filename_format that omits %S, and reachable on the
+	// default one by shooting twice in the same second — already exists. Existence
+	// alone would then hand back that old screenshot and report it as saved.
+	const before = existsSync(target) ? statSync(target).mtimeMs : -1;
 
 	try {
 		if (!native && existsSync(TEMP_PATH)) unlinkSync(TEMP_PATH);
@@ -46,7 +52,8 @@ export const captureScreenshot = async (
 		exec("vicinae open");
 		// Some tools exit cleanly when the user dismisses the selector
 		// (gnome-screenshot -a among them) and simply write nothing.
-		return existsSync(target) ? target : null;
+		if (!existsSync(target)) return null;
+		return statSync(target).mtimeMs > before ? target : null;
 	} catch (e) {
 		exec("vicinae open");
 		// Backends raise CaptureCancelled when the user backed out, and that is
