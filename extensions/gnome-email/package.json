@@ -11,6 +11,7 @@
   "pastContributors": [],
   "icon": "gnome-email-icon.svg",
   "dependencies": {
+    "@esbuild/linux-x64": "0.25.12",
     "@vicinae/api": "^0.22.2",
     "dbus-next": "^0.10.2",
     "imapflow": "^1.0.195",
