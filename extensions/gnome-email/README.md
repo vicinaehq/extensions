@@ -66,7 +66,7 @@ When disabled, the extension may open mailboxes with write access and exposes th
 
 ### Show Images
 
-Default: **enabled**
+Default: **disabled**
 
 When enabled, the detail view displays embedded images and permits remote images referenced by an email to load. Remote images can reveal that a message was opened, for example through tracking pixels.
 
@@ -84,11 +84,11 @@ Default: **disabled**
 
 When enabled, untrusted TLS certificates are accepted only from loopback IMAP hosts. Enable this only for a trusted local bridge that requires it. It never disables certificate validation for a remote server.
 
-### Maximum Message Download Size
+### Maximum Message Processing Size
 
 Default: **10 MiB**
 
-Select a 2, 5, 10, or 25 MiB processing limit when a message detail is opened. For IMAP, it caps the complete raw MIME source—including text, HTML, embedded images, and attachments. For Microsoft Graph, it limits the returned body and extracted inline images. Lower values reduce network, memory, and disk usage; higher values improve rendering of long or attachment-heavy messages.
+Select a 2, 5, 10, or 25 MiB processing limit when a message detail is opened. For IMAP, it caps the complete raw MIME source—including text, HTML, embedded images, and attachments. For Microsoft Graph, it limits the body and extracted inline-image data retained for rendering after Graph has returned the response; it does not cap the network response size. Lower values reduce local memory and disk use; higher values improve rendering of long or attachment-heavy messages.
 
 ## Privacy and data handling
 
@@ -96,7 +96,7 @@ Select a 2, 5, 10, or 25 MiB processing limit when a message detail is opened. F
 - The **All Inboxes** snapshot stores account configuration plus message subjects, senders, dates, read state, and attachment metadata in Vicinae's local, unencrypted `Cache`. Bodies and credentials are not included. The cache is limited to 5 MiB and remains subject to Vicinae's LRU eviction.
 - Message bodies are fetched only when their detail view is opened.
 - Remote message images are allowed only when **Show Images** is enabled. Disable it to reduce tracking and privacy risks.
-- Extracted embedded images are retained under the extension support directory for at most seven days. Old files are removed when the command starts, and **Clear Message Image Cache** removes all extracted files immediately.
+- Extracted embedded images are stored under the extension support directory. Files older than seven days are removed the next time the command starts, and **Clear Message Image Cache** removes all extracted files immediately.
 - Account-domain favicons are requested from Google's S2 favicon service only when **Show Account Favicons** is enabled. The request includes the domain portion of the account address, never the local part or complete address.
 - No analytics or telemetry are collected by the extension.
 

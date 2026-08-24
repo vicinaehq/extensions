@@ -39,11 +39,11 @@ async function inlineImages(account: GraphMailAccount, messageId: string, maxByt
     await mkdir(directory, { recursive: true });
 
     const extension = attachment.contentType.split("/")[1]?.replace("jpeg", "jpg") || "img";
-    const fileName = safeFileName(attachment.name || `${createHash("sha256").update(attachment.contentId).digest("hex")}.${extension}`);
-    const target = path.join(directory, fileName);
+    const contentId = attachment.contentId.replace(/^<|>$/g, "");
+    const target = path.join(directory, `${createHash("sha256").update(contentId).digest("hex")}.${extension}`);
     await writeFile(target, content);
 
-    images.set(attachment.contentId.replace(/^<|>$/g, ""), target);
+    images.set(contentId, target);
   }
 
   return images;

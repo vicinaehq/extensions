@@ -22,10 +22,10 @@ async function saveEmbeddedImages(account: ImapMailAccount, mailboxPath: string,
     if (!attachment.contentType.startsWith("image/") || !attachment.cid) continue;
     await mkdir(directory, { recursive: true });
     const extension = attachment.contentType.split("/")[1]?.replace("jpeg", "jpg") || "img";
-    const name = safeFileName(attachment.filename || `${createHash("sha256").update(attachment.cid).digest("hex")}.${extension}`);
-    const target = path.join(directory, name);
+    const contentId = attachment.cid.replace(/^<|>$/g, "");
+    const target = path.join(directory, `${createHash("sha256").update(contentId).digest("hex")}.${extension}`);
     await writeFile(target, attachment.content);
-    images.set(attachment.cid.replace(/^<|>$/g, ""), target);
+    images.set(contentId, target);
   }
   return images;
 }

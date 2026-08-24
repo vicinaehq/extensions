@@ -13,11 +13,9 @@
   "dependencies": {
     "@vicinae/api": "^0.22.2",
     "dbus-next": "^0.10.2",
-    "debug": "^4.4.1",
     "imapflow": "^1.0.195",
     "mailparser": "^3.7.4",
-    "turndown": "^7.2.0",
-    "x11": "^2.3.0"
+    "turndown": "^7.2.0"
   },
   "devDependencies": {
     "@types/mailparser": "^3.4.6",
@@ -75,8 +73,8 @@
     {
       "name": "messageDownloadLimitMb",
       "type": "dropdown",
-      "title": "Maximum Message Download Size",
-      "description": "Maximum raw MIME message source to download when opening a message. This includes the body, embedded images, and attachments.",
+      "title": "Maximum Message Processing Size",
+      "description": "Maximum message data to retain for rendering when opening a message. For IMAP, this also caps the raw MIME source download; Microsoft Graph responses are limited after download.",
       "default": "10",
       "required": true,
       "data": [

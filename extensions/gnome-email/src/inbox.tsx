@@ -4,8 +4,10 @@ import {
   getPreferenceValues,
   Icon,
   List,
+  showToast,
+  Toast,
 } from "@vicinae/api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { accountAccessories } from "./features/inbox/account-accessories";
 import {
   ALL_INBOXES,
@@ -20,6 +22,7 @@ import type { Preferences } from "./types";
 export default function Inbox() {
   const preferences = getPreferenceValues<Preferences>();
   const [emailAppTarget, setEmailAppTarget] = useState<EmailAppTarget>("default");
+  const displayedError = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     void detectEmailAppTarget().then(setEmailAppTarget);
@@ -45,6 +48,20 @@ export default function Inbox() {
   } = useInbox(preferences);
   const isRemoteSearch = searchScope === "remote" && Boolean(searchText.trim());
   const isInitialLoading = isLoading && messages.length === 0;
+
+  useEffect(() => {
+    if (!error || messages.length === 0 || displayedError.current === error) return;
+    displayedError.current = error;
+    void showToast({
+      style: Toast.Style.Failure,
+      title: "Some accounts could not be loaded",
+      message: error.replace(/\n/g, " "),
+    });
+  }, [error, messages.length]);
+
+  useEffect(() => {
+    if (!error) displayedError.current = undefined;
+  }, [error]);
   const maxMessageSizeMb = Number(preferences.messageDownloadLimitMb) || 10;
 
   return (
