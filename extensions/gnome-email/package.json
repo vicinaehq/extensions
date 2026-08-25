@@ -12,12 +12,12 @@
   "icon": "gnome-email-icon.svg",
   "dependencies": {
     "@esbuild/linux-x64": "0.25.12",
-    "@vicinae/api": "^0.22.2",
+    "@vicinae/api": "^0.26.3",
     "dbus-next": "^0.10.2",
     "imapflow": "^1.0.195",
     "mailparser": "^3.7.4",
     "turndown": "^7.2.0",
-    "x11": "^2.3.0"
+    "x11": "^4.0.1"
   },
   "devDependencies": {
     "@types/mailparser": "^3.4.6",
