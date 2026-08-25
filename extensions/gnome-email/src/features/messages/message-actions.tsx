@@ -16,6 +16,8 @@ type MessageActionsProps = {
   readOnlyMode: boolean;
   onReadStateChange: (unread: boolean) => void;
   archiveMailboxPath?: string;
+  onArchiveStart: () => boolean;
+  onArchiveEnd: () => void;
   onArchived: () => void;
   onReload: () => void;
 };
@@ -29,6 +31,8 @@ export function MessageActions({
   readOnlyMode,
   onReadStateChange,
   archiveMailboxPath,
+  onArchiveStart,
+  onArchiveEnd,
   onArchived,
   onReload,
 }: MessageActionsProps) {
@@ -37,12 +41,20 @@ export function MessageActions({
       await showToast({ style: Toast.Style.Failure, title: "Could not archive message", message: "This account has no Archive mailbox." });
       return;
     }
+    if (!onArchiveStart()) {
+      await showToast({ style: Toast.Style.Failure, title: "Another message is already being archived" });
+      return;
+    }
+
     try {
+      await showToast({ style: Toast.Style.Animated, title: "Archiving message…" });
       await archiveMessage(account, message.mailboxPath, message.remoteId, archiveMailboxPath);
       onArchived();
       await showToast({ style: Toast.Style.Success, title: "Message archived" });
     } catch (cause) {
       await showToast({ style: Toast.Style.Failure, title: "Could not archive message", message: errorMessage(cause) });
+    } finally {
+      onArchiveEnd();
     }
   };
 
@@ -89,7 +101,7 @@ export function MessageActions({
         onAction={() => { void openInDefaultEmailApp(message, emailAppTarget); }}
       />
       {!readOnlyMode ? (
-        <Action title="Archive" icon={Icon.Box} shortcut={{ modifiers: ["ctrl"], key: "a" }} onAction={() => { void archive(); }} />
+        <Action title="Archive" icon={Icon.Box} shortcut={{ modifiers: ["ctrl", "shift"], key: "a" }} onAction={() => { void archive(); }} />
       ) : null}
       {!readOnlyMode ? (
         <Action

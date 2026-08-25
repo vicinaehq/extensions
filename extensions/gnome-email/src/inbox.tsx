@@ -23,6 +23,7 @@ export default function Inbox() {
   const preferences = getPreferenceValues<Preferences>();
   const [emailAppTarget, setEmailAppTarget] = useState<EmailAppTarget>("default");
   const displayedError = useRef<string | undefined>(undefined);
+  const archivingMessage = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     void detectEmailAppTarget().then(setEmailAppTarget);
@@ -195,6 +196,14 @@ export default function Inbox() {
                     ? undefined
                     : archiveMailbox?.path
                 }
+                onArchiveStart={() => {
+                  if (archivingMessage.current) return false;
+                  archivingMessage.current = message.id;
+                  return true;
+                }}
+                onArchiveEnd={() => {
+                  if (archivingMessage.current === message.id) archivingMessage.current = undefined;
+                }}
                 onArchived={() => {
                   removeMessage(message.id);
                 }}

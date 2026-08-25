@@ -9,5 +9,10 @@ export function mailboxValue(mailbox: Mailbox): string {
 export function findArchiveMailbox(mailboxes: Mailbox[], accountId: string): Mailbox | undefined {
   const accountMailboxes = mailboxes.filter((mailbox) => mailbox.accountId === accountId);
   return accountMailboxes.find((mailbox) => mailbox.specialUse === "\\Archive")
-    ?? accountMailboxes.find((mailbox) => mailbox.name.toLowerCase() === "archive" || mailbox.path.toLowerCase() === "archive");
+    ?? accountMailboxes.find((mailbox) => mailbox.specialUse === "\\All")
+    ?? accountMailboxes.find((mailbox) => {
+      const name = mailbox.name.toLowerCase();
+      const path = mailbox.path.toLowerCase();
+      return name === "archive" || path === "archive" || name === "all mail" || path.endsWith("/all mail");
+    });
 }
