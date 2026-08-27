@@ -172,31 +172,24 @@ export async function fetchOpencodegoUsageWithApiKey(
       }
     }
 
-    // Fallback to Go defaults when API returns empty (user expects 5h/weekly/monthly)
-    let primary: OpencodegoQuota | null = null;
     if (quotas.length === 0) {
-      primary = { label: "5-Hour", used: 0, limit: 100, unit: "%", resetsAt: null };
-      quotas.push(
-        { label: "Weekly", used: 0, limit: 100, unit: "%", resetsAt: null },
-        { label: "Monthly", used: 0, limit: 100, unit: "%", resetsAt: null },
-      );
-      rollingResetsAt = null;
-    } else {
-      // Primary is rolling (5-Hour) if present, else first quota
-      const rQuota = rolling.quota ? { ...rolling.quota, resetsAt: rolling.resetsAt } : null;
-      primary = rQuota ?? quotas[0];
-      // Attach correct reset to primary
-      if (primary && !primary.resetsAt) {
-        if (primary.label === "5-Hour") primary = { ...primary, resetsAt: rollingResetsAt };
-        else if (primary.label === "Weekly") primary = { ...primary, resetsAt: weeklyResetsAt };
-        else if (primary.label === "Monthly") primary = { ...primary, resetsAt: monthlyResetsAt };
-      }
-      // Deduplicate primary from quotas list
-      if (primary && quotas.length > 0 && quotas[0].label === primary.label && quotas[0].used === primary.used) {
-        quotas.shift();
-      }
-      if (!primary) primary = { label: "Primary", used: 0, limit: 100, unit: "%", resetsAt: null };
+      return {
+        usage: null,
+        error: { type: "parse_error", message: "OpenCode Go response did not contain usable quota data." },
+      };
     }
+    let primary: OpencodegoQuota | null = null;
+    const rQuota = rolling.quota ? { ...rolling.quota, resetsAt: rolling.resetsAt } : null;
+    primary = rQuota ?? quotas[0];
+    if (primary && !primary.resetsAt) {
+      if (primary.label === "5-Hour") primary = { ...primary, resetsAt: rollingResetsAt };
+      else if (primary.label === "Weekly") primary = { ...primary, resetsAt: weeklyResetsAt };
+      else if (primary.label === "Monthly") primary = { ...primary, resetsAt: monthlyResetsAt };
+    }
+    if (primary && quotas.length > 0 && quotas[0].label === primary.label && quotas[0].used === primary.used) {
+      quotas.shift();
+    }
+    if (!primary) primary = { label: "Primary", used: 0, limit: 100, unit: "%", resetsAt: null };
 
     const usage: OpencodegoUsage = {
       planName: (raw.plan as string) || (data as Record<string, unknown>).plan as string || "OpenCode Go",

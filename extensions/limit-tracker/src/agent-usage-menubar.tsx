@@ -2,6 +2,7 @@ import {
   getPreferenceValues,
   Icon,
   MenuBarExtra,
+  open,
   openCommandPreferences,
   showHUD,
   Keyboard,
@@ -283,7 +284,7 @@ export default function MenuBarCommand() {
             icon={agent.icon}
             title={getMenuItemTitle(agent.name, agent.accessory.text, agent.isLoading, agent.isOpenCodeActive)}
             tooltip={getMenuItemTooltip(agent.accessory.tooltip)}
-            onAction={() => openCommandPreferences()}
+            onAction={() => open("vicinae://extensions/limit-tracker/agent-usage")}
           />
         ))}
       </MenuBarExtra.Section>
@@ -298,7 +299,7 @@ export default function MenuBarCommand() {
           title="Open Agent Usage"
           icon={Icon.List}
           shortcut={{ modifiers: ["cmd"], key: "o" }}
-          onAction={() => openCommandPreferences()}
+          onAction={() => open("vicinae://extensions/limit-tracker/agent-usage")}
         />
         <MenuBarExtra.Item title="Configure Command" icon={Icon.Gear} onAction={openCommandPreferences} />
       </MenuBarExtra.Section>

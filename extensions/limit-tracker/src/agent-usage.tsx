@@ -6,6 +6,7 @@ import {
   Icon,
   List,
   LocalStorage,
+  openExtensionPreferences,
   showToast,
   Toast,
   useNavigation,
@@ -513,10 +514,14 @@ export default function Command(props: LaunchProps<{ launchContext: CommandLaunc
     }
     lastGlobalRefreshRef.current = now;
 
+    const seenRevalidates = new Set<() => Promise<void>>();
     for (const row of baseRows) {
+      const revalidate = row.view.revalidate;
+      if (seenRevalidates.has(revalidate)) continue;
+      seenRevalidates.add(revalidate);
       const id = row.kind === "agent" ? row.view.id : row.view.agentId;
       if (refreshingRef.current.has(id)) continue;
-      await handleRefresh(id, row.view.revalidate);
+      await handleRefresh(id, revalidate);
       await new Promise((r) => setTimeout(r, 1500));
     }
     await showToast({ title: "Refreshed", message: "All agents updated.", style: Toast.Style.Success });
@@ -544,11 +549,11 @@ export default function Command(props: LaunchProps<{ launchContext: CommandLaunc
             icon={Icon.RotateAntiClockwise}
             onAction={resetAgentOrder}
           />
-          <Action.OpenInBrowser
+          <Action
             title="Open Extension Preferences"
-            url="vicinae://extension-preferences"
             icon={Icon.Gear}
             shortcut={{ modifiers: ["cmd"], key: "," }}
+            onAction={() => openExtensionPreferences()}
           />
         </ActionPanel>
       }
@@ -600,7 +605,10 @@ export default function Command(props: LaunchProps<{ launchContext: CommandLaunc
             icon={getListIcon(view.icon)}
             accessories={[{ text: accessory.text, tooltip: accessory.tooltip, icon: accessory.icon }]}
             detail={
-              <List.Item.Detail metadata={view.renderDetail()} />
+              <List.Item.Detail
+                markdown={view.error ? formatErrorMarkdown(view.error.message) : undefined}
+                metadata={view.error ? undefined : view.renderDetail()}
+              />
             }
             actions={
               <ActionPanel>

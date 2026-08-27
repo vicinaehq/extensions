@@ -66,7 +66,7 @@ On Linux/macOS the dev flow works directly.
 
 - **Claude** — OAuth API; 5-hour, weekly, and per-model (Sonnet, Opus, etc.) limits with individual reset timers.
 - **Codex** — OAuth API; 5-hour, weekly, code review limits, credits, and manual-reset credit bank.
-- **Copilot** — GitHub device flow + internal usage API.
+- **Copilot** — Reads an existing GitHub token from your environment or extension preferences and queries the internal usage API.
 - **Cursor** — Browser session cookies for plan + usage + billing resets.
 - **DeepSeek** — API key for credit balance tracking.
 - **Gemini** — OAuth-backed quota API using Gemini CLI credentials.

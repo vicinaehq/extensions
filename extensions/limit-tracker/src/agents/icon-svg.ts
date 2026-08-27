@@ -10,14 +10,10 @@ const PAINT_ATTR_REPLACE_PATTERN = /((?:fill|stroke)\s*=\s*["'])([^"']+)(["'])/g
 const PAINT_CSS_REPLACE_PATTERN = /((?:fill|stroke)\s*:\s*)([^;}"'\s]+)/gi;
 
 export const DARK_MODE_INVERTED_LIST_ICONS = [
-  "clinepass-icon.svg",
   "codex-icon.svg",
   "copilot-icon.svg",
   "cursor-icon.svg",
-  "droid-icon.svg",
-  "grok-icon.svg",
   "opencode-go-icon.svg",
-  "synthetic-icon.svg",
   "zai-icon.svg",
 ] as const;
 

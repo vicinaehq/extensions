@@ -15,14 +15,10 @@ import {
 
 test("dark-mode list icon allowlist contains exactly the requested agents", () => {
   assert.deepEqual(DARK_MODE_INVERTED_LIST_ICONS, [
-    "clinepass-icon.svg",
     "codex-icon.svg",
     "copilot-icon.svg",
     "cursor-icon.svg",
-    "droid-icon.svg",
-    "grok-icon.svg",
     "opencode-go-icon.svg",
-    "synthetic-icon.svg",
     "zai-icon.svg",
   ]);
 
