@@ -12,12 +12,19 @@ export function useCachedPromise<T, Args extends unknown[]>(
   const argsKey = JSON.stringify(args);
   const fnRef = useRef(fn);
   const argsRef = useRef(args);
+  const argsKeyRef = useRef(argsKey);
   fnRef.current = fn;
   argsRef.current = args;
 
   useEffect(() => {
     let cancelled = false;
+    const argsChanged = argsKeyRef.current !== argsKey;
+    argsKeyRef.current = argsKey;
     setIsLoading(true);
+    setError(undefined);
+    if (argsChanged) {
+      setData(options?.initialData);
+    }
 
     fnRef
       .current(...argsRef.current)
