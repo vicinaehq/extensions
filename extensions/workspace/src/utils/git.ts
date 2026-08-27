@@ -31,7 +31,7 @@ export async function checkoutGitBranch(repoPath: string, branch: string): Promi
   if (!(await isGitAvailable())) return false;
 
   try {
-    await execFileAsync("git", ["checkout", "--", branch], { cwd: repoPath, timeout: GIT_TIMEOUT_MS });
+    await execFileAsync("git", ["checkout", branch], { cwd: repoPath, timeout: GIT_TIMEOUT_MS });
     return true;
   } catch {
     return false;
