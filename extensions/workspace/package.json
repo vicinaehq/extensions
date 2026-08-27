@@ -4,9 +4,7 @@
   "title": "Workspace",
   "description": "Manage and access your workspace projects. Boost your focus with quick project opening, git status tracking, and customizable application overrides.",
   "icon": "extension-icon.png",
-  "author": "tiagemiguel",
-  "contributors": [],
-  "pastContributors": [],
+  "author": "tiagem",
   "version": "1.0.0",
   "license": "MIT",
   "platforms": [

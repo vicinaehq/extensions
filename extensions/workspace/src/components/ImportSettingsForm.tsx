@@ -46,15 +46,16 @@ export default function ImportSettingsForm({ onImport }: ImportSettingsFormProps
       navigationTitle="Import Settings"
     >
       <Form.Description
-        text="Paste the full path to your JSON backup. You can copy it from Finder or your file manager."
+        text="Pick a JSON backup exported from this extension. Workspaces, apps, pins, recents, and other settings are restored."
         title="How to Import"
       />
-      <Form.TextField
+      <Form.FilePicker
+        canChooseDirectories={false}
+        canChooseFiles
         error={error}
         id="file"
         onChange={() => setError(undefined)}
-        placeholder="~/Downloads/workspace-settings.json"
-        title="Settings File Path"
+        title="Settings File"
       />
     </Form>
   );

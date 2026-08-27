@@ -5,7 +5,7 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useProjectDiscovery } from "@/hooks/useProjectDiscovery";
 import { useRecentProjects } from "@/hooks/useRecentProjects";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
-import { App, ExportedSettings, Project, RecentProject, ViewMode } from "@/types";
+import { App, ExportedSettings, Project, RecentProject } from "@/types";
 import { getFzfPath } from "@/utils/fzf";
 import { isGitAvailable } from "@/utils/git";
 import { keepSavedProjectPaths } from "@/utils/projects";
@@ -35,17 +35,14 @@ export interface UseWorkspaceReturn {
   showRecentProjects: boolean;
   terminalApp: App | null;
   togglePinProject: (projectPath: string) => Promise<void>;
-  toggleViewMode: () => Promise<void>;
   updateDefaultApp: (app: App | null) => Promise<void>;
   updateRecentProjectsCount: (count: number) => Promise<void>;
   updateShowFzfStatus: (show: boolean) => Promise<void>;
   updateShowGitStatus: (show: boolean) => Promise<void>;
   updateShowRecentProjects: (show: boolean) => Promise<void>;
   updateTerminalApp: (app: App | null) => Promise<void>;
-  updateViewMode: (mode: ViewMode) => Promise<void>;
   updateWorkspaceApps: (newWorkspaceApps: Record<string, App>) => Promise<void>;
   updateWorkspaces: (newWorkspaces: string[]) => Promise<void>;
-  viewMode: ViewMode;
   workspaceApps: Record<string, App>;
   workspaces: string[];
 }
@@ -87,7 +84,6 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
     showGitStatus: pref.showGitStatus,
     showRecentProjects: pref.showRecentProjects,
     terminalApp: pref.terminalApp,
-    viewMode: pref.viewMode,
     workspaceApps: ws.workspaceApps,
     workspaces: ws.workspaces,
   });
@@ -104,7 +100,6 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
       pref.updateShowRecentProjects(settings.showRecentProjects),
       rp.updateRecentProjects(settings.recentProjects),
       rp.updateRecentProjectsCount(settings.recentProjectsCount),
-      pref.updateViewMode(settings.viewMode),
       pref.setOnboardingCompleted(settings.onboardingCompleted),
     ]);
   };
@@ -159,17 +154,14 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
     showRecentProjects: pref.showRecentProjects,
     terminalApp: pref.terminalApp,
     togglePinProject: rp.togglePinProject,
-    toggleViewMode: pref.toggleViewMode,
     updateDefaultApp: pref.updateDefaultApp,
     updateRecentProjectsCount: rp.updateRecentProjectsCount,
     updateShowFzfStatus: pref.updateShowFzfStatus,
     updateShowGitStatus: pref.updateShowGitStatus,
     updateShowRecentProjects: pref.updateShowRecentProjects,
     updateTerminalApp: pref.updateTerminalApp,
-    updateViewMode: pref.updateViewMode,
     updateWorkspaceApps: ws.updateWorkspaceApps,
     updateWorkspaces: ws.updateWorkspaces,
-    viewMode: pref.viewMode,
     workspaceApps: ws.workspaceApps,
     workspaces: ws.isHydrated || !discover ? ws.workspaces : pd.cachedWorkspaces,
   };

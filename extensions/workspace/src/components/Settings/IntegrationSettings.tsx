@@ -33,101 +33,103 @@ export default function IntegrationSettings({
     });
   };
 
+  const gitStatusLabel =
+    gitAvailable === null ? "Checking…" : gitAvailable ? "Installed" : "Not installed";
+  const fzfStatusLabel =
+    fzfAvailable === null ? "Checking…" : fzfAvailable ? "Installed" : "Not installed";
+
   return (
     <>
-      <List.Section title="Integration - Git">
-        <List.Item
-          accessories={[
-            {
-              tag: {
-                color: gitAvailable ? Color.Green : Color.Red,
-                value: gitAvailable ? "Available" : "Not installed",
-              },
-            },
-          ]}
-          icon={Icon.Shuffle}
-          subtitle={
-            gitAvailable === null
-              ? "Checking..."
-              : gitAvailable
-                ? "Branch and sync status shown per project"
-                : "Install Git to see branch and sync status"
-          }
-          title="Git Integration"
-        />
-        {gitAvailable && (
-          <List.Item
-            accessories={[
-              {
-                tag: {
-                  color: showGitStatus ? Color.Green : Color.SecondaryText,
-                  value: showGitStatus ? "Enabled" : "Disabled",
-                },
-              },
-            ]}
-            actions={
-              <ActionPanel>
-                <ActionPanel.Section title="Git Status">
-                  <Action
-                    onAction={toggleGitStatus}
-                    title={showGitStatus ? "Disable Git Status" : "Enable Git Status"}
-                  />
-                </ActionPanel.Section>
-              </ActionPanel>
+      <List.Item
+        actions={
+          gitAvailable ? (
+            <ActionPanel>
+              <ActionPanel.Section title="Git Status">
+                <Action
+                  onAction={toggleGitStatus}
+                  title={showGitStatus ? "Disable Git Status" : "Enable Git Status"}
+                />
+              </ActionPanel.Section>
+            </ActionPanel>
+          ) : undefined
+        }
+        detail={
+          <List.Item.Detail
+            markdown={
+              gitAvailable
+                ? "Show branch, uncommitted files, and ahead/behind next to each project. Checkout, pull, and the commit log stay on the project actions."
+                : "Install Git to show branch and sync status on each project."
             }
-            icon={Icon.Shuffle}
-            subtitle="Show branch and sync status in the list"
-            title="Show Git Status"
-          />
-        )}
-      </List.Section>
-
-      <List.Section title="Integration - FZF">
-        <List.Item
-          accessories={[
-            {
-              tag: {
-                color: fzfAvailable ? Color.Green : Color.Red,
-                value: fzfAvailable ? "Available" : "Not installed",
-              },
-            },
-          ]}
-          icon={Icon.MagnifyingGlass}
-          subtitle={
-            fzfAvailable === null
-              ? "Checking..."
-              : fzfAvailable
-                ? "Standard FZF search algorithm enabled"
-                : "Install FZF to enable advanced fuzzy search"
-          }
-          title="FZF (Smart Search)"
-        />
-        {fzfAvailable && (
-          <List.Item
-            accessories={[
-              {
-                tag: {
-                  color: showFzfStatus ? Color.Green : Color.SecondaryText,
-                  value: showFzfStatus ? "Enabled" : "Disabled",
-                },
-              },
-            ]}
-            actions={
-              <ActionPanel>
-                <ActionPanel.Section title="Search">
-                  <Action
-                    onAction={() => updateShowFzfStatus(!showFzfStatus)}
-                    title={showFzfStatus ? "Disable FZF Search" : "Enable FZF Search"}
+            metadata={
+              <List.Item.Detail.Metadata>
+                <List.Item.Detail.Metadata.TagList title="Git">
+                  <List.Item.Detail.Metadata.TagList.Item
+                    color={gitAvailable ? Color.Green : Color.Red}
+                    text={gitStatusLabel}
                   />
-                </ActionPanel.Section>
-              </ActionPanel>
+                </List.Item.Detail.Metadata.TagList>
+                {gitAvailable ? (
+                  <List.Item.Detail.Metadata.TagList title="Show status">
+                    <List.Item.Detail.Metadata.TagList.Item
+                      color={showGitStatus ? Color.Green : Color.SecondaryText}
+                      text={showGitStatus ? "Enabled" : "Disabled"}
+                    />
+                  </List.Item.Detail.Metadata.TagList>
+                ) : null}
+              </List.Item.Detail.Metadata>
             }
-            icon={Icon.MagnifyingGlass}
-            subtitle="Toggle fuzzy search for your projects"
-            title="Use FZF for Search"
           />
-        )}
-      </List.Section>
+        }
+        icon={Icon.Shuffle}
+        id="git"
+        keywords={["git", "branch", "status"]}
+        title="Git"
+      />
+      <List.Item
+        actions={
+          fzfAvailable ? (
+            <ActionPanel>
+              <ActionPanel.Section title="fzf">
+                <Action
+                  onAction={() => updateShowFzfStatus(!showFzfStatus)}
+                  title={showFzfStatus ? "Disable FZF Search" : "Enable FZF Search"}
+                />
+              </ActionPanel.Section>
+            </ActionPanel>
+          ) : undefined
+        }
+        detail={
+          <List.Item.Detail
+            markdown={
+              fzfAvailable
+                ? "Use fzf for fuzzy project search when it is installed. Turn this off to fall back to substring matching."
+                : "Install fzf to enable fuzzy search. Without it, search uses substring matching."
+            }
+            metadata={
+              <List.Item.Detail.Metadata>
+                <List.Item.Detail.Metadata.TagList title="fzf">
+                  <List.Item.Detail.Metadata.TagList.Item
+                    color={fzfAvailable ? Color.Green : Color.Red}
+                    text={fzfStatusLabel}
+                  />
+                </List.Item.Detail.Metadata.TagList>
+                {fzfAvailable ? (
+                  <List.Item.Detail.Metadata.TagList title="Use fzf">
+                    <List.Item.Detail.Metadata.TagList.Item
+                      color={showFzfStatus ? Color.Green : Color.SecondaryText}
+                      text={showFzfStatus ? "Enabled" : "Disabled"}
+                    />
+                  </List.Item.Detail.Metadata.TagList>
+                ) : null}
+              </List.Item.Detail.Metadata>
+            }
+          />
+        }
+        icon={Icon.MagnifyingGlass}
+        id="fzf"
+        keywords={["fzf", "fuzzy", "search"]}
+        title="fzf"
+      />
     </>
   );
 }

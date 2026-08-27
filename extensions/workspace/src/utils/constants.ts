@@ -9,6 +9,5 @@ export const STORAGE_KEY_SHOW_GIT_STATUS = "workspace-show-git-status";
 export const STORAGE_KEY_SHOW_RECENT_PROJECTS = "workspace-show-recent-projects";
 export const STORAGE_KEY_RECENT_PROJECTS_COUNT = "workspace-recent-projects-count";
 export const STORAGE_KEY_RECENT_PROJECTS = "workspace-recent-projects";
-export const STORAGE_KEY_VIEW_MODE = "workspace-view-mode";
 export const STORAGE_KEY_PROJECTS_CACHE = "workspace-projects-cache";
 export const DEFAULT_RECENT_PROJECTS_COUNT = 5;

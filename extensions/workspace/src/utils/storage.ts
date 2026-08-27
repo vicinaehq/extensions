@@ -90,10 +90,6 @@ export function normalizeImportedSettings(payload: unknown, fallback: ExportedSe
         ? parsedSettings.showRecentProjects
         : fallback.showRecentProjects,
     terminalApp: normalizeApp(parsedSettings.terminalApp),
-    viewMode:
-      parsedSettings.viewMode === "grid" || parsedSettings.viewMode === "list"
-        ? parsedSettings.viewMode
-        : fallback.viewMode,
     workspaceApps:
       parsedSettings.workspaceApps && typeof parsedSettings.workspaceApps === "object"
         ? Object.fromEntries(

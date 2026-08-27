@@ -1,11 +1,21 @@
-import { Action, ActionPanel, Color, Grid, Icon, List, open, runInTerminal, showToast, Toast } from "@vicinae/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Icon,
+  List,
+  open,
+  runInTerminal,
+  showToast,
+  Toast,
+} from "@vicinae/api";
 import path from "path";
 import { useMemo } from "react";
 
 import CheckoutBranch from "@/components/Git/CheckoutBranch";
 import CommitLog from "@/components/Git/CommitLog";
 import Settings from "@/components/Settings";
-import { App, GitStatus, Project, ViewMode } from "@/types";
+import { App, GitStatus, Project } from "@/types";
 import { pullGitBranch } from "@/utils/git";
 
 interface ProjectItemProps {
@@ -18,7 +28,6 @@ interface ProjectItemProps {
   project: Project;
   showGitStatus: boolean;
   terminalApp: App | null;
-  viewMode: ViewMode;
   workspaceApps: Record<string, App>;
   workspacePath: string;
 }
@@ -33,7 +42,6 @@ export default function ProjectItem({
   project,
   showGitStatus,
   terminalApp,
-  viewMode = "list",
   workspaceApps,
   workspacePath,
 }: ProjectItemProps) {
@@ -163,17 +171,6 @@ export default function ProjectItem({
       </ActionPanel.Section>
     </ActionPanel>
   );
-
-  if (viewMode === "grid") {
-    return (
-      <Grid.Item
-        actions={actions}
-        content={Icon.Folder}
-        subtitle={accessories.map((a) => a.tag.value).join("  ")}
-        title={project.name}
-      />
-    );
-  }
 
   return (
     <List.Item

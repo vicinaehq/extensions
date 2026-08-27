@@ -1,4 +1,4 @@
-import { Action, ActionPanel, type Application, Color, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Color, Icon, List, type Application } from "@vicinae/api";
 
 import AddWorkspaceForm from "@/components/AddWorkspaceForm";
 import ImportSettingsForm from "@/components/ImportSettingsForm";
@@ -159,7 +159,7 @@ function OpenSettingsAction({ loadData }: { loadData: () => Promise<void> }) {
     <ActionPanel.Section title="Navigation">
       <Action.Push
         icon={Icon.Cog}
-        shortcut={{ key: ".", modifiers: ["cmd", "shift"] }}
+        shortcut={{ key: ",", modifiers: ["cmd", "shift"] }}
         target={<Settings onWorkspacesChanged={loadData} />}
         title="Open Settings"
       />

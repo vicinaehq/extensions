@@ -14,58 +14,46 @@ export default function RecentProjectsSettings({
   updateShowRecentProjects,
 }: RecentProjectsSettingsProps) {
   return (
-    <List.Section title="Recent Projects">
-      <List.Item
-        accessories={[
-          {
-            tag: {
-              color: showRecentProjects ? Color.Green : Color.SecondaryText,
-              value: showRecentProjects ? "Enabled" : "Disabled",
-            },
-          },
-        ]}
-        actions={
-          <ActionPanel>
-            <ActionPanel.Section title="Recent Projects">
+    <List.Item
+      actions={
+        <ActionPanel>
+          <ActionPanel.Section title="Recent Projects">
+            <Action
+              onAction={() => updateShowRecentProjects(!showRecentProjects)}
+              title={showRecentProjects ? "Disable Recent Projects" : "Enable Recent Projects"}
+            />
+          </ActionPanel.Section>
+          <ActionPanel.Section title="Count">
+            {[3, 5, 7, 10].map((count) => (
               <Action
-                onAction={() => updateShowRecentProjects(!showRecentProjects)}
-                title={showRecentProjects ? "Disable Recent Projects" : "Enable Recent Projects"}
+                key={count}
+                onAction={() => updateRecentProjectsCount(count)}
+                title={`Show ${count} Recent Projects`}
               />
-            </ActionPanel.Section>
-          </ActionPanel>
-        }
-        icon={Icon.Clock}
-        subtitle="Show recently opened projects in the workspace list"
-        title="Show Recent Projects"
-      />
-      {showRecentProjects && (
-        <List.Item
-          accessories={[
-            {
-              tag: {
-                color: Color.SecondaryText,
-                value: `${recentProjectsCount}`,
-              },
-            },
-          ]}
-          actions={
-            <ActionPanel>
-              <ActionPanel.Section title="Count">
-                {[3, 5, 7, 10].map((count) => (
-                  <Action
-                    key={count}
-                    onAction={() => updateRecentProjectsCount(count)}
-                    title={`Show ${count} Recent Projects`}
-                  />
-                ))}
-              </ActionPanel.Section>
-            </ActionPanel>
+            ))}
+          </ActionPanel.Section>
+        </ActionPanel>
+      }
+      detail={
+        <List.Item.Detail
+          markdown="When enabled, recently opened projects appear at the top of the workspace list. Pinned projects are never listed as recent."
+          metadata={
+            <List.Item.Detail.Metadata>
+              <List.Item.Detail.Metadata.TagList title="Status">
+                <List.Item.Detail.Metadata.TagList.Item
+                  color={showRecentProjects ? Color.Green : Color.SecondaryText}
+                  text={showRecentProjects ? "Enabled" : "Disabled"}
+                />
+              </List.Item.Detail.Metadata.TagList>
+              <List.Item.Detail.Metadata.Label title="Count" text={String(recentProjectsCount)} />
+            </List.Item.Detail.Metadata>
           }
-          icon={Icon.AppWindowList}
-          subtitle="Number of recent projects to display"
-          title="Recent Projects Count"
         />
-      )}
-    </List.Section>
+      }
+      icon={Icon.Clock}
+      id="recent-projects"
+      keywords={["recent", "history"]}
+      title="Recent Projects"
+    />
   );
 }

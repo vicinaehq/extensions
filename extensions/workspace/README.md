@@ -21,7 +21,6 @@ Workspace is a [Vicinae](https://vicinae.com) extension for Linux and macOS. Add
 - Fuzzy search, with fzf when it is installed
 - Pin favorites and keep recent projects at the top
 - Git branch, dirty files, and ahead/behind
-- List or grid view
 - Default app, plus a different app per workspace
 - Import and export settings as JSON
 
@@ -37,17 +36,20 @@ Pin the `Workspace` command in Vicinae if you want the fastest loop.
 
 - **Workspace** – Search and open projects
 - **Manage Workspaces** – Add, remove, and reorder workspace folders
-- **Workspace Settings** – Apps, view mode, integrations, and backup
+- **Workspace Settings** – Apps, integrations, and backup
 
 ## Installation
 
-Install it from the Vicinae extension store, or from source:
+Install and start [Vicinae](https://docs.vicinae.com/), then:
 
 ```bash
-cd extensions/workspace
+git clone https://github.com/tiagem/workspace-vicinae.git
+cd workspace-vicinae
 npm install
 npm run build
 ```
+
+Use `npm run dev` while Vicinae is running if you are working on the extension.
 
 See the [Vicinae extension docs](https://docs.vicinae.com/extensions/create) for more detail.
 

@@ -1,4 +1,4 @@
-import { List } from "@vicinae/api";
+import { Action, ActionPanel, Icon, List } from "@vicinae/api";
 
 import GeneralSettings from "@/components/Settings/GeneralSettings";
 import IntegrationSettings from "@/components/Settings/IntegrationSettings";
@@ -30,57 +30,91 @@ export default function Settings({ onWorkspacesChanged, showGeneral = true }: Se
     updateShowGitStatus,
     updateShowRecentProjects,
     updateTerminalApp,
-    updateViewMode,
     updateWorkspaceApps,
     updateWorkspaces,
-    viewMode,
     workspaceApps,
     workspaces,
   } = useWorkspace();
 
-  return (
-    <List
-      navigationTitle={showGeneral ? "Workspace Settings" : "Manage Your Workspaces"}
-      searchBarPlaceholder={showGeneral ? "Search settings..." : "Search for workspaces..."}
-    >
-      {showGeneral && (
-        <>
-          <GeneralSettings
-            defaultApp={defaultApp}
-            onExportSettings={exportSettings}
-            onImportSettings={importSettings}
-            terminalApp={terminalApp}
-            updateDefaultApp={updateDefaultApp}
-            updateTerminalApp={updateTerminalApp}
-            updateViewMode={updateViewMode}
-            viewMode={viewMode}
-          />
-          <RecentProjectsSettings
-            recentProjectsCount={recentProjectsCount}
-            showRecentProjects={showRecentProjects}
-            updateRecentProjectsCount={updateRecentProjectsCount}
-            updateShowRecentProjects={updateShowRecentProjects}
-          />
-          <IntegrationSettings
-            fzfAvailable={fzfAvailable}
-            gitAvailable={gitAvailable}
-            onWorkspacesChanged={onWorkspacesChanged}
-            showFzfStatus={showFzfStatus}
-            showGitStatus={showGitStatus}
-            updateShowFzfStatus={updateShowFzfStatus}
-            updateShowGitStatus={updateShowGitStatus}
-          />
-        </>
-      )}
+  if (!showGeneral) {
+    return (
+      <List
+        isShowingDetail
+        navigationTitle="Manage Your Workspaces"
+        searchBarPlaceholder="Search for workspaces..."
+      >
+        <ManagedWorkspacesSection
+          loadData={loadData}
+          onWorkspacesChanged={onWorkspacesChanged}
+          updateWorkspaceApps={updateWorkspaceApps}
+          updateWorkspaces={updateWorkspaces}
+          workspaceApps={workspaceApps}
+          workspaces={workspaces}
+        />
+      </List>
+    );
+  }
 
-      <ManagedWorkspacesSection
-        loadData={loadData}
-        onWorkspacesChanged={onWorkspacesChanged}
-        updateWorkspaceApps={updateWorkspaceApps}
-        updateWorkspaces={updateWorkspaces}
-        workspaceApps={workspaceApps}
-        workspaces={workspaces}
-      />
+  const workspaceCount = workspaces.length;
+  const workspaceSummary =
+    workspaceCount === 0
+      ? "None added"
+      : `${workspaceCount} workspace${workspaceCount === 1 ? "" : "s"}`;
+
+  return (
+    <List isShowingDetail navigationTitle="Workspace Settings" searchBarPlaceholder="Search settings...">
+      <List.Section title="Settings">
+        <GeneralSettings
+          defaultApp={defaultApp}
+          onExportSettings={exportSettings}
+          onImportSettings={importSettings}
+          terminalApp={terminalApp}
+          updateDefaultApp={updateDefaultApp}
+          updateTerminalApp={updateTerminalApp}
+        />
+        <RecentProjectsSettings
+          recentProjectsCount={recentProjectsCount}
+          showRecentProjects={showRecentProjects}
+          updateRecentProjectsCount={updateRecentProjectsCount}
+          updateShowRecentProjects={updateShowRecentProjects}
+        />
+        <List.Item
+          actions={
+            <ActionPanel>
+              <Action.Push
+                icon={Icon.Folder}
+                target={<Settings onWorkspacesChanged={onWorkspacesChanged} showGeneral={false} />}
+                title="Manage Workspaces"
+              />
+            </ActionPanel>
+          }
+          detail={
+            <List.Item.Detail
+              markdown="Add, remove, and reorder parent folders. You can also set a different app for each workspace."
+              metadata={
+                <List.Item.Detail.Metadata>
+                  <List.Item.Detail.Metadata.Label title="Workspaces" text={workspaceSummary} />
+                </List.Item.Detail.Metadata>
+              }
+            />
+          }
+          icon={Icon.Folder}
+          id="workspaces"
+          keywords={["folder", "directory", "manage"]}
+          title="Workspaces"
+        />
+      </List.Section>
+      <List.Section title="Integrations">
+        <IntegrationSettings
+          fzfAvailable={fzfAvailable}
+          gitAvailable={gitAvailable}
+          onWorkspacesChanged={onWorkspacesChanged}
+          showFzfStatus={showFzfStatus}
+          showGitStatus={showGitStatus}
+          updateShowFzfStatus={updateShowFzfStatus}
+          updateShowGitStatus={updateShowGitStatus}
+        />
+      </List.Section>
     </List>
   );
 }

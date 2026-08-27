@@ -70,15 +70,16 @@ export default function AddWorkspaceForm({ onDone }: AddWorkspaceFormProps) {
       navigationTitle="Add Workspace"
     >
       <Form.Description
-        text="Paste a parent folder path that contains your projects. You can copy it from Finder or your file manager."
+        text="Pick a parent folder that contains your projects. Each top-level folder inside it becomes a project."
         title="How It Works"
       />
-      <Form.TextField
+      <Form.FilePicker
+        canChooseDirectories
+        canChooseFiles={false}
         error={error}
         id="workspace"
         onChange={() => setError(undefined)}
-        placeholder="~/www/projects"
-        title="Workspace Path"
+        title="Workspace Folder"
       />
     </Form>
   );

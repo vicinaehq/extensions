@@ -1,8 +1,8 @@
-import { Action, ActionPanel, Color, Icon, List, showToast, Toast, type Application } from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, showToast, Toast, type Application } from "@vicinae/api";
 
 import ImportSettingsForm from "@/components/ImportSettingsForm";
 import SelectEditor from "@/components/SelectEditor";
-import { App, ViewMode } from "@/types";
+import { App } from "@/types";
 import { toApp } from "@/utils/validation";
 
 interface GeneralSettingsProps {
@@ -12,8 +12,6 @@ interface GeneralSettingsProps {
   terminalApp: App | null;
   updateDefaultApp: (app: App | null) => Promise<void>;
   updateTerminalApp: (app: App | null) => Promise<void>;
-  updateViewMode: (mode: ViewMode) => Promise<void>;
-  viewMode: ViewMode;
 }
 
 export default function GeneralSettings({
@@ -23,8 +21,6 @@ export default function GeneralSettings({
   terminalApp,
   updateDefaultApp,
   updateTerminalApp,
-  updateViewMode,
-  viewMode,
 }: GeneralSettingsProps) {
   const handleDefaultAppSelect = async (app: Application) => {
     await updateDefaultApp(toApp(app));
@@ -42,96 +38,54 @@ export default function GeneralSettings({
   };
 
   return (
-    <List.Section title="General Settings">
-      <List.Item
-        accessories={[
-          {
-            tag: {
-              color: defaultApp?.name ? Color.SecondaryText : Color.Red,
-              value: defaultApp?.name || "Not selected",
-            },
-          },
-        ]}
-        actions={
-          <ActionPanel>
-            <ActionPanel.Section title="Application">
-              <Action.Push
-                icon={Icon.Pencil}
-                target={<SelectEditor onSelect={handleDefaultAppSelect} />}
-                title="Change Application"
+    <List.Item
+      actions={
+        <ActionPanel>
+          <ActionPanel.Section title="Application">
+            <Action.Push
+              icon={Icon.Pencil}
+              target={<SelectEditor onSelect={handleDefaultAppSelect} />}
+              title="Change Default App"
+            />
+            <Action.Push
+              icon={Icon.Terminal}
+              target={<SelectEditor onReset={handleTerminalReset} onSelect={handleTerminalSelect} />}
+              title="Change Terminal"
+            />
+          </ActionPanel.Section>
+          <ActionPanel.Section title="Backup">
+            <Action icon={Icon.Download} onAction={onExportSettings} title="Export Settings to Downloads" />
+            <Action.Push
+              icon={Icon.Upload}
+              target={<ImportSettingsForm onImport={onImportSettings} />}
+              title="Import Settings File"
+            />
+          </ActionPanel.Section>
+        </ActionPanel>
+      }
+      detail={
+        <List.Item.Detail
+          markdown="Choose which app opens your projects. A terminal is optional; if unset, Vicinae uses the system default. Export or import a JSON backup from the action panel."
+          metadata={
+            <List.Item.Detail.Metadata>
+              <List.Item.Detail.Metadata.Label
+                title="Default App"
+                text={defaultApp?.name || "Not selected"}
               />
-            </ActionPanel.Section>
-          </ActionPanel>
-        }
-        icon={Icon.AppWindow}
-        subtitle="Application where your projects are opened"
-        title="Default App"
-      />
-      <List.Item
-        accessories={[
-          {
-            tag: {
-              color: Color.SecondaryText,
-              value: terminalApp?.name || "System default",
-            },
-          },
-        ]}
-        actions={
-          <ActionPanel>
-            <ActionPanel.Section title="Terminal">
-              <Action.Push
-                icon={Icon.Pencil}
-                target={<SelectEditor onReset={handleTerminalReset} onSelect={handleTerminalSelect} />}
-                title="Change Terminal"
+              <List.Item.Detail.Metadata.Label
+                title="Terminal App"
+                text={terminalApp?.name || "System default"}
               />
-            </ActionPanel.Section>
-          </ActionPanel>
-        }
-        icon={Icon.Terminal}
-        subtitle="Open your projects in a terminal. If unset, Vicinae uses the system default."
-        title="Terminal App"
-      />
-      <List.Item
-        accessories={[
-          {
-            tag: {
-              color: Color.SecondaryText,
-              value: viewMode === "grid" ? "Grid" : "List",
-            },
-          },
-        ]}
-        actions={
-          <ActionPanel>
-            <ActionPanel.Section title="View Mode">
-              <Action
-                icon={viewMode === "grid" ? Icon.AppWindowList : Icon.AppWindowGrid3x3}
-                onAction={() => updateViewMode(viewMode === "grid" ? "list" : "grid")}
-                title={viewMode === "grid" ? "Switch to List View" : "Switch to Grid View"}
-              />
-            </ActionPanel.Section>
-          </ActionPanel>
-        }
-        icon={Icon.AppWindowGrid3x3}
-        subtitle="Default layout when opening the extension"
-        title="View Mode"
-      />
-      <List.Item
-        actions={
-          <ActionPanel>
-            <ActionPanel.Section title="Backup">
-              <Action icon={Icon.Download} onAction={onExportSettings} title="Export Settings to Downloads" />
-              <Action.Push
-                icon={Icon.Upload}
-                target={<ImportSettingsForm onImport={onImportSettings} />}
-                title="Import Settings File"
-              />
-            </ActionPanel.Section>
-          </ActionPanel>
-        }
-        icon={Icon.BlankDocument}
-        subtitle="Export current settings or import from a JSON backup file"
-        title="Import / Export Settings"
-      />
-    </List.Section>
+              <List.Item.Detail.Metadata.Separator />
+              <List.Item.Detail.Metadata.Label title="Backup" text="Export or import from the action panel" />
+            </List.Item.Detail.Metadata>
+          }
+        />
+      }
+      icon={Icon.AppWindow}
+      id="general"
+      keywords={["app", "terminal", "backup", "export", "import"]}
+      title="General"
+    />
   );
 }

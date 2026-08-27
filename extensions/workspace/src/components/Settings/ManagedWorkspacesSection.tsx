@@ -2,7 +2,6 @@ import {
   Action,
   ActionPanel,
   Alert,
-  Color,
   confirmAlert,
   Icon,
   List,
@@ -123,16 +122,6 @@ export default function ManagedWorkspacesSection({
         const workspaceApp = workspaceApps[workspace];
         return (
           <List.Item
-            accessories={
-              workspaceApp
-                ? [
-                    {
-                      tag: { color: Color.SecondaryText, value: workspaceApp.name },
-                      tooltip: "Custom App Set",
-                    },
-                  ]
-                : []
-            }
             actions={
               <ActionPanel>
                 <ActionPanel.Section>
@@ -189,9 +178,21 @@ export default function ManagedWorkspacesSection({
                 </ActionPanel.Section>
               </ActionPanel>
             }
+            detail={
+              <List.Item.Detail
+                markdown={`\`${workspace}\`\n\nOpen this workspace's projects with a custom app, or leave it on the default. Reorder, copy the path, or remove the folder from the action panel.`}
+                metadata={
+                  <List.Item.Detail.Metadata>
+                    <List.Item.Detail.Metadata.Label title="Path" text={workspace} />
+                    <List.Item.Detail.Metadata.Label title="App" text={workspaceApp?.name || "Default app"} />
+                  </List.Item.Detail.Metadata>
+                }
+              />
+            }
             icon={Icon.Folder}
+            id={workspace}
             key={workspace}
-            subtitle={workspace}
+            keywords={[workspace, path.basename(workspace)]}
             title={path.basename(workspace)}
           />
         );
@@ -204,7 +205,11 @@ export default function ManagedWorkspacesSection({
             </ActionPanel.Section>
           </ActionPanel>
         }
+        detail={
+          <List.Item.Detail markdown="Add a parent folder that contains your projects. Each top-level folder inside it becomes a project in the Workspace list." />
+        }
         icon={Icon.Plus}
+        id="add-workspace"
         title="Add Workspace"
       />
     </List.Section>

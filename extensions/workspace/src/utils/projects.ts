@@ -20,6 +20,7 @@ export function organizeProjects({
   pinnedPaths,
   projects,
   recentProjects,
+  recentProjectsCount,
   searchText,
   showRecentProjects,
   workspaces,
@@ -27,6 +28,7 @@ export function organizeProjects({
   pinnedPaths: string[];
   projects: Project[];
   recentProjects: RecentProject[];
+  recentProjectsCount: number;
   searchText: string;
   showRecentProjects: boolean;
   workspaces: string[];
@@ -48,6 +50,7 @@ export function organizeProjects({
     isSearching || !showRecentProjects
       ? []
       : recentProjects
+          .slice(0, recentProjectsCount)
           .map((entry) => byPath.get(entry.path))
           .filter((project): project is Project => !!project && !pinnedSet.has(project.fullPath));
 

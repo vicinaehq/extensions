@@ -1,5 +1,3 @@
-export type ViewMode = "grid" | "list";
-
 export interface App {
   id: string;
   name: string;
@@ -16,7 +14,6 @@ export interface ExportedSettings {
   showGitStatus: boolean;
   showRecentProjects: boolean;
   terminalApp: App | null;
-  viewMode: ViewMode;
   workspaceApps: Record<string, App>;
   workspaces: string[];
 }
