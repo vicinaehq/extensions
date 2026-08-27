@@ -1,0 +1,238 @@
+// src/accounts/ManageAccountsForm.tsx
+import {
+  Form,
+  Action,
+  ActionPanel,
+  useNavigation,
+  showToast,
+  Toast,
+  Icon,
+  confirmAlert,
+  Alert,
+  Clipboard,
+} from "@vicinae/api";
+import { useState, useEffect, useCallback } from "react";
+
+import { loadAccounts, addAccount, updateAccount, deleteAccount } from "./storage.ts";
+import type { AccountEntry, AccountsProvider } from "./types.ts";
+
+interface ManageAccountsFormProps {
+  provider: AccountsProvider;
+  providerName: string; // e.g. "Kimi", "z.ai"
+  onSave: () => void; // called after any mutation so the parent refreshes
+}
+
+export function ManageAccountsForm({ provider, providerName, onSave }: ManageAccountsFormProps) {
+  const { pop } = useNavigation();
+  const [accounts, setAccounts] = useState<AccountEntry[]>([]);
+  const [newLabel, setNewLabel] = useState("");
+  const [newToken, setNewToken] = useState("");
+  const [newAccountId, setNewAccountId] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const supportsAccountId = provider === "codex";
+  const isClinePass = false;
+
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    const loaded = await loadAccounts(provider);
+    setAccounts(loaded);
+    setIsLoading(false);
+  }, [provider]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const handleAdd = async () => {
+    const labelTrimmed = newLabel.trim();
+    const tokenTrimmed = newToken.trim();
+    const accountIdTrimmed = newAccountId.trim();
+
+    if (!labelTrimmed) {
+      await showToast({ style: Toast.Style.Failure, title: "Label is required" });
+      return;
+    }
+    if (!tokenTrimmed) {
+      await showToast({ style: Toast.Style.Failure, title: "Token is required" });
+      return;
+    }
+    void accountIdTrimmed;
+
+    const exists = accounts.some((a) => a.label.toLowerCase() === labelTrimmed.toLowerCase());
+    if (exists) {
+      await showToast({ style: Toast.Style.Failure, title: "Label already exists" });
+      return;
+    }
+
+    try {
+      await addAccount(provider, labelTrimmed, tokenTrimmed, supportsAccountId ? accountIdTrimmed : undefined);
+      onSave();
+      setNewLabel("");
+      setNewToken("");
+      setNewAccountId("");
+      await refresh();
+      await showToast({ style: Toast.Style.Success, title: `Added "${labelTrimmed}"` });
+    } catch (error) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to save account",
+        message: String(error),
+      });
+    }
+  };
+
+  const handleDelete = async (account: AccountEntry) => {
+    const confirmed = await confirmAlert({
+      title: `Remove "${account.label}"?`,
+      message: "This account will be permanently deleted.",
+      primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive },
+    });
+    if (!confirmed) return;
+
+    try {
+      await deleteAccount(provider, account.id);
+      onSave();
+      await refresh();
+      await showToast({ style: Toast.Style.Success, title: `Removed "${account.label}"` });
+    } catch (error) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to delete account",
+        message: String(error),
+      });
+    }
+  };
+
+  const handleCopyToken = async (account: AccountEntry) => {
+    await Clipboard.copy(account.token);
+    await showToast({ style: Toast.Style.Success, title: `Copied API key for "${account.label}"` });
+  };
+
+  const [editingLabel, setEditingLabel] = useState<Record<string, string>>({});
+  const [editingAccountId, setEditingAccountId] = useState<Record<string, string>>({});
+
+  const handleSaveAccount = async (account: AccountEntry) => {
+    const newLabelValue = editingLabel[account.id]?.trim() ?? account.label;
+    const newAccountIdValue = supportsAccountId
+      ? (editingAccountId[account.id]?.trim() ?? account.accountId ?? "")
+      : undefined;
+    if (!newLabelValue) {
+      await showToast({ style: Toast.Style.Failure, title: "Label cannot be empty" });
+      return;
+    }
+    void newAccountIdValue;
+    if (newLabelValue.toLowerCase() !== account.label.toLowerCase()) {
+      const exists = accounts.some((a) => a.id !== account.id && a.label.toLowerCase() === newLabelValue.toLowerCase());
+      if (exists) {
+        await showToast({ style: Toast.Style.Failure, title: "Label already exists" });
+        return;
+      }
+    }
+
+    try {
+      await updateAccount(provider, account.id, { label: newLabelValue, accountId: newAccountIdValue || undefined });
+      onSave();
+      await refresh();
+      await showToast({ style: Toast.Style.Success, title: `Updated "${newLabelValue}"` });
+    } catch (error) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to update label",
+        message: String(error),
+      });
+    }
+  };
+
+  return (
+    <Form
+      isLoading={isLoading}
+      navigationTitle={`${providerName} Accounts`}
+      actions={
+        <ActionPanel>
+          <Action title="Add Account" icon={Icon.Plus} onAction={handleAdd} />
+          <ActionPanel.Section title="Account Actions">
+            {accounts.map((account) => (
+              <Action
+                key={`copy-${account.id}`}
+                title={`Copy API Key for "${account.label}"`}
+                icon={Icon.Clipboard}
+                onAction={() => void handleCopyToken(account)}
+              />
+            ))}
+          </ActionPanel.Section>
+          <ActionPanel.Section title="Save Label Changes">
+            {accounts.map((account) => (
+              <Action
+                key={`save-${account.id}`}
+                title={`Save "${account.label}"`}
+                icon={Icon.CheckCircle}
+                onAction={() => void handleSaveAccount(account)}
+              />
+            ))}
+          </ActionPanel.Section>
+          <ActionPanel.Section title="Remove Account">
+            {accounts.map((account) => (
+              <Action
+                key={account.id}
+                title={`Remove "${account.label}"`}
+                icon={Icon.Trash}
+                style={Action.Style.Destructive}
+                onAction={() => void handleDelete(account)}
+              />
+            ))}
+          </ActionPanel.Section>
+          <Action title="Done" icon={Icon.Checkmark} onAction={pop} />
+        </ActionPanel>
+      }
+    >
+      {/* Add New Account section at the TOP to prevent jitter */}
+      <Form.TextField
+        id="new-label"
+        title="Label"
+        info="e.g. Work, Personal"
+        value={newLabel}
+        onChange={setNewLabel}
+      />
+      <Form.PasswordField
+        id="new-token"
+        title={isClinePass ? "API Key" : "Token"}
+        info={isClinePass ? "sk_..." : "Paste API token here"}
+        value={newToken}
+        onChange={setNewToken}
+      />
+      {supportsAccountId && (
+        <Form.TextField
+          id="new-account-id"
+          title={isClinePass ? "Cline User ID" : "ChatGPT Account ID"}
+          info={isClinePass ? "Required, e.g. usr-..." : "Optional, e.g. acct_..."}
+          value={newAccountId}
+          onChange={setNewAccountId}
+        />
+      )}
+
+      {accounts.length > 0 && <Form.Separator />}
+
+      {accounts.map((account) => (
+        <Form.TextField
+          key={`label-${account.id}`}
+          id={`label-${account.id}`}
+          title={account.label}
+          info="Account label"
+          defaultValue={account.label}
+          onChange={(val) => setEditingLabel((prev) => ({ ...prev, [account.id]: val }))}
+        />
+      ))}
+      {supportsAccountId &&
+        accounts.map((account) => (
+          <Form.TextField
+            key={`account-id-${account.id}`}
+            id={`account-id-${account.id}`}
+            title={`${account.label} ${isClinePass ? "User ID" : "Account ID"}`}
+            info={isClinePass ? "Required Cline user ID" : "Optional ChatGPT account ID"}
+            defaultValue={account.accountId ?? ""}
+            onChange={(val) => setEditingAccountId((prev) => ({ ...prev, [account.id]: val }))}
+          />
+        ))}
+    </Form>
+  );
+}
