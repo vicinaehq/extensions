@@ -2,31 +2,26 @@ import path from "path";
 import { homedir } from "os";
 import { existsSync } from "fs";
 import { getPreferenceValues } from "@vicinae/api";
-import { VSCODE_SHARED_STATE_PATHS, VSCODE_STATE_PATHS } from "./constants";
+import { getSharedStateDBPath, VSCODE_STATE_PATHS, WORKSPACE_EXTENSION } from "./constants";
 import { type Preferences, ProjectEnvironment, ProjectType, type RecentProject } from "./types";
 
-export function getVSCodeStateDBPath(): string {
+export const getVSCodeStateDBPath = (): string => {
     const home = homedir();
     const { vscodeFlavour } = getPreferenceValues<Preferences>();
     const platform = process.platform as keyof typeof VSCODE_STATE_PATHS;
 
-    // Try the new shared storage path first (VS Code 1.118+)
-    // Each flavor has its own shared storage directory
+    // Try the new shared storage path first (VS Code 1.118+).
+    // Each flavour has its own shared storage directory, and on every platform it
+    // hangs directly off the home directory - see getSharedStateDBPath().
+    const sharedPath = getSharedStateDBPath(home, vscodeFlavour);
+
+    if (existsSync(sharedPath)) {
+        console.log("[DEBUG] Using shared storage path:", sharedPath);
+        return sharedPath;
+    }
+
+    // Fall back to legacy per-flavour path (pre VS Code 1.118)
     let dbPath: string;
-    if (platform in VSCODE_SHARED_STATE_PATHS) {
-        dbPath = VSCODE_SHARED_STATE_PATHS[platform](home, vscodeFlavour);
-    } else {
-        // Default to Linux path for unsupported platforms
-        dbPath = VSCODE_SHARED_STATE_PATHS.linux(home, vscodeFlavour);
-    }
-
-    // If the shared storage path exists, use it
-    if (existsSync(dbPath)) {
-        console.log("[DEBUG] Using shared storage path:", dbPath);
-        return dbPath;
-    }
-
-    // Fall back to legacy per-flavor path (pre VS Code 1.118)
     if (platform in VSCODE_STATE_PATHS) {
         dbPath = VSCODE_STATE_PATHS[platform](home, vscodeFlavour);
     } else {
@@ -36,21 +31,33 @@ export function getVSCodeStateDBPath(): string {
 
     if (!existsSync(dbPath)) {
         throw new Error(
-            `Database for ${vscodeFlavour} not found at: ${dbPath}. Make sure it's installed and that you have opened it at least once.`,
+            `Database for ${vscodeFlavour} not found at ${sharedPath} nor ${dbPath}. Make sure it's installed and that you have opened it at least once.`,
         );
     }
 
-    console.log("[DEBUG] Using legacy flavor-specific path:", dbPath);
+    console.log("[DEBUG] Using legacy flavour-specific path:", dbPath);
     return dbPath;
-}
+};
 
 export function decodeFileUri(uri: string): string {
     return decodeURIComponent(uri.replace(/^file:\/\//, ""));
 }
 
-export function getProjectLabel(projectType: ProjectType, projectPath: string, projectLabel: string | undefined = undefined): string {
-    return path.basename(projectLabel ?? projectPath) + (projectType === ProjectType.Workspace ? ".code-workspace" : "");
-}
+export const getProjectLabel = (
+    projectType: ProjectType,
+    projectPath: string,
+    projectLabel: string | undefined = undefined,
+): string => {
+    const name = path.basename(projectLabel ?? projectPath);
+
+    // FIX: workspace paths already end in ".code-workspace", so appending it
+    // unconditionally produced labels like "MyProject.code-workspace.code-workspace".
+    if (projectType !== ProjectType.Workspace || name.endsWith(WORKSPACE_EXTENSION)) {
+        return name;
+    }
+
+    return name + WORKSPACE_EXTENSION;
+};
 
 export function sortProjectsByLastOpenedOrIndex(projects: RecentProject[]): RecentProject[] {
     return [...projects].sort((a, b) => {
