@@ -7,12 +7,12 @@ First release for [Vicinae](https://vicinae.com) on Linux and macOS.
 ### Added
 
 - Workspace command to search and open projects from configured folders.
-- List and grid views, with pinned and optional recent projects.
+- List view, with pinned and optional recent projects.
 - Git status per project (branch, uncommitted changes, ahead/behind), plus checkout, pull, and commit log.
 - Default app and per-workspace app overrides; open in terminal or the system file browser.
 - Fuzzy search with fzf when installed, with substring matching as fallback.
 - Onboarding, settings, and manage-workspaces commands.
-- Import and export settings as a JSON backup (paste a file or folder path).
+- Import and export settings as a JSON backup.
 
 ### Notes
 

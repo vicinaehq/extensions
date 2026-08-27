@@ -55,16 +55,12 @@ export default function IntegrationSettings({
         }
         detail={
           <List.Item.Detail
-            markdown={
-              gitAvailable
-                ? "Show branch, uncommitted files, and ahead/behind next to each project. Checkout, pull, and the commit log stay on the project actions."
-                : "Install Git to show branch and sync status on each project."
-            }
+            markdown={gitDetailMarkdown(gitAvailable)}
             metadata={
               <List.Item.Detail.Metadata>
                 <List.Item.Detail.Metadata.TagList title="Git">
                   <List.Item.Detail.Metadata.TagList.Item
-                    color={gitAvailable ? Color.Green : Color.Red}
+                    color={availabilityColor(gitAvailable)}
                     text={gitStatusLabel}
                   />
                 </List.Item.Detail.Metadata.TagList>
@@ -100,16 +96,12 @@ export default function IntegrationSettings({
         }
         detail={
           <List.Item.Detail
-            markdown={
-              fzfAvailable
-                ? "Use fzf for fuzzy project search when it is installed. Turn this off to fall back to substring matching."
-                : "Install fzf to enable fuzzy search. Without it, search uses substring matching."
-            }
+            markdown={fzfDetailMarkdown(fzfAvailable)}
             metadata={
               <List.Item.Detail.Metadata>
                 <List.Item.Detail.Metadata.TagList title="fzf">
                   <List.Item.Detail.Metadata.TagList.Item
-                    color={fzfAvailable ? Color.Green : Color.Red}
+                    color={availabilityColor(fzfAvailable)}
                     text={fzfStatusLabel}
                   />
                 </List.Item.Detail.Metadata.TagList>
@@ -132,4 +124,36 @@ export default function IntegrationSettings({
       />
     </>
   );
+}
+
+function availabilityColor(available: boolean | null): Color {
+  if (available === null) {
+    return Color.SecondaryText;
+  }
+
+  return available ? Color.Green : Color.Red;
+}
+
+function gitDetailMarkdown(gitAvailable: boolean | null): string {
+  if (gitAvailable === null) {
+    return "Checking whether Git is installed…";
+  }
+
+  if (gitAvailable) {
+    return "Show branch, uncommitted files, and ahead/behind next to each project. Checkout, pull, and the commit log stay on the project actions.";
+  }
+
+  return "Install Git to show branch and sync status on each project.";
+}
+
+function fzfDetailMarkdown(fzfAvailable: boolean | null): string {
+  if (fzfAvailable === null) {
+    return "Checking whether fzf is installed…";
+  }
+
+  if (fzfAvailable) {
+    return "Use fzf for fuzzy project search when it is installed. Turn this off to fall back to substring matching.";
+  }
+
+  return "Install fzf to enable fuzzy search. Without it, search uses substring matching.";
 }
