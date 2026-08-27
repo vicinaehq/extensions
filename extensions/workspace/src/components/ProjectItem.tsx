@@ -1,14 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  Color,
-  Icon,
-  List,
-  open,
-  runInTerminal,
-  showToast,
-  Toast,
-} from "@vicinae/api";
+import { Action, ActionPanel, Color, Icon, List, open, runInTerminal, showToast, Toast } from "@vicinae/api";
 import path from "path";
 import { useMemo } from "react";
 
@@ -17,8 +7,12 @@ import CommitLog from "@/components/Git/CommitLog";
 import Settings from "@/components/Settings";
 import { App, GitStatus, Project } from "@/types";
 import { pullGitBranch } from "@/utils/git";
+import { listItemId } from "@/utils/paths";
+import { SHORTCUT_MOVE_DOWN, SHORTCUT_MOVE_UP } from "@/utils/constants";
 
 interface ProjectItemProps {
+  canMovePinDown?: boolean;
+  canMovePinUp?: boolean;
   defaultApp: App | null;
   isPinned: boolean;
   onOpen?: (fullPath: string) => void;
@@ -33,6 +27,8 @@ interface ProjectItemProps {
 }
 
 export default function ProjectItem({
+  canMovePinDown = false,
+  canMovePinUp = false,
   defaultApp,
   isPinned,
   onOpen,
@@ -85,27 +81,27 @@ export default function ProjectItem({
         <Action
           icon={isPinned ? Icon.PinDisabled : Icon.Pin}
           onAction={() => onTogglePin(project.fullPath)}
-          shortcut={{ key: "p", modifiers: ["cmd", "shift"] }}
+          shortcut={{ key: "p", modifiers: ["ctrl", "shift"] }}
           title={isPinned ? "Unpin Project" : "Pin Project"}
         />
-        {isPinned && (
-          <>
-            <Action
-              icon={Icon.ArrowUp}
-              onAction={() => onReorderPin(project.fullPath, "up")}
-              shortcut={{ key: "arrowUp", modifiers: ["opt", "cmd"] }}
-              title="Move Pinned Project Up"
-            />
-            <Action
-              icon={Icon.ArrowDown}
-              onAction={() => onReorderPin(project.fullPath, "down")}
-              shortcut={{ key: "arrowDown", modifiers: ["opt", "cmd"] }}
-              title="Move Pinned Project Down"
-            />
-          </>
+        {canMovePinUp && (
+          <Action
+            icon={Icon.ArrowUp}
+            onAction={() => onReorderPin(project.fullPath, "up")}
+            shortcut={SHORTCUT_MOVE_UP}
+            title="Move Up"
+          />
+        )}
+        {canMovePinDown && (
+          <Action
+            icon={Icon.ArrowDown}
+            onAction={() => onReorderPin(project.fullPath, "down")}
+            shortcut={SHORTCUT_MOVE_DOWN}
+            title="Move Down"
+          />
         )}
       </ActionPanel.Section>
-      {project.gitStatus && (
+      {(project.isGitRepo || project.gitStatus) && (
         <ActionPanel.Section title="Git">
           <Action.Push
             icon={Icon.Shuffle}
@@ -177,6 +173,12 @@ export default function ProjectItem({
       accessories={accessories}
       actions={actions}
       icon={Icon.Folder}
+      id={listItemId(project.fullPath)}
+      keywords={[
+        project.fullPath,
+        project.parentFolder,
+        ...(showGitStatus && project.gitStatus?.branch ? [project.gitStatus.branch] : []),
+      ]}
       subtitle={isPinned ? path.dirname(project.fullPath) : ""}
       title={project.name}
     />

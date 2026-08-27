@@ -4,7 +4,6 @@ import { App } from "@/types";
 import {
   STORAGE_KEY_APP,
   STORAGE_KEY_ONBOARDING_COMPLETED,
-  STORAGE_KEY_SHOW_FZF_STATUS,
   STORAGE_KEY_SHOW_GIT_STATUS,
   STORAGE_KEY_SHOW_RECENT_PROJECTS,
   STORAGE_KEY_TERMINAL_APP,
@@ -17,7 +16,6 @@ export function usePreferences() {
     STORAGE_KEY_ONBOARDING_COMPLETED,
     false,
   );
-  const [showFzfStatus, setShowFzfStatus] = useCachedState<boolean>(STORAGE_KEY_SHOW_FZF_STATUS, true);
   const [showGitStatus, setShowGitStatus, gitStatusHydrated] = useCachedState<boolean>(
     STORAGE_KEY_SHOW_GIT_STATUS,
     true,
@@ -27,7 +25,6 @@ export function usePreferences() {
   const updateDefaultApp = async (app: App | null): Promise<void> => setDefaultApp(app);
   const updateTerminalApp = async (app: App | null): Promise<void> => setTerminalApp(app);
   const setOnboardingCompletedState = async (completed: boolean): Promise<void> => setOnboardingCompleted(completed);
-  const updateShowFzfStatus = async (show: boolean): Promise<void> => setShowFzfStatus(show);
   const updateShowGitStatus = async (show: boolean): Promise<void> => setShowGitStatus(show);
   const updateShowRecentProjects = async (show: boolean): Promise<void> => setShowRecentProjects(show);
 
@@ -37,12 +34,10 @@ export function usePreferences() {
     onboardingCompleted,
     onboardingHydrated,
     setOnboardingCompleted: setOnboardingCompletedState,
-    showFzfStatus,
     showGitStatus,
     showRecentProjects,
     terminalApp,
     updateDefaultApp,
-    updateShowFzfStatus,
     updateShowGitStatus,
     updateShowRecentProjects,
     updateTerminalApp,

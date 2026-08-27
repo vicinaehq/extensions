@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useCachedPromise } from "@/hooks/useCachedPromise";
 
 import { Project } from "@/types";
-import { getCommitLog, getRemoteUrl } from "@/utils/git";
+import { commitBrowserUrl, getCommitLog, getRemoteUrl } from "@/utils/git";
 
 interface CommitLogProps {
   project: Project;
@@ -50,7 +50,10 @@ export default function CommitLog({ project }: CommitLogProps) {
           actions={
             <ActionPanel>
               {data?.remoteUrl && (
-                <Action.OpenInBrowser title="Open Commit in Browser" url={`${data.remoteUrl}/commit/${commit.hash}`} />
+                <Action.OpenInBrowser
+                  title="Open Commit in Browser"
+                  url={commitBrowserUrl(data.remoteUrl, commit.hash)}
+                />
               )}
               <Action.CopyToClipboard content={commit.hash} title="Copy Commit Hash" />
               <Action.CopyToClipboard

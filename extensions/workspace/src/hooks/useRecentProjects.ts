@@ -9,8 +9,11 @@ import {
 } from "@/utils/constants";
 
 export function useRecentProjects() {
-  const [pinnedProjects, setPinnedProjects] = useCachedState<string[]>(STORAGE_KEY_PINNED_PROJECTS, []);
-  const [recentProjects, setRecentProjects] = useCachedState<RecentProject[]>(STORAGE_KEY_RECENT_PROJECTS, []);
+  const [pinnedProjects, setPinnedProjects, pinnedHydrated] = useCachedState<string[]>(STORAGE_KEY_PINNED_PROJECTS, []);
+  const [recentProjects, setRecentProjects, recentHydrated] = useCachedState<RecentProject[]>(
+    STORAGE_KEY_RECENT_PROJECTS,
+    [],
+  );
   const [recentProjectsCount, setRecentProjectsCount] = useCachedState<number>(
     STORAGE_KEY_RECENT_PROJECTS_COUNT,
     DEFAULT_RECENT_PROJECTS_COUNT,
@@ -27,7 +30,6 @@ export function useRecentProjects() {
     } else {
       newPinned = [...pinnedProjects, projectPath];
 
-      // Remove from recent projects if it was pinned
       const newRecent = recentProjects.filter((r) => r.path !== projectPath);
       if (newRecent.length !== recentProjects.length) {
         setRecentProjects(newRecent);
@@ -38,19 +40,17 @@ export function useRecentProjects() {
   };
 
   const reorderPinnedProject = async (projectPath: string, direction: "down" | "up"): Promise<void> => {
-    const index = pinnedProjects.indexOf(projectPath);
-    if (index === -1) return;
+    const from = pinnedProjects.indexOf(projectPath);
+    if (from === -1) return;
 
-    const newPinned = [...pinnedProjects];
-    if (direction === "up" && index > 0) {
-      [newPinned[index], newPinned[index - 1]] = [newPinned[index - 1], newPinned[index]];
-    } else if (direction === "down" && index < newPinned.length - 1) {
-      [newPinned[index], newPinned[index + 1]] = [newPinned[index + 1], newPinned[index]];
-    } else {
-      return;
-    }
+    const to = direction === "up" ? from - 1 : from + 1;
+    if (to < 0 || to >= pinnedProjects.length) return;
 
-    setPinnedProjects(newPinned);
+    const next = pinnedProjects.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+
+    setPinnedProjects(next);
   };
 
   const recordProjectOpen = async (projectPath: string): Promise<void> => {
@@ -66,6 +66,7 @@ export function useRecentProjects() {
   };
 
   return {
+    isHydrated: pinnedHydrated && recentHydrated,
     pinnedProjects: pinnedProjects ?? [],
     recentProjects: recentProjects ?? [],
     recentProjectsCount: recentProjectsCount ?? DEFAULT_RECENT_PROJECTS_COUNT,

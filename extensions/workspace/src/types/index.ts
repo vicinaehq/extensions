@@ -10,7 +10,6 @@ export interface ExportedSettings {
   pinnedProjects: string[];
   recentProjects: RecentProject[];
   recentProjectsCount: number;
-  showFzfStatus: boolean;
   showGitStatus: boolean;
   showRecentProjects: boolean;
   terminalApp: App | null;
@@ -35,6 +34,7 @@ export interface GitStatus {
 export interface Project {
   fullPath: string;
   gitStatus?: GitStatus | null;
+  isGitRepo?: boolean;
   name: string;
   parentFolder: string;
 }

@@ -1,19 +1,11 @@
-import {
-  Action,
-  ActionPanel,
-  Alert,
-  confirmAlert,
-  Icon,
-  List,
-  showToast,
-  Toast,
-  type Application,
-} from "@vicinae/api";
+import { Action, ActionPanel, Alert, confirmAlert, Icon, List, showToast, Toast, type Application } from "@vicinae/api";
 import path from "path";
 
 import AddWorkspaceForm from "@/components/AddWorkspaceForm";
 import SelectEditor from "@/components/SelectEditor";
 import { App } from "@/types";
+import { SHORTCUT_MOVE_DOWN, SHORTCUT_MOVE_UP } from "@/utils/constants";
+import { listItemId } from "@/utils/paths";
 import { toApp } from "@/utils/validation";
 
 interface ManagedWorkspacesSectionProps {
@@ -92,7 +84,12 @@ export default function ManagedWorkspacesSection({
     }
   }
 
-  async function moveWorkspace(index: number, direction: "down" | "up") {
+  async function moveWorkspace(workspacePath: string, direction: "down" | "up") {
+    const index = workspaces.indexOf(workspacePath);
+    if (index === -1) {
+      return;
+    }
+
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= workspaces.length) {
       return;
@@ -125,6 +122,22 @@ export default function ManagedWorkspacesSection({
             actions={
               <ActionPanel>
                 <ActionPanel.Section>
+                  {index > 0 && (
+                    <Action
+                      icon={Icon.ChevronUp}
+                      onAction={() => moveWorkspace(workspace, "up")}
+                      shortcut={SHORTCUT_MOVE_UP}
+                      title="Move Up"
+                    />
+                  )}
+                  {index < workspaces.length - 1 && (
+                    <Action
+                      icon={Icon.ChevronDown}
+                      onAction={() => moveWorkspace(workspace, "down")}
+                      shortcut={SHORTCUT_MOVE_DOWN}
+                      title="Move Down"
+                    />
+                  )}
                   <Action.Push
                     icon={Icon.Pencil}
                     target={
@@ -135,22 +148,6 @@ export default function ManagedWorkspacesSection({
                     }
                     title="Set Workspace App"
                   />
-                  {index > 0 && (
-                    <Action
-                      icon={Icon.ChevronUp}
-                      onAction={() => moveWorkspace(index, "up")}
-                      shortcut={{ key: "arrowUp", modifiers: ["cmd", "opt"] }}
-                      title="Move up"
-                    />
-                  )}
-                  {index < workspaces.length - 1 && (
-                    <Action
-                      icon={Icon.ChevronDown}
-                      onAction={() => moveWorkspace(index, "down")}
-                      shortcut={{ key: "arrowDown", modifiers: ["cmd", "opt"] }}
-                      title="Move Down"
-                    />
-                  )}
                 </ActionPanel.Section>
                 <ActionPanel.Section>
                   {workspaceApp && (
@@ -190,8 +187,8 @@ export default function ManagedWorkspacesSection({
               />
             }
             icon={Icon.Folder}
-            id={workspace}
-            key={workspace}
+            id={listItemId(workspace)}
+            key={listItemId(workspace)}
             keywords={[workspace, path.basename(workspace)]}
             title={path.basename(workspace)}
           />

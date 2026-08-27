@@ -8,6 +8,7 @@ import { GitCommit, GitStatus } from "@/types";
 const execFileAsync = promisify(execFile);
 
 const GIT_TIMEOUT_MS = 5_000;
+const GIT_PULL_TIMEOUT_MS = 30_000;
 
 let gitAvailableCache: boolean | null = null;
 
@@ -30,7 +31,7 @@ export async function checkoutGitBranch(repoPath: string, branch: string): Promi
   if (!(await isGitAvailable())) return false;
 
   try {
-    await execFileAsync("git", ["checkout", branch], { cwd: repoPath, timeout: GIT_TIMEOUT_MS });
+    await execFileAsync("git", ["checkout", "--", branch], { cwd: repoPath, timeout: GIT_TIMEOUT_MS });
     return true;
   } catch {
     return false;
@@ -136,7 +137,7 @@ export async function pullGitBranch(repoPath: string): Promise<boolean> {
   if (!(await isGitAvailable())) return false;
 
   try {
-    await execFileAsync("git", ["pull"], { cwd: repoPath, timeout: GIT_TIMEOUT_MS });
+    await execFileAsync("git", ["pull"], { cwd: repoPath, timeout: GIT_PULL_TIMEOUT_MS });
     return true;
   } catch {
     return false;
@@ -149,11 +150,27 @@ async function ensureGitAvailable(): Promise<void> {
   }
 }
 
-function isGitRepo(repoPath: string): Promise<boolean> {
+export function isGitRepo(repoPath: string): Promise<boolean> {
   return stat(path.join(repoPath, ".git")).then(
     () => true,
     () => false,
   );
+}
+
+export function commitBrowserUrl(remoteUrl: string, hash: string): string {
+  try {
+    const host = new URL(remoteUrl).hostname.toLowerCase();
+    if (host === "gitlab.com" || host.startsWith("gitlab.") || host.includes(".gitlab.")) {
+      return `${remoteUrl}/-/commit/${hash}`;
+    }
+    if (host === "bitbucket.org" || host.includes("bitbucket.")) {
+      return `${remoteUrl}/commits/${hash}`;
+    }
+  } catch {
+    // Fall through to the GitHub-style path.
+  }
+
+  return `${remoteUrl}/commit/${hash}`;
 }
 
 function normalizeRemoteUrl(url: string): null | string {

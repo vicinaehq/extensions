@@ -8,7 +8,7 @@
 
 Search, pin, and open projects from every folder you work in.
 
-Workspace is a [Vicinae](https://vicinae.com) extension for Linux and macOS. Add parent folders and it lists every project inside, with git status, per-workspace apps, and a JSON backup of your setup.
+Workspace is a [Vicinae](https://vicinae.com) extension. Add workspace folders and it lists every project inside, with git status, per-workspace opening app, and a JSON backup of your setup.
 
 ## Screenshots
 
@@ -18,10 +18,9 @@ Workspace is a [Vicinae](https://vicinae.com) extension for Linux and macOS. Add
 
 ## Features
 
-- Fuzzy search, with fzf when it is installed
-- Pin favorites and keep recent projects at the top
+- Search projects
+- Pin projects and keep recent ones at the top
 - Git branch, dirty files, and ahead/behind
-- Default app, plus a different app per workspace
 - Import and export settings as JSON
 
 ## Getting started
@@ -36,7 +35,7 @@ Pin the `Workspace` command in Vicinae if you want the fastest loop.
 
 - **Workspace** – Search and open projects
 - **Manage Workspaces** – Add, remove, and reorder workspace folders
-- **Workspace Settings** – Apps, integrations, and backup
+- **Workspace Settings** – Apps, git status, backup, and reset
 
 ## Installation
 
@@ -52,7 +51,3 @@ npm run build
 Use `npm run dev` while Vicinae is running if you are working on the extension.
 
 See the [Vicinae extension docs](https://docs.vicinae.com/extensions/create) for more detail.
-
-## Contributing
-
-Open an issue or a pull request.

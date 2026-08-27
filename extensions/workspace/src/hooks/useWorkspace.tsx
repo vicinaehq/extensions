@@ -1,22 +1,21 @@
+import { showToast, Toast } from "@vicinae/api";
+import path from "path";
 import { createContext, type ReactNode, useContext, useEffect } from "react";
 
 import { useCachedPromise } from "@/hooks/useCachedPromise";
 import { usePreferences } from "@/hooks/usePreferences";
-import { useProjectDiscovery } from "@/hooks/useProjectDiscovery";
+import { clearProjectsCache, useProjectDiscovery } from "@/hooks/useProjectDiscovery";
 import { useRecentProjects } from "@/hooks/useRecentProjects";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { App, ExportedSettings, Project, RecentProject } from "@/types";
-import { getFzfPath } from "@/utils/fzf";
 import { isGitAvailable } from "@/utils/git";
 import { keepSavedProjectPaths } from "@/utils/projects";
-import { exportSettingsToDownloads, importSettingsFromFile } from "@/utils/storage";
+import { DEFAULT_SETTINGS, exportSettingsToDownloads, importSettingsFromFile } from "@/utils/storage";
 
 export interface UseWorkspaceReturn {
   applyImportedSettings: (settings: ExportedSettings) => Promise<void>;
   defaultApp: App | null;
   exportSettings: () => Promise<void>;
-  fzfAvailable: boolean | null;
-  fzfPath: null | string;
   gitAvailable: boolean | null;
   importSettings: (filePath: string) => Promise<boolean>;
   isLoading: boolean;
@@ -29,15 +28,14 @@ export interface UseWorkspaceReturn {
   recentProjectsCount: number;
   recordProjectOpen: (projectPath: string) => Promise<void>;
   reorderPinnedProject: (projectPath: string, direction: "down" | "up") => Promise<void>;
+  resetExtension: () => Promise<void>;
   setOnboardingCompleted: (completed: boolean) => Promise<void>;
-  showFzfStatus: boolean;
   showGitStatus: boolean;
   showRecentProjects: boolean;
   terminalApp: App | null;
   togglePinProject: (projectPath: string) => Promise<void>;
   updateDefaultApp: (app: App | null) => Promise<void>;
   updateRecentProjectsCount: (count: number) => Promise<void>;
-  updateShowFzfStatus: (show: boolean) => Promise<void>;
   updateShowGitStatus: (show: boolean) => Promise<void>;
   updateShowRecentProjects: (show: boolean) => Promise<void>;
   updateTerminalApp: (app: App | null) => Promise<void>;
@@ -72,7 +70,6 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
   );
 
   const { data: gitAvailable } = useCachedPromise(isGitAvailable, []);
-  const { data: fzfPath } = useCachedPromise(getFzfPath, []);
 
   const snapshot = (): ExportedSettings => ({
     defaultApp: pref.defaultApp,
@@ -80,7 +77,6 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
     pinnedProjects: rp.pinnedProjects,
     recentProjects: rp.recentProjects,
     recentProjectsCount: rp.recentProjectsCount,
-    showFzfStatus: pref.showFzfStatus,
     showGitStatus: pref.showGitStatus,
     showRecentProjects: pref.showRecentProjects,
     terminalApp: pref.terminalApp,
@@ -96,7 +92,6 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
       ws.updateWorkspaceApps(settings.workspaceApps),
       rp.updatePinnedProjects(settings.pinnedProjects),
       pref.updateShowGitStatus(settings.showGitStatus),
-      pref.updateShowFzfStatus(settings.showFzfStatus),
       pref.updateShowRecentProjects(settings.showRecentProjects),
       rp.updateRecentProjects(settings.recentProjects),
       rp.updateRecentProjectsCount(settings.recentProjectsCount),
@@ -111,11 +106,24 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
     if (discover) {
       await pd.loadData();
     }
+    await showToast({
+      message: path.basename(filePath),
+      style: Toast.Style.Success,
+      title: "Settings imported",
+    });
     return true;
   };
 
+  const resetExtension = async (): Promise<void> => {
+    await applyImportedSettings(DEFAULT_SETTINGS);
+    clearProjectsCache();
+    if (discover) {
+      await pd.loadData();
+    }
+  };
+
   useEffect(() => {
-    if (!discover || !pd.hasScanned) {
+    if (!discover || !pd.hasScanned || !rp.isHydrated) {
       return;
     }
 
@@ -128,14 +136,21 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
       rp.updatePinnedProjects,
       rp.updateRecentProjects,
     );
-  }, [discover, pd.hasScanned, pd.projects, pd.scannedWorkspaceRoots, ws.workspaces]);
+  }, [
+    discover,
+    pd.hasScanned,
+    pd.projects,
+    pd.scannedWorkspaceRoots,
+    rp.isHydrated,
+    rp.pinnedProjects,
+    rp.recentProjects,
+    ws.workspaces,
+  ]);
 
   return {
     applyImportedSettings,
     defaultApp: pref.defaultApp,
     exportSettings: () => exportSettingsToDownloads(snapshot()),
-    fzfAvailable: fzfPath === undefined ? null : fzfPath !== null,
-    fzfPath: fzfPath ?? null,
     gitAvailable: gitAvailable ?? null,
     importSettings,
     isLoading: discover && pd.isLoading && pd.projects.length === 0,
@@ -148,15 +163,14 @@ function useWorkspaceStore(discover: boolean): UseWorkspaceReturn {
     recentProjectsCount: rp.recentProjectsCount,
     recordProjectOpen: rp.recordProjectOpen,
     reorderPinnedProject: rp.reorderPinnedProject,
+    resetExtension,
     setOnboardingCompleted: pref.setOnboardingCompleted,
-    showFzfStatus: pref.showFzfStatus,
     showGitStatus: pref.showGitStatus,
     showRecentProjects: pref.showRecentProjects,
     terminalApp: pref.terminalApp,
     togglePinProject: rp.togglePinProject,
     updateDefaultApp: pref.updateDefaultApp,
     updateRecentProjectsCount: rp.updateRecentProjectsCount,
-    updateShowFzfStatus: pref.updateShowFzfStatus,
     updateShowGitStatus: pref.updateShowGitStatus,
     updateShowRecentProjects: pref.updateShowRecentProjects,
     updateTerminalApp: pref.updateTerminalApp,

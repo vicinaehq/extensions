@@ -4,7 +4,21 @@ import os from "os";
 import path from "path";
 
 import { App, ExportedSettings, RecentProject, SettingsBackup } from "@/types";
+import { DEFAULT_RECENT_PROJECTS_COUNT } from "@/utils/constants";
 import { normalizeApp } from "@/utils/validation";
+
+export const DEFAULT_SETTINGS: ExportedSettings = {
+  defaultApp: null,
+  onboardingCompleted: false,
+  pinnedProjects: [],
+  recentProjects: [],
+  recentProjectsCount: DEFAULT_RECENT_PROJECTS_COUNT,
+  showGitStatus: true,
+  showRecentProjects: false,
+  terminalApp: null,
+  workspaceApps: {},
+  workspaces: [],
+};
 
 export async function exportSettingsToDownloads(settings: ExportedSettings): Promise<void> {
   try {
@@ -36,11 +50,13 @@ export async function importSettingsFromFile(
     const fileContents = await readFile(filePath, "utf-8");
     const parsed = JSON.parse(fileContents) as unknown;
 
-    await showToast({
-      message: path.basename(filePath),
-      style: Toast.Style.Success,
-      title: "Settings imported",
-    });
+    if (!isRecognizableBackup(parsed)) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Not a Workspace backup",
+      });
+      return null;
+    }
 
     return normalizeImportedSettings(parsed, fallback);
   } catch {
@@ -81,8 +97,6 @@ export function normalizeImportedSettings(payload: unknown, fallback: ExportedSe
       typeof parsedSettings.recentProjectsCount === "number" && parsedSettings.recentProjectsCount > 0
         ? parsedSettings.recentProjectsCount
         : fallback.recentProjectsCount,
-    showFzfStatus:
-      typeof parsedSettings.showFzfStatus === "boolean" ? parsedSettings.showFzfStatus : fallback.showFzfStatus,
     showGitStatus:
       typeof parsedSettings.showGitStatus === "boolean" ? parsedSettings.showGitStatus : fallback.showGitStatus,
     showRecentProjects:
@@ -103,6 +117,19 @@ export function normalizeImportedSettings(payload: unknown, fallback: ExportedSe
       ? parsedSettings.workspaces.filter((value): value is string => typeof value === "string")
       : fallback.workspaces,
   };
+}
+
+function isRecognizableBackup(payload: unknown): boolean {
+  if (!payload || typeof payload !== "object") {
+    return false;
+  }
+
+  const record = payload as Record<string, unknown>;
+  if (record.version === 1 && record.settings && typeof record.settings === "object") {
+    return true;
+  }
+
+  return Array.isArray(record.workspaces);
 }
 
 async function resolveExportPath(filename: string): Promise<string> {

@@ -1,13 +1,13 @@
 import { Action, ActionPanel, Icon, List } from "@vicinae/api";
 import path from "path";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import Onboarding from "@/components/Onboarding";
 import ProjectItem from "@/components/ProjectItem";
 import Settings from "@/components/Settings";
-import { useProjectSearch } from "@/hooks/useProjectSearch";
 import { useWorkspace, WorkspaceProvider } from "@/hooks/useWorkspace";
 import { Project } from "@/types";
+import { listItemId } from "@/utils/paths";
 import { organizeProjects } from "@/utils/projects";
 import { toApp } from "@/utils/validation";
 
@@ -22,8 +22,6 @@ export default function Command() {
 function WorkspaceCommand() {
   const {
     defaultApp,
-    fzfAvailable,
-    fzfPath,
     importSettings,
     isLoading,
     loadData,
@@ -36,7 +34,6 @@ function WorkspaceCommand() {
     recordProjectOpen,
     reorderPinnedProject,
     setOnboardingCompleted,
-    showFzfStatus,
     showGitStatus,
     showRecentProjects,
     terminalApp,
@@ -45,26 +42,17 @@ function WorkspaceCommand() {
     workspaceApps,
     workspaces,
   } = useWorkspace();
-  const [searchText, setSearchText] = useState("");
-  const filteredProjects = useProjectSearch(projects, searchText, {
-    fzfAvailable: Boolean(fzfAvailable),
-    fzfPath,
-    showFzfStatus,
-    showGitStatus,
-  });
-
   const { hasVisibleProjects, pinnedList, projectsByWorkspace, recentList } = useMemo(
     () =>
       organizeProjects({
         pinnedPaths: pinnedProjects,
-        projects: filteredProjects,
+        projects,
         recentProjects,
         recentProjectsCount,
-        searchText,
         showRecentProjects,
         workspaces,
       }),
-    [filteredProjects, pinnedProjects, recentProjects, recentProjectsCount, searchText, showRecentProjects, workspaces],
+    [pinnedProjects, projects, recentProjects, recentProjectsCount, showRecentProjects, workspaces],
   );
 
   const pinnedSet = useMemo(() => new Set(pinnedProjects), [pinnedProjects]);
@@ -86,12 +74,14 @@ function WorkspaceCommand() {
 
   const listActions = <RefreshAndSettingsActions loadData={loadData} />;
 
-  const renderProjects = (items: Project[], isPinned: boolean) =>
-    items.map((project) => (
+  const renderProjects = (items: Project[], isPinnedSection: boolean) =>
+    items.map((project, index) => (
       <ProjectItem
+        canMovePinDown={isPinnedSection && index < items.length - 1}
+        canMovePinUp={isPinnedSection && index > 0}
         defaultApp={defaultApp}
-        isPinned={isPinned || pinnedSet.has(project.fullPath)}
-        key={project.fullPath}
+        isPinned={isPinnedSection || pinnedSet.has(project.fullPath)}
+        key={listItemId(project.fullPath)}
         onOpen={recordProjectOpen}
         onRefresh={loadData}
         onReorderPin={reorderPinnedProject}
@@ -105,18 +95,9 @@ function WorkspaceCommand() {
     ));
 
   return (
-    <List
-      isLoading={isLoading}
-      onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search for projects..."
-      throttle
-    >
-      {pinnedList.length > 0 && !searchText && (
-        <List.Section title="Pinned">{renderProjects(pinnedList, true)}</List.Section>
-      )}
-      {recentList.length > 0 && !searchText && (
-        <List.Section title="Recent">{renderProjects(recentList, false)}</List.Section>
-      )}
+    <List isLoading={isLoading} searchBarPlaceholder="Search for projects...">
+      {pinnedList.length > 0 && <List.Section title="Pinned">{renderProjects(pinnedList, true)}</List.Section>}
+      {recentList.length > 0 && <List.Section title="Recent">{renderProjects(recentList, false)}</List.Section>}
 
       {workspaces.map((folder) => {
         const workspaceProjects = projectsByWorkspace[folder] ?? [];
@@ -140,15 +121,15 @@ function WorkspaceCommand() {
           title="No Workspaces"
         />
       )}
-      {workspaces.length > 0 && searchText && !isLoading && !hasVisibleProjects && (
-        <List.EmptyView actions={listActions} description="Try a different search." title="No Matching Projects" />
-      )}
-      {workspaces.length > 0 && !isLoading && !searchText && !hasVisibleProjects && (
+      {workspaces.length > 0 && !isLoading && !hasVisibleProjects && (
         <List.EmptyView
           actions={listActions}
           description="No folders found inside your workspaces. Add or manage workspaces in Settings."
           title="No Projects Found"
         />
+      )}
+      {workspaces.length > 0 && hasVisibleProjects && (
+        <List.EmptyView actions={listActions} description="Try a different search." title="No Matching Projects" />
       )}
     </List>
   );

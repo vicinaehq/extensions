@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Icon, List } from "@vicinae/api";
 
 import GeneralSettings from "@/components/Settings/GeneralSettings";
-import IntegrationSettings from "@/components/Settings/IntegrationSettings";
+import GitSettings from "@/components/Settings/GitSettings";
 import ManagedWorkspacesSection from "@/components/Settings/ManagedWorkspacesSection";
 import RecentProjectsSettings from "@/components/Settings/RecentProjectsSettings";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -15,18 +15,16 @@ export default function Settings({ onWorkspacesChanged, showGeneral = true }: Se
   const {
     defaultApp,
     exportSettings,
-    fzfAvailable,
     gitAvailable,
     importSettings,
     loadData,
     recentProjectsCount,
-    showFzfStatus,
+    resetExtension,
     showGitStatus,
     showRecentProjects,
     terminalApp,
     updateDefaultApp,
     updateRecentProjectsCount,
-    updateShowFzfStatus,
     updateShowGitStatus,
     updateShowRecentProjects,
     updateTerminalApp,
@@ -38,11 +36,7 @@ export default function Settings({ onWorkspacesChanged, showGeneral = true }: Se
 
   if (!showGeneral) {
     return (
-      <List
-        isShowingDetail
-        navigationTitle="Manage Your Workspaces"
-        searchBarPlaceholder="Search for workspaces..."
-      >
+      <List isShowingDetail navigationTitle="Manage Your Workspaces" searchBarPlaceholder="Search for workspaces...">
         <ManagedWorkspacesSection
           loadData={loadData}
           onWorkspacesChanged={onWorkspacesChanged}
@@ -57,9 +51,7 @@ export default function Settings({ onWorkspacesChanged, showGeneral = true }: Se
 
   const workspaceCount = workspaces.length;
   const workspaceSummary =
-    workspaceCount === 0
-      ? "None added"
-      : `${workspaceCount} workspace${workspaceCount === 1 ? "" : "s"}`;
+    workspaceCount === 0 ? "None added" : `${workspaceCount} workspace${workspaceCount === 1 ? "" : "s"}`;
 
   return (
     <List isShowingDetail navigationTitle="Workspace Settings" searchBarPlaceholder="Search settings...">
@@ -68,6 +60,7 @@ export default function Settings({ onWorkspacesChanged, showGeneral = true }: Se
           defaultApp={defaultApp}
           onExportSettings={exportSettings}
           onImportSettings={importSettings}
+          onResetExtension={resetExtension}
           terminalApp={terminalApp}
           updateDefaultApp={updateDefaultApp}
           updateTerminalApp={updateTerminalApp}
@@ -77,6 +70,12 @@ export default function Settings({ onWorkspacesChanged, showGeneral = true }: Se
           showRecentProjects={showRecentProjects}
           updateRecentProjectsCount={updateRecentProjectsCount}
           updateShowRecentProjects={updateShowRecentProjects}
+        />
+        <GitSettings
+          gitAvailable={gitAvailable}
+          onWorkspacesChanged={onWorkspacesChanged}
+          showGitStatus={showGitStatus}
+          updateShowGitStatus={updateShowGitStatus}
         />
         <List.Item
           actions={
@@ -102,17 +101,6 @@ export default function Settings({ onWorkspacesChanged, showGeneral = true }: Se
           id="workspaces"
           keywords={["folder", "directory", "manage"]}
           title="Workspaces"
-        />
-      </List.Section>
-      <List.Section title="Integrations">
-        <IntegrationSettings
-          fzfAvailable={fzfAvailable}
-          gitAvailable={gitAvailable}
-          onWorkspacesChanged={onWorkspacesChanged}
-          showFzfStatus={showFzfStatus}
-          showGitStatus={showGitStatus}
-          updateShowFzfStatus={updateShowFzfStatus}
-          updateShowGitStatus={updateShowGitStatus}
         />
       </List.Section>
     </List>

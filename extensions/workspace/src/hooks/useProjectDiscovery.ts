@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Project } from "@/types";
 import { STORAGE_KEY_PROJECTS_CACHE } from "@/utils/constants";
-import { getGitStatus, isGitAvailable } from "@/utils/git";
+import { getGitStatus, isGitAvailable, isGitRepo } from "@/utils/git";
 
 const GIT_CONCURRENCY = 16;
 
@@ -85,41 +85,49 @@ export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean
       );
 
       const previousByPath = new Map((memoryCache?.projects ?? []).map((project) => [project.fullPath, project]));
-      const listedWithStaleGit = listed.map((project) => ({
-        ...project,
-        gitStatus: showGitStatus ? previousByPath.get(project.fullPath)?.gitStatus : undefined,
-      }));
+      const listedWithStaleGit = listed.map((project) => {
+        const previous = previousByPath.get(project.fullPath);
+        return {
+          ...project,
+          gitStatus: showGitStatus ? previous?.gitStatus : undefined,
+          isGitRepo: previous?.isGitRepo ?? previous?.gitStatus != null,
+        };
+      });
 
       remember({ projects: listedWithStaleGit, showGitStatus, workspaces }, setProjects, setCachedWorkspaces);
       setScannedWorkspaceRoots(scannedRoots);
       setHasScanned(true);
       setIsLoading(false);
 
-      if (!showGitStatus || listed.length === 0 || !(await isGitAvailable())) {
+      if (listed.length === 0 || !(await isGitAvailable())) {
         return;
       }
 
-      const withStatus: Project[] = [];
+      const resolved: Project[] = [];
       for (let i = 0; i < listed.length; i += GIT_CONCURRENCY) {
         if (cancelled) {
           return;
         }
 
         const chunk = listed.slice(i, i + GIT_CONCURRENCY);
-        withStatus.push(
+        resolved.push(
           ...(await Promise.all(
-            chunk.map(async (project) => ({
-              ...project,
-              gitStatus: await getGitStatus(project.fullPath),
-            })),
+            chunk.map(async (project) => {
+              if (showGitStatus) {
+                const gitStatus = await getGitStatus(project.fullPath);
+                return { ...project, gitStatus, isGitRepo: gitStatus != null };
+              }
+
+              return { ...project, gitStatus: undefined, isGitRepo: await isGitRepo(project.fullPath) };
+            }),
           )),
         );
 
-        const merged = listed.map((project, index) => withStatus[index] ?? listedWithStaleGit[index] ?? project);
+        const merged = listed.map((project, index) => resolved[index] ?? listedWithStaleGit[index] ?? project);
         remember({ projects: merged, showGitStatus, workspaces }, setProjects, setCachedWorkspaces, false);
       }
 
-      remember({ projects: withStatus, showGitStatus, workspaces }, setProjects, setCachedWorkspaces);
+      remember({ projects: resolved, showGitStatus, workspaces }, setProjects, setCachedWorkspaces);
     }
 
     void refresh();
@@ -141,6 +149,11 @@ export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean
     projects,
     scannedWorkspaceRoots,
   };
+}
+
+export function clearProjectsCache() {
+  memoryCache = { projects: [], showGitStatus: true, workspaces: [] };
+  void LocalStorage.removeItem(STORAGE_KEY_PROJECTS_CACHE);
 }
 
 function remember(

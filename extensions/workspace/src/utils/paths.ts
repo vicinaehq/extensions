@@ -35,3 +35,8 @@ export function isPathInside(parent: string, child: string): boolean {
   const normalizedParent = parent.endsWith(path.sep) ? parent.slice(0, -1) : parent;
   return child === normalizedParent || child.startsWith(normalizedParent + path.sep);
 }
+
+/** Stable list item id. Paths are encoded so `/` is not part of the id. */
+export function listItemId(value: string): string {
+  return encodeURIComponent(value);
+}

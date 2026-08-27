@@ -13,7 +13,6 @@
   ],
   "categories": [
     "Productivity",
-    "Design Tools",
     "Developer Tools"
   ],
   "keywords": [
@@ -38,7 +37,7 @@
     {
       "name": "settings",
       "title": "Workspace Settings",
-      "description": "Manage workspaces, default app and apps per workspace",
+      "description": "Apps, git status, recents, workspaces, and backup",
       "mode": "view"
     }
   ],
