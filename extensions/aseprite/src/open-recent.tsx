@@ -43,7 +43,7 @@ export default function OpenRecent() {
   // Generate PNG previews for .ase/.aseprite files (skipped if showPreview disabled)
   useEffect(() => {
     if (!showPreviewEnabled) return;
-    const aseFiles = recentFiles.filter((f) => /\.aseprite?$/i.test(f.path));
+    const aseFiles = recentFiles.filter((f) => /\.ase(?:prite)?$/i.test(f.path));
     if (aseFiles.length === 0) return;
     let cancelled = false;
     (async () => {
@@ -163,17 +163,22 @@ export default function OpenRecent() {
     >
       {recentFiles.map((file) => {
         const isImage = /\.(png|jpe?g|gif|webp|bmp)$/i.test(file.path);
-        const isAseprite = /\.aseprite?$/i.test(file.path);
+        const isAseprite = /\.ase(?:prite)?$/i.test(file.path);
         const preview = showPreviewEnabled ? previews[file.path] : null;
+        // previews[file] is undefined = pending, null = failed, string = ready
+        const previewPending = isAseprite && preview === undefined;
+        const previewFailed = isAseprite && preview === null;
         const markdown = !showPreviewEnabled
           ? undefined
           : isImage
             ? `![preview](file://${file.path})`
             : isAseprite && preview
               ? `![preview](file://${preview})`
-              : isAseprite
-                ? "_Generating preview…_"
-                : undefined;
+              : previewFailed
+                ? "_Preview failed. Check Aseprite path in settings._"
+                : previewPending
+                  ? "_Generating preview…_"
+                  : undefined;
         return (
           <List.Item
             key={file.path}
@@ -196,8 +201,11 @@ export default function OpenRecent() {
                       title="Last opened"
                       text={new Date(file.lastOpened).toLocaleString()}
                     />
-                    {showPreviewEnabled && isAseprite && !preview && (
+                    {showPreviewEnabled && isAseprite && previewPending && (
                       <List.Item.Detail.Metadata.Label title="Preview" text="Generating PNG via aseprite --batch…" />
+                    )}
+                    {showPreviewEnabled && isAseprite && previewFailed && (
+                      <List.Item.Detail.Metadata.Label title="Preview" text="Failed. Check Aseprite path" />
                     )}
                   </List.Item.Detail.Metadata>
                 }
@@ -215,6 +223,21 @@ export default function OpenRecent() {
                   icon={Icon.Clipboard}
                   onAction={() => handleCopyPath(file.path)}
                 />
+                {previewFailed && (
+                  <Action
+                    title="Retry Preview"
+                    icon={Icon.ArrowClockwise}
+                    onAction={async () => {
+                      setPreviews((p) => {
+                        const next = { ...p };
+                        delete next[file.path];
+                        return next;
+                      });
+                      const result = await exportPreview(file.path, preferences);
+                      setPreviews((p) => ({ ...p, [file.path]: result }));
+                    }}
+                  />
+                )}
               </ActionPanel>
             }
           />
