@@ -10,3 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Open Recents command
 - Preference for Aseprite path
+- Optional PNG previews for `.ase` and `.aseprite` files via `aseprite --batch`
+- Show Preview preference to enable or disable preview generation
+- Retry Preview action when generation fails
