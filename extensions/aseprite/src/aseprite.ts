@@ -128,8 +128,8 @@ export async function launchAseprite(args: string[], preferences: AsepritePrefer
   const fs = require("fs");
   const { spawn } = require("child_process");
   
-  // Validate path exists before spawning
-  if (!fs.existsSync(asepritePath)) {
+  // Validate path exists before spawning (skip for bare "aseprite" which resolves via PATH)
+  if (asepritePath !== "aseprite" && !fs.existsSync(asepritePath)) {
     throw new Error(`Aseprite not found at: ${asepritePath}`);
   }
   
@@ -152,15 +152,12 @@ export async function launchAseprite(args: string[], preferences: AsepritePrefer
     
     child.on("exit", (code) => {
       if (code !== 0) {
-        // This may not fire due to unref, but kept for completeness
         reject(new Error(`Aseprite exited with code ${code}`));
       } else {
         resolve();
       }
     });
     
-    // Resolve immediately on successful spawn since we can't wait for GUI app
-    // The error handler above catches "not found" errors
     child.on("spawn", () => resolve());
   });
 }

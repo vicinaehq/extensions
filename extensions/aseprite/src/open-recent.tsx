@@ -85,16 +85,25 @@ export default function OpenRecent() {
       await showToast({
         style: Toast.Style.Failure,
         title: "Failed to open file",
+        message: String(error),
       });
     }
   };
 
-  const handleCopyPath = (filePath: string) => {
-    Clipboard.copy(filePath);
-    showToast({
-      style: Toast.Style.Success,
-      title: "Path copied to clipboard",
-    });
+  const handleCopyPath = async (filePath: string) => {
+    try {
+      await Clipboard.copy(filePath);
+      await showToast({
+        style: Toast.Style.Success,
+        title: "Path copied to clipboard",
+      });
+    } catch (error) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to copy path",
+        message: String(error),
+      });
+    }
   };
 
   if (isLoading) {
