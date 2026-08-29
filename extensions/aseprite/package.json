@@ -28,6 +28,15 @@
       "placeholder": "/usr/bin/aseprite or C:\\Program Files\\Aseprite\\aseprite.exe",
       "default": "",
       "required": false
+    },
+    {
+      "name": "showPreview",
+      "type": "checkbox",
+      "title": "Show Preview",
+      "label": "Generate PNG previews for .ase/.aseprite",
+      "description": "Show previews for .ase/.aseprite files",
+      "default": true,
+      "required": false
     }
   ],
   "scripts": {

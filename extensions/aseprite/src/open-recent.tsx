@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Clipboard, showToast, Toast, getPreferenceValues, List, Icon, closeMainWindow } from "@vicinae/api";
-import { getPreferencesFolder, parseRecentFiles, launchAseprite } from "./aseprite";
+import { getPreferencesFolder, parseRecentFiles, launchAseprite, exportPreview, getPreviewPath } from "./aseprite";
 import { useDebounce } from "./hooks/useDebounce";
 import { useState, useEffect, useMemo } from "react";
 
@@ -8,11 +8,13 @@ export default function OpenRecent() {
   try {
     preferences = getPreferenceValues<{
       asepritePath: string;
+      showPreview: boolean;
     }>();
   } catch (e) {
     console.error("Failed to get preferences:", e);
-    preferences = { asepritePath: "" };
+    preferences = { asepritePath: "", showPreview: true };
   }
+  const showPreviewEnabled = preferences.showPreview !== false;
   
   const [allFiles, setAllFiles] = useState<Array<{
     path: string;
@@ -22,6 +24,7 @@ export default function OpenRecent() {
   
   const [filterText, setFilterText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [previews, setPreviews] = useState<Record<string, string | null>>({});
   const debouncedFilter = useDebounce(filterText, 150);
 
   const recentFiles = useMemo(() => {
@@ -36,6 +39,28 @@ export default function OpenRecent() {
   useEffect(() => {
     loadRecentFiles();
   }, []);
+
+  // Generate PNG previews for .ase/.aseprite files (skipped if showPreview disabled)
+  useEffect(() => {
+    if (!showPreviewEnabled) return;
+    const aseFiles = recentFiles.filter((f) => /\.aseprite?$/i.test(f.path));
+    if (aseFiles.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      for (const f of aseFiles) {
+        if (previews[f.path] !== undefined) continue;
+        const fs = require("fs");
+        const cached = getPreviewPath(f.path);
+        if (fs.existsSync(cached)) {
+          setPreviews((p) => ({ ...p, [f.path]: cached }));
+          continue;
+        }
+        const result = await exportPreview(f.path, preferences);
+        if (!cancelled) setPreviews((p) => ({ ...p, [f.path]: result }));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [recentFiles, showPreviewEnabled]);
 
   const loadRecentFiles = async () => {
     setIsLoading(true);
@@ -132,33 +157,69 @@ export default function OpenRecent() {
 
   return (
     <List
+      isShowingDetail={showPreviewEnabled}
       placeholder="Filter recent files..."
       onChange={setFilterText}
     >
-      {recentFiles.map((file) => (
-        <List.Item
-          key={file.path}
-          title={file.name}
-          subtitle={file.path}
-          accessories={[
-            { text: new Date(file.lastOpened).toLocaleDateString() }
-          ]}
-          actions={
-            <ActionPanel>
-              <Action
-                title="Open"
-                icon={Icon.FolderOpen}
-                onAction={() => handleOpenFile(file.path)}
+      {recentFiles.map((file) => {
+        const isImage = /\.(png|jpe?g|gif|webp|bmp)$/i.test(file.path);
+        const isAseprite = /\.aseprite?$/i.test(file.path);
+        const preview = showPreviewEnabled ? previews[file.path] : null;
+        const markdown = !showPreviewEnabled
+          ? undefined
+          : isImage
+            ? `![preview](file://${file.path})`
+            : isAseprite && preview
+              ? `![preview](file://${preview})`
+              : isAseprite
+                ? "_Generating preview…_"
+                : undefined;
+        return (
+          <List.Item
+            key={file.path}
+            title={file.name}
+            subtitle={file.path}
+            icon={showPreviewEnabled && preview ? { fileIcon: preview } : { fileIcon: file.path }}
+            accessories={[{ text: new Date(file.lastOpened).toLocaleDateString() }]}
+            detail={
+              <List.Item.Detail
+                markdown={markdown}
+                metadata={
+                  <List.Item.Detail.Metadata>
+                    <List.Item.Detail.Metadata.Label title="Name" text={file.name} />
+                    <List.Item.Detail.Metadata.Label title="Path" text={file.path} />
+                    <List.Item.Detail.Metadata.Label
+                      title="Type"
+                      text={isAseprite ? "Aseprite Sprite" : isImage ? "Image" : "File"}
+                    />
+                    <List.Item.Detail.Metadata.Label
+                      title="Last opened"
+                      text={new Date(file.lastOpened).toLocaleString()}
+                    />
+                    {showPreviewEnabled && isAseprite && !preview && (
+                      <List.Item.Detail.Metadata.Label title="Preview" text="Generating PNG via aseprite --batch…" />
+                    )}
+                  </List.Item.Detail.Metadata>
+                }
               />
-              <Action
-                title="Copy Path"
-                icon={Icon.Clipboard}
-                onAction={() => handleCopyPath(file.path)}
-              />
-            </ActionPanel>
-          }
-        />
-      ))}
+            }
+            actions={
+              <ActionPanel>
+                <Action
+                  title="Open"
+                  icon={Icon.FolderOpen}
+                  onAction={() => handleOpenFile(file.path)}
+                />
+                <Action
+                  title="Copy Path"
+                  icon={Icon.Clipboard}
+                  onAction={() => handleCopyPath(file.path)}
+                />
+              </ActionPanel>
+            }
+          />
+        );
+      })}
     </List>
   );
 }
