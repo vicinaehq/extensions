@@ -13,7 +13,7 @@
   "commands": [
     {
       "name": "open-recent",
-      "title": "Open Recent Files",
+      "title": "Open Recents",
       "subtitle": "Open or copy path of a recent Aseprite file",
       "description": "List, open, and copy paths of recent Aseprite files",
       "mode": "view"
