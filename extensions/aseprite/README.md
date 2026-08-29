@@ -4,14 +4,14 @@ Browse, open, and copy paths of recent Aseprite files from Vicinae.
 
 ## Features
 
-- **Open Recent Files** - Browse and open your recently used Aseprite files
+- **Open Recents** - Browse and open your recently used Aseprite files
 - **Copy Paths** - Copy file paths to clipboard
 
 ## Commands
 
 | Command | Title | Description |
 |---------|-------|-------------|
-| `open-recent` | Open Recent Files | List, open, and copy paths of recent Aseprite files |
+| `open-recent` | Open Recents | List, open, and copy paths of recent Aseprite files |
 
 ## Preferences
 
