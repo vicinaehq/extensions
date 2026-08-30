@@ -142,7 +142,7 @@ function getPreviewPathFresh(sourcePath: string): string {
 export function isFreshPreviewPath(path: string): boolean {
   // Fresh path: vicinae-aseprite-{base}-{timestamp}-{random}.png
   // Stable path: vicinae-aseprite-{base}-{8-char-hash}.png
-  return /-(\d+)-([a-f0-9]{8})\.png$/i.test(path);
+  return /(?:^|[/\\])vicinae-aseprite-.*-\d{13}-[a-f0-9]{8}\.png$/i.test(path);
 }
 
 export async function exportPreview(sourcePath: string, preferences: AsepritePreferences): Promise<string | null> {
