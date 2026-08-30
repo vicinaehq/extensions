@@ -1,5 +1,10 @@
+import { getPreferenceValues } from "@vicinae/api";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+
+interface Preferences {
+  rbwPath: string;
+}
 
 const execFileAsync = promisify(execFile);
 
@@ -25,7 +30,7 @@ export class RbwError extends Error {
 export class RbwNotInstalledError extends Error {
   constructor() {
     super(
-      "rbw is not installed. Install it with `pacman -S rbw` (Arch), `brew install rbw` (macOS), or from https://github.com/doy/rbw",
+      "rbw is not installed. Install it with `pacman -S rbw` (Arch), `brew install rbw` (macOS), or from https://github.com/doy/rbw. Also, try configuring the rbwPath setting in Vicinae settings.",
     );
     this.name = "RbwNotInstalledError";
   }
@@ -35,8 +40,9 @@ async function runRbw(
   args: string[],
   options?: { timeout?: number },
 ): Promise<string> {
+  const { rbwPath } = getPreferenceValues<Preferences>();
   try {
-    const { stdout } = await execFileAsync("rbw", args, {
+    const { stdout } = await execFileAsync(rbwPath.trim() ?? "rbw", args, {
       maxBuffer: 4 * 1024 * 1024,
       encoding: "utf-8",
       timeout: options?.timeout ?? 15_000,

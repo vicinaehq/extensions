@@ -139,7 +139,7 @@ export default function Command() {
         <List.EmptyView
           icon={Icon.Warning}
           title="rbw is not installed"
-          description="Install rbw to use this extension. See https://github.com/doy/rbw"
+          description="Install rbw to use this extension. See https://github.com/doy/rbw. Also, try configuring the rbwPath setting in Vicinae settings."
         />
       </List>
     );
