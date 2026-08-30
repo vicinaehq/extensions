@@ -21,6 +21,7 @@ import {
   listFields,
   isUnlocked,
   syncVault,
+  runRbw,
 } from "./rbw";
 
 type EntryState = { entries: VaultEntry[]; loaded: boolean };
@@ -160,9 +161,7 @@ export default function Command() {
                 onAction={async () => {
                   closeMainWindow();
                   try {
-                    const { execFile } = await import("node:child_process");
-                    const { promisify } = await import("node:util");
-                    await promisify(execFile)("rbw", ["unlock"]);
+                    await runRbw(["unlock"])
                     setLocked(false);
                     await loadEntries();
                   } catch (error) {

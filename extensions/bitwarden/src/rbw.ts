@@ -36,7 +36,7 @@ export class RbwNotInstalledError extends Error {
   }
 }
 
-async function runRbw(
+export async function runRbw(
   args: string[],
   options?: { timeout?: number },
 ): Promise<string> {
