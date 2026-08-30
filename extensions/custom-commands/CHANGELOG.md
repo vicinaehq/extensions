@@ -1,36 +1,37 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+This project uses Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
 ### Added
-- `custom-commands` extension with `commands` view (`Custom Commands`)
-- Create, edit, duplicate, delete for custom shell commands
-- Terminal vs background execution (`runInTerminal` with `hold` + `workingDirectory`, `exec` with 30s timeout, output copied to clipboard)
-- Dynamic placeholders `{{key}}` with `RunWithArgsForm` (one field per unique non-system key)
-- System placeholders auto-resolved: `{{clipboard}}`, `{{selection}}` (fallback to clipboard), `{{home}}`, `{{user}}`, `{{date}}`, `{{time}}`, `{{datetime}}` (shell-escaped)
-- Case-insensitive placeholder matching
-- Custom icons via URL or local file path (`getIcon()` with `Icon.Terminal` fallback)
-- Grouping: `group` field, `List.Dropdown` filter, sections per group (`Ungrouped` last), search includes group
-- Import / export via clipboard JSON
-- `terminal` and `defaultWorkdir` preferences
+- First version of the Custom Commands extension with a `commands` view
+- Create, edit, duplicate, and delete for your own shell commands
+- Run in terminal or in the background with output copied to clipboard
+- Placeholders like `{{host}}` or `{{msg}}` that prompt for input when you run
+- System placeholders that fill automatically: `{{clipboard}}`, `{{home}}`, `{{user}}`, `{{date}}`, `{{time}}`, `{{datetime}}`
+- Case insensitive placeholder names
+- Custom icons from a URL or local file path
+- Groups with a dropdown filter and grouped sections
+- Search by name, command, description, or group
+- Import and export through clipboard JSON
+- Preferences for terminal and default working directory
 
 ### Fixed
-- `runInTerminal` now uses correct `workingDirectory` + `hold:true` (was `cwd`)
-- Custom terminal pref parsed with quote-aware split, detached `spawn` with fallback to native launcher
-- `closeMainWindow()` now always on success (removed `closeOnRun` preference)
-- Filter: `showCreateFromSearch` for any non-empty query (was `>2` chars), duplicate `Create` rows removed
-- Placeholder `{{clipboard}}` injection sanitized via single-quote escaping
+- Terminal now opens correctly with the right working directory and stays open
+- Custom terminal setting is parsed correctly and falls back to the system terminal if needed
+- The window now always closes after a successful run
+- Search now shows the create option right away, even for short queries
+- Removed duplicate create rows
+- Clipboard and other system values are now passed safely to the shell
 
 ### Changed
-- Extension `custom-commands` / command `commands` / `Custom Commands` (was `custom-commands`/`custom-commands`)
-- Placeholder system only `{{...}}` (removed legacy `$ARGS`/`{{input}}` aliases)
-- Icons: built-in picker removed, only custom URL/path
+- Extension and command names updated to `custom-commands` and `Custom Commands`
+- Placeholders now use only the `{{name}}` form
+- Icon picker now uses only custom URLs and file paths
 
 ### Removed
-- `closeOnRun` preference (now always close)
-- Legacy placeholder aliases
+- The close window preference, it now always closes on success
+- Old placeholder forms like `$ARGS` and `{{input}}`

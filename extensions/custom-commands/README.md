@@ -1,22 +1,21 @@
 # Custom Commands
 
-Create and run your own custom shell commands directly from Vicinae.
+Create and run your own shell commands right from Vicinae.
 
-Define any shell command once — with dynamic placeholders, custom icons, and grouping — and run it instantly via search. Background tasks copy output to clipboard, terminal tasks open in your preferred terminal.
+Set up a command once with placeholders, icons, and groups, then find and run it instantly through search. Run quietly in the background and get output copied to clipboard, or open it in your terminal.
 
 ## Features
 
-- **Manage Commands** — create, edit, duplicate, delete
-- **Terminal vs Background** — run silently (output copied to clipboard) or in a terminal window (`runInTerminal` with `hold` + `workingDirectory`)
-- **Grouping** — assign a `group` (e.g. `git`, `docker`, `system`); filter via dropdown, sections per group (`Ungrouped` last), search includes group
-- **Dynamic Placeholders** — `{{name}}` prompts for input, system placeholders auto-filled:
-  - User: `{{host}}`, `{{branch}}`, `{{msg}}`, `{{file}}`, `{{path}}`, `{{url}}`, `{{args}}`, etc. (any `{{key}}`)
-  - System (single-quoted for safety): `{{clipboard}}`, `{{selection}}` (fallback to clipboard), `{{home}}`, `{{user}}`, `{{date}}`, `{{time}}`, `{{datetime}}`
-  - Case-insensitive: `{{Clipboard}}` ≡ `{{clipboard}}`
-- **Custom Icons** — URL or local file path (`https://…/icon.png`, `/home/user/.icons/foo.svg`, `~/icons/icon.png`); empty → `Icon.Terminal` fallback via `getIcon()`
-- **Working Directory** — per-command `workdir` with global `defaultWorkdir` preference fallback
-- **Import / Export** — export all commands as JSON to clipboard, import from clipboard
-- **Search** — filter by name, command, description, or group
+- **Manage commands**: create, edit, duplicate, and delete
+- **Run how you want**: background (output goes to clipboard) or terminal window that stays open
+- **Groups**: put commands in groups like git, docker, or system, filter with a dropdown, and search by group name
+- **Placeholders that ask for input**: write `{{host}}`, `{{branch}}`, `{{msg}}`, or any `{{name}}` and get a field for each one when you run
+- **System placeholders that fill themselves**: `{{clipboard}}`, `{{home}}`, `{{user}}`, `{{date}}`, `{{time}}`, `{{datetime}}` are filled automatically and handled safely
+- **Case insensitive**: `{{clipboard}}` and `{{Clipboard}}` work the same
+- **Custom icons**: paste a URL or a file path like `https://example.com/icon.png` or `~/icons/foo.svg`. Leave it empty and you get the default terminal icon
+- **Working directory**: set a folder per command, with a global default if you do not set one
+- **Import and export**: copy all commands to clipboard as JSON and import them back
+- **Fast search**: filter by name, command, description, or group
 
 ## Command
 
@@ -24,58 +23,63 @@ Define any shell command once — with dynamic placeholders, custom icons, and g
 |---------|-------|-------------|
 | `commands` | Custom Commands | Create and run your custom shell commands |
 
-Open via Vicinae root search → `Custom Commands`.
+Find it in Vicinae by searching for Custom Commands.
 
-## Placeholders
+## How placeholders work
 
-Use `{{key}}` anywhere in the command string. At run time:
+Add `{{key}}` anywhere in your command.
 
-- User keys → `RunWithArgsForm` generates one text field per unique non-system key.
-- System keys → auto-resolved (clipboard via `Clipboard.readText()`, home via `os.homedir()`, etc.) and **shell-escaped** (`'${val.replace(/'/g,"'\\''")}'`) before `bash -c`.
+- If it is a system placeholder, it fills in on its own
+- If it is a custom name, you will see a field for it when you run the command
+
+All placeholder names are case insensitive.
 
 Examples:
 
-| Name | Command |
-|------|---------|
-| Open project | `code {{path}}` |
-| Commit | `git commit -m "{{msg}}" && git push origin {{branch}}` |
-| Copy via clipboard | `echo {{clipboard}} \| jq` |
-| Backup | `mkdir -p {{home}}/backup-{{date}}` |
-| SCP | `scp {{file}} {{host}}:/tmp` |
+| Name | Command | What happens |
+|------|---------|--------------|
+| Open project | `code {{path}}` | Asks for a path |
+| Commit | `git commit -m "{{msg}}" && git push origin {{branch}}` | Asks for message and branch |
+| Use clipboard | `echo {{clipboard}} | jq` | Fills from clipboard safely |
+| Backup | `mkdir -p {{home}}/backup-{{date}}` | Uses your home and today's date |
+| Copy to server | `scp {{file}} {{host}}:/tmp` | Asks for file and host |
 
-System placeholders do not prompt; user placeholders do. All placeholders are case-insensitive.
+Values are passed safely to the shell, so special characters in clipboard or input do not break your command.
 
 ## Preferences
 
 | Preference | Type | Description |
 |------------|------|-------------|
-| Terminal | Text field | Terminal command (e.g. `kitty`, `gnome-terminal --`). Leave empty to use Vicinae default (`xdg-terminal-exec`). |
-| Default Working Directory | Text field | Fallback `cwd` for commands without a custom working directory. |
+| Terminal | Text field | Terminal to use, for example `kitty` or `gnome-terminal --`. Leave empty to use the system default |
+| Default Working Directory | Text field | Folder to use when a command does not have its own working directory |
 
-Execution always closes the Vicinae window on success (via `closeMainWindow()`).
+The window closes after a successful run so you can keep going.
 
-## Storage
+## Where commands are saved
 
-Commands stored in `LocalStorage` key `custom-commands:commands` as JSON array of `CustomCommand { id, name, command, description, workdir, terminal, icon, group, createdAt }`.
+Commands are saved locally in Vicinae storage under the key `custom-commands:commands`.
 
 ## Installation
 
 ```bash
 cd extensions/custom-commands
 npm install
-npm run build   # vici build
+npm run build   # build once
 # or
-npm run dev     # vici develop
+npm run dev     # watch while you develop
 ```
 
 ## Requirements
 
-- Linux (declared `platforms: ["Linux"]` but uses portable `runInTerminal` API)
-- Node.js 18+
+- Vicinae installed
+- Node.js 18 or newer
+- A shell available on your system (bash on Linux and macOS, PowerShell on Windows)
 
-## Supported Platforms
+## Supported platforms
 
 - Linux
+- macOS
+- Windows
 
 ## License
 
