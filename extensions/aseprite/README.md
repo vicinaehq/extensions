@@ -1,18 +1,20 @@
 # Aseprite Extension
 
-Browse, open, and copy paths of recent Aseprite files from Vicinae.
+Browse, open, copy paths, and preview recent Aseprite files from Vicinae.
 
 ## Features
 
 - **Open Recents** - Browse and open your recently used Aseprite files
 - **Copy Paths** - Copy file paths to clipboard
-- **Previews** - Optional PNG previews for `.ase` and `.aseprite` files with file icon fallback. Can be disabled for faster loading
+- **Previews** - PNG previews for `.ase` and `.aseprite` files via `aseprite --batch` with file icon fallback. Auto-refreshes on external saves. Disable for faster loading
+- **Auto-refresh** - Detects file changes while the extension is open and regenerates previews automatically
+- **Refresh Previews** - Press `Cmd+R` to regenerate all previews
 
 ## Commands
 
 | Command | Title | Description |
 |---------|-------|-------------|
-| `open-recent` | Open Recents | List, open, and copy paths of recent Aseprite files |
+| `open-recent` | Open Recents | List, open, copy paths, and preview recent Aseprite files |
 
 ## Preferences
 
