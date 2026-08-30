@@ -5,7 +5,7 @@
   "description": "Create and run your own custom shell commands directly from Vicinae. Define commands with arguments, run in terminal or background.",
   "categories": ["Productivity", "Developer Tools", "System"],
   "license": "MIT",
-  "platforms": ["Linux"],
+  "platforms": ["Linux", "macOS", "Windows"],
   "author": "OmerMohideen",
   "contributors": [],
   "pastContributors": [],

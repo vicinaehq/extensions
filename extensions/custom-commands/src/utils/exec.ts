@@ -7,6 +7,8 @@ export interface Preferences {
   defaultWorkdir: string;
 }
 
+const isWindows = process.platform === "win32";
+
 /** All {{name}} placeholders in the command */
 export function extractPlaceholders(command: string): string[] {
   const set = new Set<string>();
@@ -90,7 +92,6 @@ function parseTerminalPref(pref: string): string[] {
 
 function buildPositionalTemplate(command: string, values: Record<string, string>): { template: string; positionalArgs: string[] } {
   const placeholders = extractPlaceholders(command);
-  // Preserve order of first appearance
   const orderedKeys: string[] = [];
   const seen = new Set<string>();
   const reScan = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
@@ -102,8 +103,6 @@ function buildPositionalTemplate(command: string, values: Record<string, string>
       orderedKeys.push(k);
     }
   }
-  // Also include any keys that are in values but not in command order? already covered by placeholders order
-  // Ensure we include all placeholders even if not scanned due to case
   for (const k of placeholders) if (!seen.has(k)) { seen.add(k); orderedKeys.push(k); }
 
   const normalized: Record<string, string> = {};
@@ -113,9 +112,7 @@ function buildPositionalTemplate(command: string, values: Record<string, string>
 
   let template = command;
   orderedKeys.forEach((key, idx) => {
-    const pos = idx + 1;
-    const replacement = `"$${pos}"`;
-    // Replace quoted forms first to avoid nested quotes: "{{key}}" and '{{key}}' -> "$N"
+    const replacement = isWindows ? `$args[${idx}]` : `"$${idx + 1}"`;
     const doubleQuotedRe = new RegExp(`"\\{\\{\\s*${key}\\s*\\}\\}"`, "gi");
     const singleQuotedRe = new RegExp(`'\\{\\{\\s*${key}\\s*\\}\\}'`, "gi");
     const bareRe = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "gi");
@@ -128,13 +125,14 @@ function buildPositionalTemplate(command: string, values: Record<string, string>
 }
 
 async function tryRunInTerminal(template: string, positionalArgs: string[], cwd?: string): Promise<void> {
-  // Use positional parameters so values are never shell-interpreted
-  // bash -c 'template' bash arg1 arg2 ...  where $1, $2 expand to data safely
-  const args = ["bash", "-c", template, "bash", ...positionalArgs];
-  await runInTerminal(args, {
-    hold: true,
-    workingDirectory: cwd,
-  });
+  if (isWindows) {
+    // PowerShell: $args[0], $args[1] ... are the positional args after -- 
+    const args = ["powershell.exe", "-NoProfile", "-Command", template, ...positionalArgs];
+    await runInTerminal(args, { hold: true, workingDirectory: cwd });
+  } else {
+    const args = ["bash", "-c", template, "bash", ...positionalArgs];
+    await runInTerminal(args, { hold: true, workingDirectory: cwd });
+  }
 }
 
 async function runWithCustomTerminal(
@@ -147,15 +145,25 @@ async function runWithCustomTerminal(
   if (parts.length === 0) throw new Error("Empty terminal preference");
   const terminalBin = parts[0];
   if (!terminalBin) throw new Error("Invalid terminal command");
-  // Append "; exec bash" so terminal stays open after command
-  const templateWithHold = `${template}; exec bash`;
-  const terminalArgs = [...parts.slice(1), "bash", "-c", templateWithHold, "bash", ...positionalArgs];
-  await new Promise<void>((resolve, reject) => {
-    const child = spawn(terminalBin, terminalArgs, { cwd, detached: true, stdio: "ignore" });
-    child.on("error", reject);
-    child.unref();
-    setTimeout(() => resolve(), 300);
-  });
+  if (isWindows) {
+    const templateWithHold = `${template}; pause`;
+    const terminalArgs = [...parts.slice(1), "powershell.exe", "-NoProfile", "-Command", templateWithHold, ...positionalArgs];
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn(terminalBin, terminalArgs, { cwd, detached: true, stdio: "ignore" });
+      child.on("error", reject);
+      child.unref();
+      setTimeout(() => resolve(), 300);
+    });
+  } else {
+    const templateWithHold = `${template}; exec bash`;
+    const terminalArgs = [...parts.slice(1), "bash", "-c", templateWithHold, "bash", ...positionalArgs];
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn(terminalBin, terminalArgs, { cwd, detached: true, stdio: "ignore" });
+      child.on("error", reject);
+      child.unref();
+      setTimeout(() => resolve(), 300);
+    });
+  }
 }
 
 function execWithPositional(
@@ -165,7 +173,10 @@ function execWithPositional(
   timeout = 30_000,
 ): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    const child = spawn("bash", ["-c", template, "bash", ...positionalArgs], { cwd });
+    const isWin = isWindows;
+    const child = isWin
+      ? spawn("powershell.exe", ["-NoProfile", "-Command", template, ...positionalArgs], { cwd })
+      : spawn("bash", ["-c", template, "bash", ...positionalArgs], { cwd });
     let stdout = "";
     let stderr = "";
     let timer: NodeJS.Timeout | undefined;
