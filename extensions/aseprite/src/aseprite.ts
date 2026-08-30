@@ -123,7 +123,7 @@ export function parseRecentFiles(iniContent: string): RecentFile[] {
   return recentFiles.sort((a, b) => b.lastOpened - a.lastOpened);
 }
 
-export function getPreviewPath(sourcePath: string): string {
+function getPreviewPath(sourcePath: string): string {
   const path = require("path");
   const crypto = require("crypto");
   const hash = crypto.createHash("md5").update(sourcePath).digest("hex").slice(0, 8);
@@ -137,6 +137,12 @@ function getPreviewPathFresh(sourcePath: string): string {
   const base = path.basename(sourcePath).replace(/\.[^.]+$/, "");
   const unique = Date.now() + "-" + crypto.randomBytes(4).toString("hex");
   return path.join(require("os").tmpdir(), `vicinae-aseprite-${base}-${unique}.png`);
+}
+
+export function isFreshPreviewPath(path: string): boolean {
+  // Fresh path: vicinae-aseprite-{base}-{timestamp}-{random}.png
+  // Stable path: vicinae-aseprite-{base}-{8-char-hash}.png
+  return /-(\d+)-([a-f0-9]{4})\.png$/i.test(path);
 }
 
 export async function exportPreview(sourcePath: string, preferences: AsepritePreferences): Promise<string | null> {

@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Clipboard, showToast, Toast, getPreferenceValues, List, Icon, closeMainWindow } from "@vicinae/api";
-import { getPreferencesFolder, parseRecentFiles, launchAseprite, exportPreview } from "./aseprite";
+import { getPreferencesFolder, parseRecentFiles, launchAseprite, exportPreview, isFreshPreviewPath } from "./aseprite";
 import { useState, useEffect, useRef } from "react";
 
 export default function OpenRecent() {
@@ -39,10 +39,10 @@ export default function OpenRecent() {
       return next;
     });
     const result = await exportPreview(path, preferences);
-    if (result) {
+    if (result && isFreshPreviewPath(result)) {
       createdPreviewPaths.current.add(result);
-      setPreviews((p) => ({ ...p, [path]: result }));
     }
+    setPreviews((p) => ({ ...p, [path]: result }));
   };
 
   const refreshAll = () => {
@@ -68,7 +68,10 @@ export default function OpenRecent() {
           if (lastMtime !== undefined && srcMtime > lastMtime) {
             console.log(`[aseprite] File changed externally: ${f.path}`);
             const result = await exportPreview(f.path, preferences);
-            if (result) setPreviews((p) => ({ ...p, [f.path]: result }));
+            if (result && isFreshPreviewPath(result)) {
+              createdPreviewPaths.current.add(result);
+            }
+            setPreviews((p) => ({ ...p, [f.path]: result }));
           }
           lastMtimes.current.set(f.path, srcMtime);
         } catch {}
@@ -108,10 +111,10 @@ export default function OpenRecent() {
         if (cancelled) return;
         const result = await exportPreview(f.path, preferences);
         if (cancelled) return;
-        if (result) {
+        if (result && isFreshPreviewPath(result)) {
           createdPreviewPaths.current.add(result);
-          setPreviews((p) => ({ ...p, [f.path]: result }));
         }
+        setPreviews((p) => ({ ...p, [f.path]: result }));
       }
     })();
     return () => { cancelled = true; };
