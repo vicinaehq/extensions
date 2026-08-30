@@ -1,10 +1,6 @@
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
 import { showToast, Toast, Clipboard, closeMainWindow, getPreferenceValues, runInTerminal } from "@vicinae/api";
 import { spawn } from "node:child_process";
 import os from "node:os";
-
-const execAsync = promisify(exec);
 
 export interface Preferences {
   terminal: string;
@@ -64,25 +60,6 @@ export async function resolveSystemPlaceholder(key: string): Promise<string> {
   }
 }
 
-function shellEscape(arg: string): string {
-  return `'${arg.split("'").join("'\\''")}'`;
-}
-
-export function substituteAll(
-  command: string,
-  values: Record<string, string>,
-): string {
-  const normalized: Record<string, string> = {};
-  for (const [k, v] of Object.entries(values)) normalized[k.toLowerCase()] = v;
-  let out = command;
-  for (const [key, val] of Object.entries(normalized)) {
-    const re = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "gi");
-    const finalVal = isSystemPlaceholder(key) ? shellEscape(val) : val;
-    out = out.replace(re, finalVal);
-  }
-  return out;
-}
-
 function parseTerminalPref(pref: string): string[] {
   const result: string[] = [];
   let current = "";
@@ -111,33 +88,110 @@ function parseTerminalPref(pref: string): string[] {
   return result;
 }
 
-async function tryRunInTerminal(finalCommand: string, cwd?: string): Promise<void> {
-  await runInTerminal(["bash", "-c", finalCommand], {
+function buildPositionalTemplate(command: string, values: Record<string, string>): { template: string; positionalArgs: string[] } {
+  const placeholders = extractPlaceholders(command);
+  // Preserve order of first appearance
+  const orderedKeys: string[] = [];
+  const seen = new Set<string>();
+  const reScan = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+  let m: RegExpExecArray | null;
+  while ((m = reScan.exec(command))) {
+    const k = m[1]?.toLowerCase();
+    if (k && !seen.has(k)) {
+      seen.add(k);
+      orderedKeys.push(k);
+    }
+  }
+  // Also include any keys that are in values but not in command order? already covered by placeholders order
+  // Ensure we include all placeholders even if not scanned due to case
+  for (const k of placeholders) if (!seen.has(k)) { seen.add(k); orderedKeys.push(k); }
+
+  const normalized: Record<string, string> = {};
+  for (const [k, v] of Object.entries(values)) normalized[k.toLowerCase()] = v;
+
+  const positionalArgs: string[] = orderedKeys.map((k) => normalized[k] ?? "");
+
+  let template = command;
+  orderedKeys.forEach((key, idx) => {
+    const pos = idx + 1;
+    const replacement = `"$${pos}"`;
+    // Replace quoted forms first to avoid nested quotes: "{{key}}" and '{{key}}' -> "$N"
+    const doubleQuotedRe = new RegExp(`"\\{\\{\\s*${key}\\s*\\}\\}"`, "gi");
+    const singleQuotedRe = new RegExp(`'\\{\\{\\s*${key}\\s*\\}\\}'`, "gi");
+    const bareRe = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "gi");
+    template = template.replace(doubleQuotedRe, replacement);
+    template = template.replace(singleQuotedRe, replacement);
+    template = template.replace(bareRe, replacement);
+  });
+
+  return { template, positionalArgs };
+}
+
+async function tryRunInTerminal(template: string, positionalArgs: string[], cwd?: string): Promise<void> {
+  // Use positional parameters so values are never shell-interpreted
+  // bash -c 'template' bash arg1 arg2 ...  where $1, $2 expand to data safely
+  const args = ["bash", "-c", template, "bash", ...positionalArgs];
+  await runInTerminal(args, {
     hold: true,
     workingDirectory: cwd,
   });
 }
 
-async function runWithCustomTerminal(prefTerminal: string, finalCommand: string, cwd?: string): Promise<void> {
+async function runWithCustomTerminal(
+  prefTerminal: string,
+  template: string,
+  positionalArgs: string[],
+  cwd?: string,
+): Promise<void> {
   const parts = parseTerminalPref(prefTerminal);
   if (parts.length === 0) throw new Error("Empty terminal preference");
-  const hasShell = prefTerminal.includes("bash -c") || prefTerminal.includes("sh -c");
-  if (hasShell) {
-    const quoted = finalCommand.split("'").join("'\\''");
-    const full = `${prefTerminal} '${quoted}'`;
-    await execAsync(full, { cwd, timeout: 10_000 });
-    return;
-  }
-  const quoted = finalCommand.split("'").join("'\\''");
-  const shellSnippet = `${quoted}; exec bash`;
   const terminalBin = parts[0];
   if (!terminalBin) throw new Error("Invalid terminal command");
-  const terminalArgs = [...parts.slice(1), "bash", "-c", shellSnippet];
+  // Append "; exec bash" so terminal stays open after command
+  const templateWithHold = `${template}; exec bash`;
+  const terminalArgs = [...parts.slice(1), "bash", "-c", templateWithHold, "bash", ...positionalArgs];
   await new Promise<void>((resolve, reject) => {
     const child = spawn(terminalBin, terminalArgs, { cwd, detached: true, stdio: "ignore" });
     child.on("error", reject);
     child.unref();
     setTimeout(() => resolve(), 300);
+  });
+}
+
+function execWithPositional(
+  template: string,
+  positionalArgs: string[],
+  cwd?: string,
+  timeout = 30_000,
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn("bash", ["-c", template, "bash", ...positionalArgs], { cwd });
+    let stdout = "";
+    let stderr = "";
+    let timer: NodeJS.Timeout | undefined;
+    if (timeout) {
+      timer = setTimeout(() => {
+        child.kill("SIGTERM");
+        reject(Object.assign(new Error(`Command timed out after ${timeout}ms`), { stdout, stderr }));
+      }, timeout);
+    }
+    child.stdout?.on("data", (d) => (stdout += d.toString()));
+    child.stderr?.on("data", (d) => (stderr += d.toString()));
+    child.on("error", (err) => {
+      if (timer) clearTimeout(timer);
+      reject(err);
+    });
+    child.on("close", (code) => {
+      if (timer) clearTimeout(timer);
+      if (code === 0) resolve({ stdout, stderr });
+      else {
+        const err = new Error(stderr || `Command failed with code ${code}`) as Error & { stdout?: string; stderr?: string; code?: number | null };
+        err.stdout = stdout;
+        err.stderr = stderr;
+        err.code = code;
+        reject(err);
+      }
+    });
   });
 }
 
@@ -162,23 +216,24 @@ export async function executeCustomCommand(opts: {
     }
   }
 
-  const finalCommand = placeholders.length > 0 ? substituteAll(opts.command, values) : opts.command;
+  const { template, positionalArgs } = buildPositionalTemplate(opts.command, values);
   const cwd = opts.workdir?.trim() || prefs.defaultWorkdir?.trim() || undefined;
+  const displayCommand = opts.command.slice(0, 80);
 
   if (opts.terminal) {
     const prefTerminal = prefs.terminal?.trim();
     try {
       if (prefTerminal) {
         try {
-          await runWithCustomTerminal(prefTerminal, finalCommand, cwd);
+          await runWithCustomTerminal(prefTerminal, template, positionalArgs, cwd);
         } catch (e) {
           console.warn("Custom terminal failed, falling back to runInTerminal:", e);
-          await tryRunInTerminal(finalCommand, cwd);
+          await tryRunInTerminal(template, positionalArgs, cwd);
         }
       } else {
-        await tryRunInTerminal(finalCommand, cwd);
+        await tryRunInTerminal(template, positionalArgs, cwd);
       }
-      await showToast({ style: Toast.Style.Success, title: "Launched in terminal", message: finalCommand.slice(0, 80) });
+      await showToast({ style: Toast.Style.Success, title: "Launched in terminal", message: displayCommand });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       await showToast({
@@ -193,7 +248,7 @@ export async function executeCustomCommand(opts: {
   }
 
   try {
-    const { stdout, stderr } = await execAsync(finalCommand, { cwd, timeout: 30_000 });
+    const { stdout, stderr } = await execWithPositional(template, positionalArgs, cwd, 30_000);
     const output = [stdout.trim(), stderr.trim()].filter(Boolean).join("\n").trim();
     if (output) {
       await Clipboard.copy(output);
@@ -205,12 +260,13 @@ export async function executeCustomCommand(opts: {
     } else {
       await showToast({ style: Toast.Style.Success, title: "Command executed", message: "No output" });
     }
+    await closeMainWindow();
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     const stdout = (e as { stdout?: string })?.stdout?.trim();
     const stderr = (e as { stderr?: string })?.stderr?.trim();
     const detail = [stdout, stderr, msg].filter(Boolean).join("\n").slice(0, 300);
     await showToast({ style: Toast.Style.Failure, title: "Command failed", message: detail || msg });
+    return;
   }
-  await closeMainWindow();
 }

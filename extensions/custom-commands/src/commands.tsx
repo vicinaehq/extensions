@@ -11,7 +11,7 @@ import {
   Toast,
 } from "@vicinae/api";
 import type { CustomCommand } from "./types";
-import { loadCommands, deleteCommand, duplicateCommand, saveCommands } from "./utils/storage";
+import { loadCommands, deleteCommand, duplicateCommand, saveCommands, clearCorruptedStorage } from "./utils/storage";
 import { executeCustomCommand, extractPlaceholders, isSystemPlaceholder } from "./utils/exec";
 import { getIcon } from "./utils/icons";
 import { AddCommandForm } from "./components/AddCommandForm";
@@ -23,12 +23,21 @@ export default function CustomCommands() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const data = await loadCommands();
-      setCommands(data);
-      setIsLoading(false);
+      try {
+        const data = await loadCommands();
+        setCommands(data);
+        setLoadError(null);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        setLoadError(msg);
+        await showToast({ style: Toast.Style.Failure, title: "Failed to load commands", message: msg });
+      } finally {
+        setIsLoading(false);
+      }
     })();
   }, []);
 
@@ -64,6 +73,10 @@ export default function CustomCommands() {
   }
 
   async function handleExport() {
+    if (loadError) {
+      await showToast({ style: Toast.Style.Failure, title: "Cannot export", message: loadError });
+      return;
+    }
     if (commands.length === 0) {
       await showToast({ style: Toast.Style.Failure, title: "Nothing to export" });
       return;
@@ -82,11 +95,22 @@ export default function CustomCommands() {
   }
 
   async function handleImport(text: string) {
+    if (loadError) {
+      await showToast({ style: Toast.Style.Failure, title: "Cannot import", message: "Storage is corrupted. Clear it first." });
+      return;
+    }
     try {
       const parsed = JSON.parse(text);
       const arr = Array.isArray(parsed) ? parsed : [parsed];
       const toAdd = arr
-        .filter((e) => e && typeof e.name === "string" && typeof e.command === "string")
+        .filter(
+          (e) =>
+            e &&
+            typeof e.name === "string" &&
+            e.name.trim().length > 0 &&
+            typeof e.command === "string" &&
+            e.command.trim().length > 0,
+        )
         .map((e) => ({
           id: crypto.randomUUID(),
           name: String(e.name).trim(),
@@ -169,6 +193,61 @@ export default function CustomCommands() {
       if (!exists) setSelectedGroup("all");
     }
   }, [allGroups, hasUngrouped, selectedGroup]);
+
+  if (loadError) {
+    return (
+      <List isLoading={isLoading} searchBarPlaceholder="Search commands...">
+        <List.Section title="Storage Error">
+          <List.Item
+            title="Failed to load commands"
+            subtitle={loadError}
+            icon={Icon.Warning}
+            accessories={[{ text: "Corrupted storage", icon: Icon.Warning }]}
+            actions={
+              <ActionPanel>
+                <Action
+                  title="Retry Loading"
+                  icon={Icon.ArrowClockwise}
+                  onAction={async () => {
+                    setIsLoading(true);
+                    try {
+                      const data = await loadCommands();
+                      setCommands(data);
+                      setLoadError(null);
+                      await showToast({ style: Toast.Style.Success, title: "Loaded" });
+                    } catch (e) {
+                      const msg = e instanceof Error ? e.message : String(e);
+                      setLoadError(msg);
+                      await showToast({ style: Toast.Style.Failure, title: "Still failing", message: msg });
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                />
+                <Action
+                  title="Clear Corrupted Storage"
+                  icon={Icon.Trash}
+                  style={Action.Style.Destructive}
+                  onAction={async () => {
+                    const confirmed = await confirmAlert({
+                      title: "Clear Storage?",
+                      message: "This will delete all stored commands. Export first if possible.",
+                      primaryAction: { title: "Clear", style: Alert.ActionStyle.Destructive },
+                    });
+                    if (!confirmed) return;
+                    await clearCorruptedStorage();
+                    setCommands([]);
+                    setLoadError(null);
+                    await showToast({ style: Toast.Style.Success, title: "Storage cleared" });
+                  }}
+                />
+              </ActionPanel>
+            }
+          />
+        </List.Section>
+      </List>
+    );
+  }
 
   return (
     <List

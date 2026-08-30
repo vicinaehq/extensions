@@ -8,19 +8,23 @@ function generateId(): string {
 }
 
 export async function loadCommands(): Promise<CustomCommand[]> {
+  const data = await LocalStorage.getItem(STORAGE_KEY);
+  if (!data) return [];
+  let parsed: unknown;
   try {
-    const data = await LocalStorage.getItem(STORAGE_KEY);
-    if (!data) return [];
-    const parsed = JSON.parse(String(data));
-    if (!Array.isArray(parsed)) {
-      console.warn("Invalid storage format for custom commands");
-      return [];
-    }
-    return parsed as CustomCommand[];
+    parsed = JSON.parse(String(data));
   } catch (error) {
-    console.error("Failed to load commands:", error);
-    return [];
+    console.error("Failed to parse commands:", error);
+    throw new Error("Stored commands are corrupted and cannot be parsed. Please export/clear storage.");
   }
+  if (!Array.isArray(parsed)) {
+    throw new Error("Stored commands have invalid format (expected array).");
+  }
+  return parsed as CustomCommand[];
+}
+
+export async function clearCorruptedStorage(): Promise<void> {
+  await LocalStorage.removeItem(STORAGE_KEY);
 }
 
 export async function saveCommands(commands: CustomCommand[]): Promise<void> {
