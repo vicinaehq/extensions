@@ -73,14 +73,36 @@ test("refuses to discover keys over plaintext http", async () => {
   assert.equal(called, false, "no request should be made for an http issuer");
 });
 
-test("rejects a discovery response that redirected off https", async () => {
+test("refuses to follow a redirect onto plaintext http", async () => {
+  const visited: string[] = [];
   const result = await withFetch(
-    (async (input: string) =>
-      jsonResponse(String(input).replace("https://", "http://"), { jwks_uri: "https://x.test/jwks" })) as unknown as typeof fetch,
+    (async (input: string) => {
+      visited.push(String(input));
+      return new Response(null, {
+        status: 302,
+        headers: { location: "http://attacker.test/.well-known/openid-configuration" },
+      });
+    }) as unknown as typeof fetch,
     () => verifyToken("a.b.c", { alg: "RS256" }, { iss: "https://issuer.test" }),
   );
   assert.equal((result as { state: string }).state, "unavailable");
-  assert.match((result as { reason: string }).reason, /redirected off https/);
+  assert.match((result as { reason: string }).reason, /not https/);
+  // The http hop must never be requested, not merely rejected after the fact.
+  assert.deepEqual(visited, ["https://issuer.test/.well-known/openid-configuration"]);
+});
+
+test("gives up rather than following a redirect loop", async () => {
+  let hops = 0;
+  const result = await withFetch(
+    (async () => {
+      hops++;
+      return new Response(null, { status: 302, headers: { location: "https://issuer.test/again" } });
+    }) as unknown as typeof fetch,
+    () => verifyToken("a.b.c", { alg: "RS256" }, { iss: "https://issuer.test" }),
+  );
+  assert.equal((result as { state: string }).state, "unavailable");
+  assert.match((result as { reason: string }).reason, /redirected more than/);
+  assert.ok(hops <= 6, `followed ${hops} hops`);
 });
 
 test("refuses a jwks_uri that is not https", async () => {

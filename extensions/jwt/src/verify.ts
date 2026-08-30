@@ -14,24 +14,41 @@ export const isSymmetric = (alg: unknown) => typeof alg === "string" && alg.star
 export const discoveryUrl = (issuer: string) =>
   `${issuer.replace(/\/+$/, "")}/.well-known/openid-configuration`;
 
+const MAX_REDIRECTS = 5;
+
 /**
  * Signing keys are only trustworthy over a channel nobody can tamper with: an on-path
  * attacker who can rewrite the discovery document or the key set can have a forged token
- * report as verified. Redirects are followed but the final URL is checked too, so an
- * https URL cannot be downgraded on the way.
+ * report as verified. Redirects are followed by hand so that every hop is checked, not
+ * just the last one; an https to http to https chain leaves the middle hop tamperable.
  */
 async function getJson<T>(url: string): Promise<T> {
-  if (!url.startsWith("https://")) throw new Error(`${url} is not https`);
+  let target = url;
 
-  const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
-  if (!response.url.startsWith("https://")) throw new Error(`${url} redirected off https`);
-  if (!response.ok) throw new Error(`${url} responded ${response.status}`);
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    if (!target.startsWith("https://")) throw new Error(`${target} is not https`);
 
-  try {
-    return (await response.json()) as T;
-  } catch {
-    throw new Error(`${url} did not return JSON`);
+    const response = await fetch(target, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (!location) throw new Error(`${target} redirected without a location`);
+      target = new URL(location, target).toString();
+      continue;
+    }
+
+    if (!response.ok) throw new Error(`${target} responded ${response.status}`);
+    try {
+      return (await response.json()) as T;
+    } catch {
+      throw new Error(`${target} did not return JSON`);
+    }
   }
+
+  throw new Error(`${url} redirected more than ${MAX_REDIRECTS} times`);
 }
 
 /**
