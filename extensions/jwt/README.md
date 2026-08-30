@@ -3,7 +3,7 @@
 Decode a JSON Web Token from your clipboard and read it without leaving the keyboard.
 An extension for [Vicinae](https://vicinae.com).
 
-<img src="https://raw.githubusercontent.com/balazsorban44/vicinae-jwt/main/docs/screenshot.png" alt="Decoded payload, signature verification and a diff between two tokens">
+<img src=".github/assets/screenshot.png" alt="Decoded payload, signature verification and a diff between two tokens">
 
 ## Features
 
@@ -34,6 +34,10 @@ Verification runs only when you ask for it, and only talks to the token's own is
   refused, since a tampered key set makes a forged token look verified.
 * **HS256/384/512**: a form asks for the shared secret. It is tried as raw text and as
   base64url, the result says which matched, and it is never stored.
+
+## Install
+
+Open the Vicinae launcher, run **Store**, and search for JWT.
 
 ## Source
 
