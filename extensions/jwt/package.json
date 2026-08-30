@@ -1,0 +1,67 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "jwt",
+  "title": "JWT",
+  "description": "Decode a JSON Web Token and inspect its header, payload and signature",
+  "icon": "extension_icon.png",
+  "author": "balazsorban44",
+  "license": "MIT",
+  "categories": [
+    "Developer Tools",
+    "Security"
+  ],
+  "commands": [
+    {
+      "name": "decode",
+      "title": "Decode JWT",
+      "description": "Decode a JWT from an argument or the clipboard",
+      "icon": "extension_icon.png",
+      "mode": "view",
+      "keywords": [
+        "jwt",
+        "jws",
+        "token",
+        "bearer",
+        "claims"
+      ],
+      "arguments": [
+        {
+          "name": "token",
+          "placeholder": "Token (or leave empty for clipboard)",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "expiry",
+      "title": "JWT Expiry",
+      "description": "Show how long the JWT in the clipboard is still valid",
+      "icon": "extension_icon.png",
+      "mode": "no-view",
+      "keywords": [
+        "jwt",
+        "exp",
+        "expiry",
+        "expired",
+        "token"
+      ]
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "test": "node --test src/*.test.ts"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.27.4",
+    "jose": "^6.2.10"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "@types/react": "^19.2.17",
+    "typescript": "^7.0.2"
+  }
+}
