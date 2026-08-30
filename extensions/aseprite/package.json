@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "aseprite",
+  "title": "Aseprite",
+  "description": "Browse, open, copy paths, and preview recent Aseprite files",
+  "categories": ["Design Tools"],
+  "license": "MIT",
+  "platforms": ["Linux", "macOS", "Windows"],
+  "author": "OmerMohideen",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "open-recent",
+      "title": "Open Recents",
+      "subtitle": "Open or copy path of a recent Aseprite file",
+      "description": "List, open, and copy paths of recent Aseprite files",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "asepritePath",
+      "type": "textfield",
+      "title": "Aseprite Path",
+      "description": "Path to the Aseprite executable (leave empty to use system PATH)",
+      "placeholder": "/usr/bin/aseprite or C:\\Program Files\\Aseprite\\aseprite.exe",
+      "default": "",
+      "required": false
+    },
+    {
+      "name": "showPreview",
+      "type": "checkbox",
+      "title": "Show Preview",
+      "label": "Generate PNG previews for .ase/.aseprite",
+      "description": "Show previews for .ase/.aseprite files",
+      "default": true,
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.22.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
