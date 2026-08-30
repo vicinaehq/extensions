@@ -72,15 +72,13 @@ function parseTerminalPref(pref: string): string[] {
       for (let j = i - 1; j >= 0 && pref[j] === "\\"; j--) n++;
       return n % 2 === 1;
     })();
-    if (!escaped) {
-      if (c === "'" && !inDouble) {
-        inSingle = !inSingle;
-        continue;
-      }
-      if (c === '"' && !inSingle) {
-        inDouble = !inDouble;
-        continue;
-      }
+    if (c === "'" && !inDouble && (!escaped || inSingle)) {
+      inSingle = !inSingle;
+      continue;
+    }
+    if (c === '"' && !inSingle && !escaped) {
+      inDouble = !inDouble;
+      continue;
     }
     if (c === " " && !inSingle && !inDouble) {
       if (current) {
@@ -155,10 +153,8 @@ function buildPositionalTemplate(command: string, values: Record<string, string>
       for (let j = i - 1; j >= 0 && command[j] === "\\"; j--) backslashes++;
       return backslashes % 2 === 1;
     })();
-    if (!escaped) {
-      if (c === "'" && !inDouble) inSingle = !inSingle;
-      else if (c === '"' && !inSingle) inDouble = !inDouble;
-    }
+    if (c === "'" && !inDouble && (!escaped || inSingle)) inSingle = !inSingle;
+    else if (c === '"' && !inSingle && !escaped) inDouble = !inDouble;
     i++;
   }
 
