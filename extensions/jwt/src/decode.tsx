@@ -15,8 +15,7 @@ import {
   useNavigation,
 } from "@vicinae/api";
 import { useCallback, useEffect, useState } from "react";
-import { annotate } from "./annotate.ts";
-import { orderClaims } from "./claims.ts";
+import { annotate, orderedJson } from "./annotate.ts";
 import { diffClaims, unifiedDiff } from "./diff.ts";
 import { type Claims, type DecodedJwt, decodeJwt, tokenStatus } from "./jwt.ts";
 import {
@@ -75,8 +74,7 @@ const SPECS = [
   { title: "OpenID Connect Core", url: "https://openid.net/specs/openid-connect-core-1_0.html" },
 ] as const;
 
-/** Same claim order as the annotated view, so `iss`/`sub`/`exp` lead instead of whatever sorts first. */
-const pretty = (claims: Claims) => JSON.stringify(claims, orderClaims(Object.keys(claims)), 2);
+const pretty = orderedJson;
 
 const commented = (claims: Claims) => `\`\`\`yaml\n${annotate(claims)}\n\`\`\``;
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { annotate } from "./annotate.ts";
+import { annotate, orderedJson } from "./annotate.ts";
 
 const lineFor = (output: string, key: string) =>
   output.split("\n").find((line) => line.trimStart().startsWith(`"${key}"`))!;
@@ -42,4 +42,16 @@ test("keeps the JSON structure intact around the comments", () => {
   const lines = annotate({ sub: "x" }).split("\n");
   assert.equal(lines[0], "{");
   assert.equal(lines[lines.length - 1], "}");
+});
+
+test("keeps the fields of a nested claim", () => {
+  const output = annotate({ sub: "u1", address: { street_address: "1 Main St", locality: "Oslo" } });
+  assert.match(output, /"street_address": "1 Main St"/);
+  assert.match(output, /"locality": "Oslo"/);
+});
+
+test("orders top-level claims without filtering nested ones", () => {
+  const json = orderedJson({ email: "a@b.test", iss: "https://x.test", act: { sub: "admin" } });
+  assert.deepEqual(Object.keys(JSON.parse(json)), ["iss", "act", "email"]);
+  assert.deepEqual(JSON.parse(json).act, { sub: "admin" });
 });

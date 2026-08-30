@@ -30,7 +30,8 @@ Reads the clipboard and shows a HUD:
 Verification runs only when you ask for it, and only talks to the token's own issuer.
 
 * **RS, ES, PS**: the `iss` claim leads to the discovery document, then the JWKS, then
-  the key matching `kid`.
+  the key matching `kid`. Both requests must be https, and a redirect off https is
+  refused, since a tampered key set makes a forged token look verified.
 * **HS256/384/512**: a form asks for the shared secret. It is tried as raw text and as
   base64url, the result says which matched, and it is never stored.
 
