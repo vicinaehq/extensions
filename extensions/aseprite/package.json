@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "aseprite",
   "title": "Aseprite",
-  "description": "Browse, open, and copy paths of recent Aseprite files",
+  "description": "Browse, open, copy paths, and preview recent Aseprite files",
   "categories": ["Design Tools"],
   "license": "MIT",
   "platforms": ["Linux", "macOS", "Windows"],

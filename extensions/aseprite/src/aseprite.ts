@@ -76,7 +76,7 @@ export function getPreferencesFolder(): string {
   }
 }
 
-export interface RecentFile {
+interface RecentFile {
   path: string;
   name: string;
   lastOpened: number;
@@ -131,33 +131,69 @@ export function getPreviewPath(sourcePath: string): string {
   return path.join(require("os").tmpdir(), `vicinae-aseprite-${base}-${hash}.png`);
 }
 
+function getPreviewPathFresh(sourcePath: string): string {
+  const path = require("path");
+  const crypto = require("crypto");
+  const base = path.basename(sourcePath).replace(/\.[^.]+$/, "");
+  const unique = Date.now() + "-" + crypto.randomBytes(4).toString("hex");
+  return path.join(require("os").tmpdir(), `vicinae-aseprite-${base}-${unique}.png`);
+}
+
 export async function exportPreview(sourcePath: string, preferences: AsepritePreferences): Promise<string | null> {
   const fs = require("fs");
   const { spawn } = require("child_process");
   const asepritePath = getAsepritePath(preferences);
-  const previewPath = getPreviewPath(sourcePath);
+  const stablePath = getPreviewPath(sourcePath);
 
   // Reuse cached preview if newer than source
   try {
-    if (fs.existsSync(previewPath) && fs.existsSync(sourcePath)) {
+    if (fs.existsSync(stablePath) && fs.existsSync(sourcePath)) {
       const srcStat = fs.statSync(sourcePath);
-      const prevStat = fs.statSync(previewPath);
-      if (prevStat.mtimeMs > srcStat.mtimeMs) return previewPath;
+      const prevStat = fs.statSync(stablePath);
+      if (prevStat.mtimeMs > srcStat.mtimeMs) {
+        console.log(`[aseprite] Reusing fresh preview: ${stablePath}`);
+        return stablePath;
+      }
     }
   } catch {}
 
+  // Export to unique fresh path to avoid browser caching, then update stable path
+  const freshPath = getPreviewPathFresh(sourcePath);
+  console.log(`[aseprite] Generating new preview: ${freshPath}`);
+
   return new Promise((resolve) => {
-    const child = spawn(asepritePath, ["--batch", sourcePath, "--save-as", previewPath], {
+    const child = spawn(asepritePath, ["--batch", sourcePath, "--save-as", freshPath], {
       stdio: "ignore",
       env: process.env,
     });
-    child.on("error", () => resolve(null));
-    child.on("close", (code: number) => {
-      if (code === 0 && fs.existsSync(previewPath)) resolve(previewPath);
-      else resolve(null);
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; try { child.kill(); } catch {} resolve(null); }, 15000);
+    child.on("error", (err: Error) => { 
+      clearTimeout(timer); 
+      console.error(`[aseprite] Spawn error: ${err.message}`);
+      resolve(null); 
     });
-    // Timeout fallback
-    setTimeout(() => { try { child.kill(); } catch {} resolve(null); }, 5000);
+    child.on("close", (code: number) => {
+      clearTimeout(timer);
+      if (timedOut) {
+        console.error(`[aseprite] Timeout generating preview for ${sourcePath}`);
+        return;
+      }
+      if (code === 0 && fs.existsSync(freshPath)) {
+        console.log(`[aseprite] Preview generated: ${freshPath}`);
+        // Copy fresh path to stable path for caching
+        try {
+          fs.copyFileSync(freshPath, stablePath);
+          console.log(`[aseprite] Cached preview to stable path: ${stablePath}`);
+        } catch (e) {
+          console.error(`[aseprite] Failed to cache preview: ${e}`);
+        }
+        resolve(freshPath);
+      } else {
+        console.error(`[aseprite] Export failed with code ${code}`);
+        resolve(null);
+      }
+    });
   });
 }
 
@@ -180,22 +216,30 @@ export async function launchAseprite(args: string[], preferences: AsepritePrefer
     
     child.unref();
     
-    child.on("error", (err) => {
+    let resolved = false;
+    child.on("error", (err: NodeJS.ErrnoException) => {
+      if (resolved) return;
       if (err.code === "ENOENT") {
         reject(new Error(`Aseprite not found at: ${asepritePath}`));
       } else {
         reject(err);
       }
+      resolved = true;
     });
     
-    child.on("exit", (code) => {
-      if (code !== 0) {
-        reject(new Error(`Aseprite exited with code ${code}`));
-      } else {
+    // Resolve immediately on successful spawn - don't wait for Aseprite to exit
+    child.on("spawn", () => {
+      if (!resolved) {
+        resolved = true;
         resolve();
       }
     });
     
-    child.on("spawn", () => resolve());
+    // Still track exit for logging but don't resolve/reject
+    child.on("exit", (code: number) => {
+      if (code !== 0) {
+        console.warn(`[aseprite] Aseprite exited with code ${code}`);
+      }
+    });
   });
 }
