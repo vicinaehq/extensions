@@ -175,7 +175,6 @@ export default function CustomCommands() {
       if (arr) arr.push(cmd);
       else map.set(key, [cmd]);
     }
-    // Sort groups: named groups alphabetically, Ungrouped last
     const entries = [...map.entries()].sort((a, b) => {
       if (a[0] === "Ungrouped") return 1;
       if (b[0] === "Ungrouped") return -1;
@@ -186,7 +185,6 @@ export default function CustomCommands() {
 
   const showCreateFromSearch = isSearching && groupFiltered.length === 0;
 
-  // Reset group filter if selected group no longer exists
   useEffect(() => {
     if (selectedGroup !== "all") {
       const exists = allGroups.includes(selectedGroup) || (selectedGroup === "Ungrouped" && hasUngrouped);

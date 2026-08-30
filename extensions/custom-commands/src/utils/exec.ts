@@ -9,7 +9,6 @@ export interface Preferences {
 
 const isWindows = process.platform === "win32";
 
-/** All {{name}} placeholders in the command */
 export function extractPlaceholders(command: string): string[] {
   const set = new Set<string>();
   const re = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
@@ -21,7 +20,6 @@ export function extractPlaceholders(command: string): string[] {
   return [...set];
 }
 
-/** System-resolvable placeholders that don't require user input */
 const SYSTEM_PLACEHOLDERS = new Set(["clipboard", "selection", "home", "user", "date", "time", "datetime"]);
 
 export function isSystemPlaceholder(key: string): boolean {
@@ -91,42 +89,70 @@ function parseTerminalPref(pref: string): string[] {
 }
 
 function buildPositionalTemplate(command: string, values: Record<string, string>): { template: string; positionalArgs: string[] } {
-  const placeholders = extractPlaceholders(command);
-  const orderedKeys: string[] = [];
-  const seen = new Set<string>();
-  const reScan = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
-  let m: RegExpExecArray | null;
-  while ((m = reScan.exec(command))) {
-    const k = m[1]?.toLowerCase();
-    if (k && !seen.has(k)) {
-      seen.add(k);
-      orderedKeys.push(k);
-    }
-  }
-  for (const k of placeholders) if (!seen.has(k)) { seen.add(k); orderedKeys.push(k); }
-
   const normalized: Record<string, string> = {};
   for (const [k, v] of Object.entries(values)) normalized[k.toLowerCase()] = v;
 
+  const keyToIndex = new Map<string, number>();
+  const orderedKeys: string[] = [];
+  const reOrder = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+  let m: RegExpExecArray | null;
+  while ((m = reOrder.exec(command))) {
+    const k = m[1]?.toLowerCase();
+    if (k && !keyToIndex.has(k)) {
+      keyToIndex.set(k, orderedKeys.length);
+      orderedKeys.push(k);
+    }
+  }
+  for (const k of Object.keys(normalized)) if (!keyToIndex.has(k)) { keyToIndex.set(k, orderedKeys.length); orderedKeys.push(k); }
+
   const positionalArgs: string[] = orderedKeys.map((k) => normalized[k] ?? "");
 
-  let template = command;
-  orderedKeys.forEach((key, idx) => {
-    const replacement = isWindows ? `$args[${idx}]` : `"$${idx + 1}"`;
-    const doubleQuotedRe = new RegExp(`"\\{\\{\\s*${key}\\s*\\}\\}"`, "gi");
-    const singleQuotedRe = new RegExp(`'\\{\\{\\s*${key}\\s*\\}\\}'`, "gi");
-    const bareRe = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "gi");
-    template = template.replace(doubleQuotedRe, replacement);
-    template = template.replace(singleQuotedRe, replacement);
-    template = template.replace(bareRe, replacement);
-  });
+  let template = "";
+  let i = 0;
+  let inSingle = false;
+  let inDouble = false;
+  while (i < command.length) {
+    if (command.startsWith("{{", i)) {
+      const end = command.indexOf("}}", i + 2);
+      if (end !== -1) {
+        const rawKey = command.slice(i + 2, end).trim();
+        const keyLower = rawKey.toLowerCase();
+        const idx = keyToIndex.get(keyLower);
+        if (idx !== undefined) {
+          if (isWindows) {
+            if (inSingle) {
+              template += `' + $args[${idx}] + '`;
+            } else if (inDouble) {
+              template += `$($args[${idx}])`;
+            } else {
+              template += `$args[${idx}]`;
+            }
+          } else {
+            if (inSingle) {
+              template += `'"$${idx + 1}"'`;
+            } else if (inDouble) {
+              template += `$${idx + 1}`;
+            } else {
+              template += `"$${idx + 1}"`;
+            }
+          }
+          i = end + 2;
+          continue;
+        }
+      }
+    }
+    const c = command[i];
+    template += c;
+    if (c === "'" && !inDouble) inSingle = !inSingle;
+    else if (c === '"' && !inSingle) inDouble = !inDouble;
+    i++;
+  }
 
   return { template, positionalArgs };
 }
 
 async function tryRunInTerminal(template: string, positionalArgs: string[], cwd?: string): Promise<void> {
   if (isWindows) {
-    // PowerShell: $args[0], $args[1] ... are the positional args after -- 
     const args = ["powershell.exe", "-NoProfile", "-Command", template, ...positionalArgs];
     await runInTerminal(args, { hold: true, workingDirectory: cwd });
   } else {
@@ -173,8 +199,7 @@ function execWithPositional(
   timeout = 30_000,
 ): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    const isWin = isWindows;
-    const child = isWin
+    const child = isWindows
       ? spawn("powershell.exe", ["-NoProfile", "-Command", template, ...positionalArgs], { cwd })
       : spawn("bash", ["-c", template, "bash", ...positionalArgs], { cwd });
     let stdout = "";

@@ -28,9 +28,7 @@ function placeholderFor(key: string): string {
 export function RunWithArgsForm({ command }: Props) {
   const { pop } = useNavigation();
   const placeholders = extractPlaceholders(command.command);
-  // Only prompt for non-system placeholders; system ones are auto-resolved
   const userKeys = placeholders.filter((k) => !isSystemPlaceholder(k));
-  // If no user keys but still needsArgs (system-only), we can run directly
   const systemOnly = userKeys.length === 0 && placeholders.length > 0;
 
   async function handleSubmit(values: Form.Values) {
@@ -48,7 +46,6 @@ export function RunWithArgsForm({ command }: Props) {
     pop();
   }
 
-  // System-only commands can run without form, but we still show form with info
   if (systemOnly) {
     return (
       <Form
