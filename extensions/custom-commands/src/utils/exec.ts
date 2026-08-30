@@ -67,13 +67,20 @@ function parseTerminalPref(pref: string): string[] {
   let inDouble = false;
   for (let i = 0; i < pref.length; i++) {
     const c = pref[i];
-    if (c === "'" && !inDouble) {
-      inSingle = !inSingle;
-      continue;
-    }
-    if (c === '"' && !inSingle) {
-      inDouble = !inDouble;
-      continue;
+    const escaped = (() => {
+      let n = 0;
+      for (let j = i - 1; j >= 0 && pref[j] === "\\"; j--) n++;
+      return n % 2 === 1;
+    })();
+    if (!escaped) {
+      if (c === "'" && !inDouble) {
+        inSingle = !inSingle;
+        continue;
+      }
+      if (c === '"' && !inSingle) {
+        inDouble = !inDouble;
+        continue;
+      }
     }
     if (c === " " && !inSingle && !inDouble) {
       if (current) {
@@ -143,8 +150,15 @@ function buildPositionalTemplate(command: string, values: Record<string, string>
     }
     const c = command[i];
     template += c;
-    if (c === "'" && !inDouble) inSingle = !inSingle;
-    else if (c === '"' && !inSingle) inDouble = !inDouble;
+    const escaped = (() => {
+      let backslashes = 0;
+      for (let j = i - 1; j >= 0 && command[j] === "\\"; j--) backslashes++;
+      return backslashes % 2 === 1;
+    })();
+    if (!escaped) {
+      if (c === "'" && !inDouble) inSingle = !inSingle;
+      else if (c === '"' && !inSingle) inDouble = !inDouble;
+    }
     i++;
   }
 
