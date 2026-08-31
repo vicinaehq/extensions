@@ -15,11 +15,13 @@ import {
   type City,
   ProtonVPNError,
 } from "@/lib/protonvpn";
-import { useState, useEffect } from "react";
+import { useProtonGuard, ProtonGuard } from "@/lib/guard";
+import { useState, useEffect, useRef } from "react";
 
 type ViewState = "countries" | "cities" | "features";
 
 export default function ConnectToServer() {
+  const guard = useProtonGuard();
   const [view, setView] = useState<ViewState>("countries");
   const [countries, setCountries] = useState<Country[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -28,20 +30,28 @@ export default function ConnectToServer() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (guard.state !== "ready") return;
+    let cancelled = false;
+    setLoading(true);
     getCountries()
       .then((c) => {
-        setCountries(c);
-        setLoading(false);
+        if (!cancelled) {
+          setCountries(c);
+          setLoading(false);
+        }
       })
       .catch((err) => {
-        setError(
-          err instanceof ProtonVPNError
-            ? err.message
-            : "Failed to load countries",
-        );
-        setLoading(false);
+        if (!cancelled) {
+          setError(
+            err instanceof ProtonVPNError
+              ? err.message
+              : "Failed to load countries",
+          );
+          setLoading(false);
+        }
       });
-  }, []);
+    return () => { cancelled = true; };
+  }, [guard.state]);
 
   const loadCities = async (country: Country) => {
     setSelectedCountry(country);
@@ -243,6 +253,7 @@ export default function ConnectToServer() {
   }
 
   return (
+    <ProtonGuard state={guard.state} onRefresh={guard.refresh}>
     <List isLoading={loading} searchBarPlaceholder="Search countries...">
       {error && (
         <List.Section title="Error">
@@ -328,5 +339,6 @@ export default function ConnectToServer() {
         ))}
       </List.Section>
     </List>
+    </ProtonGuard>
   );
 }
