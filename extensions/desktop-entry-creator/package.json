@@ -1,0 +1,31 @@
+{
+  "name": "desktop-entry-creator",
+  "title": "Desktop Entry Creator",
+  "description": "Create .desktop entries with app name, icon, and exec command",
+  "icon": "extension_icon.png",
+  "author": "iamsami101",
+  "license": "MIT",
+  "version": "1.0.0",
+  "vicinae": ">=0.20.0",
+  "categories": [
+    "System",
+    "Applications",
+    "Productivity",
+    "Developer Tools"
+  ],
+  "commands": [
+    {
+      "name": "create-desktop-entry",
+      "title": "Create Desktop Entry",
+      "description": "Generate a .desktop file for any application",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "latest"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  }
+}
