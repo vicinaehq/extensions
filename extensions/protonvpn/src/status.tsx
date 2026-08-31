@@ -1,12 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  Icon,
-  List,
-  Color,
-  showToast,
-  Toast,
-} from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, Color, showToast, Toast } from "@vicinae/api";
 import {
   getStatus,
   connect,
@@ -14,187 +6,169 @@ import {
   type ConnectionStatus,
   ProtonVPNError,
 } from "@/lib/protonvpn";
-import { useState, useEffect } from "react";
+import { useProtonGuard, ProtonGuard } from "@/lib/guard";
+import { useState, useEffect, useRef } from "react";
 
 export default function VPNStatus() {
+  const guard = useProtonGuard();
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refresh = () => {
-    setLoading(true);
-    setError(null);
-    getStatus()
-      .then((s) => {
-        setStatus(s);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err instanceof ProtonVPNError) {
-          setError(err.message);
-        } else {
-          setError("Failed to get VPN status");
-        }
-        setLoading(false);
-      });
-  };
+  const [showDetail, setShowDetail] = useState(true);
+  const [loadingStatus, setLoadingStatus] = useState(true);
+  const guardRef = useRef(guard);
+  guardRef.current = guard;
 
   useEffect(() => {
-    refresh();
-  }, []);
+    if (guard.state !== "ready") return;
+    let cancelled = false;
+    (async () => {
+      setLoadingStatus(true);
+      try {
+        const s = await getStatus();
+        if (!cancelled) setStatus(s);
+      } catch {
+        if (!cancelled) guardRef.current.refresh();
+      }
+      if (!cancelled) setLoadingStatus(false);
+    })();
+    return () => { cancelled = true; };
+  }, [guard.state]);
 
-  if (loading) {
+  if (guard.state !== "ready") {
+    return <ProtonGuard state={guard.state} onRefresh={guard.refresh}><List isLoading /></ProtonGuard>;
+  }
+
+  if (loadingStatus) {
     return <List isLoading />;
   }
 
   const isConnected = status?.connected ?? false;
 
+  const refreshStatus = () => {
+    setLoadingStatus(true);
+    getStatus()
+      .then((s) => { setStatus(s); setLoadingStatus(false); })
+      .catch(() => setLoadingStatus(false));
+  };
+
   return (
-    <List>
-      {error && (
-        <List.Section title="Error">
+    <ProtonGuard state={guard.state} onRefresh={guard.refresh}>
+      <List isShowingDetail={showDetail}>
+        <List.Section title="Connection Status">
           <List.Item
-            title={error}
-            icon={{ source: Icon.Warning, tintColor: Color.Yellow }}
+            title={isConnected ? "Connected" : "Disconnected"}
+            icon={{
+              source: Icon.CircleFilled,
+              tintColor: isConnected ? Color.Green : Color.Red,
+            }}
+            detail={
+              <List.Item.Detail
+                metadata={
+                  <List.Item.Detail.Metadata>
+                    <List.Item.Detail.Metadata.Label
+                      title="Status"
+                      text={isConnected ? "Connected" : "Disconnected"}
+                      icon={{ source: Icon.CircleFilled, tintColor: isConnected ? Color.Green : Color.Red }}
+                    />
+                    {isConnected && status && (
+                      <>
+                        <List.Item.Detail.Metadata.Separator />
+                        {status.server && (
+                          <List.Item.Detail.Metadata.Label title="Server" text={status.server} icon={Icon.Globe01} />
+                        )}
+                        {status.country && (
+                          <List.Item.Detail.Metadata.Label title="Country" text={status.country} icon={Icon.Flag} />
+                        )}
+                        {status.city && (
+                          <List.Item.Detail.Metadata.Label title="City" text={status.city} icon={Icon.Pin} />
+                        )}
+                        {status.ip && (
+                          <List.Item.Detail.Metadata.Label title="IP Address" text={status.ip} icon={Icon.Desktop} />
+                        )}
+                        {status.protocol && (
+                          <List.Item.Detail.Metadata.Label title="Protocol" text={status.protocol} icon={Icon.Lock} />
+                        )}
+                        {status.uptime && (
+                          <List.Item.Detail.Metadata.Label title="Uptime" text={status.uptime} icon={Icon.Clock} />
+                        )}
+                        {status.load && (
+                          <List.Item.Detail.Metadata.Label title="Server Load" text={status.load} icon={Icon.BarChart} />
+                        )}
+                      </>
+                    )}
+                    {!isConnected && (
+                      <>
+                        <List.Item.Detail.Metadata.Separator />
+                        <List.Item.Detail.Metadata.Label
+                          title="Tip"
+                          text="Use Quick Connect to connect to a free server"
+                          icon={Icon.Info01}
+                        />
+                      </>
+                    )}
+                  </List.Item.Detail.Metadata>
+                }
+              />
+            }
             actions={
               <ActionPanel>
+                {isConnected ? (
+                  <>
+                    <Action
+                      title="Disconnect"
+                      icon={Icon.Minus}
+                      onAction={async () => {
+                        try {
+                          await doDisconnect();
+                          await showToast({ style: Toast.Style.Success, title: "Disconnected" });
+                          refreshStatus();
+                        } catch (err) {
+                          await showToast({
+                            style: Toast.Style.Failure,
+                            title: "Disconnect failed",
+                            message: err instanceof Error ? err.message : "Unknown error",
+                          });
+                        }
+                      }}
+                    />
+                    <Action.CopyToClipboard
+                      title="Copy Server"
+                      content={status?.server ?? ""}
+                      shortcut={{ modifiers: ["cmd"], key: "c" }}
+                    />
+                    <Action.CopyToClipboard
+                      title="Copy IP"
+                      content={status?.ip ?? ""}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                    />
+                  </>
+                ) : (
+                  <Action
+                    title="Quick Connect"
+                    icon={Icon.Plug}
+                    onAction={async () => {
+                      await showToast({ style: Toast.Style.Animated, title: "Connecting..." });
+                      try {
+                        await connect({});
+                        await showToast({ style: Toast.Style.Success, title: "Connected to ProtonVPN" });
+                        refreshStatus();
+                      } catch (err) {
+                        const msg = err instanceof ProtonVPNError ? err.message : "Connection failed";
+                        await showToast({ style: Toast.Style.Failure, title: msg });
+                      }
+                    }}
+                  />
+                )}
                 <Action
-                  title="Retry"
-                  icon={Icon.ArrowClockwise}
-                  onAction={refresh}
+                  title={showDetail ? "Hide Details" : "Show Details"}
+                  icon={showDetail ? Icon.EyeDisabled : Icon.Eye}
+                  onAction={() => setShowDetail(!showDetail)}
+                  shortcut={{ modifiers: ["cmd"], key: "d" }}
                 />
               </ActionPanel>
             }
           />
         </List.Section>
-      )}
-
-      <List.Section title="Connection Status">
-        <List.Item
-          title={isConnected ? "Connected" : "Disconnected"}
-          icon={{
-            source: Icon.CircleFilled,
-            tintColor: isConnected ? Color.Green : Color.Red,
-          }}
-          subtitle={
-            isConnected && status?.server
-              ? `Server: ${status.server}`
-              : "No active connection"
-          }
-          actions={
-            <ActionPanel>
-              {isConnected ? (
-                <>
-                  <Action
-                    title="Disconnect"
-                    icon={Icon.Minus}
-                    onAction={async () => {
-                      try {
-                        await doDisconnect();
-                        await showToast({
-                          style: Toast.Style.Success,
-                          title: "Disconnected from ProtonVPN",
-                        });
-                        refresh();
-                      } catch (err) {
-                        await showToast({
-                          style: Toast.Style.Failure,
-                          title: "Disconnect failed",
-                          message:
-                            err instanceof Error
-                              ? err.message
-                              : "Unknown error",
-                        });
-                      }
-                    }}
-                  />
-                  <Action.CopyToClipboard
-                    title="Copy Server"
-                    content={status?.server ?? ""}
-                    shortcut={{ modifiers: ["cmd"], key: "c" }}
-                  />
-                  <Action.CopyToClipboard
-                    title="Copy IP"
-                    content={status?.ip ?? ""}
-                    shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                  />
-                </>
-              ) : (
-                <Action
-                  title="Connect"
-                  icon={Icon.Plug}
-                  onAction={async () => {
-                    await showToast({
-                      style: Toast.Style.Animated,
-                      title: "Connecting...",
-                    });
-                    try {
-                      await connect({});
-                      await showToast({
-                        style: Toast.Style.Success,
-                        title: "Connected to ProtonVPN",
-                      });
-                      refresh();
-                    } catch (err) {
-                      const msg =
-                        err instanceof ProtonVPNError
-                          ? err.message
-                          : "Connection failed";
-                      await showToast({
-                        style: Toast.Style.Failure,
-                        title: msg,
-                      });
-                    }
-                  }}
-                />
-              )}
-            </ActionPanel>
-          }
-        />
-      </List.Section>
-
-      {isConnected && status && (
-        <List.Section title="Details">
-          {status.country && (
-            <List.Item
-              title="Country"
-              subtitle={status.country}
-              icon={Icon.Globe01}
-            />
-          )}
-          {status.city && (
-            <List.Item title="City" subtitle={status.city} icon={Icon.Pin} />
-          )}
-          {status.ip && (
-            <List.Item
-              title="IP Address"
-              subtitle={status.ip}
-              icon={Icon.Desktop}
-            />
-          )}
-          {status.protocol && (
-            <List.Item
-              title="Protocol"
-              subtitle={status.protocol}
-              icon={Icon.Lock}
-            />
-          )}
-          {status.uptime && (
-            <List.Item
-              title="Uptime"
-              subtitle={status.uptime}
-              icon={Icon.Clock}
-            />
-          )}
-          {status.load && (
-            <List.Item
-              title="Server Load"
-              subtitle={status.load}
-              icon={Icon.BarChart}
-            />
-          )}
-        </List.Section>
-      )}
-    </List>
+      </List>
+    </ProtonGuard>
   );
 }

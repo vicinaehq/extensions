@@ -13,7 +13,8 @@ import {
   type ConfigSetting,
   ProtonVPNError,
 } from "@/lib/protonvpn";
-import { useState, useEffect } from "react";
+import { useProtonGuard, ProtonGuard } from "@/lib/guard";
+import { useState, useEffect, useRef } from "react";
 
 function prettifyName(name: string): string {
   return name
@@ -90,18 +91,18 @@ const SETTINGS_INFO: Record<
 };
 
 export default function Settings() {
+  const guard = useProtonGuard();
   const [settings, setSettings] = useState<ConfigSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mounted = useRef(true);
 
   const loadSettings = () => {
     setLoading(true);
     getConfig()
-      .then((s) => {
-        setSettings(s);
-        setLoading(false);
-      })
+      .then((s) => { if (mounted.current) { setSettings(s); setLoading(false); } })
       .catch((err) => {
+        if (!mounted.current) return;
         setError(
           err instanceof ProtonVPNError
             ? err.message
@@ -112,8 +113,10 @@ export default function Settings() {
   };
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    mounted.current = true;
+    if (guard.state === "ready") loadSettings();
+    return () => { mounted.current = false; };
+  }, [guard.state]);
 
   const updateSetting = async (
     settingName: string,
@@ -140,11 +143,12 @@ export default function Settings() {
     }
   };
 
-  if (loading) {
+  if (loading || guard.state === "loading") {
     return <List isLoading />;
   }
 
   return (
+    <ProtonGuard state={guard.state} onRefresh={guard.refresh}>
     <List searchBarPlaceholder="Search settings...">
       {error && (
         <List.Section title="Error">
@@ -242,5 +246,6 @@ export default function Settings() {
         })}
       </List.Section>
     </List>
+    </ProtonGuard>
   );
 }

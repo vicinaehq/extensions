@@ -39,42 +39,45 @@ export class ProtonVPNError extends Error {
   }
 }
 
+export async function checkInstalled(): Promise<boolean> {
+  try {
+    await execAsync("which protonvpn", { timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function checkSignedIn(): Promise<boolean> {
+  try {
+    const { stdout } = await execAsync("protonvpn info", { timeout: 10000 });
+    return stdout.includes("Account:");
+  } catch {
+    return false;
+  }
+}
+
 async function runProtonvpn(args: string[]): Promise<string> {
   try {
     const { stdout, stderr } = await execAsync(`protonvpn ${args.join(" ")}`, {
       timeout: 30000,
     });
-    const output = (stdout + stderr)
-      .split("\n")
-      .filter(
-        (line) =>
-          !line.includes("Server list is outdated") &&
-          !line.includes("This may take a moment"),
-      )
-      .join("\n");
+    const output = (stdout + stderr).split("\n").filter(
+      (line) => !line.includes("Server list is outdated") && !line.includes("This may take a moment")
+    ).join("\n");
     return output.trim();
   } catch (err: unknown) {
     const error = err as { stdout?: string; stderr?: string; message?: string };
     const rawOutput = (error.stdout ?? "") + (error.stderr ?? "");
     const output = rawOutput.toLowerCase();
-    if (
-      output.includes("invalid access token") ||
-      output.includes("authentication required") ||
-      output.includes("sign in")
-    ) {
+    if (output.includes("invalid access token") || output.includes("authentication required") || output.includes("sign in")) {
       throw new ProtonVPNError("Not signed in. Run: protonvpn signin", true);
     }
     if (output.includes("not available on the free plan")) {
-      throw new ProtonVPNError(
-        "This feature requires a paid ProtonVPN plan.",
-        false,
-      );
+      throw new ProtonVPNError("This feature requires a paid ProtonVPN plan.", false);
     }
     if (output.includes("unexpected error")) {
-      throw new ProtonVPNError(
-        "Connection failed. Try: protonvpn connect",
-        false,
-      );
+      throw new ProtonVPNError("Connection failed. Try: protonvpn connect", false);
     }
     throw new ProtonVPNError(error.message ?? "Unknown error");
   }
@@ -91,27 +94,13 @@ export async function getStatus(): Promise<ConnectionStatus> {
     const [key, ...rest] = line.split(":");
     const value = rest.join(":").trim();
     switch (key.trim().toLowerCase()) {
-      case "server":
-        result.server = value;
-        break;
-      case "country":
-        result.country = value;
-        break;
-      case "city":
-        result.city = value;
-        break;
-      case "ip":
-        result.ip = value;
-        break;
-      case "protocol":
-        result.protocol = value;
-        break;
-      case "uptime":
-        result.uptime = value;
-        break;
-      case "load":
-        result.load = value;
-        break;
+      case "server": result.server = value; break;
+      case "country": result.country = value; break;
+      case "city": result.city = value; break;
+      case "ip": result.ip = value; break;
+      case "protocol": result.protocol = value; break;
+      case "uptime": result.uptime = value; break;
+      case "load": result.load = value; break;
     }
   }
   return result;
@@ -136,19 +125,9 @@ export async function getCities(countryCode: string): Promise<City[]> {
   const lines = output.split("\n").filter((l) => l.trim());
   const cities: City[] = [];
   for (const line of lines) {
-    if (
-      line.startsWith("City") ||
-      line.startsWith("Features") ||
-      line.startsWith("-")
-    )
-      continue;
+    if (line.startsWith("City") || line.startsWith("Features") || line.startsWith("-")) continue;
     const name = line.trim();
-    if (
-      name &&
-      !name.includes("Error") &&
-      !name.includes("updating") &&
-      !name.includes("Cities in")
-    ) {
+    if (name && !name.includes("Error") && !name.includes("updating") && !name.includes("Cities in")) {
       cities.push({ name });
     }
   }
@@ -188,7 +167,6 @@ export async function getConfig(): Promise<ConfigSetting[]> {
   const lines = output.split("\n");
   const settings: ConfigSetting[] = [];
   for (const line of lines) {
-    // Must have a setting-value separator: at least 2 spaces between name and value
     const match = line.match(/^([a-z][a-z-]+)\s{2,}(.+?)$/);
     if (match) {
       const name = match[1].trim();
@@ -200,9 +178,6 @@ export async function getConfig(): Promise<ConfigSetting[]> {
   return settings;
 }
 
-export async function setConfig(
-  setting: string,
-  value: string,
-): Promise<string> {
+export async function setConfig(setting: string, value: string): Promise<string> {
   return runProtonvpn(["config", "set", setting, value]);
 }
