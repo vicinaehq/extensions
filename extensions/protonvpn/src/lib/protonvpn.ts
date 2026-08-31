@@ -48,12 +48,17 @@ export async function checkInstalled(): Promise<boolean> {
   }
 }
 
-export async function checkSignedIn(): Promise<boolean> {
+export async function checkSignedIn(): Promise<{ signedIn: boolean; error?: string }> {
   try {
     const { stdout } = await execFileAsync("protonvpn", ["info"], { timeout: 10000 });
-    return stdout.includes("Account:");
-  } catch {
-    return false;
+    return { signedIn: stdout.includes("Account:") };
+  } catch (err: unknown) {
+    const error = err as { stdout?: string; stderr?: string; message?: string };
+    const output = ((error.stdout ?? "") + (error.stderr ?? "")).toLowerCase();
+    if (output.includes("invalid access token") || output.includes("authentication required") || output.includes("sign in")) {
+      return { signedIn: false };
+    }
+    return { signedIn: false, error: error.message ?? "Failed to check sign-in status" };
   }
 }
 

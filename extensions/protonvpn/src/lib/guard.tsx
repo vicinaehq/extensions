@@ -2,24 +2,33 @@ import { List, Icon, Color, ActionPanel, Action, useNavigation } from "@vicinae/
 import { checkInstalled, checkSignedIn } from "@/lib/protonvpn";
 import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 
-export type GuardState = "loading" | "missing" | "unauthed" | "ready";
+export type GuardState = "loading" | "missing" | "unauthed" | "error" | "ready";
 
 export function useProtonGuard() {
   const [state, setState] = useState<GuardState>("loading");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const mounted = useRef(true);
 
   const check = useCallback(async () => {
     if (!mounted.current) return;
     setState("loading");
+    setErrorMsg(null);
     if (!(await checkInstalled())) {
       if (mounted.current) setState("missing");
       return;
     }
-    if (!(await checkSignedIn())) {
-      if (mounted.current) setState("unauthed");
+    const result = await checkSignedIn();
+    if (!mounted.current) return;
+    if (!result.signedIn) {
+      if (result.error) {
+        setState("error");
+        setErrorMsg(result.error);
+      } else {
+        setState("unauthed");
+      }
       return;
     }
-    if (mounted.current) setState("ready");
+    setState("ready");
   }, []);
 
   useEffect(() => {
@@ -28,7 +37,7 @@ export function useProtonGuard() {
     return () => { mounted.current = false; };
   }, [check]);
 
-  return { state, refresh: check };
+  return { state, errorMsg, refresh: check };
 }
 
 function LoadingScreen() {
@@ -86,17 +95,39 @@ function UnauthedScreen({ onRefresh }: { onRefresh: () => void }) {
   );
 }
 
+function ErrorScreen({ message, onRefresh }: { message: string; onRefresh: () => void }) {
+  return (
+    <List>
+      <List.Section title="Error">
+        <List.Item
+          title="Could not check ProtonVPN status"
+          subtitle={message}
+          icon={{ source: Icon.Warning, tintColor: Color.Yellow }}
+          actions={
+            <ActionPanel>
+              <Action title="Retry" icon={Icon.ArrowClockwise} onAction={onRefresh} shortcut={{ modifiers: ["cmd"], key: "r" }} />
+            </ActionPanel>
+          }
+        />
+      </List.Section>
+    </List>
+  );
+}
+
 export function ProtonGuard({
   state,
+  errorMsg,
   onRefresh,
   children,
 }: {
   state: GuardState;
+  errorMsg?: string | null;
   onRefresh: () => void;
   children: ReactNode;
 }) {
   if (state === "loading") return <LoadingScreen />;
   if (state === "missing") return <MissingScreen />;
+  if (state === "error") return <ErrorScreen message={errorMsg ?? "Unknown error"} onRefresh={onRefresh} />;
   if (state === "unauthed") return <UnauthedScreen onRefresh={onRefresh} />;
   return <>{children}</>;
 }

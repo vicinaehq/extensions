@@ -148,7 +148,7 @@ export default function Settings() {
   }
 
   return (
-    <ProtonGuard state={guard.state} onRefresh={guard.refresh}>
+    <ProtonGuard state={guard.state} errorMsg={guard.errorMsg} onRefresh={guard.refresh}>
     <List searchBarPlaceholder="Search settings...">
       {error && (
         <List.Section title="Error">

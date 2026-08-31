@@ -253,7 +253,7 @@ export default function ConnectToServer() {
   }
 
   return (
-    <ProtonGuard state={guard.state} onRefresh={guard.refresh}>
+    <ProtonGuard state={guard.state} errorMsg={guard.errorMsg} onRefresh={guard.refresh}>
     <List isLoading={loading} searchBarPlaceholder="Search countries...">
       {error && (
         <List.Section title="Error">

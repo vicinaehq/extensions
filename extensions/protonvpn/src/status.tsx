@@ -35,7 +35,7 @@ export default function VPNStatus() {
   }, [guard.state]);
 
   if (guard.state !== "ready") {
-    return <ProtonGuard state={guard.state} onRefresh={guard.refresh}><List isLoading /></ProtonGuard>;
+    return <ProtonGuard state={guard.state} errorMsg={guard.errorMsg} onRefresh={guard.refresh}><List isLoading /></ProtonGuard>;
   }
 
   if (loadingStatus) {
@@ -45,7 +45,7 @@ export default function VPNStatus() {
   const isConnected = status?.connected ?? false;
 
   return (
-    <ProtonGuard state={guard.state} onRefresh={guard.refresh}>
+    <ProtonGuard state={guard.state} errorMsg={guard.errorMsg} onRefresh={guard.refresh}>
       <List isShowingDetail={showDetail}>
         {statusError && (
           <List.Section title="Error">
@@ -157,7 +157,7 @@ export default function VPNStatus() {
                       try {
                         await connect({});
                         await showToast({ style: Toast.Style.Success, title: "Connected to ProtonVPN" });
-                        refreshStatus();
+                        loadStatus();
                       } catch (err) {
                         const msg = err instanceof ProtonVPNError ? err.message : "Connection failed";
                         await showToast({ style: Toast.Style.Failure, title: msg });
