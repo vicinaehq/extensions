@@ -143,7 +143,7 @@ export default function Settings() {
     }
   };
 
-  if (loading || guard.state === "loading") {
+  if (guard.state === "loading" || (guard.state === "ready" && loading)) {
     return <List isLoading />;
   }
 
@@ -227,10 +227,10 @@ export default function Settings() {
                       ))}
                     </>
                   ) : (
-                    <Action
+                    <Action.OpenInBrowser
                       title="Upgrade to Enable"
                       icon={Icon.Lock}
-                      onAction={() => {}}
+                      url="https://protonvpn.com/pricing"
                     />
                   )}
                   <Action

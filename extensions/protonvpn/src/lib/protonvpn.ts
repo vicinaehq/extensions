@@ -1,7 +1,7 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { promisify } from "util";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export interface Country {
   name: string;
@@ -41,7 +41,7 @@ export class ProtonVPNError extends Error {
 
 export async function checkInstalled(): Promise<boolean> {
   try {
-    await execAsync("which protonvpn", { timeout: 5000 });
+    await execFileAsync("which", ["protonvpn"], { timeout: 5000 });
     return true;
   } catch {
     return false;
@@ -50,7 +50,7 @@ export async function checkInstalled(): Promise<boolean> {
 
 export async function checkSignedIn(): Promise<boolean> {
   try {
-    const { stdout } = await execAsync("protonvpn info", { timeout: 10000 });
+    const { stdout } = await execFileAsync("protonvpn", ["info"], { timeout: 10000 });
     return stdout.includes("Account:");
   } catch {
     return false;
@@ -59,7 +59,7 @@ export async function checkSignedIn(): Promise<boolean> {
 
 async function runProtonvpn(args: string[]): Promise<string> {
   try {
-    const { stdout, stderr } = await execAsync(`protonvpn ${args.join(" ")}`, {
+    const { stdout, stderr } = await execFileAsync("protonvpn", args, {
       timeout: 30000,
     });
     const output = (stdout + stderr).split("\n").filter(
@@ -146,7 +146,7 @@ export async function connect(opts: {
   const args = ["connect"];
   if (opts.server) args.push(opts.server);
   if (opts.country) args.push("--country", opts.country);
-  if (opts.city) args.push("--city", `"${opts.city}"`);
+  if (opts.city) args.push("--city", opts.city);
   if (opts.p2p) args.push("--p2p");
   if (opts.securecore) args.push("--securecore");
   if (opts.tor) args.push("--tor");

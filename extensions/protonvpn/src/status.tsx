@@ -14,23 +14,24 @@ export default function VPNStatus() {
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
   const [showDetail, setShowDetail] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState(true);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const guardRef = useRef(guard);
   guardRef.current = guard;
 
+  const loadStatus = () => {
+    setLoadingStatus(true);
+    setStatusError(null);
+    getStatus()
+      .then((s) => { setStatus(s); setLoadingStatus(false); })
+      .catch((err) => {
+        const msg = err instanceof ProtonVPNError ? err.message : "Failed to get status";
+        setStatusError(msg);
+        setLoadingStatus(false);
+      });
+  };
+
   useEffect(() => {
-    if (guard.state !== "ready") return;
-    let cancelled = false;
-    (async () => {
-      setLoadingStatus(true);
-      try {
-        const s = await getStatus();
-        if (!cancelled) setStatus(s);
-      } catch {
-        if (!cancelled) guardRef.current.refresh();
-      }
-      if (!cancelled) setLoadingStatus(false);
-    })();
-    return () => { cancelled = true; };
+    if (guard.state === "ready") loadStatus();
   }, [guard.state]);
 
   if (guard.state !== "ready") {
@@ -43,16 +44,22 @@ export default function VPNStatus() {
 
   const isConnected = status?.connected ?? false;
 
-  const refreshStatus = () => {
-    setLoadingStatus(true);
-    getStatus()
-      .then((s) => { setStatus(s); setLoadingStatus(false); })
-      .catch(() => setLoadingStatus(false));
-  };
-
   return (
     <ProtonGuard state={guard.state} onRefresh={guard.refresh}>
       <List isShowingDetail={showDetail}>
+        {statusError && (
+          <List.Section title="Error">
+            <List.Item
+              title={statusError}
+              icon={{ source: Icon.Warning, tintColor: Color.Yellow }}
+              actions={
+                <ActionPanel>
+                  <Action title="Retry" icon={Icon.ArrowClockwise} onAction={loadStatus} />
+                </ActionPanel>
+              }
+            />
+          </List.Section>
+        )}
         <List.Section title="Connection Status">
           <List.Item
             title={isConnected ? "Connected" : "Disconnected"}
@@ -120,7 +127,7 @@ export default function VPNStatus() {
                         try {
                           await doDisconnect();
                           await showToast({ style: Toast.Style.Success, title: "Disconnected" });
-                          refreshStatus();
+                          loadStatus();
                         } catch (err) {
                           await showToast({
                             style: Toast.Style.Failure,
