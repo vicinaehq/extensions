@@ -5,7 +5,7 @@
     "description": "Open VSCode and compatible editors recent projects",
     "license": "MIT",
     "platforms": ["Linux", "macOS"],
-    "contributors": [],
+    "contributors": ["tonicastillo"],
     "pastContributors": [],
     "author": "ShyAssassin",
     "icon": "extension_icon.png",

@@ -24,7 +24,16 @@
 			"mode": "view"
 		}
 	],
-	"preferences": [],
+	"preferences": [
+		{
+			"name": "rbwPath",
+			"type": "textfield",
+			"required": false,
+			"title": "rbw bin path",
+			"description": "Path to the rbw bin",
+			"default": "rbw"
+		}
+	],
 	"scripts": {
 		"build": "vici build",
 		"dev": "vici develop",
@@ -37,6 +46,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.3.2",
 		"@types/node": "^26.1.1",
+		"@types/react": "^19.2.18",
 		"typescript": "^5.9.2"
 	}
 }

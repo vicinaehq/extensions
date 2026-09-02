@@ -21,6 +21,7 @@ import {
   listFields,
   isUnlocked,
   syncVault,
+  runRbw,
 } from "./rbw";
 
 type EntryState = { entries: VaultEntry[]; loaded: boolean };
@@ -139,7 +140,7 @@ export default function Command() {
         <List.EmptyView
           icon={Icon.Warning}
           title="rbw is not installed"
-          description="Install rbw to use this extension. See https://github.com/doy/rbw"
+          description="Install rbw to use this extension. See https://github.com/doy/rbw. Also, try configuring the rbwPath setting in Vicinae settings."
         />
       </List>
     );
@@ -160,9 +161,7 @@ export default function Command() {
                 onAction={async () => {
                   closeMainWindow();
                   try {
-                    const { execFile } = await import("node:child_process");
-                    const { promisify } = await import("node:util");
-                    await promisify(execFile)("rbw", ["unlock"]);
+                    await runRbw(["unlock"])
                     setLocked(false);
                     await loadEntries();
                   } catch (error) {

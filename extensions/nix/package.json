@@ -86,7 +86,7 @@
     {
       "name": "githubToken",
       "description": "GitHub token used for NixOS Packages Pull Requests search",
-      "type": "textfield",
+      "type": "password",
       "required": false,
       "title": "GitHub Token"
     }
