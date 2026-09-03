@@ -78,6 +78,11 @@ describe("resolveCount", () => {
     expect(resolveCount("3", "8", 1)).toEqual({ ok: true, value: 3 });
   });
 
+  it("uses a valid argument even when the preference is invalid", () => {
+    expect(resolveCount("3", "abc", 5)).toEqual({ ok: true, value: 3 });
+    expect(resolveCount("3", "0", 5)).toEqual({ ok: true, value: 3 });
+  });
+
   it("rejects an invalid preference instead of falling back", () => {
     expect(resolveCount(undefined, "abc", 5).ok).toBe(false);
     expect(resolveCount(undefined, "0", 5).ok).toBe(false);

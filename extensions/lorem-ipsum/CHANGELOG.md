@@ -18,6 +18,7 @@
 - In preview, Enter pastes into the frontmost app; copy and regenerate use Vicinae's generic action keybinds.
 - Character budgets (`120c`) now fill exactly the requested length, without trailing spaces.
 - Invalid Default Count preferences show an error instead of silently using the built-in value.
+- An explicit count argument is used even if Default Count is invalid.
 
 ## [1.0.0] - 2026-08-17
 

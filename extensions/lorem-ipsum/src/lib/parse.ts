@@ -43,9 +43,8 @@ export function resolveCount(
   defaultCount: string | undefined,
   builtIn: number,
 ): ParseCountResult {
-  const fromPref = parseCount(defaultCount, builtIn);
-  if (!fromPref.ok) return fromPref;
-  return parseCount(rawCount, fromPref.value);
+  if (rawCount != null && rawCount.trim() !== "") return parseCount(rawCount);
+  return parseCount(defaultCount, builtIn);
 }
 
 const QUERY_RE =
