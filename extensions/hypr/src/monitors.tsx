@@ -76,11 +76,13 @@ export default function Monitors() {
                 ]}
                 actions={
                   <ActionPanel>
-                    <Action
-                      title="Focus Monitor"
-                      icon={Icon.Eye}
-                      onAction={() => focusHyprTarget('monitor', output.name)}
-                    />
+                    {!output.disabled ? (
+                      <Action
+                        title="Focus Monitor"
+                        icon={Icon.Eye}
+                        onAction={() => focusHyprTarget('monitor', output.name)}
+                      />
+                    ) : null}
                     <Action.CopyToClipboard
                       title="Copy Monitor Name"
                       content={output.name}
