@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useHyprctlData } from './hooks';
 import type { HyprClient } from './types';
 import { focusHyprTarget } from './utils/dispatch';
-import { formatResolution, formatWorkspace } from './utils/format';
+import { formatWorkspace } from './utils/format';
 
 type NativeWindow = Awaited<
   ReturnType<typeof WindowManagement.getWindows>
@@ -79,8 +79,6 @@ export default function Windows() {
               client.workspace.id,
               client.workspace.name
             );
-            const size = formatResolution(client.size[0], client.size[1]);
-            const position = `${client.at[0]},${client.at[1]}`;
             const nativeWindow = nativeWindowsById.get(client.address);
 
             return (
