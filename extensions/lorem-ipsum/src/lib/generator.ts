@@ -160,17 +160,29 @@ export function generateUntilCharacters(target: number, startWithLorem: boolean)
 
   while (length < n && parts.length < MAX_COUNT) {
     const word = nextWord();
-    const space = parts.length > 0 ? 1 : 0;
-    const room = n - length - space;
-    if (room <= 0) break;
+    if (parts.length === 0) {
+      const piece = word.slice(0, n);
+      parts.push(piece);
+      length = piece.length;
+      if (piece.length < word.length) break;
+      continue;
+    }
+
+    const remaining = n - length;
+    if (remaining === 1) {
+      parts[parts.length - 1] += word.charAt(0);
+      length += 1;
+      break;
+    }
+
+    const room = remaining - 1;
     const piece = word.length <= room ? word : word.slice(0, room);
-    length += space + piece.length;
     parts.push(piece);
+    length += 1 + piece.length;
     if (piece.length < word.length) break;
   }
 
-  const text = parts.join(" ");
-  return text.length < n ? text + " ".repeat(n - text.length) : text;
+  return parts.join(" ");
 }
 
 export function textStats(text: string): { characters: number; words: number; lines: number } {

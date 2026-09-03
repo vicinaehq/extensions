@@ -48,10 +48,12 @@ describe("generate", () => {
 });
 
 describe("generateUntilCharacters", () => {
-  it("returns exactly the requested length", () => {
-    expect(textStats(generateUntilCharacters(80, false)).characters).toBe(80);
-    expect(textStats(generateUntilCharacters(12, true)).characters).toBe(12);
-    expect(textStats(generateUntilCharacters(1, false)).characters).toBe(1);
+  it("returns exactly the requested length without trailing spaces", () => {
+    for (const n of [1, 12, 80]) {
+      const text = generateUntilCharacters(n, n === 12);
+      expect(textStats(text).characters).toBe(n);
+      expect(text).not.toMatch(/\s$/);
+    }
   });
 
   it("uses the classic opening when requested", () => {
