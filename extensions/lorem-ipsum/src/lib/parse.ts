@@ -37,6 +37,17 @@ export function parseCount(
   return { ok: true, value: n };
 }
 
+/** Resolve a no-view count from the argument, then the command preference, then the built-in default. */
+export function resolveCount(
+  rawCount: string | undefined,
+  defaultCount: string | undefined,
+  builtIn: number,
+): ParseCountResult {
+  const fromPref = parseCount(defaultCount, builtIn);
+  if (!fromPref.ok) return fromPref;
+  return parseCount(rawCount, fromPref.value);
+}
+
 const QUERY_RE =
   /^(\d+)\s*(paragraphs?|para|sentences?|sent|words?|titles?|items?|list|html|characters?|chars?|p|s|w|t|l|h|c)?$/i;
 

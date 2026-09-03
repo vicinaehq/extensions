@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MAX_COUNT } from "../src/lib/generator";
-import { parseCount, parseQuery, stripKindSuffix } from "../src/lib/parse";
+import { parseCount, parseQuery, resolveCount, stripKindSuffix } from "../src/lib/parse";
 
 describe("parseCount", () => {
   it("uses the fallback when the value is empty", () => {
@@ -61,5 +61,26 @@ describe("stripKindSuffix", () => {
   it("leaves unmatched text alone", () => {
     expect(stripKindSuffix("")).toBe("");
     expect(stripKindSuffix("foo")).toBe("foo");
+  });
+});
+
+describe("resolveCount", () => {
+  it("uses the built-in default when the preference is empty", () => {
+    expect(resolveCount(undefined, undefined, 5)).toEqual({ ok: true, value: 5 });
+    expect(resolveCount(undefined, "  ", 1)).toEqual({ ok: true, value: 1 });
+  });
+
+  it("uses a valid preference when the argument is omitted", () => {
+    expect(resolveCount(undefined, "8", 1)).toEqual({ ok: true, value: 8 });
+  });
+
+  it("prefers the argument over the preference", () => {
+    expect(resolveCount("3", "8", 1)).toEqual({ ok: true, value: 3 });
+  });
+
+  it("rejects an invalid preference instead of falling back", () => {
+    expect(resolveCount(undefined, "abc", 5).ok).toBe(false);
+    expect(resolveCount(undefined, "0", 5).ok).toBe(false);
+    expect(resolveCount(undefined, "2001", 5).ok).toBe(false);
   });
 });
