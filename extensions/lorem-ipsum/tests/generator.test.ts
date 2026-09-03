@@ -57,8 +57,7 @@ describe("generateUntilCharacters", () => {
   });
 
   it("uses the classic opening when requested", () => {
-    const text = generateUntilCharacters(12, true);
-    expect(text.startsWith("lorem ipsum")).toBe(true);
+    expect(generateUntilCharacters(12, true)).toBe("lorem ipsum.");
   });
 });
 

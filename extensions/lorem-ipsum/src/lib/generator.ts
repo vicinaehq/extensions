@@ -159,6 +159,12 @@ export function generateUntilCharacters(target: number, startWithLorem: boolean)
   };
 
   while (length < n && parts.length < MAX_COUNT) {
+    if (parts.length > 0 && n - length === 1) {
+      parts[parts.length - 1] += ".";
+      length += 1;
+      break;
+    }
+
     const word = nextWord();
     if (parts.length === 0) {
       const piece = word.slice(0, n);
@@ -168,14 +174,7 @@ export function generateUntilCharacters(target: number, startWithLorem: boolean)
       continue;
     }
 
-    const remaining = n - length;
-    if (remaining === 1) {
-      parts[parts.length - 1] += word.charAt(0);
-      length += 1;
-      break;
-    }
-
-    const room = remaining - 1;
+    const room = n - length - 1;
     const piece = word.length <= room ? word : word.slice(0, room);
     parts.push(piece);
     length += 1 + piece.length;
