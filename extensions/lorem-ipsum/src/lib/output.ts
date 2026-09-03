@@ -1,17 +1,27 @@
 import { Clipboard, closeMainWindow, getPreferenceValues, showHUD, showToast, Toast } from "@vicinae/api";
+import type { HtmlTag, ListStyle } from "./generator";
 
 export type ActionPreference = "clipboard" | "paste" | "pasteAndCopy";
 
 export interface Preferences {
   action: ActionPreference;
   startWithLorem: boolean;
+  listStyle: ListStyle;
+  htmlTag: HtmlTag;
+  defaultCount?: string;
 }
 
+const LIST_STYLES: ListStyle[] = ["dash", "numbered", "html"];
+const HTML_TAGS: HtmlTag[] = ["p", "div"];
+
 export function getPrefs(): Preferences {
-  const raw = getPreferenceValues<ExtensionPreferences>();
+  const raw = getPreferenceValues<ExtensionPreferences & { defaultCount?: string }>();
   return {
     action: raw.action ?? "paste",
     startWithLorem: raw.startWithLorem ?? true,
+    listStyle: isListStyle(raw.listStyle) ? raw.listStyle : "dash",
+    htmlTag: isHtmlTag(raw.htmlTag) ? raw.htmlTag : "p",
+    defaultCount: raw.defaultCount,
   };
 }
 
@@ -38,13 +48,10 @@ export async function produceOutput(content: string, action = getPrefs().action)
   }
 }
 
-export function actionLabel(action: ActionPreference): string {
-  switch (action) {
-    case "paste":
-      return "Paste";
-    case "pasteAndCopy":
-      return "Paste and Copy";
-    default:
-      return "Copy to Clipboard";
-  }
+function isListStyle(value: string | undefined): value is ListStyle {
+  return value != null && (LIST_STYLES as string[]).includes(value);
+}
+
+function isHtmlTag(value: string | undefined): value is HtmlTag {
+  return value != null && (HTML_TAGS as string[]).includes(value);
 }

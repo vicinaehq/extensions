@@ -4,14 +4,14 @@
   "title": "Lorem Ipsum",
   "description": "Generate placeholder text instantly — paragraphs, sentences, words, lists, and HTML.",
   "icon": "extension-icon.png",
-  "author": "tiagemiguel",
+  "author": "tiagem",
   "contributors": [],
   "pastContributors": [],
   "categories": ["Developer Tools", "Design Tools", "Productivity"],
   "keywords": ["lorem", "ipsum", "placeholder", "dummy", "text", "generator"],
   "platforms": ["Linux", "macOS"],
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "commands": [
     {
       "name": "generate",
@@ -35,6 +35,17 @@
           "required": false,
           "placeholder": "No. of paragraphs"
         }
+      ],
+      "preferences": [
+        {
+          "name": "defaultCount",
+          "type": "textfield",
+          "title": "Default Count",
+          "description": "How many paragraphs to generate when you omit the count.",
+          "required": false,
+          "default": "1",
+          "placeholder": "1"
+        }
       ]
     },
     {
@@ -50,6 +61,17 @@
           "type": "text",
           "required": false,
           "placeholder": "No. of sentences"
+        }
+      ],
+      "preferences": [
+        {
+          "name": "defaultCount",
+          "type": "textfield",
+          "title": "Default Count",
+          "description": "How many sentences to generate when you omit the count.",
+          "required": false,
+          "default": "1",
+          "placeholder": "1"
         }
       ]
     },
@@ -67,13 +89,24 @@
           "required": false,
           "placeholder": "No. of words"
         }
+      ],
+      "preferences": [
+        {
+          "name": "defaultCount",
+          "type": "textfield",
+          "title": "Default Count",
+          "description": "How many words to generate when you omit the count.",
+          "required": false,
+          "default": "1",
+          "placeholder": "1"
+        }
       ]
     },
     {
       "name": "lists",
       "title": "Generate List",
       "subtitle": "Lorem Ipsum",
-      "description": "Generate a bullet list and copy or paste it immediately",
+      "description": "Generate a list and copy or paste it immediately",
       "mode": "no-view",
       "keywords": ["bullets", "items"],
       "arguments": [
@@ -83,6 +116,44 @@
           "required": false,
           "placeholder": "No. of items"
         }
+      ],
+      "preferences": [
+        {
+          "name": "defaultCount",
+          "type": "textfield",
+          "title": "Default Count",
+          "description": "How many list items to generate when you omit the count.",
+          "required": false,
+          "default": "5",
+          "placeholder": "5"
+        }
+      ]
+    },
+    {
+      "name": "html",
+      "title": "Generate HTML",
+      "subtitle": "Lorem Ipsum",
+      "description": "Generate HTML paragraphs and copy or paste them immediately",
+      "mode": "no-view",
+      "keywords": ["html", "markup", "tags"],
+      "arguments": [
+        {
+          "name": "count",
+          "type": "text",
+          "required": false,
+          "placeholder": "No. of paragraphs"
+        }
+      ],
+      "preferences": [
+        {
+          "name": "defaultCount",
+          "type": "textfield",
+          "title": "Default Count",
+          "description": "How many HTML paragraphs to generate when you omit the count.",
+          "required": false,
+          "default": "1",
+          "placeholder": "1"
+        }
       ]
     }
   ],
@@ -91,7 +162,7 @@
       "name": "action",
       "type": "dropdown",
       "title": "Default Action",
-      "description": "What happens when a no-view command runs, or when you press Enter in the preview.",
+      "description": "What happens when a no-view command runs. In preview, Enter pastes; copy uses the generic copy keybind.",
       "required": false,
       "default": "paste",
       "data": [
@@ -108,12 +179,39 @@
       "description": "Begin generated text with the classic Cicero opening instead of a random sentence.",
       "required": false,
       "default": true
+    },
+    {
+      "name": "listStyle",
+      "type": "dropdown",
+      "title": "List Style",
+      "description": "Marker used for generated lists in preview and the list command.",
+      "required": false,
+      "default": "dash",
+      "data": [
+        { "title": "Markdown Dashes", "value": "dash" },
+        { "title": "Numbered", "value": "numbered" },
+        { "title": "HTML Unordered List", "value": "html" }
+      ]
+    },
+    {
+      "name": "htmlTag",
+      "type": "dropdown",
+      "title": "HTML Wrap",
+      "description": "Element used to wrap each generated HTML paragraph.",
+      "required": false,
+      "default": "p",
+      "data": [
+        { "title": "Paragraph (p)", "value": "p" },
+        { "title": "Division (div)", "value": "div" }
+      ]
     }
   ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",
-    "lint": "vici lint"
+    "lint": "vici lint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@vicinae/api": "^0.25.0"
@@ -121,6 +219,7 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.17",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

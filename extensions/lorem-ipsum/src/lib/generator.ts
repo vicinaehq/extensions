@@ -1,6 +1,8 @@
 import { CLASSIC_PARAGRAPH, CLASSIC_SENTENCES, CLASSIC_WORDS, WORD_COUNT, WORDS } from "./words";
 
 export type Kind = "paragraphs" | "sentences" | "words" | "titles" | "list" | "html";
+export type ListStyle = "dash" | "numbered" | "html";
+export type HtmlTag = "p" | "div";
 
 export const MAX_COUNT = 2000;
 
@@ -12,14 +14,23 @@ const WORDS_PER_TITLE_MIN = 3;
 const WORDS_PER_TITLE_SPAN = 5; // 3–7
 const WORDS_PER_LIST_ITEM_MIN = 4;
 const WORDS_PER_LIST_ITEM_SPAN = 5; // 4–8
+const CLASSIC_LIST_ITEM = "Lorem ipsum dolor sit amet";
 
 export interface GenerateOptions {
   kind: Kind;
   count: number;
   startWithLorem: boolean;
+  listStyle?: ListStyle;
+  htmlTag?: HtmlTag;
 }
 
-export function generate({ kind, count, startWithLorem }: GenerateOptions): string {
+export function generate({
+  kind,
+  count,
+  startWithLorem,
+  listStyle = "dash",
+  htmlTag = "p",
+}: GenerateOptions): string {
   const n = count | 0;
   if (n < 1) return "";
 
@@ -33,9 +44,9 @@ export function generate({ kind, count, startWithLorem }: GenerateOptions): stri
     case "titles":
       return generateTitle(n, startWithLorem);
     case "list":
-      return generateList(n, startWithLorem);
+      return generateList(n, startWithLorem, listStyle);
     case "html":
-      return generateHtml(n, startWithLorem);
+      return generateHtml(n, startWithLorem, htmlTag);
   }
 }
 
@@ -94,27 +105,69 @@ export function generateTitle(count: number, startWithLorem: boolean): string {
   return words.join(" ");
 }
 
-export function generateList(count: number, startWithLorem: boolean): string {
-  const out = new Array<string>(count);
+export function generateList(count: number, startWithLorem: boolean, style: ListStyle = "dash"): string {
+  const n = count | 0;
+  if (n < 1) return "";
+
+  const bodies = new Array<string>(n);
   let i = 0;
 
-  if (startWithLorem && count > 0) {
-    out[0] = "- Lorem ipsum dolor sit amet";
+  if (startWithLorem) {
+    bodies[0] = CLASSIC_LIST_ITEM;
     i = 1;
   }
 
-  for (; i < count; i++) {
-    out[i] = `- ${capitalize(generateWords(randomInSpan(WORDS_PER_LIST_ITEM_MIN, WORDS_PER_LIST_ITEM_SPAN), false))}`;
+  for (; i < n; i++) {
+    bodies[i] = capitalize(generateWords(randomInSpan(WORDS_PER_LIST_ITEM_MIN, WORDS_PER_LIST_ITEM_SPAN), false));
   }
 
+  if (style === "html") {
+    return `<ul>\n${bodies.map((body) => `  <li>${body}</li>`).join("\n")}\n</ul>`;
+  }
+
+  return bodies
+    .map((body, index) => (style === "numbered" ? `${index + 1}. ${body}` : `- ${body}`))
+    .join("\n");
+}
+
+export function generateHtml(count: number, startWithLorem: boolean, tag: HtmlTag = "p"): string {
+  const paragraphs = generateParagraphs(count, startWithLorem).split("\n\n");
+  const open = `<${tag}>`;
+  const close = `</${tag}>`;
+  const out = new Array<string>(paragraphs.length);
+  for (let i = 0; i < paragraphs.length; i++) out[i] = `${open}${paragraphs[i]}${close}`;
   return out.join("\n");
 }
 
-export function generateHtml(count: number, startWithLorem: boolean): string {
-  const paragraphs = generateParagraphs(count, startWithLorem).split("\n\n");
-  const out = new Array<string>(paragraphs.length);
-  for (let i = 0; i < paragraphs.length; i++) out[i] = `<p>${paragraphs[i]}</p>`;
-  return out.join("\n");
+export function generateUntilCharacters(target: number, startWithLorem: boolean): string {
+  const n = target | 0;
+  if (n < 1) return "";
+
+  const words: string[] = [];
+  let length = 0;
+  let last = -1;
+  let i = 0;
+
+  const push = (word: string) => {
+    if (words.length) length += 1;
+    length += word.length;
+    words.push(word);
+  };
+
+  if (startWithLorem) {
+    for (; i < CLASSIC_WORDS.length; i++) {
+      push(CLASSIC_WORDS[i]);
+      last = indexOfWord(CLASSIC_WORDS[i]);
+      if (length >= n) return words.join(" ");
+    }
+  }
+
+  while (length < n && words.length < MAX_COUNT) {
+    last = nextIndex(last);
+    push(WORDS[last]);
+  }
+
+  return words.join(" ");
 }
 
 export function textStats(text: string): { characters: number; words: number; lines: number } {
@@ -149,6 +202,12 @@ function randomSentence(): string {
     last = nextIndex(last);
     parts[i] = WORDS[last];
   }
+
+  if (count >= 8) {
+    const commaAt = 2 + ((Math.random() * (count - 4)) | 0);
+    parts[commaAt] = `${parts[commaAt]},`;
+  }
+
   return `${parts.join(" ")}.`;
 }
 
