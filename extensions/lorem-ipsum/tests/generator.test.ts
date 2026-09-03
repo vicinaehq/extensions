@@ -48,15 +48,15 @@ describe("generate", () => {
 });
 
 describe("generateUntilCharacters", () => {
-  it("meets or exceeds the requested length", () => {
-    const text = generateUntilCharacters(80, false);
-    expect(textStats(text).characters).toBeGreaterThanOrEqual(80);
+  it("returns exactly the requested length", () => {
+    expect(textStats(generateUntilCharacters(80, false)).characters).toBe(80);
+    expect(textStats(generateUntilCharacters(12, true)).characters).toBe(12);
+    expect(textStats(generateUntilCharacters(1, false)).characters).toBe(1);
   });
 
   it("uses the classic opening when requested", () => {
     const text = generateUntilCharacters(12, true);
     expect(text.startsWith("lorem ipsum")).toBe(true);
-    expect(textStats(text).characters).toBeGreaterThanOrEqual(12);
   });
 });
 

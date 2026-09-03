@@ -143,31 +143,34 @@ export function generateUntilCharacters(target: number, startWithLorem: boolean)
   const n = target | 0;
   if (n < 1) return "";
 
-  const words: string[] = [];
+  const parts: string[] = [];
   let length = 0;
   let last = -1;
-  let i = 0;
+  let classicIndex = 0;
 
-  const push = (word: string) => {
-    if (words.length) length += 1;
-    length += word.length;
-    words.push(word);
+  const nextWord = (): string => {
+    if (startWithLorem && classicIndex < CLASSIC_WORDS.length) {
+      const word = CLASSIC_WORDS[classicIndex++];
+      last = indexOfWord(word);
+      return word;
+    }
+    last = nextIndex(last);
+    return WORDS[last];
   };
 
-  if (startWithLorem) {
-    for (; i < CLASSIC_WORDS.length; i++) {
-      push(CLASSIC_WORDS[i]);
-      last = indexOfWord(CLASSIC_WORDS[i]);
-      if (length >= n) return words.join(" ");
-    }
+  while (length < n && parts.length < MAX_COUNT) {
+    const word = nextWord();
+    const space = parts.length > 0 ? 1 : 0;
+    const room = n - length - space;
+    if (room <= 0) break;
+    const piece = word.length <= room ? word : word.slice(0, room);
+    length += space + piece.length;
+    parts.push(piece);
+    if (piece.length < word.length) break;
   }
 
-  while (length < n && words.length < MAX_COUNT) {
-    last = nextIndex(last);
-    push(WORDS[last]);
-  }
-
-  return words.join(" ");
+  const text = parts.join(" ");
+  return text.length < n ? text + " ".repeat(n - text.length) : text;
 }
 
 export function textStats(text: string): { characters: number; words: number; lines: number } {
