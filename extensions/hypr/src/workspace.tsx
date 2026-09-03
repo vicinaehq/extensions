@@ -37,7 +37,13 @@ export default function Workspaces() {
             <List.Item
               key={`${workspace.id}-${workspace.name}`}
               title={workspace.name || `Workspace ${workspace.id}`}
-              subtitle={`${!workspace.name ? workspace.id : ''}${String(workspace.tiledLayout)} - ${workspace.monitor} ${workspace.windows >= 1 ? '-' : ''} ${getWindowsCountLabel(workspace.windows)}`}
+              subtitle={[
+                workspace.tiledLayout,
+                workspace.monitor,
+                getWindowsCountLabel(workspace.windows),
+              ]
+                .filter(Boolean)
+                .join(' - ')}
               icon={Icon.Desktop}
               keywords={[
                 workspace.name,
