@@ -4,28 +4,43 @@ import {
 	type KdeDevice,
 	finishAndClose,
 	getAvailableDevices,
+	isKdeConnectNotFoundError,
 	sendMessage,
+	showKdeError,
 } from "./utils/kdeconnect";
 
 export default function SendMessageCommand() {
 	const [devices, setDevices] = useState<KdeDevice[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [selectedDevice, setSelectedDevice] = useState<string>("");
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		async function loadDevices() {
 			setIsLoading(true);
-			const list = await getAvailableDevices();
-			setDevices(list);
-			if (list.length > 0) {
-				setSelectedDevice(list[0].id);
+			try {
+				const list = await getAvailableDevices();
+				setDevices(list);
+				if (list.length > 0) {
+					setSelectedDevice(list[0].id);
+				}
+			} catch (err) {
+				const msg = err instanceof Error ? err.message : String(err);
+				setError(msg);
+				await showKdeError(err, "Failed to load devices");
+			} finally {
+				setIsLoading(false);
 			}
-			setIsLoading(false);
 		}
 		loadDevices();
 	}, []);
 
 	async function handleSubmit(values: Form.Values) {
+		if (error) {
+			await showKdeError(new Error(error), "Failed to send SMS");
+			return;
+		}
+
 		const targetDevice =
 			(values.device as string) ||
 			selectedDevice ||
@@ -72,8 +87,13 @@ export default function SendMessageCommand() {
 			await finishAndClose();
 		} catch (error) {
 			toast.style = Toast.Style.Failure;
-			toast.title = "Failed to send SMS";
-			toast.message = error instanceof Error ? error.message : String(error);
+			if (isKdeConnectNotFoundError(error)) {
+				toast.title = "kdeconnect-cli not found";
+				toast.message = "Install KDE Connect";
+			} else {
+				toast.title = "Failed to send SMS";
+				toast.message = error instanceof Error ? error.message : String(error);
+			}
 		}
 	}
 
@@ -86,7 +106,9 @@ export default function SendMessageCommand() {
 				</ActionPanel>
 			}
 		>
-			{devices.length === 0 && !isLoading && (
+			{error && !isLoading && <Form.Description text={error} />}
+
+			{!error && devices.length === 0 && !isLoading && (
 				<Form.Description text="No reachable paired devices found. Make sure your phone is connected on the same network and KDE Connect is running." />
 			)}
 

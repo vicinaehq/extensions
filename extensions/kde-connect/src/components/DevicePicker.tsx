@@ -38,7 +38,7 @@ export function DevicePicker({
 					key="all"
 					icon={Icon.Devices}
 					title="All Devices"
-					subtitle={`Send to all ${devices.length} connected devices`}
+					subtitle={`Select all ${devices.length} connected devices`}
 					actions={
 						<ActionPanel>
 							<Action

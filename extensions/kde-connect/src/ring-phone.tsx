@@ -6,6 +6,7 @@ import {
 	finishAndClose,
 	getAvailableDevices,
 	ringPhone,
+	showKdeError,
 } from "./utils/kdeconnect";
 
 export default function RingPhoneCommand() {
@@ -31,34 +32,35 @@ export default function RingPhoneCommand() {
 			}
 			await finishAndClose();
 		} catch (error) {
-			await showToast({
-				style: Toast.Style.Failure,
-				title: "Failed to ring device",
-				message: error instanceof Error ? error.message : String(error),
-			});
+			await showKdeError(error, "Failed to ring device");
 		}
 	}
 
 	useEffect(() => {
 		async function init() {
-			const list = await getAvailableDevices();
-			if (list.length === 0) {
-				await showToast({
-					style: Toast.Style.Failure,
-					title: "No connected device found",
-					message: "Ensure KDE Connect is running on your phone and PC.",
-				});
+			try {
+				const list = await getAvailableDevices();
+				if (list.length === 0) {
+					await showToast({
+						style: Toast.Style.Failure,
+						title: "No connected device found",
+						message: "Ensure KDE Connect is running on your phone and PC.",
+					});
+					await finishAndClose();
+					return;
+				}
+
+				if (list.length === 1) {
+					await executeRing(list[0]);
+					return;
+				}
+
+				setDevices(list);
+				setIsLoading(false);
+			} catch (error) {
+				await showKdeError(error, "Failed to load devices");
 				await finishAndClose();
-				return;
 			}
-
-			if (list.length === 1) {
-				await executeRing(list[0]);
-				return;
-			}
-
-			setDevices(list);
-			setIsLoading(false);
 		}
 
 		init();

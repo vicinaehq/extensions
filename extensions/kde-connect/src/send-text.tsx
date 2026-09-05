@@ -6,6 +6,7 @@ import {
 	finishAndClose,
 	getAvailableDevices,
 	sendText,
+	showKdeError,
 } from "./utils/kdeconnect";
 
 export default function SendTextCommand(
@@ -36,11 +37,7 @@ export default function SendTextCommand(
 			}
 			await finishAndClose();
 		} catch (error) {
-			await showToast({
-				style: Toast.Style.Failure,
-				title: "Failed to send text",
-				message: error instanceof Error ? error.message : String(error),
-			});
+			await showKdeError(error, "Failed to send text");
 		}
 	}
 
@@ -56,24 +53,29 @@ export default function SendTextCommand(
 				return;
 			}
 
-			const list = await getAvailableDevices();
-			if (list.length === 0) {
-				await showToast({
-					style: Toast.Style.Failure,
-					title: "No connected device found",
-					message: "Ensure KDE Connect is running on your phone and PC.",
-				});
+			try {
+				const list = await getAvailableDevices();
+				if (list.length === 0) {
+					await showToast({
+						style: Toast.Style.Failure,
+						title: "No connected device found",
+						message: "Ensure KDE Connect is running on your phone and PC.",
+					});
+					await finishAndClose();
+					return;
+				}
+
+				if (list.length === 1) {
+					await executeSend(list[0]);
+					return;
+				}
+
+				setDevices(list);
+				setIsLoading(false);
+			} catch (error) {
+				await showKdeError(error, "Failed to load devices");
 				await finishAndClose();
-				return;
 			}
-
-			if (list.length === 1) {
-				await executeSend(list[0]);
-				return;
-			}
-
-			setDevices(list);
-			setIsLoading(false);
 		}
 
 		init();
