@@ -58,7 +58,7 @@ This extension provides seamless multi-device handling whether you have one phon
     Sending (1/2) to Pixel Phone: photo.png
     Sending (1/2) to Samsung Phone: photo.png
     ```
-  - **Target Device Dropdown (`Send Message`)**: Choose which phone and SIM should dispatch your SMS.
+  - **Target Device Dropdown (`Send Message`)**: Choose which phone should dispatch your SMS.
 
 - **Strict Reachability Filtering**:
   Only devices confirmed to be both **paired and currently reachable** on your local network (`kdeconnect-cli -a`) are displayed. Offline or paired-only devices are excluded to ensure 100% reliable delivery.
