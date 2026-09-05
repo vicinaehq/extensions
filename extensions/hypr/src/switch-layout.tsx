@@ -6,7 +6,8 @@ import {
   LAYOUT_SUBTITLES,
 } from './layouts';
 import type { HyprWorkspace } from './types';
-import { capitalizeFirst, switchToLayout } from './utils';
+import { capitalizeFirst } from './utils/format';
+import { switchToLayout } from './utils/dispatch';
 
 export default function SwitchLayout() {
   const [activeWorkspace, isLoading] = useHyprctlData<

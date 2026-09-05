@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Icon, List } from '@vicinae/api';
 import { useHyprctlData } from './hooks';
 import type { HyprLayersResponse } from './types';
-import { flattenLayers, formatRect } from './utils';
+import { flattenLayers, formatRect } from './utils/layers';
 
 export default function Layers() {
   const [layersResponse, isLoading] = useHyprctlData<HyprLayersResponse>(
