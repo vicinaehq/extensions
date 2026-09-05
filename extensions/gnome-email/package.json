@@ -1,0 +1,96 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "gnome-email",
+  "title": "GNOME Email",
+  "description": "Read email from mail-enabled GNOME Online Accounts",
+  "categories": ["Productivity"],
+  "license": "MIT",
+  "platforms": ["Linux"],
+  "author": "7system7",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "gnome-email-icon.svg",
+  "dependencies": {
+    "@esbuild/linux-x64": "0.25.12",
+    "@vicinae/api": "^0.26.3",
+    "dbus-next": "^0.10.2",
+    "imapflow": "^1.0.195",
+    "mailparser": "^3.7.4",
+    "turndown": "^7.2.0",
+    "x11": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/mailparser": "^3.4.6",
+    "@types/node": "^24.10.1",
+    "@types/react": "19.1.17",
+    "@types/turndown": "^5.0.5",
+    "typescript": "^5.9.3"
+  },
+  "commands": [
+    {
+      "name": "inbox",
+      "title": "Inbox",
+      "subtitle": "GNOME Online Accounts",
+      "description": "Show email from all GNOME Online Accounts",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "readOnlyMode",
+      "type": "checkbox",
+      "title": "Read-Only Mode",
+      "label": "Prevent changes to messages",
+      "description": "Opens mailboxes read-only and hides actions that change message state.",
+      "default": true,
+      "required": true
+    },
+    {
+      "name": "showImages",
+      "type": "checkbox",
+      "title": "Show Images",
+      "label": "Show and download images in message bodies",
+      "description": "Displays embedded images and allows the detail view to load remote images. Disable this to improve privacy and prevent tracking pixels from loading.",
+      "default": false,
+      "required": true
+    },
+    {
+      "name": "showFavicons",
+      "type": "checkbox",
+      "title": "Show Account Favicons",
+      "label": "Download account-domain favicons from Google",
+      "description": "Sends only the domain part of each account address to Google's S2 favicon service.",
+      "default": false,
+      "required": true
+    },
+    {
+      "name": "allowInsecureLoopbackTls",
+      "type": "checkbox",
+      "title": "Allow Self-Signed Local IMAP TLS",
+      "label": "Accept untrusted TLS certificates from loopback IMAP servers",
+      "description": "Required by some local bridges such as Proton Mail Bridge. Never applies to remote servers.",
+      "default": false,
+      "required": true
+    },
+    {
+      "name": "messageDownloadLimitMb",
+      "type": "dropdown",
+      "title": "Maximum Message Processing Size",
+      "description": "Maximum message data to retain for rendering when opening a message. For IMAP, this also caps the raw MIME source download; Microsoft Graph responses are limited after download.",
+      "default": "10",
+      "required": true,
+      "data": [
+        { "title": "2 MiB", "value": "2" },
+        { "title": "5 MiB", "value": "5" },
+        { "title": "10 MiB", "value": "10" },
+        { "title": "25 MiB", "value": "25" }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "typecheck": "tsc --noEmit",
+    "lint": "vici lint"
+  }
+}
