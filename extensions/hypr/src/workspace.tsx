@@ -1,14 +1,24 @@
-import { Action, ActionPanel, Icon, List } from '@vicinae/api';
+import { Action, ActionPanel, Color, Icon, List } from '@vicinae/api';
 import { useHyprctlData } from './hooks';
 import type { HyprWorkspace } from './types';
-import { focusHyprTarget } from './utils';
+import { focusHyprTarget } from './utils/dispatch';
+
+function getWindowsCountLabel(windowsCount: number) {
+  return windowsCount >= 1
+    ? `${windowsCount} window${windowsCount === 1 ? '' : 's'}`
+    : '';
+}
 
 export default function Workspaces() {
-  const [workspaces, isLoading] = useHyprctlData<HyprWorkspace[]>(
+  const [workspaces, workspacesLoading] = useHyprctlData<HyprWorkspace[]>(
     'workspaces',
     [],
     'Failed to load workspaces'
   );
+  const [activeWorkspace, activeWorkspaceLoading] = useHyprctlData<
+    HyprWorkspace | undefined
+  >('activeworkspace', undefined, 'Failed to load active workspace');
+  const isLoading = workspacesLoading || activeWorkspaceLoading;
 
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Search workspaces...">
@@ -27,10 +37,14 @@ export default function Workspaces() {
             <List.Item
               key={`${workspace.id}-${workspace.name}`}
               title={workspace.name || `Workspace ${workspace.id}`}
-              subtitle={`${workspace.monitor} - ${workspace.windows} window${
-                workspace.windows === 1 ? '' : 's'
-              }${workspace.lastwindowtitle ? ` - ${workspace.lastwindowtitle}` : ''}`}
-              icon={Icon.AppWindow}
+              subtitle={[
+                workspace.tiledLayout,
+                workspace.monitor,
+                getWindowsCountLabel(workspace.windows),
+              ]
+                .filter(Boolean)
+                .join(' - ')}
+              icon={Icon.Desktop}
               keywords={[
                 workspace.name,
                 workspace.monitor,
@@ -38,15 +52,19 @@ export default function Workspaces() {
                 workspace.tiledLayout ?? '',
               ]}
               accessories={[
+                ...(workspace.id === activeWorkspace?.id
+                  ? [{ tag: { value: 'Current', color: Color.Blue } }]
+                  : []),
                 ...(workspace.hasfullscreen
-                  ? [{ text: 'Fullscreen', icon: Icon.AppWindow }]
+                  ? [
+                      {
+                        tag: { value: 'Fullscreen', color: Color.Purple },
+                        icon: Icon.Fullscreen,
+                      },
+                    ]
                   : []),
                 ...(workspace.ispersistent
-                  ? [{ text: 'Persistent', icon: Icon.CheckCircle }]
-                  : []),
-                { text: `ID ${workspace.id}` },
-                ...(workspace.tiledLayout
-                  ? [{ text: workspace.tiledLayout, icon: Icon.Cog }]
+                  ? [{ tag: { value: `Persistent`, color: Color.PrimaryText } }]
                   : []),
               ]}
               actions={
