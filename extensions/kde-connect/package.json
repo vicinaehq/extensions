@@ -1,0 +1,82 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "kde-connect",
+  "title": "KDE Connect",
+  "description": "Control your connected phone from the launcher",
+  "categories": [],
+  "license": "MIT",
+  "author": "xwaleedahmad",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "send-file",
+      "title": "Send File",
+      "description": "Pick and send files to your phone",
+      "mode": "view",
+      "keywords": [
+        "share",
+        "files"
+      ]
+    },
+    {
+      "name": "send-text",
+      "title": "Send Text",
+      "description": "Send text directly to your phone",
+      "mode": "view",
+      "keywords": [
+        "share",
+        "text"
+      ],
+      "arguments": [
+        {
+          "name": "text",
+          "placeholder": "Text to send",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "send-clipboard",
+      "title": "Send Clipboard",
+      "description": "Send clipboard content to your phone",
+      "mode": "view"
+    },
+    {
+      "name": "ring-phone",
+      "title": "Ring Phone",
+      "description": "Find your phone by ringing it",
+      "mode": "view",
+      "keywords": [
+        "find",
+        "ring"
+      ]
+    },
+    {
+      "name": "send-message",
+      "title": "Send Message",
+      "description": "Send an SMS message to a phone number",
+      "mode": "view",
+      "keywords": [
+        "sms"
+      ]
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.27.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^26.4.1",
+    "typescript": "^5.9.2"
+  }
+}
