@@ -1,0 +1,177 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/main/extra/schemas/extension.json",
+  "name": "ai-commands",
+  "title": "AI Commands",
+  "description": "Translate and rewrite selected or copied text with Claude Code, Codex, Grok, OpenCode, or direct APIs. Preview the result and press Enter to replace the selection. Enable individual root-search entries with Setup AI Commands.",
+  "version": "0.3.0",
+  "license": "MIT",
+  "author": "vdmkotai",
+  "icon": "icon.svg",
+  "categories": [
+    "Productivity"
+  ],
+  "keywords": [
+    "ai",
+    "translate",
+    "rewrite",
+    "claude",
+    "codex",
+    "grok",
+    "opencode",
+    "openai",
+    "anthropic",
+    "xai"
+  ],
+  "commands": [
+    {
+      "name": "setup-ai-commands",
+      "title": "Setup AI Commands",
+      "description": "Enable private root-search entries and check the setup. Run once after installation.",
+      "mode": "view"
+    },
+    {
+      "name": "create-ai-command",
+      "title": "Create AI Command",
+      "description": "Save a reusable text transformation.",
+      "mode": "view"
+    },
+    {
+      "name": "ai-commands",
+      "title": "AI Commands",
+      "description": "Run and manage your saved AI commands.",
+      "mode": "view"
+    },
+    {
+      "name": "run-ai-command",
+      "title": "Run AI Command",
+      "description": "Run or edit a saved command from its main-search entry.",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "commandId",
+          "type": "text",
+          "placeholder": "Command ID",
+          "required": true
+        },
+        {
+          "name": "action",
+          "type": "text",
+          "placeholder": "Action",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "ai-command-history",
+      "title": "AI Command History",
+      "description": "Browse and clear locally saved results.",
+      "mode": "view"
+    },
+    {
+      "name": "check-harnesses",
+      "title": "Check AI Harnesses",
+      "description": "Check CLI availability, API connections, and model discovery.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "claudePath",
+      "title": "Claude Executable",
+      "description": "Optional absolute path to the installed Claude Code CLI. Otherwise detected automatically.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "codexPath",
+      "title": "Codex Executable",
+      "description": "Optional absolute path to the installed Codex CLI.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "grokPath",
+      "title": "Grok Executable",
+      "description": "Optional absolute path to the installed Grok CLI.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "opencodePath",
+      "title": "OpenCode Executable",
+      "description": "Optional absolute path to OpenCode 1.18.29 or later. Uses its saved provider connections.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "openaiApiKey",
+      "title": "OpenAI API Key",
+      "description": "Optional. Used only when a command selects OpenAI API. API usage is billed by the provider.",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "anthropicApiKey",
+      "title": "Anthropic API Key",
+      "description": "Optional. Used only when a command selects Anthropic API. API usage is billed by the provider.",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "xaiApiKey",
+      "title": "xAI API Key",
+      "description": "Optional. Used only when a command selects xAI API. API usage is billed by the provider.",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "saveHistory",
+      "title": "History",
+      "label": "Save input and results locally",
+      "description": "Keep up to 100 completed runs. You can clear them in AI Command History.",
+      "type": "checkbox",
+      "default": true,
+      "required": false
+    }
+  ],
+  "scripts": {
+    "predev": "node scripts/prepare-sdk.mjs",
+    "dev": "vici develop",
+    "prebuild": "node scripts/prepare-sdk.mjs",
+    "build": "vici build",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "format": "prettier --write src test scripts package.json tsconfig.json '*.md'",
+    "check": "npm run lint && npm run typecheck && npm test",
+    "smoke": "tsx scripts/smoke.ts",
+    "postinstall": "node scripts/prepare-sdk.mjs",
+    "smoke:api": "tsx scripts/smoke-api.ts",
+    "setup:launcher": "tsx scripts/setup-launcher.ts",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.263",
+    "@vicinae/api": "0.28.1",
+    "jsonc-parser": "3.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "prettier": "^3.0.0",
+    "react": "^19.0.0",
+    "react-test-renderer": "19.2.8",
+    "tsx": "^4.0.0",
+    "typescript": "^5.9.0"
+  },
+  "platforms": [
+    "Linux"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vdmkotai/vicinae-ai-commands.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vdmkotai/vicinae-ai-commands/issues"
+  },
+  "homepage": "https://github.com/vdmkotai/vicinae-ai-commands#readme"
+}
