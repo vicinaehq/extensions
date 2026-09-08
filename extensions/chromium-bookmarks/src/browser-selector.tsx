@@ -17,12 +17,12 @@ export const BrowserSelector = ({
 				value="all"
 				icon={Icon.Bookmark}
 			/>
-			{browsers.map((b) => (
+			{browsers.map((browser) => (
 				<List.Dropdown.Item
-					key={b.name}
-					title={b.name}
-					value={b.name}
-					icon={b.icon}
+					key={browser.id}
+					title={browser.name}
+					value={browser.id}
+					icon={browser.icon}
 				/>
 			))}
 		</List.Dropdown>
