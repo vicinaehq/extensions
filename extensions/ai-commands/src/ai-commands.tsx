@@ -14,7 +14,6 @@ import {
   captureSource,
   deleteCommand,
   publishCommand,
-  quicklinkFor,
   repository,
   synchronizeMainSearch,
   toastError,
@@ -113,15 +112,10 @@ export default function AICommands() {
                     void publishCommand(command).catch(toastError)
                   }
                 />
-              ) : process.platform === "linux" ? (
+              ) : (
                 <Action.OpenInBrowser
                   title="Root Search Setup Instructions"
                   url={LAUNCHER_SETUP_URL}
-                />
-              ) : (
-                <Action.CreateQuicklink
-                  title="Add Quicklink"
-                  quicklink={quicklinkFor(command)}
                 />
               )}
               <Action.Push

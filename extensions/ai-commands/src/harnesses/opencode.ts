@@ -1,4 +1,3 @@
-import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import {
@@ -11,6 +10,7 @@ import {
   cleanEnvironment,
   inTemporaryDirectory,
   runProcess,
+  spawnHarness,
   terminateProcess,
 } from "./process";
 import {
@@ -122,14 +122,11 @@ async function withOpenCodeServer<T>(
     delete env.OPENCODE_CONFIG;
     delete env.OPENCODE_CONFIG_DIR;
     delete env.OPENCODE_CONFIG_CONTENT;
-    const child = spawn(
+    const child = spawnHarness(
       executable,
       ["serve", "--pure", "--hostname=127.0.0.1", "--port=0"],
       {
         cwd,
-        shell: false,
-        detached: process.platform !== "win32",
-        stdio: "pipe",
         env: {
           ...env,
           OPENCODE_SERVER_USERNAME: "opencode",

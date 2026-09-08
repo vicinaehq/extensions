@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
@@ -66,6 +68,34 @@ assert.ok(
   ),
 );
 await readFile(join(output, "assets", "claude-sdk-LICENSE.md"));
+const supervisorPath = join(output, "assets", "process-supervisor.cjs");
+assert.ok(
+  (await readFile(supervisorPath)).equals(
+    await readFile(
+      new URL("../assets/process-supervisor.cjs", import.meta.url),
+    ),
+  ),
+);
+const supervised = spawn(
+  process.execPath,
+  [
+    supervisorPath,
+    process.execPath,
+    "-e",
+    "process.stdin.pipe(process.stdout)",
+  ],
+  { stdio: ["pipe", "pipe", "pipe", "ipc"] },
+);
+let echoed = "";
+supervised.stdout.setEncoding("utf8");
+supervised.stdout.on("data", (text) => {
+  echoed += text;
+});
+supervised.stderr.pipe(process.stderr);
+const closed = once(supervised, "close");
+supervised.stdin.end("Packaged supervisor: Привет\n");
+assert.equal((await closed)[0], 0);
+assert.equal(echoed, "Packaged supervisor: Привет\n");
 console.log(
-  `Packaging smoke passed: ${manifest.commands.length} commands, native ESM SDK, and license notices`,
+  `Packaging smoke passed: ${manifest.commands.length} commands, native ESM SDK, process supervisor, and license notices`,
 );

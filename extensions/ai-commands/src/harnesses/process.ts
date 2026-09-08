@@ -6,6 +6,51 @@ import { delimiter, isAbsolute, join } from "node:path";
 import type { CliId } from "../core/types";
 import { withoutPrivateLauncher } from "../core/launcher-paths";
 
+let supervisorLocation = join(__dirname, "../../assets/process-supervisor.cjs");
+
+export function setProcessSupervisorLocation(location: string): void {
+  supervisorLocation = location;
+}
+
+export function spawnHarness(
+  executable: string,
+  args: string[],
+  options: { cwd?: string; env?: NodeJS.ProcessEnv; signal?: AbortSignal },
+): ChildProcessWithoutNullStreams {
+  if (process.platform !== "linux")
+    throw new Error("AI Commands currently supports Linux only.");
+  options.signal?.throwIfAborted();
+  const child = spawn(
+    process.execPath,
+    [supervisorLocation, executable, ...args],
+    {
+      cwd: options.cwd,
+      env: options.env ?? cleanEnvironment(),
+      shell: false,
+      detached: true,
+      stdio: ["pipe", "pipe", "pipe", "ipc"],
+    },
+  ) as ChildProcessWithoutNullStreams;
+
+  // Keep the supervisor alive until it has killed the CLI's entire group.
+  // In particular, SIGKILL must reach the CLI, not kill its supervisor first.
+  const signalSupervisor = child.kill.bind(child);
+  child.kill = (signal = "SIGTERM") => {
+    if (!child.connected) return false;
+    child.send({ type: "stop", signal }, (error) => {
+      if (error) signalSupervisor("SIGTERM");
+    });
+    return true;
+  };
+  const abort = () => child.kill("SIGTERM");
+  options.signal?.addEventListener("abort", abort, { once: true });
+  child.once("close", () =>
+    options.signal?.removeEventListener("abort", abort),
+  );
+  if (options.signal?.aborted) abort();
+  return child;
+}
+
 export function cleanEnvironment(): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {
     ...withoutPrivateLauncher(process.env),
@@ -80,8 +125,7 @@ export function terminateProcess(
 ): void {
   if (!child.pid) return;
   try {
-    if (process.platform === "win32") child.kill(signal);
-    else process.kill(-child.pid, signal);
+    child.kill(signal);
   } catch {
     /* The process may already have exited. */
   }
@@ -103,12 +147,9 @@ export async function runProcess(
 ): Promise<{ stdout: string; stderr: string }> {
   options.signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
-    const child = spawn(options.executable, options.args, {
+    const child = spawnHarness(options.executable, options.args, {
       cwd: options.cwd,
       env: options.env ?? cleanEnvironment(),
-      shell: false,
-      detached: process.platform !== "win32",
-      stdio: "pipe",
     });
     let stdout = "";
     let stderr = "";

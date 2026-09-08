@@ -9,7 +9,11 @@ import {
   type ModelInfo,
   type RunRequest,
 } from "../core/types";
-import { cleanEnvironment, inTemporaryDirectory } from "./process";
+import {
+  cleanEnvironment,
+  inTemporaryDirectory,
+  spawnHarness,
+} from "./process";
 
 let sdkLocation = "@anthropic-ai/claude-agent-sdk";
 
@@ -53,6 +57,11 @@ function options(
 ): Options {
   return {
     pathToClaudeCodeExecutable: executable,
+    spawnClaudeCodeProcess: ({ command, args, cwd, env, signal }) => {
+      const child = spawnHarness(command, args, { cwd, env, signal });
+      child.stderr.resume();
+      return child;
+    },
     cwd,
     env: {
       ...cleanEnvironment(),

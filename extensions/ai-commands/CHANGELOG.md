@@ -10,5 +10,7 @@ Initial Store submission.
 - Preview wrapped plain text, refine the answer, and press Enter to paste into the source app.
 - Keep optional local history and clear it from AI Command History.
 - Configure private root-search entries with an Edit AI Command action through the separate launcher setup.
+- Delete commands even when the Vicinae executable cannot be found.
+- Stop CLI process groups when the extension runtime exits or is killed.
 
 Tested on Omarchy, Hyprland, and Wayland. Direct API integrations have local HTTP tests but have not been tested with live API keys. Rich-text editors that move their own selection may require manual pasting.

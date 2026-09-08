@@ -1,5 +1,10 @@
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { cleanEnvironment, parseJsonLine, terminateProcess } from "./process";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
+import {
+  cleanEnvironment,
+  parseJsonLine,
+  spawnHarness,
+  terminateProcess,
+} from "./process";
 
 type Pending = {
   resolve: (value: any) => void;
@@ -24,12 +29,9 @@ export class RpcProcess {
     private readonly signal?: AbortSignal,
   ) {
     signal?.throwIfAborted();
-    this.child = spawn(executable, args, {
+    this.child = spawnHarness(executable, args, {
       cwd,
       env: cleanEnvironment(),
-      shell: false,
-      detached: process.platform !== "win32",
-      stdio: "pipe",
     });
     this.closed = new Promise((resolve) => this.child.once("close", resolve));
     this.child.stdout.setEncoding("utf8");

@@ -26,6 +26,32 @@ const command: AICommand = {
   updatedAt: "now",
 };
 
+test("deletion works with only an entry identity and no executable or icon", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "ai-delete-identity-"));
+  const identity = { directory, entrypoint: "@owner/ai:run" };
+  let stored = true;
+  try {
+    // Also cover deleting a command when root-search integration never ran.
+    await withDesktopEntriesRemoved(command.id, [identity], async () => {
+      stored = false;
+    });
+    assert.equal(stored, false);
+    await publishDesktopEntry(command, {
+      ...identity,
+      executable: "/no-longer-installed/vicinae",
+      icon: "/missing/icon.svg",
+    });
+    stored = true;
+    await withDesktopEntriesRemoved(command.id, [identity], async () => {
+      stored = false;
+    });
+    assert.equal(stored, false);
+    assert.deepEqual(await readdir(directory), []);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("saving, renaming, and deleting a command keep a single main-search entry and preserve other apps", async () => {
   const directory = await mkdtemp(join(tmpdir(), "ai-desktop-test-"));
   const options = {

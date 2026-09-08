@@ -4,9 +4,12 @@ import { join } from "node:path";
 import { privateLauncherDirectory, userDataDirectory } from "./launcher-paths";
 import type { AICommand } from "./types";
 
-export interface DesktopEntryOptions {
+export interface DesktopEntryIdentity {
   directory: string;
   entrypoint: string;
+}
+
+export interface DesktopEntryOptions extends DesktopEntryIdentity {
   executable: string;
   icon: string;
 }
@@ -37,7 +40,7 @@ function argument(value: string): string {
 
 export function desktopEntryPath(
   commandId: string,
-  options: DesktopEntryOptions,
+  options: DesktopEntryIdentity,
 ): string {
   const identity = createHash("sha256")
     .update(options.entrypoint + "\0" + commandId)
@@ -120,7 +123,7 @@ export async function publishDesktopEntry(
 
 export async function removeDesktopEntry(
   commandId: string,
-  options: DesktopEntryOptions,
+  options: DesktopEntryIdentity,
 ): Promise<void> {
   const path = desktopEntryPath(commandId, options);
   let content: string;
@@ -139,13 +142,13 @@ export async function removeDesktopEntry(
 
 export async function withDesktopEntriesRemoved<T>(
   commandId: string,
-  options: DesktopEntryOptions[],
+  options: DesktopEntryIdentity[],
   removeCommand: () => Promise<T>,
 ): Promise<T> {
   const snapshots: {
     path: string;
     content: string;
-    options: DesktopEntryOptions;
+    options: DesktopEntryIdentity;
   }[] = [];
   for (const item of options) {
     const path = desktopEntryPath(commandId, item);

@@ -26,7 +26,6 @@ import { plainTextMarkdown } from "../core/template";
 import {
   connectionFor,
   publishCommand,
-  quicklinkFor,
   repository,
   toastError,
 } from "../vicinae";
@@ -362,12 +361,6 @@ function SavedCommand({
               title="Back to Main Search"
               icon={Icon.ArrowLeft}
               onAction={() => popToRoot({ clearSearchBar: true })}
-            />
-          )}
-          {process.platform !== "linux" && (
-            <Action.CreateQuicklink
-              title="Add Quicklink"
-              quicklink={quicklinkFor(command)}
             />
           )}
         </ActionPanel>

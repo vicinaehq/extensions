@@ -1,6 +1,5 @@
 import {
   Clipboard,
-  Icon,
   LocalStorage,
   PopToRootType,
   WindowManagement,
@@ -24,7 +23,10 @@ import {
   type InputSnapshot,
 } from "./core/types";
 import { pasteResult } from "./core/paste";
-import { resolveExecutable } from "./harnesses/process";
+import {
+  resolveExecutable,
+  setProcessSupervisorLocation,
+} from "./harnesses/process";
 import { setClaudeSdkLocation } from "./harnesses/claude";
 import {
   applicationsDirectory,
@@ -36,6 +38,9 @@ import { launcherEnabled } from "./core/launcher-paths";
 
 setClaudeSdkLocation(
   pathToFileURL(join(environment.assetsPath, "claude-sdk.mjs")).href,
+);
+setProcessSupervisorLocation(
+  join(environment.assetsPath, "process-supervisor.cjs"),
 );
 
 export const repository = new Repository(LocalStorage);
@@ -101,26 +106,16 @@ export async function captureSource(): Promise<SourceContext> {
   };
 }
 
-export function quicklinkFor(command: AICommand) {
-  const author = encodeURIComponent(environment.ownerOrAuthorName || "vdmkotai");
-  const extension = encodeURIComponent(
-    basename(environment.supportPath) || environment.extensionName,
-  );
-  const args = encodeURIComponent(JSON.stringify({ commandId: command.id }));
+function desktopIdentity() {
   return {
-    name: command.name,
-    link: `vicinae://launch/@${author}/${extension}/run-ai-command?arguments=${args}`,
-    icon: Icon.Stars,
-    ...(process.platform === "linux"
-      ? { application: "vicinae-url-handler.desktop" }
-      : {}),
+    directory: applicationsDirectory(),
+    entrypoint: `@${environment.ownerOrAuthorName || "vdmkotai"}/${basename(environment.supportPath) || environment.extensionName}:run-ai-command`,
   };
 }
 
 async function desktopOptions() {
   return {
-    directory: applicationsDirectory(),
-    entrypoint: `@${environment.ownerOrAuthorName || "vdmkotai"}/${basename(environment.supportPath) || environment.extensionName}:run-ai-command`,
+    ...desktopIdentity(),
     executable: await resolveExecutable("vicinae"),
     icon: join(environment.assetsPath, "icon.svg"),
   };
@@ -128,9 +123,7 @@ async function desktopOptions() {
 
 export async function publishCommand(command: AICommand): Promise<void> {
   if (process.platform !== "linux")
-    throw new Error(
-      "Automatic main-search entries currently require Linux. Use Add Quicklink in the actions menu on other platforms.",
-    );
+    throw new Error("AI Commands currently supports Linux only.");
   if (!launcherEnabled())
     throw new Error(
       "Private launcher integration is not configured. Run npm run setup:launcher from the extension repository, then restart Vicinae.",
@@ -159,7 +152,7 @@ export async function synchronizeMainSearch(
 
 export async function deleteCommand(command: AICommand): Promise<void> {
   if (process.platform === "linux") {
-    const options = await desktopOptions();
+    const options = desktopIdentity();
     await withDesktopEntriesRemoved(
       command.id,
       [options, { ...options, directory: legacyApplicationsDirectory() }],
