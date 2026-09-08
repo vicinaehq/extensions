@@ -2,73 +2,23 @@
 
 # Omarchy Menu
 
-Omarchy menu but in vicinae.
+Use Omarchy's menu from Vicinae.
 
-- Learn
-  - Keybindings
-  - Omarchy
-  - Hyprland
-  - Arch
-  - Neovim
-  - Bash
-- Trigger
-  - Capture (Screenshot, Screenrecord, Color)
-  - Share (Clipboard, File, Folder)
-  - Toggle (Screensaver, Nightlight, Idle Lock, Top Bar)
-- Style
-  - Theme (dynamic list)
-  - Font (dynamic list)
-  - Background
-  - Hyperland
-  - Screensaver
-  - About
-- Setup
-  - Audio
-  - Wifi
-  - Bluetooth
-  - Power
-  - Monitors
-  - Keybindings
-  - Input
-  - Defaults
-  - DNS
-  - Security (Fingerprint, Fido2)
-  - Config (Hyprland, Hypridle, Hyprlock, etc.)
-- Install
-  - Package
-  - AUR
-  - Web
-  - TUI
-  - Service (Dropbox, Tailscale, Bitwarden, etc.)
-  - Style (Theme, Background, Font)
-  - Development (Ruby on Rails, Docker DB, JavaScript, etc.)
-  - Editor (VSCode, Cursor, Zed, etc.)
-  - Terminal (Alacritty, Ghostty, Kitty)
-  - AI (Claude Code, Cursor CLI, Gemini, etc.)
-  - Windows
-  - Gaming (Steam, RetroArch, Minecraft)
-- Remove
-  - Package
-  - Web
-  - TUI
-  - Theme
-  - Windows
-  - Fingerprint
-  - Fido2
-- Update
-  - Omarchy
-  - Config (Hyprland, Hypridle, etc.)
-  - Themes
-  - Process (Hypridle, Hyprsunset, etc.)
-  - Hardware (Audio, Wi-Fi, Bluetooth)
-  - Firmware
-  - Timezone
-  - Time
-  - Password (Drive Encryption, User)
-- About
-- System
-  - Lock
-  - Screensaver
-  - Suspend
-  - Restart
-  - Shutdown System
+The extension reads the menu definitions installed by Omarchy at runtime:
+
+- `/usr/share/omarchy/default/omarchy/omarchy-menu.jsonc`
+- `~/.config/omarchy/extensions/omarchy-menu.jsonc`
+
+The user file is merged over the packaged defaults in the same order as the
+Omarchy Shell menu. As a result, menu additions, removals, renamed commands,
+visibility conditions, and local overrides are picked up automatically after
+an Omarchy update. Reopen the extension to reload the files.
+
+Omarchy's dynamic font and power-profile providers are rendered natively.
+Shell-only providers such as Apps, which Vicinae already handles globally, use
+a deterministic fallback that opens their submenu in the native Omarchy menu.
+
+## Requirements
+
+- Omarchy 4 or newer with the Quickshell menu definition
+- Vicinae
