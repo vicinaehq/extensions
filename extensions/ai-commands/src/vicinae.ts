@@ -35,6 +35,7 @@ import {
   withDesktopEntriesRemoved,
 } from "./core/desktop-entry";
 import { launcherEnabled } from "./core/launcher-paths";
+import { inspectLauncherSetup } from "./core/launcher-setup";
 
 setClaudeSdkLocation(
   pathToFileURL(join(environment.assetsPath, "claude-sdk.mjs")).href,
@@ -126,13 +127,41 @@ export async function publishCommand(command: AICommand): Promise<void> {
     throw new Error("AI Commands currently supports Linux only.");
   if (!launcherEnabled())
     throw new Error(
-      "Private launcher integration is not configured. Run npm run setup:launcher from the extension repository, then restart Vicinae.",
+      "Open Setup AI Commands to enable root search, then restart Vicinae.",
     );
   await migrateDesktopEntry(
     command,
     await desktopOptions(),
     legacyApplicationsDirectory(),
   );
+}
+
+export async function prepareMainSearchEntries(
+  commands: AICommand[],
+): Promise<void> {
+  const setup = await inspectLauncherSetup();
+  if (setup.status === "available" || setup.status === "incomplete")
+    throw new Error("Enable root search first.");
+  const failures: string[] = [];
+  for (const command of commands) {
+    try {
+      await migrateDesktopEntry(
+        command,
+        {
+          ...desktopIdentity(),
+          executable: setup.launcher,
+          icon: join(environment.assetsPath, "icon.svg"),
+        },
+        legacyApplicationsDirectory(),
+      );
+    } catch (error) {
+      failures.push(`${command.name}: ${errorMessage(error)}`);
+    }
+  }
+  if (failures.length)
+    throw new Error(
+      `Root search is configured, but some command entries need attention.\n${failures.join("\n")}`,
+    );
 }
 
 export async function synchronizeMainSearch(

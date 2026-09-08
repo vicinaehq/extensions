@@ -68,6 +68,7 @@ assert.ok(
   ),
 );
 await readFile(join(output, "assets", "claude-sdk-LICENSE.md"));
+await readFile(join(output, "assets", "jsonc-parser-LICENSE.md"));
 const supervisorPath = join(output, "assets", "process-supervisor.cjs");
 assert.ok(
   (await readFile(supervisorPath)).equals(

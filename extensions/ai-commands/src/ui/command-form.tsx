@@ -30,8 +30,7 @@ import {
   toastError,
 } from "../vicinae";
 
-export const LAUNCHER_SETUP_URL =
-  "https://github.com/vdmkotai/vicinae-ai-commands#desktop-integration";
+import SetupAICommands from "../setup-ai-commands";
 
 export function CommandForm({
   command,
@@ -202,9 +201,9 @@ export function CommandForm({
             onAction={openExtensionPreferences}
           />
           {!rootSearchReady && (
-            <Action.OpenInBrowser
-              title="Root Search Setup Instructions"
-              url={LAUNCHER_SETUP_URL}
+            <Action.Push
+              title="Setup AI Commands"
+              target={<SetupAICommands />}
             />
           )}
         </ActionPanel>
@@ -213,7 +212,7 @@ export function CommandForm({
       {!rootSearchReady && (
         <Form.Description
           title="Root search"
-          text="Saved commands run from AI Commands. To show each command directly in root search, complete the separate desktop setup in the README."
+          text="Saved commands run from AI Commands. Open Setup AI Commands to give each command its own root-search entry."
         />
       )}
       <Form.TextField
@@ -327,7 +326,7 @@ function SavedCommand({
 }) {
   const [error, setError] = useState(publicationError);
   const message = needsSetup
-    ? "Your command is saved. Run it from AI Commands. To give it its own root-search entry, follow the desktop setup instructions, restart Vicinae, and open AI Commands once."
+    ? "Your command is saved. Run it from AI Commands, or open Setup AI Commands below to give it its own root-search entry."
     : error
       ? `Your command is saved, but its root-search entry could not be updated. Fix the problem below, then retry.\n\n${error}`
       : "Find this command by name in root search. Select text in an app, run the command, and press Enter to paste the result.";
@@ -338,9 +337,9 @@ function SavedCommand({
       actions={
         <ActionPanel>
           {needsSetup && (
-            <Action.OpenInBrowser
-              title="Root Search Setup Instructions"
-              url={LAUNCHER_SETUP_URL}
+            <Action.Push
+              title="Setup AI Commands"
+              target={<SetupAICommands />}
             />
           )}
           {error && !needsSetup ? (

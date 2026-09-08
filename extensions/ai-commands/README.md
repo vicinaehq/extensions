@@ -48,7 +48,9 @@ Models and available CLI thinking levels load from the provider. API thinking ch
 
 ## Desktop integration
 
-To give each command its own root-search entry, follow the separate [desktop setup](docs/desktop-integration.md). Store installation does not configure it. The setup currently supports a user-owned Vicinae shell launcher, as used on Omarchy.
+Open **Setup AI Commands** and choose **Enable Root Search** to give each command its own root-search entry. Then restart Vicinae. The setup runs inside the extension, with no terminal or source download. A **Restart Vicinae** action is available when its user service uses the configured launcher.
+
+Automatic setup currently supports a user-owned Vicinae shell launcher, as used on Omarchy. See [supported installations and recovery](docs/desktop-integration.md) for details.
 
 Entries live in a private directory outside normal application menus. In root search, open **Actions → Edit AI Command** to edit one. Commands also work from the internal list without desktop setup.
 

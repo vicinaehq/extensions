@@ -19,3 +19,7 @@ await copyFile(
   join(dirname(sdk), "LICENSE.md"),
   new URL("assets/claude-sdk-LICENSE.md", root),
 );
+await copyFile(
+  join(dirname(require.resolve("jsonc-parser/package.json")), "LICENSE.md"),
+  new URL("assets/jsonc-parser-LICENSE.md", root),
+);

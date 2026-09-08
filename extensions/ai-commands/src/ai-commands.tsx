@@ -19,8 +19,9 @@ import {
   toastError,
   type SourceContext,
 } from "./vicinae";
-import { CommandForm, LAUNCHER_SETUP_URL } from "./ui/command-form";
+import { CommandForm } from "./ui/command-form";
 import { RunView } from "./ui/run-view";
+import SetupAICommands from "./setup-ai-commands";
 
 export default function AICommands() {
   const rootSearchReady = process.platform === "linux" && launcherEnabled();
@@ -61,6 +62,12 @@ export default function AICommands() {
       isLoading={loading}
       actions={
         <ActionPanel>
+          {!rootSearchReady && (
+            <Action.Push
+              title="Setup AI Commands"
+              target={<SetupAICommands />}
+            />
+          )}
           <Action.Push
             title="Create AI Command"
             icon={Icon.Plus}
@@ -113,9 +120,9 @@ export default function AICommands() {
                   }
                 />
               ) : (
-                <Action.OpenInBrowser
-                  title="Root Search Setup Instructions"
-                  url={LAUNCHER_SETUP_URL}
+                <Action.Push
+                  title="Setup AI Commands"
+                  target={<SetupAICommands />}
                 />
               )}
               <Action.Push
