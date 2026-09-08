@@ -84,11 +84,7 @@ npm run build
 
 ## Dependencies
 
-- `@octokit/rest`: GitHub REST API client
-- `@vicinae/api`: Vicinae API
-- `date-fns`: Date utilities
-- `graphql-request`: GraphQL client
-- `lodash`: Utility functions
+- inotify-tools (Linux only) for file change notifications
 
 ## License
 
