@@ -67,6 +67,8 @@ The native Vicinae editor displays placeholders as ordinary text. Models are loa
 
 Results are plain text. Long lines wrap to the preview width; longer results scroll vertically. Markdown and HTML in the answer are displayed literally. Copy and paste use the original answer, unaffected by display escaping. During generation, Enter does not paste a partial answer. **Ctrl+.** cancels the request. **Ctrl+R** on a completed result opens a short refinement prompt; the previous result can be restored from the actions menu.
 
+Cancel an active request before quitting or restarting Vicinae. If Vicinae terminates its extension runtime while a CLI is generating, that CLI can continue in the background and consume account usage until it finishes. Normal cancellation and request timeouts stop the owned process group while the runtime is running.
+
 **AI Command History** keeps up to 100 completed runs, bounded to about five million stored characters. It stores the command, referenced input, rendered prompt, and result locally in Vicinae's extension storage. Disable **Save input and results locally** in preferences to stop saving new history. Clear existing records through the history command. History failures do not discard a completed answer.
 
 The selected provider receives the prompt and text. Claude and Codex requests disable local session persistence; Grok currently retains its own CLI session records. Turning off extension history does not control provider-side retention or the CLI's own logs. This extension has no telemetry and does not copy authentication files.
