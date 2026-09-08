@@ -3,43 +3,74 @@ import { useState } from "react";
 import z from "zod";
 import { octokit } from "../api/githubClient";
 import { Assignee, Branch, Issue, Repository } from "../types";
+import { useGetBranches } from "./useGetBranches";
+import { useGetGitContext } from "./useGetGitContext";
+import { useGetInferredRepo } from "./useGetInferredRepo";
+import { useGetRepositoryDetails } from "./useGetRepositoryDetails";
 
-export const usePullRequestForm = () => {
-  const [repo, setRepoState] = useState<Repository | null>(null);
-  const [baseRepo, setBaseRepoState] = useState<Repository | null>(null);
-  const [fromBranch, setFromBranch] = useState<Branch | null>(null);
-  const [toBranch, setToBranch] = useState<Branch | null>(null);
+export const usePullRequestForm = (path?: string) => {
+  const gitContext = useGetGitContext(path);
+  const inferredRepo = useGetInferredRepo(path);
+  const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
+  const [selectedBaseRepo, setSelectedBaseRepo] = useState<Repository | null>(
+    null,
+  );
+  const [selectedFromBranch, setSelectedFromBranch] = useState<Branch | null>(
+    null,
+  );
+  const [selectedToBranch, setSelectedToBranch] = useState<Branch | null>(null);
   const [linkedIssue, setLinkedIssue] = useState<Issue | null>(null);
   const [autoClose, setAutoClose] = useState(false);
   const [draft, setDraft] = useState(false);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState(gitContext?.latestCommitTitle || "");
+  const [description, setDescription] = useState(
+    gitContext?.latestCommitDescription || "",
+  );
   const [assignee, setAssignee] = useState<Assignee | null>(null);
   const [errors, setErrors] = useState<PullRequestScehmaError | null>(null);
 
+  const repo = selectedRepo || inferredRepo || null;
+
+  const { data: repoDetails } = useGetRepositoryDetails(repo);
+  const defaultBaseRepo =
+    repoDetails?.fork && repoDetails.parent ? repoDetails.parent : repo;
+  const baseRepo = selectedBaseRepo || defaultBaseRepo || null;
+
+  const { data: fromBranches = [] } = useGetBranches(repo);
+  const inferredFromBranch = fromBranches.find(
+    (branch) => branch.name === gitContext?.branch,
+  );
+  const fromBranch = selectedFromBranch || inferredFromBranch || null;
+
+  const { data: toBranches = [] } = useGetBranches(baseRepo);
+  const inferredToBranch = toBranches.find(
+    (branch) => branch.name === baseRepo?.default_branch,
+  );
+  const toBranch = selectedToBranch || inferredToBranch || null;
+
   const setRepo = (nextRepo: Repository | null) => {
-    setRepoState(nextRepo);
-    setBaseRepoState(null);
-    setFromBranch(null);
-    setToBranch(null);
+    setSelectedRepo(nextRepo);
+    setSelectedBaseRepo(null);
+    setSelectedFromBranch(null);
+    setSelectedToBranch(null);
     setLinkedIssue(null);
     setAssignee(null);
     setErrors(null);
   };
 
   const setBaseRepo = (nextBaseRepo: Repository | null) => {
-    setBaseRepoState(nextBaseRepo);
-    setFromBranch(null);
-    setToBranch(null);
+    setSelectedBaseRepo(nextBaseRepo);
+    setSelectedFromBranch(null);
+    setSelectedToBranch(null);
     setLinkedIssue(null);
     setAssignee(null);
     setErrors(null);
   };
 
-  const handleCreatePr = async (resolvedBaseRepo?: Repository | null) => {
+  const handleCreatePr = async () => {
     const validatedPr = prSchema.safeParse({
       repo,
-      baseRepo: resolvedBaseRepo || baseRepo || repo,
+      baseRepo,
       fromBranch,
       toBranch,
       draft,
@@ -105,8 +136,7 @@ export const usePullRequestForm = () => {
         }
       }
       closeMainWindow();
-    } catch (error) {
-      console.log(JSON.stringify(error, null, 2));
+    } catch {
       loadingToast.hide();
       await showToast(Toast.Style.Failure, "Failed to create pull request");
       return;
@@ -119,9 +149,9 @@ export const usePullRequestForm = () => {
     baseRepo,
     setBaseRepo,
     fromBranch,
-    setFromBranch,
+    setSelectedFromBranch,
     toBranch,
-    setToBranch,
+    setSelectedToBranch,
     draft,
     setDraft,
     title,
