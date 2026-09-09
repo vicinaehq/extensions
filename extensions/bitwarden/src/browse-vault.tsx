@@ -14,48 +14,18 @@ import {
   RbwError,
   RbwNotInstalledError,
   VaultEntry,
+  DetailedEntry,
   getField,
   getCode,
+  getDetailedEntry,
   listEntries,
   searchEntries,
-  listFields,
   isUnlocked,
   syncVault,
   runRbw,
 } from "./rbw";
 
 type EntryState = { entries: VaultEntry[]; loaded: boolean };
-
-type DetailedEntry = {
-  name: string;
-  user: string | null;
-  password: string;
-  fields: { name: string; value: string }[];
-  notes: string | null;
-};
-
-async function fetchDetailedEntry(
-  name: string,
-  user?: string,
-): Promise<DetailedEntry> {
-  const fieldNames = await listFields(name, user);
-  const fields: { name: string; value: string }[] = [];
-  let password = "";
-  let notes: string | null = null;
-
-  for (const f of fieldNames) {
-    const value = await getField(f, name, user);
-    if (f === "password") {
-      password = value;
-    } else if (f === "notes") {
-      notes = value;
-    } else if (f !== "username" && f !== "totp" && f !== "uris") {
-      fields.push({ name: f, value });
-    }
-  }
-
-  return { name, user: user ?? null, password, fields, notes: notes ?? null };
-}
 
 async function performAction(
   title: string,
@@ -488,7 +458,7 @@ function EntryDetailView({ entry }: { entry: VaultEntry }) {
   useEffect(() => {
     (async () => {
       try {
-        const detailed = await fetchDetailedEntry(
+        const detailed = await getDetailedEntry(
           entry.name,
           entry.user ?? undefined,
         );
@@ -512,8 +482,8 @@ function EntryDetailView({ entry }: { entry: VaultEntry }) {
   const markdown = [
     `# ${detail.name}`,
     detail.user ? `**Username:** ${detail.user}` : null,
-    entry.uris && entry.uris.length > 0
-      ? `## Link${entry.uris.length > 1 ? "s" : ""}\n\n${entry.uris
+    detail.uris.length > 0
+      ? `## Link${detail.uris.length > 1 ? "s" : ""}\n\n${detail.uris
           .map((uri) => `- [${uri}](<${uri}>)`)
           .join("\n")}`
       : null,
