@@ -1,0 +1,74 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "vicinae-todo",
+  "title": "Todo List",
+  "description": "Manage todos with natural-language quick add, due dates, subtasks and Google Tasks sync.",
+  "icon": "extension-icon.png",
+  "author": "UpayanChatterjee",
+  "categories": ["Productivity"],
+  "license": "MIT",
+  "preferences": [
+    {
+      "name": "clientId",
+      "type": "textfield",
+      "required": false,
+      "title": "Google OAuth Client ID",
+      "description": "Client ID of your Google Cloud OAuth 'Desktop app' credential. Leave empty to use the extension without Google Tasks sync.",
+      "placeholder": "xxxx.apps.googleusercontent.com"
+    },
+    {
+      "name": "clientSecret",
+      "type": "password",
+      "required": false,
+      "title": "Google OAuth Client Secret",
+      "description": "Client secret of the same Desktop app credential."
+    },
+    {
+      "name": "listName",
+      "type": "textfield",
+      "required": false,
+      "title": "Google Tasks List Name",
+      "description": "Name of the Google Tasks list to sync with. Created automatically if it doesn't exist.",
+      "default": "Vicinae",
+      "placeholder": "Vicinae"
+    }
+  ],
+  "commands": [
+    {
+      "name": "manage-todos",
+      "title": "Manage Todos",
+      "description": "View, complete, snooze and organize your todos.",
+      "mode": "view"
+    },
+    {
+      "name": "add-todo",
+      "title": "Add Todo",
+      "description": "Quickly add a todo using natural language, e.g. 'buy milk tomorrow'.",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "text",
+          "placeholder": "buy milk tomorrow",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "dev": "vici develop",
+    "build": "vici build"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.21.6",
+    "chrono-node": "^2.7.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "19.0.10",
+    "typescript": "^5.5.0"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}
