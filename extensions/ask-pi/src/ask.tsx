@@ -4,9 +4,11 @@ import {
   Clipboard,
   Detail,
   Icon,
+  Toast,
   type LaunchProps,
   closeMainWindow,
   runInTerminal,
+  showToast,
 } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PiRpc, type PiEvent, type PiImage, readWaylandImage, toolSummary } from "./pi";
@@ -115,20 +117,29 @@ export default function AskPi(props: Props) {
   const cancel = async () => {
     cancelled.current = true;
     request.current++;
-    setPhase("cancelled");
-    setStatus("Cancelled");
+    setStatus("Cancelling…");
     try {
       await rpc.current?.abort();
     } catch {
-      // The process may have exited at the same time.
+      await rpc.current?.close();
     }
+    setPhase("cancelled");
+    setStatus("Cancelled");
   };
 
   const openInPi = async () => {
     if (!sessionFile) return;
-    await rpc.current?.close();
-    await runInTerminal(["pi", "--session", sessionFile], { title: "Pi" });
-    await closeMainWindow();
+    try {
+      await rpc.current?.close();
+      await runInTerminal(["pi", "--session", sessionFile], { title: "Pi" });
+      await closeMainWindow();
+    } catch (cause) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Could not open Pi",
+        message: cause instanceof Error ? cause.message : String(cause),
+      });
+    }
   };
 
   const activity = tools.length
