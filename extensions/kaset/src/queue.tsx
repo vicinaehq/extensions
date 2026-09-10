@@ -103,22 +103,29 @@ export default function Queue() {
 	const playingVideoId = player.info?.track?.videoId ?? null;
 	const currentIndex = resolveCurrentIndex(queue, playingVideoId);
 
-	// Refetch on every track change: a new track can mean the queue itself changed
-	// (radio autoplay, a new playlist), not just its position. Seeded from the
-	// first player reading that lands, so the queue loaded on mount is not
-	// immediately fetched a second time.
+	// Refetch when a reading says playback moved on. A different video usually
+	// means the queue changed too (radio autoplay, a new playlist). A position
+	// that falls back under the same video is the only sign that playback crossed
+	// between two queue entries sharing a video ID — the ambiguity
+	// `resolveCurrentIndex` cannot settle from a stale snapshot. Seeded from the
+	// first reading that lands, so the queue loaded on mount is not fetched twice.
 	const hasPlayerInfo = player.info !== null;
-	const lastVideoId = useRef<string | null | undefined>(undefined);
+	const readPosition = player.info?.position ?? 0;
+	const lastReading = useRef<{
+		videoId: string | null;
+		position: number;
+	} | null>(null);
 	useEffect(() => {
 		if (!hasPlayerInfo) return;
-		if (lastVideoId.current === undefined) {
-			lastVideoId.current = playingVideoId;
-			return;
-		}
-		if (lastVideoId.current === playingVideoId) return;
-		lastVideoId.current = playingVideoId;
-		void refresh();
-	}, [hasPlayerInfo, playingVideoId, refresh]);
+		const previous = lastReading.current;
+		lastReading.current = { videoId: playingVideoId, position: readPosition };
+		if (!previous) return;
+		// A second of slack, so ordinary jitter between readings is not a rewind.
+		const movedOn =
+			previous.videoId !== playingVideoId ||
+			readPosition < previous.position - 1;
+		if (movedOn) void refresh();
+	}, [hasPlayerInfo, playingVideoId, readPosition, refresh]);
 
 	const playerRefresh = player.refresh;
 	const reload = useCallback(() => {
