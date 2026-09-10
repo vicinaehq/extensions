@@ -30,7 +30,6 @@ export type PlayerInfo = {
 export type QueueTrack = Track & {
 	/** 1-based, as expected by `play track at index`. */
 	index: number;
-	isCurrent: boolean;
 };
 
 export type PlayQueue = {
@@ -209,8 +208,7 @@ export async function getPlayQueue(): Promise<PlayQueue> {
 	const tracks = entries.flatMap((entry, position): QueueTrack[] => {
 		const track = toTrack(entry);
 		if (!track) return [];
-		const index = position + 1;
-		return [{ ...track, index, isCurrent: index === currentIndex }];
+		return [{ ...track, index: position + 1 }];
 	});
 
 	return { currentIndex, tracks };
