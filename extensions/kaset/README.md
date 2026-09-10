@@ -4,18 +4,22 @@
 
 # Kaset for Vicinae
 
-Control [Kaset](https://github.com/sozercan/kaset) — the unofficial YouTube Music client for macOS — from [Vicinae](https://github.com/vicinaehq/vicinae).
+Control [Kaset](https://github.com/sozercan/kaset), the unofficial YouTube Music client for macOS, from [Vicinae](https://github.com/vicinaehq/vicinae).
 
 </div>
 
 Written against the native Vicinae API. It talks to Kaset over AppleScript and covers every command in Kaset's scripting dictionary.
 
-It is a ground-up rewrite of the Raycast extension [Kaset Control](https://www.raycast.com/endiruslan/kaset-control) by Ruslan Hryshchenko ([@endiruslan](https://github.com/Endiruslan)) — see [Credits](#credits).
+It is a ground-up rewrite of the Raycast extension [Kaset Control](https://www.raycast.com/endiruslan/kaset-control) by Ruslan Hryshchenko ([@endiruslan](https://github.com/Endiruslan)). See [Credits](#credits).
+
+## Screenshots
+
+![Every command in root search, each with its own icon](./.github/assets/screenshot-1.png)
 
 ## Requirements
 
 - macOS, with [Kaset](https://github.com/sozercan/kaset) installed.
-- Vicinae. Built against the `@vicinae/api` 0.28.1 declarations.
+- Vicinae. Built and tested against 0.28.1.
 
 ## Installation
 
@@ -30,7 +34,7 @@ npm install
 npm run build
 ```
 
-`npm run build` compiles the extension and installs it into Vicinae's extension directory (`~/.local/share/vicinae/extensions/kaset`). Vicinae watches that directory, so the commands appear in the launcher straight away — no restart needed.
+`npm run build` compiles the extension and installs it into Vicinae's extension directory (`~/.local/share/vicinae/extensions/kaset`). Vicinae watches that directory, so the commands appear in the launcher straight away. No restart needed.
 
 To confirm it loaded:
 
@@ -44,7 +48,7 @@ vicinae cmd ls | grep kaset
 | --- | --- |
 | Now Playing | Artwork, live progress bar, and a metadata panel with volume, shuffle, repeat and rating. All controls in one action panel. |
 | Play Queue | The queue grouped into Now Playing, Up Next and Earlier, so it opens on the track that is playing. Jump to any track from there. |
-| Set Volume | Preset levels plus free entry — type any number from 0 to 100. |
+| Set Volume | Preset levels plus free entry. Type any number from 0 to 100. |
 | Play Video by ID | Plays a video ID, or any YouTube / YouTube Music / youtu.be link you paste. |
 | Toggle Play/Pause | Toggles playback. |
 | Play, Pause | Explicit start and stop, handy for global shortcuts and automations. |
@@ -72,11 +76,11 @@ npm run format
 
 ## Credits
 
-This extension started life as a port of **[Kaset Control](https://www.raycast.com/endiruslan/kaset-control)**, the Raycast extension by **Ruslan Hryshchenko** ([@endiruslan](https://github.com/Endiruslan)) — source at [Endiruslan/kaset-raycast](https://github.com/Endiruslan/kaset-raycast).
+This extension started life as a port of [Kaset Control](https://www.raycast.com/endiruslan/kaset-control), the Raycast extension by Ruslan Hryshchenko ([@endiruslan](https://github.com/Endiruslan)). Source: [Endiruslan/kaset-raycast](https://github.com/Endiruslan/kaset-raycast).
 
-Kaset itself is by **Sertaç Özercan** ([sozercan/kaset](https://github.com/sozercan/kaset)); its AppleScript dictionary is what makes any of this possible, and **the cassette artwork is theirs too** — taken from Kaset's own icon source so it stays sharp at any size.
+Kaset itself is by Sertaç Özercan ([sozercan/kaset](https://github.com/sozercan/kaset)); its AppleScript dictionary is what makes any of this possible. The cassette artwork is theirs too, taken from Kaset's own icon source so it stays sharp at any size.
 
-The sixteen per-command icons are the work of **[@tiagem](https://github.com/tiagem)**, with thanks.
+The sixteen per-command icons are by [@tiagem](https://github.com/tiagem), with thanks.
 
 ## License
 
