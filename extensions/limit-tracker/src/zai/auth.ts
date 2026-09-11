@@ -9,7 +9,7 @@ import { readOpencodeAuthToken } from "../agents/opencode-auth.ts";
  * 2. OpenCode auth.json (zai-coding-plan entry)
  * 3. Shell environment variables (ZAI_API_KEY / GLM_API_KEY)
  *
- * Raycast is a GUI app and does not inherit shell env vars from .zshrc/.bashrc.
+ * GUI apps do not inherit shell env vars from .zshrc/.bashrc.
  * We spawn a login shell to resolve them when needed.
  */
 
@@ -79,7 +79,7 @@ async function readShellEnvTokens(): Promise<{ zaiToken: string | null; glmToken
 }
 
 async function readEnvToken(): Promise<string | null> {
-  // 1. Check process.env directly (in case Raycast inherits it)
+  // 1. Check process.env directly (in case the host process inherits it)
   const direct = cleanToken(process.env.ZAI_API_KEY) ?? cleanToken(process.env.GLM_API_KEY);
   if (direct) return direct;
 

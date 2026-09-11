@@ -2,6 +2,7 @@ import { execFileSync } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import type { DatabaseSync } from "node:sqlite";
 
 import { decodeJwtPayload } from "../agents/jwt.ts";
 
@@ -99,73 +100,88 @@ export function buildCursorCookieHeader(accessToken: string): string | null {
   return userId ? `WorkosCursorSessionToken=${userId}%3A%3A${accessToken}` : null;
 }
 
-export function readCursorAppAccessToken(dbPath?: string): string | null {
-  const resolvedPath = dbPath ?? resolveCursorStateDbPath();
-  if (!resolvedPath || !fs.existsSync(resolvedPath)) {
-    return null;
-  }
+const CURSOR_TOKEN_QUERY = "SELECT value FROM ItemTable WHERE key = 'cursorAuth/accessToken' LIMIT 1";
 
+/**
+ * Reads the token through node:sqlite against a temp-file snapshot
+ * (db + wal + shm) so the live Cursor state DB is never locked — same
+ * approach as src/omp/store.ts. Returns null when the host Node lacks
+ * node:sqlite or anything goes wrong; callers fall back to the CLI.
+ */
+async function readTokenViaNodeSqlite(dbPath: string): Promise<string | null> {
+  let snapshotDir: string | null = null;
   try {
-    // Use sqlite3 command - works on all platforms
+    const { default: nodeSqlite } = (await import("node:sqlite")) as unknown as {
+      default: { DatabaseSync: new (path: string, options?: { readOnly?: boolean }) => DatabaseSync };
+    };
+    snapshotDir = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-state-"));
+    let copied = false;
+    for (const suffix of ["", "-wal", "-shm"] as const) {
+      const source = `${dbPath}${suffix}`;
+      try {
+        if (!fs.statSync(source).isFile()) continue;
+      } catch {
+        continue;
+      }
+      fs.copyFileSync(source, path.join(snapshotDir, `${path.basename(dbPath)}${suffix}`));
+      copied = true;
+    }
+    if (!copied) return null;
+    const db = new nodeSqlite.DatabaseSync(path.join(snapshotDir, path.basename(dbPath)), { readOnly: true });
+    try {
+      const row = db.prepare(CURSOR_TOKEN_QUERY).get() as { value?: unknown } | undefined;
+      return trimToNull(typeof row?.value === "string" ? row.value : undefined);
+    } finally {
+      try {
+        db.close();
+      } catch {
+        // Ignore close failures.
+      }
+    }
+  } catch {
+    return null;
+  } finally {
+    if (snapshotDir) {
+      try {
+        fs.rmSync(snapshotDir, { recursive: true, force: true });
+      } catch {
+        // Ignore cleanup failures.
+      }
+    }
+  }
+}
+
+/** Fallback for hosts without node:sqlite (e.g. older embedded Node runtimes). */
+function readTokenViaCli(dbPath: string): string | null {
+  try {
     const sqliteCmd = process.platform === "win32" ? "sqlite3.exe" : "sqlite3";
-    const output = execFileSync(
-      sqliteCmd,
-      ["-readonly", resolvedPath, "SELECT value FROM ItemTable WHERE key = 'cursorAuth/accessToken' LIMIT 1;"],
-      { encoding: "utf-8", timeout: 1000, stdio: ["ignore", "pipe", "ignore"] },
-    );
+    const output = execFileSync(sqliteCmd, ["-readonly", dbPath, `${CURSOR_TOKEN_QUERY};`], {
+      encoding: "utf-8",
+      timeout: 1000,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
     return trimToNull(output);
   } catch {
     return null;
   }
 }
 
-export function resolveCursorAppAuthSession(options: ResolveCursorAppAuthOptions = {}): CursorAppAuthSession | null {
-  const accessToken = readCursorAppAccessToken(options.dbPath);
+export async function readCursorAppAccessToken(dbPath?: string): Promise<string | null> {
+  const resolvedPath = dbPath ?? resolveCursorStateDbPath();
+  if (!resolvedPath || !fs.existsSync(resolvedPath)) {
+    return null;
+  }
+  return (await readTokenViaNodeSqlite(resolvedPath)) ?? readTokenViaCli(resolvedPath);
+}
+
+export async function resolveCursorAppAuthSession(
+  options: ResolveCursorAppAuthOptions = {},
+): Promise<CursorAppAuthSession | null> {
+  const accessToken = await readCursorAppAccessToken(options.dbPath);
   if (!accessToken) {
     return null;
   }
 
   const session = resolveAccessToken(accessToken, options.now ?? Date.now());
   return session ? { ...session, source: "cursor-app" } : null;
-}
-
-/**
- * Import Cursor cookies from browser (Chrome, Firefox, etc.)
- * This is a fallback when Cursor.app auth is not available
- */
-export async function importCursorBrowserCookies(): Promise<string | null> {
-  const platform = process.platform;
-  const homeDir = os.homedir();
-
-  // Browser cookie store paths
-  const cookiePaths: string[] = [];
-
-  if (platform === "darwin") {
-    cookiePaths.push(
-      path.join(homeDir, "Library/Application Support/Google/Chrome/Default/Cookies"),
-      path.join(homeDir, "Library/Application Support/Google/Chrome/Profile 1/Cookies"),
-      path.join(homeDir, "Library/Application Support/Chromium/Default/Cookies"),
-    );
-  } else if (platform === "win32") {
-    cookiePaths.push(
-      path.join(homeDir, "AppData/Local/Google/Chrome/User Data/Default/Cookies"),
-      path.join(homeDir, "AppData/Local/Google/Chrome/Profile 1/Cookies"),
-    );
-  } else {
-    cookiePaths.push(
-      path.join(homeDir, ".config/google-chrome/Default/Cookies"),
-      path.join(homeDir, ".config/chromium/Default/Cookies"),
-    );
-  }
-
-  // For now, return null - full implementation would parse SQLite cookie stores
-  // This is a placeholder for future implementation
-  for (const cookiePath of cookiePaths) {
-    if (fs.existsSync(cookiePath)) {
-      console.log(`Cursor cookie store found at: ${cookiePath}`);
-      // Future: Parse SQLite and extract cursor.com cookies
-    }
-  }
-
-  return null;
 }

@@ -6,9 +6,11 @@ export type AgentId =
   | "claude"
   | "clinepass"
   | "codex"
+  | "commandcode"
   | "copilot"
   | "cursor"
   | "deepseek"
+  | "devin"
   | "droid"
   | "gemini"
   | "grok"
@@ -52,9 +54,11 @@ export interface AgentVisibilityPreferences {
   showClaude: boolean;
   showClinePass: boolean;
   showCodex: boolean;
+  showCommandcode: boolean;
   showCopilot: boolean;
   showCursor: boolean;
   showDeepSeek: boolean;
+  showDevin: boolean;
   showDroid: boolean;
   showGemini: boolean;
   showGrok: boolean;
@@ -64,6 +68,7 @@ export interface AgentVisibilityPreferences {
   showOpencodeGo: boolean;
   showSynthetic: boolean;
   showZai: boolean;
+  useOmpHarness: boolean;
   pinnedProviders?: string;
   claudeLimitView?: LimitView;
   codexLimitView?: LimitView;

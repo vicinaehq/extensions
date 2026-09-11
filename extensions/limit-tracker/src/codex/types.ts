@@ -27,6 +27,8 @@ export interface CodexUsage {
     expiresAtList: string[];
   };
   resetCreditsError?: string;
+  /** True when this account's token came from the omp harness fallback. */
+  viaOmp?: boolean;
 }
 
 export interface CodexError {

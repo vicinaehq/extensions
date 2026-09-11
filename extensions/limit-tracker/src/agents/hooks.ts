@@ -42,9 +42,12 @@ type FetchResult<TUsage, TError> = { usage: TUsage | null; error: TError | null 
  * failures are retried on the next launch. `revalidate` always bypasses the
  * TTL — it only runs on explicit user refresh.
  *
- * A mount renders nothing until the current fetch resolves: the cached payload
- * is consulted inside the fetcher rather than shown synchronously, so a
- * background refresh never flashes the stale previous state before the new one.
+ * A mount renders the last cached payload immediately (stale-while-revalidate):
+ * `initialData` seeds the hook synchronously so reopening the extension shows
+ * the providers' most recent values instead of a loading spinner, while
+ * `fetcherFn` revalidates auth + TTL in the background and replaces the state
+ * as soon as it resolves. The row still carries `lastFetchedAt` from the
+ * original fetch, so stale values are never presented as freshly fetched.
  */
 export function createUsageHook<TUsage, TError extends ErrorLike>(options: {
   agentId: string;
@@ -75,7 +78,11 @@ export function createUsageHook<TUsage, TError extends ErrorLike>(options: {
       return payload;
     }, []);
 
-    const { data, isLoading, revalidate } = usePromise(fetcherFn, [], { execute: enabled });
+    const { data, isLoading, revalidate } = usePromise(fetcherFn, [], {
+      execute: enabled,
+      // TTL 0 means "disable caching" — don't surface the cache at all.
+      initialData: () => (getTtlMs() > 0 ? readPayload<TUsage, TError>(agentId) : undefined),
+    });
     const payload = data;
     const hasContent = Boolean(payload && (payload.usage !== null || payload.error !== null));
 
@@ -182,7 +189,17 @@ export function createAccountsHook<
       return payload;
     }, []);
 
-    const { data, isLoading, revalidate } = usePromise(fetcherFn, [], { execute: enabled });
+    const { data, isLoading, revalidate } = usePromise(fetcherFn, [], {
+      execute: enabled,
+      initialData: () => {
+        if (getTtlMs() <= 0) return undefined;
+        const cached = readPayload<PersistedAccountRow<TUsage, TError>[], TError>(cacheKey);
+        if (!cached?.usage) return undefined;
+        // Tokens were stripped before persisting; the fetcher re-joins them
+        // once accounts resolve. Empty token renders fine until then.
+        return { ...cached, usage: cached.usage.map((row) => ({ ...row, token: "" })) };
+      },
+    });
     const payload = data;
     const rows = enabled ? (payload?.usage ?? []) : [];
 

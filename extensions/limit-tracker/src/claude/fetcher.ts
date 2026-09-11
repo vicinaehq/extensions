@@ -1,9 +1,10 @@
-import { execSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
 import type { ClaudeUsage, ClaudeError } from "./types.ts";
+import { getOmpOAuth } from "../omp/store.ts";
 
 const CLAUDE_CONFIG_DIR_ENV = "CLAUDE_CONFIG_DIR";
 const DEFAULT_CLAUDE_CONFIG_DIR = path.join(os.homedir(), ".claude");
@@ -15,7 +16,7 @@ const REQUEST_TIMEOUT = 10000;
 // OAuth beta header required by Anthropic API (as of 2025-04-20)
 const CLAUDE_OAUTH_BETA_HEADER = "oauth-2025-04-20";
 
-type CredentialSource = "file" | "keychain";
+type CredentialSource = "file" | "keychain" | "omp";
 
 interface ClaudeCredentials {
   accessToken: string;
@@ -190,7 +191,7 @@ function tryParseCredentialJSON(text: string): CredentialsParsed | null {
 function readKeychainPassword(service: string): string | null {
   if (process.platform !== "darwin") return null;
   try {
-    const result = execSync(`security find-generic-password -s ${JSON.stringify(service)} -w`, {
+    const result = execFileSync("security", ["find-generic-password", "-s", service, "-w"], {
       encoding: "utf-8",
       timeout: 5000,
       stdio: ["pipe", "pipe", "pipe"],
@@ -204,12 +205,14 @@ function readKeychainPassword(service: string): string | null {
 function readKeychainAccount(service: string): string | null {
   if (process.platform !== "darwin") return null;
   try {
-    const result = execSync(`security find-generic-password -s ${JSON.stringify(service)} -g 2>&1`, {
+    // `-g` prints the attribute dump on stderr, so both streams are inspected.
+    const result = spawnSync("security", ["find-generic-password", "-s", service, "-g"], {
       encoding: "utf-8",
       timeout: 5000,
       stdio: ["pipe", "pipe", "pipe"],
     });
-    const match = result.match(/"acct"<blob>="([^"\n]*)"/);
+    if (result.error) return null;
+    const match = `${result.stdout ?? ""}${result.stderr ?? ""}`.match(/"acct"<blob>="([^"\n]*)"/);
     return match ? match[1] : null;
   } catch {
     return null;
@@ -219,13 +222,13 @@ function readKeychainAccount(service: string): string | null {
 function writeKeychainPassword(service: string, account: string, value: string): void {
   if (process.platform !== "darwin") return;
   try {
-    execSync(
-      `security add-generic-password -U -a ${JSON.stringify(account)} -s ${JSON.stringify(service)} -w ${JSON.stringify(value)}`,
-      {
-        timeout: 5000,
-        stdio: ["pipe", "pipe", "pipe"],
-      },
-    );
+    // `security` has no stdin input mode for add-generic-password, so the secret
+    // has to travel on argv. Arguments are passed as an array, never through a
+    // shell, so the value cannot alter the command that runs.
+    execFileSync("security", ["add-generic-password", "-U", "-a", account, "-s", service, "-w", value], {
+      timeout: 5000,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
   } catch {
     // Best effort
   }
@@ -235,7 +238,7 @@ function writeKeychainPassword(service: string, account: string, value: string):
 function readWindowsCredential(target: string): string | null {
   if (process.platform !== "win32") return null;
   try {
-    const result = execSync(`cmdkey /generic:${target} /retrieve`, {
+    const result = execFileSync("cmdkey", [`/generic:${target}`, "/retrieve"], {
       encoding: "utf-8",
       timeout: 5000,
       stdio: ["pipe", "pipe", "pipe"],
@@ -250,7 +253,9 @@ function readWindowsCredential(target: string): string | null {
 function writeWindowsCredential(target: string, value: string): void {
   if (process.platform !== "win32") return;
   try {
-    execSync(`cmdkey /generic:${target} /user:claude /pass:${value}`, {
+    // Same argv caveat as the macOS keychain path: `cmdkey` takes the secret as
+    // an argument only. Passing an array keeps it out of any shell parsing.
+    execFileSync("cmdkey", [`/generic:${target}`, "/user:claude", `/pass:${value}`], {
       timeout: 5000,
       stdio: ["pipe", "pipe", "pipe"],
     });
@@ -263,7 +268,7 @@ function writeWindowsCredential(target: string, value: string): void {
 function readLinuxSecret(service: string): string | null {
   if (process.platform !== "linux") return null;
   try {
-    const result = execSync(`secret-tool lookup service ${service} application claude-code`, {
+    const result = execFileSync("secret-tool", ["lookup", "service", service, "application", "claude-code"], {
       encoding: "utf-8",
       timeout: 5000,
       stdio: ["pipe", "pipe", "pipe"],
@@ -277,11 +282,10 @@ function readLinuxSecret(service: string): string | null {
 function writeLinuxSecret(service: string, value: string): void {
   if (process.platform !== "linux") return;
   try {
-    const input = value;
-    execSync(`secret-tool store --label="Claude Code" service ${service} application claude-code`, {
+    execFileSync("secret-tool", ["store", "--label=Claude Code", "service", service, "application", "claude-code"], {
       encoding: "utf-8",
       timeout: 5000,
-      input,
+      input: value,
       stdio: ["pipe", "pipe", "pipe"],
     });
   } catch {
@@ -340,7 +344,7 @@ function extractCredentials(
   };
 }
 
-export function readClaudeCredentials(): { credentials: ClaudeCredentials | null; error: ClaudeError | null } {
+export async function readClaudeCredentials(ompEnabled = true): Promise<{ credentials: ClaudeCredentials | null; error: ClaudeError | null }> {
   // Strategy 1: Try configured/default credential paths first
   for (const credentialsPath of resolveClaudeCredentialsPaths()) {
     if (!fs.existsSync(credentialsPath)) continue;
@@ -391,6 +395,35 @@ export function readClaudeCredentials(): { credentials: ClaudeCredentials | null
     }
   }
 
+  // Strategy 3: oh-my-pi harness login (`omp auth-broker login anthropic`).
+  // Fallback only — native logins above always win. omp tokens are used as-is
+  // and never persisted anywhere (see persistRefreshedCredentials); an expired
+  // token is still returned so the public-client refresh can rescue it, exactly
+  // like native file credentials. Scope metadata is unavailable from omp, so
+  // the scope gate in extractCredentials is bypassed here — the usage API call
+  // itself is the authority (401 surfaces as unauthorized, not fabricated data).
+  const omp = ompEnabled ? await getOmpOAuth("anthropic") : null;
+  if (omp?.access) {
+    return {
+      credentials: {
+        accessToken: omp.access,
+        refreshToken: omp.refresh,
+        expiresAt: omp.expires,
+        scopes: [],
+        source: "omp",
+        raw: {
+          claudeAiOauth: {
+            accessToken: omp.access,
+            refreshToken: omp.refresh,
+            expiresAt: omp.expires,
+            scopes: [],
+          },
+        },
+      },
+      error: null,
+    };
+  }
+
   return {
     credentials: null,
     error: {
@@ -401,6 +434,11 @@ export function readClaudeCredentials(): { credentials: ClaudeCredentials | null
 }
 
 function persistRefreshedCredentials(credentials: ClaudeCredentials, refreshed: OAuthRefreshResponse) {
+  // omp credentials belong to the harness: refreshed tokens stay in memory
+  // only and are never written to any file or OS credential store.
+  if (credentials.source === "omp") {
+    return;
+  }
   const raw = credentials.raw || {};
   const oauth = raw.claudeAiOauth || {};
 

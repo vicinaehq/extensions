@@ -41,13 +41,13 @@ async function fetchCursorJson<T>(
   return { data: data as T, error: null };
 }
 
-export function resolveCursorCredential(manualCookieHeader?: string): CursorCredential | null {
+export async function resolveCursorCredential(manualCookieHeader?: string): Promise<CursorCredential | null> {
   const manualCookie = normalizeCookieHeader(manualCookieHeader);
   if (manualCookie) {
     return { cookieHeader: manualCookie, source: "manual cookie", requestUsageUserIdFallback: null };
   }
 
-  const appSession = resolveCursorAppAuthSession();
+  const appSession = await resolveCursorAppAuthSession();
   return appSession
     ? { cookieHeader: appSession.cookieHeader, source: "Cursor.app", requestUsageUserIdFallback: appSession.userId }
     : null;
@@ -56,7 +56,7 @@ export function resolveCursorCredential(manualCookieHeader?: string): CursorCred
 export async function fetchCursorUsage(
   manualCookieHeader?: string,
 ): Promise<{ usage: CursorUsage | null; error: CursorError | null }> {
-  const credential = resolveCursorCredential(manualCookieHeader);
+  const credential = await resolveCursorCredential(manualCookieHeader);
   if (!credential) {
     return {
       usage: null,

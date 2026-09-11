@@ -1,6 +1,9 @@
 import { List } from "@vicinae/api";
 
 import { formatResetTime, getRemainingPercent } from "../agents/format.ts";
+import { formatLimitsText } from "../agents/detail-format.ts";
+import type { LimitItem } from "../agents/detail-format.ts";
+import { LimitItems } from "../agents/limits.tsx";
 import type { Accessory } from "../agents/types.ts";
 import {
   renderErrorOrNoData,
@@ -8,11 +11,8 @@ import {
   getLoadingAccessory,
   getNoDataAccessory,
   generatePieIcon,
-  generateAsciiBar,
 } from "../agents/ui.tsx";
 import type { ZaiUsage, ZaiError, ZaiLimitEntry } from "./types.ts";
-
-const ZAI_ASCII_BAR_WIDTH = 10;
 
 function getRemainingNumericPercent(entry: ZaiLimitEntry | undefined | null): number | undefined {
   if (!entry) return undefined;
@@ -34,18 +34,38 @@ function getRemainingNumericPercent(entry: ZaiLimitEntry | undefined | null): nu
   return undefined;
 }
 
-function formatRemainingPercent(entry: ZaiLimitEntry): string {
-  return `${getRemainingNumericPercent(entry) ?? 0}% remaining`;
-}
-
-function formatRemainingText(entry: ZaiLimitEntry): string {
+function formatRemainingText(entry: ZaiLimitEntry): string | undefined {
   if (entry.remaining != null && entry.usage != null) {
     return `${entry.remaining}/${entry.usage}`;
   }
   if (entry.currentValue != null) {
     return `${entry.currentValue}`;
   }
-  return `${100 - entry.percentage}%`;
+  return undefined;
+}
+
+function zaiLimitItem(id: string, label: string, entry: ZaiLimitEntry | null): LimitItem | null {
+  if (!entry) return null;
+  return {
+    id,
+    title: `${label} (${entry.windowDescription})`,
+    percentRemaining: getRemainingNumericPercent(entry) ?? null,
+    valueText: formatRemainingText(entry),
+    resetsText: entry.resetTime ? formatResetTime(entry.resetTime) : null,
+    subRows: entry.usageDetails.map((detail) => ({
+      title: `  ${detail.modelCode}`,
+      text: `${detail.usage}`,
+    })),
+  };
+}
+
+function zaiLimitItems(u: ZaiUsage): LimitItem[] {
+  return [
+    zaiLimitItem("token", "Token Limit", u.tokenLimit),
+    zaiLimitItem("weekly-token", "Weekly Token Limit", u.weeklyTokenLimit),
+    zaiLimitItem("time", "Time Limit", u.timeLimit),
+    zaiLimitItem("weekly-time", "Weekly Time Limit", u.weeklyTimeLimit),
+  ].filter((item): item is LimitItem => item !== null);
 }
 
 export function formatZaiUsageText(usage: ZaiUsage | null, error: ZaiError | null): string {
@@ -53,35 +73,11 @@ export function formatZaiUsageText(usage: ZaiUsage | null, error: ZaiError | nul
   if (fallback !== null) return fallback;
   const u = usage as ZaiUsage;
 
-  function formatLimitText(label: string, perModelLabel: string, entry: ZaiLimitEntry | null): string {
-    if (!entry) return "";
-
-    let limitText = `\n\n${label} (${entry.windowDescription}): ${formatRemainingText(entry)}`;
-    limitText += `\n${formatRemainingPercent(entry)}`;
-    limitText += `\n${generateAsciiBar(getRemainingNumericPercent(entry) ?? 0, ZAI_ASCII_BAR_WIDTH)}`;
-    if (entry.resetTime) {
-      limitText += `\nResets In: ${formatResetTime(entry.resetTime)}`;
-    }
-    if (entry.usageDetails.length > 0) {
-      limitText += `\n\n${perModelLabel}:`;
-      for (const detail of entry.usageDetails) {
-        limitText += `\n  ${detail.modelCode}: ${detail.usage}`;
-      }
-    }
-
-    return limitText;
-  }
-
   let text = "z.ai Usage";
-
   if (u.planName) {
     text += `\nPlan: ${u.planName}`;
   }
-
-  text += formatLimitText("Token Limit", "Per-Model Usage", u.tokenLimit);
-  text += formatLimitText("Weekly Tokens", "Weekly Per-Model Usage", u.weeklyTokenLimit);
-  text += formatLimitText("Time Limit", "Per-Model Usage", u.timeLimit);
-  text += formatLimitText("Weekly Time", "Weekly Per-Model Usage", u.weeklyTimeLimit);
+  text += formatLimitsText(zaiLimitItems(u));
 
   return text;
 }
@@ -91,43 +87,11 @@ export function renderZaiDetail(usage: ZaiUsage | null, error: ZaiError | null):
   if (fallback !== null) return fallback;
   const u = usage as ZaiUsage;
 
-  function renderLimitMetadata(
-    label: string,
-    entry: ZaiLimitEntry,
-    leadingSeparator: boolean | string | null,
-  ): React.ReactNode {
-    return (
-      <>
-        {leadingSeparator && <List.Item.Detail.Metadata.Separator />}
-        <List.Item.Detail.Metadata.Label
-          title={`${label} (${entry.windowDescription})`}
-          text={`${generateAsciiBar(getRemainingNumericPercent(entry) ?? 0, ZAI_ASCII_BAR_WIDTH)} ${formatRemainingText(entry)} remaining`}
-        />
-        {entry.resetTime && (
-          <List.Item.Detail.Metadata.Label title="Resets In" text={formatResetTime(entry.resetTime)} />
-        )}
-        {entry.usageDetails.map((detail) => (
-          <List.Item.Detail.Metadata.Label
-            key={detail.modelCode}
-            title={`  ${detail.modelCode}`}
-            text={`${detail.usage}`}
-          />
-        ))}
-      </>
-    );
-  }
-
   return (
     <List.Item.Detail.Metadata>
       {u.planName && <List.Item.Detail.Metadata.Label title="Plan" text={u.planName} />}
 
-      {u.tokenLimit && renderLimitMetadata("Token Limit", u.tokenLimit, u.planName)}
-
-      {u.weeklyTokenLimit && renderLimitMetadata("Weekly Token Limit", u.weeklyTokenLimit, true)}
-
-      {u.timeLimit && renderLimitMetadata("Time Limit", u.timeLimit, true)}
-
-      {u.weeklyTimeLimit && renderLimitMetadata("Weekly Time Limit", u.weeklyTimeLimit, true)}
+      <LimitItems items={zaiLimitItems(u)} />
     </List.Item.Detail.Metadata>
   );
 }

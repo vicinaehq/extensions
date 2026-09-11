@@ -8,7 +8,7 @@ export interface AccountEntry {
   id: string;
   /** User-visible label, e.g. "Work", "Personal" */
   label: string;
-  /** Raw API token — stored as plaintext in LocalStorage (same as Raycast password prefs) */
+  /** Raw API token — stored as plaintext in LocalStorage (same as extension password prefs) */
   token: string;
   /** Optional provider-specific account scope, e.g. ChatGPT account ID for Codex or Cline user ID */
   accountId?: string;

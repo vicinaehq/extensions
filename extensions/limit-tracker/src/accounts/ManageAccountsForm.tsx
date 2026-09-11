@@ -155,7 +155,7 @@ export function ManageAccountsForm({ provider, providerName, onSave }: ManageAcc
               <Action
                 key={`copy-${account.id}`}
                 title={`Copy API Key for "${account.label}"`}
-                icon={Icon.Clipboard}
+                icon={Icon.CopyClipboard}
                 onAction={() => void handleCopyToken(account)}
               />
             ))}

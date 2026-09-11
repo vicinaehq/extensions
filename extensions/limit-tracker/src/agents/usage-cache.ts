@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
 /**
- * Pure helpers for the shared usage cache. Kept free of Raycast imports so the
- * caching rules stay testable under the plain Node test runner.
+ * Pure helpers for the shared usage cache. Kept free of UI-toolkit imports so
+ * the caching rules stay testable under the plain Node test runner.
  *
  * Payloads are written by `src/agents/hooks.ts` only, into a versioned cache
  * namespace — bump the namespace there whenever this shape changes so entries

@@ -1,16 +1,18 @@
 import { List } from "@vicinae/api";
 
 import { formatResetTime } from "../agents/format.ts";
+import { formatLimitsText } from "../agents/detail-format.ts";
+import type { LimitItem } from "../agents/detail-format.ts";
+import { LimitItems } from "../agents/limits.tsx";
 import type { Accessory } from "../agents/types.ts";
 import {
   formatErrorOrNoData,
-  generateAsciiBar,
   generatePieIcon,
   getLoadingAccessory,
   getNoDataAccessory,
   renderErrorOrNoData,
 } from "../agents/ui.tsx";
-import { formatCursorAccessory, formatPercent } from "./accessory.ts";
+import { formatCursorAccessory } from "./accessory.ts";
 import type { CursorError, CursorRateWindow, CursorUsage } from "./types.ts";
 
 const usdFormatter = new Intl.NumberFormat("en-US", {
@@ -27,9 +29,24 @@ function formatReset(value: string | null): string {
   return value ? formatResetTime(value) : "unknown";
 }
 
-function formatWindow(label: string, window: CursorRateWindow): string {
-  const remaining = formatPercent(window.percentageRemaining);
-  return `${label}: ${remaining}% remaining\n${generateAsciiBar(window.percentageRemaining)}\nResets In: ${formatReset(window.resetsAt)}`;
+function cursorWindowItem(id: string, label: string, window: CursorRateWindow): LimitItem {
+  return {
+    id,
+    title: label,
+    percentRemaining: window.percentageRemaining,
+    resetsText: formatReset(window.resetsAt),
+  };
+}
+
+function cursorLimitItems(u: CursorUsage): LimitItem[] {
+  const total = cursorWindowItem("total", u.legacyRequests ? "Requests" : "Total", u.total);
+  if (u.legacyRequests) {
+    total.subRows = [{ title: "Request Usage", text: `${u.legacyRequests.used} / ${u.legacyRequests.limit} requests` }];
+  }
+  const items = [total];
+  if (u.auto) items.push(cursorWindowItem("auto", "Auto", u.auto));
+  if (u.api) items.push(cursorWindowItem("api", "API", u.api));
+  return items;
 }
 
 export function formatCursorUsageText(usage: CursorUsage | null, error: CursorError | null): string {
@@ -42,16 +59,7 @@ export function formatCursorUsageText(usage: CursorUsage | null, error: CursorEr
     text += `\nPlan: ${u.membershipType}`;
   }
 
-  text += `\n\n${formatWindow(u.legacyRequests ? "Requests" : "Total", u.total)}`;
-  if (u.legacyRequests) {
-    text += `\n${u.legacyRequests.used} / ${u.legacyRequests.limit} requests`;
-  }
-  if (u.auto) {
-    text += `\n\n${formatWindow("Auto", u.auto)}`;
-  }
-  if (u.api) {
-    text += `\n\n${formatWindow("API", u.api)}`;
-  }
+  text += formatLimitsText(cursorLimitItems(u));
 
   if (u.planLimitUsd > 0 || u.planUsedUsd > 0) {
     text += `\n\nIncluded Usage: ${formatUsd(u.planUsedUsd)} / ${formatUsd(u.planLimitUsd)}`;
@@ -77,42 +85,10 @@ export function renderCursorDetail(usage: CursorUsage | null, error: CursorError
   return (
     <List.Item.Detail.Metadata>
       {u.membershipType && (
-        <>
-          <List.Item.Detail.Metadata.Label title="Plan" text={u.membershipType} />
-          <List.Item.Detail.Metadata.Separator />
-        </>
-      )}
-      <List.Item.Detail.Metadata.Label
-        title={u.legacyRequests ? "Requests" : "Total"}
-        text={`${generateAsciiBar(u.total.percentageRemaining)} ${formatPercent(u.total.percentageRemaining)}% remaining`}
-      />
-      {u.legacyRequests && (
-        <List.Item.Detail.Metadata.Label
-          title="Request Usage"
-          text={`${u.legacyRequests.used} / ${u.legacyRequests.limit} requests`}
-        />
-      )}
-      <List.Item.Detail.Metadata.Label title="Resets In" text={formatReset(u.total.resetsAt)} />
-
-      {u.auto && (
-        <>
-          <List.Item.Detail.Metadata.Separator />
-          <List.Item.Detail.Metadata.Label
-            title="Auto"
-            text={`${generateAsciiBar(u.auto.percentageRemaining)} ${formatPercent(u.auto.percentageRemaining)}% remaining`}
-          />
-        </>
+        <List.Item.Detail.Metadata.Label title="Plan" text={u.membershipType} />
       )}
 
-      {u.api && (
-        <>
-          <List.Item.Detail.Metadata.Separator />
-          <List.Item.Detail.Metadata.Label
-            title="API"
-            text={`${generateAsciiBar(u.api.percentageRemaining)} ${formatPercent(u.api.percentageRemaining)}% remaining`}
-          />
-        </>
-      )}
+      <LimitItems items={cursorLimitItems(u)} />
 
       {(u.planLimitUsd > 0 || u.planUsedUsd > 0 || u.onDemand) && <List.Item.Detail.Metadata.Separator />}
       {(u.planLimitUsd > 0 || u.planUsedUsd > 0) && (

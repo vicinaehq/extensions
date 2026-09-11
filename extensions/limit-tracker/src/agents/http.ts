@@ -15,6 +15,8 @@ export interface HttpFetchOptions {
 export interface HttpFetchError {
   type: "unauthorized" | "network_error" | "unknown";
   message: string;
+  /** HTTP status when the error came from a response (not a network failure). */
+  status?: number;
 }
 
 export interface HttpFetchResult {
@@ -41,22 +43,47 @@ export async function httpFetch(options: HttpFetchOptions): Promise<HttpFetchRes
     allHeaders["Authorization"] = normalizeBearerToken(token);
   }
 
+  const MAX_429_WAIT_MS = 4000;
+
+  const retryAfterMs = (response: Response): number => {
+    const raw = response.headers.get("Retry-After");
+    const seconds = raw ? Number(raw) : NaN;
+    return Number.isFinite(seconds) && seconds > 0 ? Math.min(seconds * 1000, MAX_429_WAIT_MS) : 500;
+  };
+
   try {
-    const response = await fetch(url, { method, headers: allHeaders, body, signal: controller.signal });
-    clearTimeout(timeoutId);
+    // One bounded retry on 429 — enough to ride out a burst limit without
+    // stalling the row behind a long Retry-After.
+    for (let attempt = 0; ; attempt++) {
+      const response = await fetch(url, { method, headers: allHeaders, body, signal: controller.signal });
 
-    if (response.status === 401) {
-      return { data: null, error: { type: "unauthorized", message: unauthorizedMessage } };
+      if (response.status === 429 && attempt === 0) {
+        await new Promise((resolve) => setTimeout(resolve, retryAfterMs(response)));
+        continue;
+      }
+
+      if (response.status === 401) {
+        return { data: null, error: { type: "unauthorized", message: unauthorizedMessage, status: 401 } };
+      }
+
+      if (response.status === 429) {
+        return {
+          data: null,
+          error: { type: "unknown", status: 429, message: "Rate limited (HTTP 429). Try again in a few minutes." },
+        };
+      }
+
+      if (!response.ok) {
+        return {
+          data: null,
+          error: { type: "unknown", status: response.status, message: `HTTP ${response.status}: ${response.statusText}` },
+        };
+      }
+
+      const data = await response.json();
+      return { data, error: null };
     }
-
-    if (!response.ok) {
-      return { data: null, error: { type: "unknown", message: `HTTP ${response.status}: ${response.statusText}` } };
-    }
-
-    const data = await response.json();
-    return { data, error: null };
   } catch (err) {
-    clearTimeout(timeoutId);
     if (err instanceof Error && err.name === "AbortError") {
       return {
         data: null,
@@ -67,5 +94,7 @@ export async function httpFetch(options: HttpFetchOptions): Promise<HttpFetchRes
       data: null,
       error: { type: "network_error", message: err instanceof Error ? err.message : "Network request failed" },
     };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

@@ -18,32 +18,67 @@ import { ManageAccountsForm } from "./accounts/ManageAccountsForm.tsx";
 import type { AccountUsageState } from "./accounts/types.ts";
 import { formatErrorMarkdown } from "./agents/detail-format.ts";
 import { formatClock, latestTimestamp } from "./agents/format.ts";
+import { parsePinnedProviders } from "./agents/order.ts";
 import {
+  useAihubmixUsage,
+  useAmpUsage,
+  useAntigravityUsage,
   useClaudeUsage,
+  useClinepassUsage,
   useCodexAccounts,
+  useCommandcodeUsage,
   useCopilotUsage,
   useCursorUsage,
   useDeepSeekUsage,
+  useDevinUsage,
+  useDroidUsage,
   useGeminiUsage,
+  useGrokUsage,
+  useKimiUsage,
+  useMinimaxUsage,
+  useMinimaxcnUsage,
   useOpencodegoUsage,
+  useSyntheticUsage,
   useZaiAccounts,
 } from "./agents/provider-hooks.ts";
 import type { Accessory, AgentDefinition, AgentVisibilityPreferences, LimitView, UsageState } from "./agents/types.ts";
 import { getListIcon } from "./agents/ui.tsx";
+import { formatAihubmixUsageText, getAihubmixAccessory, renderAihubmixDetail } from "./aihubmix/renderer.tsx";
+import type { AihubmixError, AihubmixUsage } from "./aihubmix/types.ts";
+import { formatAmpUsageText, getAmpAccessory, renderAmpDetail } from "./amp/renderer.tsx";
+import type { AmpError, AmpUsage } from "./amp/types.ts";
+import { formatAntigravityUsageText, getAntigravityAccessory, renderAntigravityDetail } from "./antigravity/renderer.tsx";
+import type { AntigravityError, AntigravityUsage } from "./antigravity/types.ts";
 import { formatClaudeUsageText, getClaudeAccessory, renderClaudeDetail } from "./claude/renderer.tsx";
 import type { ClaudeError, ClaudeUsage } from "./claude/types.ts";
+import { formatClinepassUsageText, getClinepassAccessory, renderClinepassDetail } from "./clinepass/renderer.tsx";
+import type { ClinepassError, ClinepassUsage } from "./clinepass/types.ts";
 import { formatCodexUsageText, getCodexAccessory, renderCodexDetail } from "./codex/renderer.tsx";
 import type { CodexError, CodexUsage } from "./codex/types.ts";
+import { formatCommandcodeUsageText, getCommandcodeAccessory, renderCommandcodeDetail } from "./commandcode/renderer.tsx";
+import type { CommandcodeError, CommandcodeUsage } from "./commandcode/types.ts";
 import { formatCopilotUsageText, getCopilotAccessory, renderCopilotDetail } from "./copilot/renderer.tsx";
 import type { CopilotError, CopilotUsage } from "./copilot/types.ts";
 import { formatCursorUsageText, getCursorAccessory, renderCursorDetail } from "./cursor/renderer.tsx";
 import type { CursorError, CursorUsage } from "./cursor/types.ts";
 import { formatDeepSeekUsageText, getDeepSeekAccessory, renderDeepSeekDetail } from "./deepseek/renderer.tsx";
 import type { DeepSeekError, DeepSeekUsage } from "./deepseek/types.ts";
+import { formatDevinUsageText, getDevinAccessory, renderDevinDetail } from "./devin/renderer.tsx";
+import type { DevinError, DevinUsage } from "./devin/types.ts";
+import { formatDroidUsageText, getDroidAccessory, renderDroidDetail } from "./droid/renderer.tsx";
+import type { DroidError, DroidUsage } from "./droid/types.ts";
 import { formatGeminiUsageText, getGeminiAccessory, renderGeminiDetail } from "./gemini/renderer.tsx";
 import type { GeminiError, GeminiUsage } from "./gemini/types.ts";
+import { formatGrokUsageText, getGrokAccessory, renderGrokDetail } from "./grok/renderer.tsx";
+import type { GrokError, GrokUsage } from "./grok/types.ts";
+import { formatKimiUsageText, getKimiAccessory, renderKimiDetail } from "./kimi/renderer.tsx";
+import type { KimiError, KimiUsage } from "./kimi/types.ts";
+import { formatMinimaxUsageText, getMinimaxAccessory, renderMinimaxDetail } from "./minimax/renderer.tsx";
+import type { MinimaxError, MinimaxUsage } from "./minimax/types.ts";
 import { formatOpencodegoUsageText, getOpencodegoAccessory, renderOpencodegoDetail } from "./opencode-go/renderer.tsx";
 import type { OpencodegoError, OpencodegoUsage } from "./opencode-go/types.ts";
+import { formatSyntheticUsageText, getSyntheticAccessory, renderSyntheticDetail } from "./synthetic/renderer.tsx";
+import type { SyntheticError, SyntheticUsage } from "./synthetic/types.ts";
 import { formatZaiUsageText, getZaiAccessory, renderZaiDetail } from "./zai/renderer.tsx";
 import type { ZaiError, ZaiUsage } from "./zai/types.ts";
 
@@ -60,31 +95,96 @@ interface AgentRegistryEntry<TUsage, TError extends ErrorLike> extends Omit<Agen
   formatUsageText: (usage: TUsage | null, error: TError | null) => string;
 }
 
-type CoreAgentId = "claude" | "codex" | "copilot" | "cursor" | "deepseek" | "gemini" | "opencode-go" | "zai";
+type CoreAgentId =
+  | "aihubmix"
+  | "amp"
+  | "antigravity"
+  | "claude"
+  | "clinepass"
+  | "codex"
+  | "commandcode"
+  | "copilot"
+  | "cursor"
+  | "deepseek"
+  | "devin"
+  | "droid"
+  | "gemini"
+  | "grok"
+  | "kimi"
+  | "minimax"
+  | "minimaxcn"
+  | "opencode-go"
+  | "synthetic"
+  | "zai";
 
-const CORE_AGENT_ORDER: CoreAgentId[] = ["claude", "copilot", "cursor", "deepseek", "gemini", "opencode-go", "codex", "zai"];
+const CORE_AGENT_ORDER: CoreAgentId[] = [
+  "claude",
+  "copilot",
+  "cursor",
+  "deepseek",
+  "devin",
+  "gemini",
+  "opencode-go",
+  "codex",
+  "zai",
+  "antigravity",
+  "commandcode",
+  "kimi",
+  "synthetic",
+  "clinepass",
+  "droid",
+  "minimax",
+  "minimaxcn",
+  "grok",
+  "amp",
+  "aihubmix",
+];
 
 type MultiAccountAgentId = "codex" | "zai";
 
 interface AgentUsageById {
+  aihubmix: AihubmixUsage;
+  amp: AmpUsage;
+  antigravity: AntigravityUsage;
   claude: ClaudeUsage;
+  clinepass: ClinepassUsage;
   codex: CodexUsage;
+  commandcode: CommandcodeUsage;
   copilot: CopilotUsage;
   cursor: CursorUsage;
   deepseek: DeepSeekUsage;
+  devin: DevinUsage;
+  droid: DroidUsage;
   gemini: GeminiUsage;
+  grok: GrokUsage;
+  kimi: KimiUsage;
+  minimax: MinimaxUsage;
+  minimaxcn: MinimaxUsage;
   "opencode-go": OpencodegoUsage;
+  synthetic: SyntheticUsage;
   zai: ZaiUsage;
 }
 
 interface AgentErrorById {
+  aihubmix: AihubmixError;
+  amp: AmpError;
+  antigravity: AntigravityError;
   claude: ClaudeError;
+  clinepass: ClinepassError;
   codex: CodexError;
+  commandcode: CommandcodeError;
   copilot: CopilotError;
   cursor: CursorError;
   deepseek: DeepSeekError;
+  devin: DevinError;
+  droid: DroidError;
   gemini: GeminiError;
+  grok: GrokError;
+  kimi: KimiError;
+  minimax: MinimaxError;
+  minimaxcn: MinimaxError;
   "opencode-go": OpencodegoError;
+  synthetic: SyntheticError;
   zai: ZaiError;
 }
 
@@ -187,6 +287,18 @@ const AGENT_REGISTRY: AgentRegistry = {
     getAccessory: getDeepSeekAccessory,
     formatUsageText: formatDeepSeekUsageText,
   },
+  devin: {
+    id: "devin",
+    name: "Devin",
+    icon: "devin-icon.svg",
+    description: "Devin ACU limits (Enterprise)",
+    isSupported: true,
+    settingsUrl: "https://app.devin.ai/settings",
+    useUsage: useDevinUsage,
+    renderDetail: renderDevinDetail,
+    getAccessory: getDevinAccessory,
+    formatUsageText: formatDevinUsageText,
+  },
   gemini: {
     id: "gemini",
     name: "Gemini",
@@ -220,6 +332,138 @@ const AGENT_REGISTRY: AgentRegistry = {
     renderDetail: renderZaiDetail,
     getAccessory: getZaiAccessory,
     formatUsageText: formatZaiUsageText,
+  },
+  antigravity: {
+    id: "antigravity",
+    name: "Antigravity",
+    icon: "antigravity-icon.png",
+    description: "Google Antigravity quotas (via omp)",
+    isSupported: true,
+    settingsUrl: "https://omp.sh/docs/providers",
+    useUsage: useAntigravityUsage,
+    renderDetail: renderAntigravityDetail,
+    getAccessory: getAntigravityAccessory,
+    formatUsageText: formatAntigravityUsageText,
+  },
+  commandcode: {
+    id: "commandcode",
+    name: "Command Code",
+    icon: "commandcode-icon.svg",
+    description: "Command Code credit usage",
+    isSupported: true,
+    settingsUrl: "https://commandcode.ai",
+    useUsage: useCommandcodeUsage,
+    renderDetail: renderCommandcodeDetail,
+    getAccessory: getCommandcodeAccessory,
+    formatUsageText: formatCommandcodeUsageText,
+  },
+  kimi: {
+    id: "kimi",
+    name: "Kimi",
+    icon: "kimi-icon.svg",
+    description: "Kimi Code weekly + 5-hour quotas",
+    isSupported: true,
+    settingsUrl: "https://platform.moonshot.ai",
+    useUsage: useKimiUsage,
+    renderDetail: renderKimiDetail,
+    getAccessory: getKimiAccessory,
+    formatUsageText: formatKimiUsageText,
+  },
+  synthetic: {
+    id: "synthetic",
+    name: "Synthetic",
+    icon: "synthetic-icon.svg",
+    description: "Synthetic subscription quotas",
+    isSupported: true,
+    settingsUrl: "https://dev.synthetic.new",
+    useUsage: useSyntheticUsage,
+    renderDetail: renderSyntheticDetail,
+    getAccessory: getSyntheticAccessory,
+    formatUsageText: formatSyntheticUsageText,
+  },
+  clinepass: {
+    id: "clinepass",
+    name: "ClinePass",
+    icon: "clinepass-icon.svg",
+    description: "ClinePass 5-hour/weekly/monthly limits",
+    isSupported: true,
+    settingsUrl: "https://cline.bot",
+    useUsage: useClinepassUsage,
+    renderDetail: renderClinepassDetail,
+    getAccessory: getClinepassAccessory,
+    formatUsageText: formatClinepassUsageText,
+  },
+  droid: {
+    id: "droid",
+    name: "Droid",
+    icon: "droid-icon.svg",
+    description: "Factory Droid usage limits",
+    isSupported: true,
+    settingsUrl: "https://app.factory.ai/settings/api-keys",
+    useUsage: useDroidUsage,
+    renderDetail: renderDroidDetail,
+    getAccessory: getDroidAccessory,
+    formatUsageText: formatDroidUsageText,
+  },
+  minimax: {
+    id: "minimax",
+    name: "MiniMax",
+    icon: "minimax-icon.svg",
+    description: "MiniMax Coding Plan model quotas",
+    isSupported: true,
+    settingsUrl: "https://platform.minimax.io",
+    useUsage: useMinimaxUsage,
+    renderDetail: renderMinimaxDetail,
+    getAccessory: (usage, error, isLoading) => getMinimaxAccessory("MiniMax", usage, error, isLoading),
+    formatUsageText: (usage, error) => formatMinimaxUsageText("MiniMax", usage, error),
+  },
+  minimaxcn: {
+    id: "minimaxcn",
+    name: "MiniMax CN",
+    icon: "minimax-icon.svg",
+    description: "MiniMax Coding Plan quotas (China)",
+    isSupported: true,
+    settingsUrl: "https://platform.minimaxi.com",
+    useUsage: useMinimaxcnUsage,
+    renderDetail: renderMinimaxDetail,
+    getAccessory: (usage, error, isLoading) => getMinimaxAccessory("MiniMax CN", usage, error, isLoading),
+    formatUsageText: (usage, error) => formatMinimaxUsageText("MiniMax CN", usage, error),
+  },
+  grok: {
+    id: "grok",
+    name: "Grok",
+    icon: "grok-icon.svg",
+    description: "Grok CLI credits",
+    isSupported: true,
+    settingsUrl: "https://grok.com",
+    useUsage: useGrokUsage,
+    renderDetail: renderGrokDetail,
+    getAccessory: getGrokAccessory,
+    formatUsageText: formatGrokUsageText,
+  },
+  amp: {
+    id: "amp",
+    name: "Amp",
+    icon: "amp-icon.svg",
+    description: "Amp free tier + subscription usage",
+    isSupported: true,
+    settingsUrl: "https://ampcode.com/settings",
+    useUsage: useAmpUsage,
+    renderDetail: renderAmpDetail,
+    getAccessory: getAmpAccessory,
+    formatUsageText: formatAmpUsageText,
+  },
+  aihubmix: {
+    id: "aihubmix",
+    name: "AiHubMix",
+    icon: "aihubmix-icon.svg",
+    description: "AiHubMix account balance",
+    isSupported: true,
+    settingsUrl: "https://aihubmix.com",
+    useUsage: useAihubmixUsage,
+    renderDetail: renderAihubmixDetail,
+    getAccessory: getAihubmixAccessory,
+    formatUsageText: formatAihubmixUsageText,
   },
 };
 
@@ -292,7 +536,7 @@ function getAccountedTitle(providerName: string, label: string): string {
 }
 
 /**
- * Short list-row subtitle (single line). Keeps the list clean like Raycast:
+ * Short list-row subtitle (single line). Keeps the list clean:
  * the agent name is the title, the progress ring (accessory) shows the %, and
  * the full plan/limits/reset breakdown lives in the right-hand Detail panel.
  * Only surface errors here; everything else stays empty so rows don't crowd.
@@ -302,6 +546,7 @@ function listSubtitle(error: ErrorLike | null, isLoading: boolean): string {
   if (error) {
     if (error.type === "not_configured") return "Not Configured";
     if (error.type === "unauthorized") return "Token Expired";
+    if (error.type === "forbidden") return "No Access";
     if (error.type === "missing_scope") return "Missing Scope";
     if (error.type === "network_error") return "Network Error";
     return "Error";
@@ -335,11 +580,23 @@ export default function Command(props: LaunchProps<{ launchContext: CommandLaunc
   }, []);
 
   const claudeState = AGENT_REGISTRY.claude.useUsage(Boolean(prefs.showClaude));
+  const antigravityState = AGENT_REGISTRY.antigravity.useUsage(Boolean(prefs.showAntigravity));
+  const commandcodeState = AGENT_REGISTRY.commandcode.useUsage(Boolean(prefs.showCommandcode));
   const copilotState = AGENT_REGISTRY.copilot.useUsage(Boolean(prefs.showCopilot));
   const cursorState = AGENT_REGISTRY.cursor.useUsage(Boolean(prefs.showCursor));
   const deepseekState = AGENT_REGISTRY.deepseek.useUsage(Boolean(prefs.showDeepSeek));
+  const devinState = AGENT_REGISTRY.devin.useUsage(Boolean(prefs.showDevin));
   const geminiState = AGENT_REGISTRY.gemini.useUsage(Boolean(prefs.showGemini));
   const opencodegoState = AGENT_REGISTRY["opencode-go"].useUsage(Boolean(prefs.showOpencodeGo));
+  const aihubmixState = AGENT_REGISTRY.aihubmix.useUsage(Boolean(prefs.showAihubmix));
+  const ampState = AGENT_REGISTRY.amp.useUsage(Boolean(prefs.showAmp));
+  const clinepassState = AGENT_REGISTRY.clinepass.useUsage(Boolean(prefs.showClinePass));
+  const droidState = AGENT_REGISTRY.droid.useUsage(Boolean(prefs.showDroid));
+  const grokState = AGENT_REGISTRY.grok.useUsage(Boolean(prefs.showGrok));
+  const kimiState = AGENT_REGISTRY.kimi.useUsage(Boolean(prefs.showKimi));
+  const minimaxState = AGENT_REGISTRY.minimax.useUsage(Boolean(prefs.showMinimax));
+  const minimaxcnState = AGENT_REGISTRY.minimaxcn.useUsage(Boolean(prefs.showMinimaxCN));
+  const syntheticState = AGENT_REGISTRY.synthetic.useUsage(Boolean(prefs.showSynthetic));
 
   const codexState = useCodexAccounts(Boolean(prefs.showCodex));
   const zaiState = useZaiAccounts(Boolean(prefs.showZai));
@@ -358,12 +615,24 @@ export default function Command(props: LaunchProps<{ launchContext: CommandLaunc
     copilot: createAgentView(AGENT_REGISTRY.copilot, copilotState, Boolean(prefs.showCopilot)),
     cursor: createAgentView(AGENT_REGISTRY.cursor, cursorState, Boolean(prefs.showCursor)),
     deepseek: createAgentView(AGENT_REGISTRY.deepseek, deepseekState, Boolean(prefs.showDeepSeek)),
+    devin: createAgentView(AGENT_REGISTRY.devin, devinState, Boolean(prefs.showDevin)),
     gemini: createAgentView(AGENT_REGISTRY.gemini, geminiState, Boolean(prefs.showGemini)),
     "opencode-go": createAgentView(
       AGENT_REGISTRY["opencode-go"],
       opencodegoState,
       Boolean(prefs.showOpencodeGo),
     ),
+    antigravity: createAgentView(AGENT_REGISTRY.antigravity, antigravityState, Boolean(prefs.showAntigravity)),
+    commandcode: createAgentView(AGENT_REGISTRY.commandcode, commandcodeState, Boolean(prefs.showCommandcode)),
+    aihubmix: createAgentView(AGENT_REGISTRY.aihubmix, aihubmixState, Boolean(prefs.showAihubmix)),
+    amp: createAgentView(AGENT_REGISTRY.amp, ampState, Boolean(prefs.showAmp)),
+    clinepass: createAgentView(AGENT_REGISTRY.clinepass, clinepassState, Boolean(prefs.showClinePass)),
+    droid: createAgentView(AGENT_REGISTRY.droid, droidState, Boolean(prefs.showDroid)),
+    grok: createAgentView(AGENT_REGISTRY.grok, grokState, Boolean(prefs.showGrok)),
+    kimi: createAgentView(AGENT_REGISTRY.kimi, kimiState, Boolean(prefs.showKimi)),
+    minimax: createAgentView(AGENT_REGISTRY.minimax, minimaxState, Boolean(prefs.showMinimax)),
+    minimaxcn: createAgentView(AGENT_REGISTRY.minimaxcn, minimaxcnState, Boolean(prefs.showMinimaxCN)),
+    synthetic: createAgentView(AGENT_REGISTRY.synthetic, syntheticState, Boolean(prefs.showSynthetic)),
   };
 
   const claudeLimitView = (prefs.claudeLimitView ?? "auto") as LimitView;
@@ -439,27 +708,7 @@ export default function Command(props: LaunchProps<{ launchContext: CommandLaunc
 
   type ListRow = { kind: "agent"; view: AgentView } | { kind: "accounted"; view: AccountedAgentView };
 
-  const pinnedIds = useMemo(() => {
-    const pinned = prefs.pinnedProviders;
-    if (!pinned) return [];
-    return pinned
-      .split(",")
-      .map((s) => s.trim().toLowerCase())
-      .filter((id): id is CoreAgentId => {
-        const valid: CoreAgentId[] = [
-          "claude",
-          "codex",
-          "copilot",
-          "cursor",
-          "deepseek",
-          "gemini",
-          "opencode-go",
-          "zai",
-        ];
-        return valid.includes(id as CoreAgentId);
-      })
-      .slice(0, 3);
-  }, [prefs.pinnedProviders]);
+  const pinnedIds = useMemo(() => parsePinnedProviders(prefs.pinnedProviders), [prefs.pinnedProviders]);
 
   const allRows = useMemo<ListRow[]>(
     () =>
@@ -493,12 +742,8 @@ export default function Command(props: LaunchProps<{ launchContext: CommandLaunc
     return [...pinned, ...rest];
   }, [allRows, pinnedIds]);
 
-  const isLoading = baseRows.some((row) =>
-    row.kind === "agent" ? row.view.isLoading : row.view.isLoading,
-  );
-  const latestFetchedAt = latestTimestamp(
-    baseRows.map((row) => (row.kind === "agent" ? row.view.lastFetchedAt : row.view.lastFetchedAt)),
-  );
+  const isLoading = baseRows.some((row) => row.view.isLoading);
+  const latestFetchedAt = latestTimestamp(baseRows.map((row) => row.view.lastFetchedAt));
   const updatedAt = !isLoading && latestFetchedAt ? formatClock(latestFetchedAt) : "";
 
   const handleRefreshAll = useCallback(async () => {
@@ -536,6 +781,7 @@ export default function Command(props: LaunchProps<{ launchContext: CommandLaunc
       isLoading={isLoading}
       isShowingDetail={true}
       searchBarPlaceholder="Search agents..."
+      searchBarAccessory={updatedAt ? `Updated ${updatedAt}` : undefined}
       actions={
         <ActionPanel>
           <Action
@@ -551,7 +797,7 @@ export default function Command(props: LaunchProps<{ launchContext: CommandLaunc
           />
           <Action
             title="Open Extension Preferences"
-            icon={Icon.Gear}
+            icon={Icon.Cog}
             shortcut={{ modifiers: ["cmd"], key: "," }}
             onAction={() => openExtensionPreferences()}
           />

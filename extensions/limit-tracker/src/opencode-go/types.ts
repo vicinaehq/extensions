@@ -11,6 +11,8 @@ export interface OpencodegoUsage {
   primary: OpencodegoQuota;
   quotas: OpencodegoQuota[];
   resetsAt: string | null;
+  /** True when the API key came from the omp harness fallback. */
+  viaOmp?: boolean;
 }
 
 export interface OpencodegoError {

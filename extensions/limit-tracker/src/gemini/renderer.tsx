@@ -1,5 +1,8 @@
 import { List } from "@vicinae/api";
 
+import { formatLimitsText } from "../agents/detail-format.ts";
+import type { LimitItem } from "../agents/detail-format.ts";
+import { LimitItems } from "../agents/limits.tsx";
 import type { Accessory } from "../agents/types.ts";
 import {
   renderErrorOrNoData,
@@ -7,36 +10,36 @@ import {
   getLoadingAccessory,
   getNoDataAccessory,
   generatePieIcon,
-  generateAsciiBar,
 } from "../agents/ui.tsx";
 import type { GeminiUsage, GeminiError } from "./types.ts";
+
+function geminiLimitItems(u: GeminiUsage): LimitItem[] {
+  return [
+    u.proModel
+      ? {
+          id: "pro",
+          title: `Pro (${u.proModel.modelId})`,
+          percentRemaining: u.proModel.percentLeft,
+          resetsText: u.proModel.resetsIn,
+        }
+      : { id: "pro", title: "Pro Model", percentRemaining: null, valueText: "No quota data" },
+    u.flashModel
+      ? {
+          id: "flash",
+          title: `Flash (${u.flashModel.modelId})`,
+          percentRemaining: u.flashModel.percentLeft,
+          resetsText: u.flashModel.resetsIn,
+        }
+      : { id: "flash", title: "Flash Model", percentRemaining: null, valueText: "No quota data" },
+  ];
+}
 
 export function formatGeminiUsageText(usage: GeminiUsage | null, error: GeminiError | null): string {
   const fallback = formatErrorOrNoData("Gemini", usage, error);
   if (fallback !== null) return fallback;
   const u = usage as GeminiUsage;
 
-  let text = `Gemini Usage`;
-
-  if (u.proModel) {
-    text += `\n\nPro Model: ${u.proModel.modelId}`;
-    text += `\nRemaining: ${u.proModel.percentLeft}% remaining`;
-    text += `\n${generateAsciiBar(u.proModel.percentLeft)}`;
-    text += `\nResets In: ${u.proModel.resetsIn}`;
-  } else {
-    text += `\n\nPro Model: No quota data`;
-  }
-
-  if (u.flashModel) {
-    text += `\n\nFlash Model: ${u.flashModel.modelId}`;
-    text += `\nRemaining: ${u.flashModel.percentLeft}% remaining`;
-    text += `\n${generateAsciiBar(u.flashModel.percentLeft)}`;
-    text += `\nResets In: ${u.flashModel.resetsIn}`;
-  } else {
-    text += `\n\nFlash Model: No quota data`;
-  }
-
-  return text;
+  return `Gemini Usage` + formatLimitsText(geminiLimitItems(u));
 }
 
 export function renderGeminiDetail(usage: GeminiUsage | null, error: GeminiError | null): React.ReactNode {
@@ -46,33 +49,7 @@ export function renderGeminiDetail(usage: GeminiUsage | null, error: GeminiError
 
   return (
     <List.Item.Detail.Metadata>
-      {u.proModel ? (
-        <>
-          <List.Item.Detail.Metadata.Label title="Pro Model" text={u.proModel.modelId} />
-          <List.Item.Detail.Metadata.Label
-            title="Remaining"
-            text={`${generateAsciiBar(u.proModel.percentLeft)} ${u.proModel.percentLeft}% remaining`}
-          />
-          <List.Item.Detail.Metadata.Label title="Resets In" text={u.proModel.resetsIn} />
-        </>
-      ) : (
-        <List.Item.Detail.Metadata.Label title="Pro Model" text="No quota data" />
-      )}
-
-      <List.Item.Detail.Metadata.Separator />
-
-      {u.flashModel ? (
-        <>
-          <List.Item.Detail.Metadata.Label title="Flash Model" text={u.flashModel.modelId} />
-          <List.Item.Detail.Metadata.Label
-            title="Remaining"
-            text={`${generateAsciiBar(u.flashModel.percentLeft)} ${u.flashModel.percentLeft}% remaining`}
-          />
-          <List.Item.Detail.Metadata.Label title="Resets In" text={u.flashModel.resetsIn} />
-        </>
-      ) : (
-        <List.Item.Detail.Metadata.Label title="Flash Model" text="No quota data" />
-      )}
+      <LimitItems items={geminiLimitItems(u)} />
     </List.Item.Detail.Metadata>
   );
 }

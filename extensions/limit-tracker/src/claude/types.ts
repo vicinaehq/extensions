@@ -16,6 +16,8 @@ export interface ClaudeUsage {
   sevenDay: ClaudeRateWindow | null;
   modelWindows: Record<string, ClaudeRateWindow>;
   extraUsage: ClaudeExtraUsage | null;
+  /** True when the OAuth credential came from the omp harness fallback. */
+  viaOmp?: boolean;
 }
 
 export interface ClaudeError {

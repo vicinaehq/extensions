@@ -1,10 +1,12 @@
 import { List } from "@vicinae/api";
 
 import { formatResetTime } from "../agents/format.ts";
+import { formatLimitsText } from "../agents/detail-format.ts";
+import type { LimitItem } from "../agents/detail-format.ts";
+import { LimitItems } from "../agents/limits.tsx";
 import type { Accessory } from "../agents/types.ts";
 import {
   formatErrorOrNoData,
-  generateAsciiBar,
   generatePieIcon,
   getLoadingAccessory,
   getNoDataAccessory,
@@ -16,24 +18,32 @@ function formatPercent(value: number | null): string {
   return value === null ? "N/A" : `${value}%`;
 }
 
+function copilotLimitItems(u: CopilotUsage): LimitItem[] {
+  return [
+    {
+      id: "premium",
+      title: "Premium Interactions",
+      percentRemaining: u.premiumRemaining,
+      valueText: u.premiumRemaining === null ? "N/A remaining" : undefined,
+    },
+    {
+      id: "chat",
+      title: "Chat Quota",
+      percentRemaining: u.chatRemaining,
+      valueText: u.chatRemaining === null ? "N/A remaining" : undefined,
+    },
+  ];
+}
+
 export function formatCopilotUsageText(usage: CopilotUsage | null, error: CopilotError | null): string {
   const fallback = formatErrorOrNoData("Copilot", usage, error);
   if (fallback !== null) return fallback;
   const u = usage as CopilotUsage;
 
   let text = `Copilot Usage\nPlan: ${u.plan}`;
-  if (u.premiumRemaining !== null) {
-    text += `\n\nPremium Interactions: ${generateAsciiBar(u.premiumRemaining)} ${formatPercent(u.premiumRemaining)} remaining`;
-  } else {
-    text += `\n\nPremium Interactions: ${formatPercent(u.premiumRemaining)} remaining`;
-  }
-  if (u.chatRemaining !== null) {
-    text += `\nChat Quota: ${generateAsciiBar(u.chatRemaining)} ${formatPercent(u.chatRemaining)} remaining`;
-  } else {
-    text += `\nChat Quota: ${formatPercent(u.chatRemaining)} remaining`;
-  }
+  text += formatLimitsText(copilotLimitItems(u));
   if (u.quotaResetDate) {
-    text += `\nQuota Reset: ${formatResetTime(u.quotaResetDate)}`;
+    text += `\n\nQuota Reset: ${formatResetTime(u.quotaResetDate)}`;
   }
 
   return text;
@@ -47,23 +57,7 @@ export function renderCopilotDetail(usage: CopilotUsage | null, error: CopilotEr
   return (
     <List.Item.Detail.Metadata>
       <List.Item.Detail.Metadata.Label title="Plan" text={u.plan} />
-      <List.Item.Detail.Metadata.Separator />
-      <List.Item.Detail.Metadata.Label
-        title="Premium Interactions"
-        text={
-          u.premiumRemaining !== null
-            ? `${generateAsciiBar(u.premiumRemaining)} ${formatPercent(u.premiumRemaining)} remaining`
-            : `${formatPercent(u.premiumRemaining)} remaining`
-        }
-      />
-      <List.Item.Detail.Metadata.Label
-        title="Chat Quota"
-        text={
-          u.chatRemaining !== null
-            ? `${generateAsciiBar(u.chatRemaining)} ${formatPercent(u.chatRemaining)} remaining`
-            : `${formatPercent(u.chatRemaining)} remaining`
-        }
-      />
+      <LimitItems items={copilotLimitItems(u)} />
       {u.quotaResetDate && (
         <List.Item.Detail.Metadata.Label title="Quota Reset" text={formatResetTime(u.quotaResetDate)} />
       )}

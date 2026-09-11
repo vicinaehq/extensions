@@ -30,7 +30,7 @@ export function generatePieIcon(percent: number): Image.ImageLike {
 
 /**
  * List-row icon: selects a packaged inverted asset in dark mode for allowlisted icons.
- * Packaged asset names are used because Raycast for Windows falls back when given an
+ * Packaged asset names are used because the host UI falls back when given an
  * absolute path to a generated SVG in the extension support directory.
  */
 export function getListIcon(assetName: string): Image.ImageLike {
@@ -174,8 +174,8 @@ export function formatErrorOrNoData(agentName: string, usage: unknown, error: Er
 }
 
 /**
- * Local replacement for `@raycast/utils`'s getProgressIcon: returns a data-URI
- * SVG progress circle so we don't depend on the Raycast-only package.
+ * Local progress-ring generator: returns a data-URI SVG progress circle so the
+ * list rows don't depend on an external icon package.
  */
 export function getProgressIcon(progress: number, color: string): string {
   const p = Math.max(0, Math.min(1, progress));

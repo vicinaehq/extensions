@@ -1,7 +1,9 @@
 import { List } from "@vicinae/api";
 
 import { formatResetTime, getRemainingPercent } from "../agents/format.ts";
-import { LiveResetLabel } from "../agents/countdown.tsx";
+import { formatLimitsText } from "../agents/detail-format.ts";
+import type { LimitItem } from "../agents/detail-format.ts";
+import { LimitItems } from "../agents/limits.tsx";
 import type { Accessory } from "../agents/types.ts";
 import {
   renderErrorOrNoData,
@@ -9,7 +11,6 @@ import {
   getLoadingAccessory,
   getNoDataAccessory,
   generatePieIcon,
-  generateAsciiBar,
 } from "../agents/ui.tsx";
 import type { OpencodegoUsage, OpencodegoError, OpencodegoQuota } from "./types.ts";
 
@@ -17,21 +18,22 @@ function isValidQuota(q: OpencodegoQuota): boolean {
   return Number.isFinite(q.used) && Number.isFinite(q.limit) && q.limit > 0;
 }
 
-function formatQuotaText(quota: OpencodegoQuota): string {
+function quotaPercent(quota: OpencodegoQuota): number | null {
+  if (!isValidQuota(quota)) return null;
+  return Math.round(getRemainingPercent(quota.limit - quota.used, quota.limit));
+}
+
+/** Absolute "used/limit" text; null when the quota is a pure percentage. */
+function quotaValueText(quota: OpencodegoQuota): string | undefined {
   if (!isValidQuota(quota)) {
     const u = Number.isFinite(quota.used) ? String(quota.used) : "—";
     const l = Number.isFinite(quota.limit) && quota.limit > 0 ? String(quota.limit) : "—";
     const unit = quota.unit ? ` ${quota.unit}` : "";
     return Number.isFinite(quota.limit) && quota.limit === 0 ? `No quota${unit}` : `${u}${unit}/${l}${unit} (—)`;
   }
-  const remaining = quota.limit - quota.used;
-  const percent = Math.round(getRemainingPercent(remaining, quota.limit));
-  if (quota.unit === "%") {
-    return `${percent}% remaining`;
-  }
-  const usedStr = quota.unit ? `${quota.used} ${quota.unit}` : `${quota.used}`;
-  const limitStr = quota.unit ? `${quota.limit} ${quota.unit}` : `${quota.limit}`;
-  return `${usedStr}/${limitStr} (${percent}% remaining)`;
+  if (quota.unit === "%") return undefined;
+  const unit = quota.unit ? ` ${quota.unit}` : "";
+  return `${quota.used}${unit}/${quota.limit}${unit}`;
 }
 
 function resetsInSeconds(resetsAt: string | null | undefined): number | null {
@@ -42,32 +44,6 @@ function resetsInSeconds(resetsAt: string | null | undefined): number | null {
   return diff > 0 ? diff : 0;
 }
 
-export function formatOpencodegoUsageText(usage: OpencodegoUsage | null, error: OpencodegoError | null): string {
-  const fallback = formatErrorOrNoData("OpenCode Go", usage, error);
-  if (fallback !== null) return fallback;
-  const u = usage as OpencodegoUsage;
-
-  let text = `OpenCode Go Usage\nPlan: ${u.planName}`;
-
-  const primaryRemaining = u.primary.limit - u.primary.used;
-  const primaryPercent = Math.round(getRemainingPercent(primaryRemaining, u.primary.limit));
-  text += `\n\n${u.primary.label}`;
-  text += `\n${generateAsciiBar(primaryPercent)} ${formatQuotaText(u.primary)}`;
-
-  for (const quota of u.quotas) {
-    const remaining = quota.limit - quota.used;
-    const percent = Math.round(getRemainingPercent(remaining, quota.limit));
-    text += `\n\n${quota.label}`;
-    text += `\n${generateAsciiBar(percent)} ${formatQuotaText(quota)}`;
-  }
-
-  if (u.resetsAt) {
-    text += `\n\nResets: ${formatResetTime(u.resetsAt)}`;
-  }
-
-  return text;
-}
-
 function quotaTitle(label: string): string {
   if (label === "5-Hour" || label === "5h") return "5h Limit";
   if (label === "Weekly") return "Weekly Limit";
@@ -76,50 +52,67 @@ function quotaTitle(label: string): string {
   return `${label} Limit`;
 }
 
+function opencodegoLimitItems(u: OpencodegoUsage): LimitItem[] {
+  const items: LimitItem[] = [
+    {
+      id: "primary",
+      title: quotaTitle(u.primary.label),
+      percentRemaining: quotaPercent(u.primary),
+      valueText: quotaValueText(u.primary),
+      resetsInSeconds: resetsInSeconds(u.primary.resetsAt),
+      resetsText: resetsInSeconds(u.primary.resetsAt) === null && u.resetsAt ? formatResetTime(u.resetsAt) : null,
+    },
+  ];
+
+  for (const [index, quota] of u.quotas.filter(isValidQuota).entries()) {
+    items.push({
+      id: `quota-${index}`,
+      title: quotaTitle(quota.label),
+      percentRemaining: quotaPercent(quota),
+      valueText: quotaValueText(quota),
+      resetsInSeconds: resetsInSeconds(quota.resetsAt),
+    });
+  }
+
+  return items;
+}
+
+export function formatOpencodegoUsageText(usage: OpencodegoUsage | null, error: OpencodegoError | null): string {
+  const fallback = formatErrorOrNoData("OpenCode Go", usage, error);
+  if (fallback !== null) return fallback;
+  const u = usage as OpencodegoUsage;
+
+  let text = `OpenCode Go Usage\nPlan: ${u.planName}`;
+  if (u.viaOmp) {
+    text += `\nSource: via omp`;
+  }
+  text += formatLimitsText(opencodegoLimitItems(u));
+
+  return text;
+}
+
 export function renderOpencodegoDetail(usage: OpencodegoUsage | null, error: OpencodegoError | null): React.ReactNode {
   const fallback = renderErrorOrNoData(usage, error);
   if (fallback !== null) return fallback;
   const u = usage as OpencodegoUsage;
 
-  const elements: React.ReactNode[] = [];
+  const noQuotaData = u.quotas.filter(isValidQuota).length === 0 && !isValidQuota(u.primary);
 
-  elements.push(<List.Item.Detail.Metadata.Label key="plan" title="Plan" text={u.planName.replace(/ \(debug.*\)$/, "")} />);
-  elements.push(<List.Item.Detail.Metadata.Separator />);
+  return (
+    <List.Item.Detail.Metadata>
+      <List.Item.Detail.Metadata.Label title="Plan" text={u.planName.replace(/ \(debug.*\)$/, "")} />
+      {u.viaOmp && <List.Item.Detail.Metadata.Label title="Source" text="via omp" />}
 
-  const primaryRemaining = Number.isFinite(u.primary.used) && Number.isFinite(u.primary.limit) ? u.primary.limit - u.primary.used : 0;
-  const primaryPercent = Math.round(getRemainingPercent(primaryRemaining, u.primary.limit));
-  elements.push(
-    <List.Item.Detail.Metadata.Label
-      key="primary"
-      title={quotaTitle(u.primary.label)}
-      text={`${generateAsciiBar(primaryPercent)} ${formatQuotaText(u.primary)}`}
-    />,
+      <LimitItems items={opencodegoLimitItems(u)} />
+
+      {noQuotaData && (
+        <>
+          <List.Item.Detail.Metadata.Separator />
+          <List.Item.Detail.Metadata.Label title="Usage" text="No quota data yet — check API key / workspace" />
+        </>
+      )}
+    </List.Item.Detail.Metadata>
   );
-  const primarySec = resetsInSeconds(u.primary.resetsAt);
-  if (primarySec !== null) elements.push(<LiveResetLabel key="primary-reset" seconds={primarySec} />);
-  else if (u.resetsAt) elements.push(<List.Item.Detail.Metadata.Label key="primary-reset-fallback" title="Resets In" text={formatResetTime(u.resetsAt)} />);
-
-  const visibleQuotas = u.quotas.filter(isValidQuota);
-  if (visibleQuotas.length === 0 && !isValidQuota(u.primary)) {
-    elements.push(<List.Item.Detail.Metadata.Separator key="sep-empty" />);
-    elements.push(<List.Item.Detail.Metadata.Label key="empty" title="Usage" text="No quota data yet — check API key / workspace" />);
-  }
-  for (const [idx, quota] of visibleQuotas.entries()) {
-    const remaining = quota.limit - quota.used;
-    const percent = Math.round(getRemainingPercent(remaining, quota.limit));
-    elements.push(<List.Item.Detail.Metadata.Separator key={`sep-${idx}`} />);
-    elements.push(
-      <List.Item.Detail.Metadata.Label
-        key={`quota-${idx}`}
-        title={quotaTitle(quota.label)}
-        text={`${generateAsciiBar(percent)} ${formatQuotaText(quota)}`}
-      />,
-    );
-    const sec = resetsInSeconds(quota.resetsAt);
-    if (sec !== null) elements.push(<LiveResetLabel key={`quota-reset-${idx}`} seconds={sec} />);
-  }
-
-  return <List.Item.Detail.Metadata>{...elements}</List.Item.Detail.Metadata>;
 }
 
 export function getOpencodegoAccessory(
@@ -153,6 +146,8 @@ export function getOpencodegoAccessory(
   return {
     icon: generatePieIcon(percent),
     text: `${percent}%`,
-    tooltip: tooltipParts.length > 0 ? [primaryTooltip, ...tooltipParts].join(" | ") : primaryTooltip,
+    tooltip: usage?.viaOmp
+      ? `${tooltipParts.length > 0 ? [primaryTooltip, ...tooltipParts].join(" | ") : primaryTooltip}\nvia omp`
+      : tooltipParts.length > 0 ? [primaryTooltip, ...tooltipParts].join(" | ") : primaryTooltip,
   };
 }

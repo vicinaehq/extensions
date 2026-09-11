@@ -2,10 +2,11 @@ import { List } from "@vicinae/api";
 import React from "react";
 
 import type { Accessory, LimitView } from "../agents/types.ts";
-import { LiveResetLabel } from "../agents/countdown.tsx";
+import { formatLimitsText } from "../agents/detail-format.ts";
+import type { LimitItem } from "../agents/detail-format.ts";
+import { LimitItems } from "../agents/limits.tsx";
 import {
   formatErrorOrNoData,
-  generateAsciiBar,
   generatePieIcon,
   getLoadingAccessory,
   getNoDataAccessory,
@@ -13,16 +14,42 @@ import {
 } from "../agents/ui.tsx";
 import type { ClaudeError, ClaudeUsage } from "./types.ts";
 
-function formatWindow(name: string, percent: number, resetsIn: string | null): string {
-  let text = `\n\n${name}: ${generateAsciiBar(percent)} ${percent}% remaining`;
-  if (resetsIn) {
-    text += `\nResets In: ${resetsIn}`;
-  }
-  return text;
-}
-
 function formatModelLabel(key: string): string {
   return `Weekly ${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+}
+
+function claudeLimitItems(u: ClaudeUsage): LimitItem[] {
+  const items: LimitItem[] = [
+    {
+      id: "5h",
+      title: "5h Limit",
+      percentRemaining: u.fiveHour.percentageRemaining,
+      resetsInSeconds: u.fiveHour.resetsInSeconds,
+      resetsText: u.fiveHour.resetsIn,
+    },
+  ];
+
+  if (u.sevenDay) {
+    items.push({
+      id: "weekly",
+      title: "Weekly Limit",
+      percentRemaining: u.sevenDay.percentageRemaining,
+      resetsInSeconds: u.sevenDay.resetsInSeconds,
+      resetsText: u.sevenDay.resetsIn,
+    });
+  }
+
+  for (const [model, window] of Object.entries(u.modelWindows || {})) {
+    items.push({
+      id: `model-${model}`,
+      title: formatModelLabel(model),
+      percentRemaining: window.percentageRemaining,
+      resetsInSeconds: window.resetsInSeconds,
+      resetsText: window.resetsIn,
+    });
+  }
+
+  return items;
 }
 
 export function formatClaudeUsageText(usage: ClaudeUsage | null, error: ClaudeError | null): string {
@@ -31,15 +58,10 @@ export function formatClaudeUsageText(usage: ClaudeUsage | null, error: ClaudeEr
   const u = usage as ClaudeUsage;
 
   let text = `Claude Usage\nPlan: ${u.plan}`;
-  text += formatWindow("5h Limit", u.fiveHour.percentageRemaining, u.fiveHour.resetsIn);
-
-  if (u.sevenDay) {
-    text += formatWindow("Weekly Limit", u.sevenDay.percentageRemaining, u.sevenDay.resetsIn);
+  if (u.viaOmp) {
+    text += `\nSource: via omp`;
   }
-
-  for (const [model, window] of Object.entries(u.modelWindows || {})) {
-    text += formatWindow(formatModelLabel(model), window.percentageRemaining, window.resetsIn);
-  }
+  text += formatLimitsText(claudeLimitItems(u));
 
   if (u.extraUsage) {
     text += `\n\nExtra Usage: ${u.extraUsage.currency} ${u.extraUsage.used.toFixed(2)} / ${u.extraUsage.currency} ${u.extraUsage.limit.toFixed(2)}`;
@@ -56,35 +78,11 @@ export function renderClaudeDetail(usage: ClaudeUsage | null, error: ClaudeError
   return (
     <List.Item.Detail.Metadata>
       <List.Item.Detail.Metadata.Label title="Plan" text={u.plan} />
-      <List.Item.Detail.Metadata.Separator />
-
-      <List.Item.Detail.Metadata.Label
-        title="5h Limit"
-        text={`${generateAsciiBar(u.fiveHour.percentageRemaining)} ${u.fiveHour.percentageRemaining}% remaining`}
-      />
-      {u.fiveHour.resetsIn && <LiveResetLabel seconds={u.fiveHour.resetsInSeconds} />}
-
-      {u.sevenDay && (
-        <>
-          <List.Item.Detail.Metadata.Separator />
-          <List.Item.Detail.Metadata.Label
-            title="Weekly Limit"
-            text={`${generateAsciiBar(u.sevenDay.percentageRemaining)} ${u.sevenDay.percentageRemaining}% remaining`}
-          />
-          {u.sevenDay.resetsIn && <LiveResetLabel seconds={u.sevenDay.resetsInSeconds} />}
-        </>
+      {u.viaOmp && (
+        <List.Item.Detail.Metadata.Label title="Source" text="via omp" />
       )}
 
-      {Object.entries(u.modelWindows || {}).map(([model, window]) => (
-        <React.Fragment key={model}>
-          <List.Item.Detail.Metadata.Separator />
-          <List.Item.Detail.Metadata.Label
-            title={formatModelLabel(model)}
-            text={`${generateAsciiBar(window.percentageRemaining)} ${window.percentageRemaining}% remaining`}
-          />
-          {window.resetsIn && <LiveResetLabel seconds={window.resetsInSeconds} />}
-        </React.Fragment>
-      ))}
+      <LimitItems items={claudeLimitItems(u)} />
 
       {u.extraUsage && (
         <>
@@ -196,9 +194,11 @@ export function getClaudeAccessory(
     );
   }
 
+  const tooltip = tooltipParts.join("\n") || "Claude";
+
   return {
     icon: generatePieIcon(resolved.percent),
     text: `${resolved.percent}%`,
-    tooltip: tooltipParts.join("\n") || "Claude",
+    tooltip: usage?.viaOmp ? `${tooltip}\nvia omp` : tooltip,
   };
 }
