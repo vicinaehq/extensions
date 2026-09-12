@@ -1,0 +1,433 @@
+{
+  "name": "limit-tracker",
+  "version": "1.0.0",
+  "title": "Limit Tracker",
+  "description": "Track and monitor AI coding agent limits and usage across Claude, Copilot, Cursor, DeepSeek, Devin, Gemini, Codex, OpenCode Go, z.ai, Antigravity, Command Code, Kimi, Synthetic, ClinePass, Droid, MiniMax, Grok, Amp and AiHubMix",
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "pfTheTrial",
+  "contributors": [],
+  "scripts": {
+    "build": "vici build --out .build/limit-tracker",
+    "install:local": "vici build",
+    "dev": "vici develop",
+    "test": "node scripts/test.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.28.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "@types/react": "^19.2.18",
+    "typescript": "^5.9.3"
+  },
+  "icon": "limit-tracker-icon.svg",
+  "commands": [
+    {
+      "name": "agent-usage",
+      "title": "Usage",
+      "subtitle": "Track AI Agent Limits",
+      "description": "Show and track AI agent usage limits",
+      "mode": "view"
+    },
+    {
+      "name": "agent-usage-menubar",
+      "title": "Usage",
+      "subtitle": "Limit Tracker",
+      "description": "Show AI agent usage limits in the menu bar",
+      "mode": "menu-bar",
+      "interval": "1h"
+    }
+  ],
+  "platforms": [
+    "Linux",
+    "macOS",
+    "Windows"
+  ],
+  "preferences": [
+    {
+      "name": "showClaude",
+      "type": "checkbox",
+      "label": "Show Claude",
+      "title": "Show Claude",
+      "description": "Show Claude usage in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "claudeLimitView",
+      "type": "dropdown",
+      "title": "Claude Limit View",
+      "description": "Which Claude limit the list row and menu bar show by default",
+      "data": [
+        { "title": "Auto", "value": "auto" },
+        { "title": "5-hour", "value": "5h" },
+        { "title": "Weekly", "value": "weekly" }
+      ],
+      "default": "auto",
+      "required": false
+    },
+    {
+      "name": "showCodex",
+      "type": "checkbox",
+      "label": "Show Codex",
+      "title": "Show Codex",
+      "description": "Show Codex usage in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "additionalCodexHomes",
+      "type": "textfield",
+      "title": "Additional Codex Homes (Optional)",
+      "placeholder": "~/.codex-personal, ~/.codex-work",
+      "description": "Comma-separated CODEX_HOME directories to include in addition to the default Codex home",
+      "required": false
+    },
+    {
+      "name": "codexLimitView",
+      "type": "dropdown",
+      "title": "Codex Limit View",
+      "description": "Which Codex limit the list row and menu bar show by default",
+      "data": [
+        { "title": "Auto", "value": "auto" },
+        { "title": "5-hour", "value": "5h" },
+        { "title": "Weekly", "value": "weekly" }
+      ],
+      "default": "auto",
+      "required": false
+    },
+    {
+      "name": "showCopilot",
+      "type": "checkbox",
+      "label": "Show Copilot",
+      "title": "Show Copilot",
+      "description": "Show Copilot usage in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "copilotAuthToken",
+      "type": "password",
+      "title": "Copilot Authorization Token (Optional)",
+      "description": "Optional fallback OAuth token for Copilot usage. Usually auto-detected from GH_TOKEN or GITHUB_TOKEN. Standard PATs may not work.",
+      "required": false
+    },
+    {
+      "name": "showCursor",
+      "type": "checkbox",
+      "label": "Show Cursor",
+      "title": "Show Cursor",
+      "description": "Show Cursor usage in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "cursorCookieHeader",
+      "type": "password",
+      "title": "Cursor Cookie Header (Optional)",
+      "description": "Optional fallback Cookie header from cursor.com. Usually auto-detected from your local Cursor.app login.",
+      "required": false
+    },
+    {
+      "name": "showDeepSeek",
+      "type": "checkbox",
+      "label": "Show DeepSeek",
+      "title": "Show DeepSeek",
+      "description": "Show DeepSeek balance in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "deepseekApiKey",
+      "type": "password",
+      "title": "DeepSeek API Key (Optional)",
+      "description": "Auto-detected from OpenCode login (deepseek) or DEEPSEEK_API_KEY/DEEPSEEK_KEY. Fallback: paste an API key from https://platform.deepseek.com/api_keys.",
+      "required": false
+    },
+    {
+      "name": "showDevin",
+      "type": "checkbox",
+      "label": "Show Devin",
+      "title": "Show Devin",
+      "description": "Show Devin daily/weekly quota (self-serve) or ACU limits (Enterprise)",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "devinSessionToken",
+      "type": "password",
+      "title": "Devin Session Token (Optional)",
+      "description": "Bearer session token from app.devin.ai cookies — works on any plan for daily/weekly quota. Or set DEVIN_BEARER_TOKEN.",
+      "required": false
+    },
+    {
+      "name": "devinOrganization",
+      "type": "textfield",
+      "title": "Devin Organization (Optional)",
+      "placeholder": "org/my-team or org_...",
+      "description": "Organization slug or id shown in the app.devin.ai URL. Required together with the session token. Or set DEVIN_ORGANIZATION.",
+      "required": false
+    },
+    {
+      "name": "devinApiKey",
+      "type": "password",
+      "title": "Devin API Key (Optional)",
+      "description": "Service user key (cog_...) with ViewAccountConsumption + ManageBilling permissions. Enterprise plan only. Or set DEVIN_API_KEY.",
+      "required": false
+    },
+    {
+      "name": "showGemini",
+      "type": "checkbox",
+      "label": "Show Gemini",
+      "title": "Show Gemini",
+      "description": "Show Gemini usage in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "showOpencodeGo",
+      "type": "checkbox",
+      "label": "Show OpenCode Go",
+      "title": "Show OpenCode Go",
+      "description": "Show OpenCode Go subscription usage in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "opencodegoApiKey",
+      "type": "password",
+      "title": "OpenCode Go API Key (Recommended)",
+      "description": "Your OpenCode Go API key. Get it from https://opencode.ai/settings. Alternatively, set OPENCODE_API_KEY in your shell.",
+      "required": false
+    },
+    {
+      "name": "opencodegoWorkspaceId",
+      "type": "textfield",
+      "title": "OpenCode Go Workspace ID (Optional)",
+      "placeholder": "wrk_...",
+      "description": "Cookie-login alternative to the API key: your OpenCode Go workspace id (both fields required).",
+      "required": false
+    },
+    {
+      "name": "opencodegoAuthCookie",
+      "type": "password",
+      "title": "OpenCode Go Auth Cookie (Optional)",
+      "description": "Session cookie from opencode.ai — used only together with the Workspace ID above, when no API key is set.",
+      "required": false
+    },
+    {
+      "name": "showZai",
+      "type": "checkbox",
+      "label": "Show z.ai (GLM)",
+      "title": "Show z.ai (GLM)",
+      "description": "Show z.ai (GLM) usage in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "zaiApiToken",
+      "type": "password",
+      "title": "z.ai API Token (Optional)",
+      "description": "Optional fallback token. Usually auto-detected from ZAI_API_KEY or GLM_API_KEY environment variable.",
+      "required": false
+    },
+    {
+      "name": "showAntigravity",
+      "type": "checkbox",
+      "label": "Show Antigravity",
+      "title": "Show Antigravity",
+      "description": "Show Antigravity quota snapshots (via omp) in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "showCommandcode",
+      "type": "checkbox",
+      "label": "Show Command Code",
+      "title": "Show Command Code",
+      "description": "Show Command Code credit usage in the list",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "commandcodeApiKey",
+      "type": "password",
+      "title": "Command Code API Key (Optional)",
+      "description": "Optional key. Usually auto-detected from ~/.commandcode/auth.json after `cmd login`, or COMMANDCODE_API_KEY.",
+      "required": false
+    },
+    {
+      "name": "showKimi",
+      "type": "checkbox",
+      "label": "Show Kimi",
+      "title": "Show Kimi",
+      "description": "Show Kimi Code weekly + 5-hour quotas in the list",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "kimiCodeApiKey",
+      "type": "password",
+      "title": "Kimi Code API Key (Optional)",
+      "description": "API key from the Kimi Code dashboard. Auto-detected from the Kimi Code CLI login or KIMI_CODE_API_KEY.",
+      "required": false
+    },
+    {
+      "name": "showSynthetic",
+      "type": "checkbox",
+      "label": "Show Synthetic",
+      "title": "Show Synthetic",
+      "description": "Show Synthetic subscription quotas in the list",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "syntheticApiKey",
+      "type": "password",
+      "title": "Synthetic API Key (Optional)",
+      "description": "API key from dev.synthetic.new (Subconscious quota lanes). Or set SYNTHETIC_API_KEY.",
+      "required": false
+    },
+    {
+      "name": "showClinePass",
+      "type": "checkbox",
+      "label": "Show ClinePass",
+      "title": "Show ClinePass",
+      "description": "Show ClinePass 5-hour/weekly/monthly limits in the list",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "clinepassApiKey",
+      "type": "password",
+      "title": "ClinePass API Key (Optional)",
+      "description": "ClinePass API key from the Cline app. Or set CLINEPASS_API_KEY / CLINE_API_KEY.",
+      "required": false
+    },
+    {
+      "name": "showDroid",
+      "type": "checkbox",
+      "label": "Show Droid",
+      "title": "Show Droid (Factory)",
+      "description": "Show Factory Droid usage limits in the list",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "droidApiKey",
+      "type": "password",
+      "title": "Factory API Key (Optional)",
+      "description": "API key from app.factory.ai/settings/api-keys. Auto-detected from FACTORY_API_KEY or ~/.factory/.env.",
+      "required": false
+    },
+    {
+      "name": "showMinimax",
+      "type": "checkbox",
+      "label": "Show MiniMax",
+      "title": "Show MiniMax",
+      "description": "Show MiniMax Coding Plan model quotas in the list",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "minimaxApiKey",
+      "type": "password",
+      "title": "MiniMax API Key (Optional)",
+      "description": "Coding Plan key (sk-cp-*) from platform.minimax.io. Or set MINIMAX_CODING_API_KEY / MINIMAX_API_KEY.",
+      "required": false
+    },
+    {
+      "name": "showMinimaxCN",
+      "type": "checkbox",
+      "label": "Show MiniMax (China)",
+      "title": "Show MiniMax (China)",
+      "description": "Show MiniMax Coding Plan quotas via the China mainland endpoint in the list",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "minimaxcnApiKey",
+      "type": "password",
+      "title": "MiniMax China API Key (Optional)",
+      "description": "Coding Plan key from platform.minimaxi.com. Or set MINIMAX_CN_API_KEY.",
+      "required": false
+    },
+    {
+      "name": "showGrok",
+      "type": "checkbox",
+      "label": "Show Grok",
+      "title": "Show Grok",
+      "description": "Show Grok CLI credits in the list",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "grokBearerToken",
+      "type": "password",
+      "title": "Grok Bearer Token (Optional)",
+      "description": "Auto-detected from the Grok CLI login (~/.grok/auth.json) or GROK_OAUTH_TOKEN. Paste a token here as fallback.",
+      "required": false
+    },
+    {
+      "name": "showAmp",
+      "type": "checkbox",
+      "label": "Show Amp",
+      "title": "Show Amp",
+      "description": "Show Amp free tier + subscription usage in the list",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "ampApiKey",
+      "type": "password",
+      "title": "Amp API Key (Optional)",
+      "description": "Access token from Amp settings. Falls back to `amp usage` CLI output when no key is set.",
+      "required": false
+    },
+    {
+      "name": "showAihubmix",
+      "type": "checkbox",
+      "label": "Show AiHubMix",
+      "title": "Show AiHubMix",
+      "description": "Show AiHubMix account balance in the list",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "aihubmixApiKey",
+      "type": "password",
+      "title": "AiHubMix API Key (Optional)",
+      "description": "API key (sk-*) from aihubmix.com. Or set AIHUBMIX_API_KEY.",
+      "required": false
+    },
+    {
+      "name": "pinnedProviders",
+      "type": "textfield",
+      "title": "Pinned Providers (Optional)",
+      "placeholder": "claude, codex, zai",
+      "description": "Comma-separated provider ids to pin at the top of the list and menu bar (up to 3)",
+      "required": false
+    },
+    {
+      "name": "cacheTtl",
+      "type": "textfield",
+      "title": "Refresh Interval (Seconds)",
+      "description": "How often usage data is refetched from provider APIs. Applies to the list and menu bar (menu bar itself wakes hourly). Set to 0 to disable caching.",
+      "default": "180",
+      "required": false
+    },
+    {
+      "name": "useOmpHarness",
+      "type": "checkbox",
+      "label": "Use oh-my-pi harness",
+      "title": "Use oh-my-pi harness",
+      "description": "Reuse omp logins and quota snapshots as fallback sources (Claude, Codex, OpenCode Go, Antigravity)",
+      "default": true,
+      "required": false
+    }
+  ]
+}
