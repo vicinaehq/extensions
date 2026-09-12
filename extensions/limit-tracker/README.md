@@ -247,7 +247,8 @@ Contributions are welcome! Please:
 This project was inspired by and builds upon the work of several open-source projects:
 
 - **[Raycast Agent Usage](https://github.com/nicoprocessor/raycast-agent-usage-utility)** — the original Raycast extension that inspired this project's UX and provider coverage.
-- **[CodexBar](https://github.com/steipete/CodexBar)** — for the README structure and project organization reference.
+- **[CodexBar](https://github.com/steipete/CodexBar)** — for the README structure and project organization reference. Provider icons for Amp, ClinePass, Devin, Factory (Droid), Grok, Kimi, MiniMax, and Synthetic are the official brand marks sourced from CodexBar (MIT).
+- **[Lobe Icons](https://github.com/lobehub/lobe-icons)** — the AiHubMix monochrome mark.
 - **[Vicinae](https://vicinae.com)** — for the native extension API (`@vicinae/api`) and the launcher platform.
 
 ---
