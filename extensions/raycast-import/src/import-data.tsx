@@ -365,33 +365,35 @@ function findEmojiInExport(root: unknown): RaycastEmoji[] {
 	return ((v2Raw ?? v1Raw) as unknown[]).map((item) => item as RaycastEmoji);
 }
 
-// Recognized Raycast export top-level keys (v1 & v2). Used by
-// looksLikeRaycastExport() to reject unrelated JSON BEFORE any store is
-// modified (CORRECTNESS-001: an invalid .json must never erase snippets via
-// "Replace existing").
-const RAYCAST_EXPORT_KEYS = [
-	"snippets",
-	"builtin_package_snippets",
-	"clipboardHistory",
-	"builtin_package_clipboardHistory",
-	"emoji",
-	"builtin_package_emoji",
-	"quicklinks",
-	"builtin_package_quicklinks",
-	"nodeExtensions",
-	"mcpServers",
-	"notes",
-	"settings",
-	"userActivity",
-	"windowLayouts",
-	"dots",
-	"timeMachine",
-	"ai",
-	"widgets",
+// Recognized Raycast export top-level groups and the field that must hold the
+// actual data array. Used by looksLikeRaycastExport() to reject unrelated JSON
+// BEFORE any store is modified (CORRECTNESS-001: an invalid .json must never
+// erase snippets via "Replace existing"). Presence of a key alone is NOT
+// enough — the value must be (or contain) an array of entries, so generic
+// objects carrying keys like `settings` or `notes` don't pass.
+const RAYCAST_EXPORT_GROUPS: { key: string; container?: string }[] = [
+	{ key: "snippets", container: "snippets" },
+	{ key: "builtin_package_snippets", container: "snippets" },
+	{ key: "clipboardHistory", container: "clipboardEntries" },
+	{ key: "builtin_package_clipboardHistory", container: "clipboardEntries" },
+	{ key: "emoji", container: "emojis" },
+	{ key: "builtin_package_emoji", container: "emojis" },
+	{ key: "nodeExtensions", container: "extensions" },
+	{ key: "quicklinks", container: "quicklinks" },
 ];
 
+/** True if `value` is a Raycast data container: either the bare array itself
+ *  (`snippets: [...]`) or an object whose `container` field is the array
+ *  (`nodeExtensions: { schemaVersion, extensions: [...] }`). */
+function isRaycastContainer(value: unknown, container?: string): boolean {
+	if (Array.isArray(value)) return true;
+	if (value === null || typeof value !== "object") return false;
+	const obj = value as Record<string, unknown>;
+	return container ? Array.isArray(obj[container]) : Object.values(obj).some(Array.isArray);
+}
+
 /** True if `data` looks like a Raycast export (v1 snippet array, or an object
- *  carrying at least one recognized Raycast top-level group). */
+ *  carrying at least one structurally valid Raycast data group). */
 export function looksLikeRaycastExport(data: unknown): boolean {
 	if (Array.isArray(data)) {
 		// v1 "Export Snippets" is a bare array of snippet objects — accept any
@@ -402,8 +404,10 @@ export function looksLikeRaycastExport(data: unknown): boolean {
 		);
 	}
 	if (data === null || typeof data !== "object") return false;
-	const keys = Object.keys(data as Record<string, unknown>);
-	return keys.some((k) => RAYCAST_EXPORT_KEYS.includes(k));
+	const obj = data as Record<string, unknown>;
+	return RAYCAST_EXPORT_GROUPS.some(
+		(g) => g.key in obj && isRaycastContainer(obj[g.key], g.container),
+	);
 }
 
 function readExportSnippets(file: string, passphrase: string): {
@@ -811,7 +815,11 @@ function ImportForm() {
 				pickedExtensions !== null
 					? pickedExtensions
 					: extensions.map((e) => ({ name: e.name, author: e.author }));
-			const extsAvailable = includeExtensions && extensions.length > 0;
+			// Only treat extensions as available when the FINAL selection is
+			// non-empty. If the user deselected every one in the picker, extPick
+			// is [] — fall through to the normal result view instead of
+			// launching a no-op background import (UX-002).
+			const extsAvailable = includeExtensions && extPick.length > 0;
 
 			// helper: write encrypted payload + hand off to the background worker,
 			// falling back to inline (same core loops) if the handoff fails.
