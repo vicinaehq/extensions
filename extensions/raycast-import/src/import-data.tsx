@@ -410,11 +410,27 @@ export function looksLikeRaycastExport(data: unknown): boolean {
 	);
 }
 
+/** True if `data` carries a SNIPPET data container specifically. For an object
+ *  export this means a `snippets`/`builtin_package_snippets` group holding an
+ *  array. A bare array is the v1 "Export Snippets" form — even an empty one is
+ *  a structurally valid empty snippet export the user intentionally replaced
+ *  with. Used to guard the snippet-store write so a valid but snippet-less
+ *  export (e.g. only `quicklinks`) can never erase the store in replace mode. */
+function hasSnippetContainer(data: unknown): boolean {
+	if (Array.isArray(data)) return true;
+	if (data === null || typeof data !== "object") return false;
+	const obj = data as Record<string, unknown>;
+	return ["snippets", "builtin_package_snippets"].some(
+		(k) => k in obj && isRaycastContainer(obj[k], "snippets"),
+	);
+}
+
 function readExportSnippets(file: string, passphrase: string): {
 	snippets: { name: string; text: string; keyword?: string }[];
 	clipboard: { text: string; category: string; applicationPath?: string }[];
 	emoji: RaycastEmoji[];
 	extensions: RaycastNodeExtension[];
+	hasSnippets: boolean;
 } {
 	const buf = readFileSync(file);
 	const lower = file.toLowerCase();
@@ -431,7 +447,13 @@ function readExportSnippets(file: string, passphrase: string): {
 			const arr = Array.isArray(parsed)
 				? parsed
 				: (parsed as { snippets?: unknown }).snippets ?? [];
-			return { snippets: findSnippetsInExport(arr), clipboard: [], emoji: [], extensions: [] };
+			return {
+				snippets: findSnippetsInExport(arr),
+				clipboard: [],
+				emoji: [],
+				extensions: [],
+				hasSnippets: hasSnippetContainer(parsed),
+			};
 		} catch (err) {
 			if (err instanceof Error && err.message === "notRaycast") throw new Error("notRaycast");
 			throw new Error("invalid-json");
@@ -452,6 +474,7 @@ function readExportSnippets(file: string, passphrase: string): {
 			clipboard: findClipboardInExport(res.data),
 			emoji: findEmojiInExport(res.data),
 			extensions: findNodeExtensions(res.data),
+			hasSnippets: hasSnippetContainer(res.data),
 		};
 	}
 	const res = decryptV1(buf, passphrase);
@@ -462,6 +485,7 @@ function readExportSnippets(file: string, passphrase: string): {
 		clipboard: findClipboardInExport(res.data),
 		emoji: findEmojiInExport(res.data),
 		extensions: findNodeExtensions(res.data),
+		hasSnippets: hasSnippetContainer(res.data),
 	};
 }
 
@@ -733,12 +757,14 @@ function ImportForm() {
 			let clipboard: ClipboardRecord[];
 			let emojis: RaycastEmoji[];
 			let extensions: RaycastNodeExtension[];
+			let hasSnippets = false;
 			try {
 				const parsed = readExportSnippets(file, passphrase);
 				entries = parsed.snippets;
 				clipboard = parsed.clipboard;
 				emojis = parsed.emoji;
 				extensions = parsed.extensions;
+				hasSnippets = parsed.hasSnippets;
 			} catch (err) {
 				const code = err instanceof Error ? err.message : "corrupt";
 				const title =
@@ -785,15 +811,29 @@ function ImportForm() {
 				else if (skippedReason) skipped.push(e.name ?? "?");
 			}
 
-			if (existsSync(snippetsPath())) {
-				const b = `${snippetsPath()}.bak-${at}`;
-				renameSync(snippetsPath(), b);
+			// CORRECTNESS-001: only touch the snippet store when the validated
+			// export actually carries a snippet container. A valid but
+			// snippet-less export (e.g. only quicklinks/emoji/nodeExtensions)
+			// must never overwrite the store with an empty array in replace
+			// mode.
+			if (hasSnippets) {
+				if (existsSync(snippetsPath())) {
+					const b = `${snippetsPath()}.bak-${at}`;
+					renameSync(snippetsPath(), b);
+				}
+				mkdirSync(dirname(snippetsPath()), { recursive: true });
+				const all = [...existing, ...imported];
+				const tmp = `${snippetsPath()}.tmp-${at}`;
+				writeFileSync(tmp, JSON.stringify(all, null, 2) + "\n", "utf8");
+				renameSync(tmp, snippetsPath());
+			} else {
+				await showToast({
+					style: Toast.Style.Warning,
+					title: "No snippets in this export",
+					message:
+						"This file doesn't contain a snippet list, so your snippet store was left untouched (replace mode would otherwise have emptied it).",
+				});
 			}
-			mkdirSync(dirname(snippetsPath()), { recursive: true });
-			const all = [...existing, ...imported];
-			const tmp = `${snippetsPath()}.tmp-${at}`;
-			writeFileSync(tmp, JSON.stringify(all, null, 2) + "\n", "utf8");
-			renameSync(tmp, snippetsPath());
 
 			// emoji metadata (frecency + custom keywords) — safe atomic merge
 			const includeEmoji = Boolean(input.importEmoji);
