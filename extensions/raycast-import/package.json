@@ -1,0 +1,42 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "raycast-import",
+	"title": "Raycast Import",
+	"version": "0.2.0",
+	"description": "Import data exported from Raycast (snippets, clipboard history, emoji) into Vicinae.",
+	"categories": ["Productivity", "Data"],
+	"license": "MIT",
+	"author": "danielfstefan",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension_icon.png",
+	"commands": [
+		{
+			"name": "import-data",
+			"title": "Import Raycast Data",
+			"description": "Import snippets, clipboard history, and emoji history from a Raycast export (.json or encrypted .rayconfig)",
+			"mode": "view"
+		},
+		{
+			"name": "import-clipboard",
+			"title": "Import Clipboard History (background)",
+			"description": "Headless helper: replays the decrypted clipboard history through Vicinae's own recorder. Launched automatically by 'Import Raycast Data' — no need to run this directly.",
+			"mode": "no-view"
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"format": "biome format --write src",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.22.2"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.2",
+		"@types/node": "^24.0.0",
+		"@biomejs/biome": "2.3.2"
+	}
+}
