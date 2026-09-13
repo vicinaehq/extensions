@@ -2,7 +2,7 @@
 	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
 	"name": "raycast-import",
 	"title": "Raycast Import",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Import data exported from Raycast (snippets, clipboard history, emoji, extensions) into Vicinae.",
 	"categories": ["Productivity", "Data"],
 	"license": "MIT",
@@ -14,26 +14,15 @@
 		{
 			"name": "import-data",
 			"title": "Import Raycast Data",
-			"description": "Import snippets, clipboard history, and emoji history from a Raycast export (.json or encrypted .rayconfig)",
+			"description": "Import snippets, clipboard history, emoji, and Raycast extensions from a Raycast export (.json or encrypted .rayconfig)",
 			"mode": "view"
 		},
 		{
-			"name": "import-extensions",
-			"title": "Import Raycast Extensions",
-			"description": "Pick which of your installed Raycast extensions (from a .rayconfig backup) to install into Vicinae — all or a selection",
-			"mode": "view"
-		},
-		{
-			"name": "import-clipboard",
-			"title": "Import Clipboard History (background)",
-			"description": "Headless helper: replays the decrypted clipboard history through Vicinae's own recorder. Launched automatically by 'Import Raycast Data' — no need to run this directly.",
-			"mode": "no-view"
-		},
-		{
-			"name": "install-extensions",
-			"title": "Install Raycast Extensions (background)",
-			"description": "Headless helper: downloads and installs the picked Raycast extensions from the official Raycast store. Launched automatically by 'Import Raycast Extensions' — no need to run this directly.",
-			"mode": "no-view"
+			"name": "import-background",
+			"title": "Import Raycast Data (background)",
+			"description": "Headless helper: replays clipboard history through Vicinae's recorder and installs the picked extensions from the official Raycast store. Launched automatically by 'Import Raycast Data' — no need to run this directly.",
+			"mode": "no-view",
+			"disabledByDefault": true
 		}
 	],
 	"preferences": [],

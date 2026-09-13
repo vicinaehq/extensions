@@ -24,6 +24,14 @@ import {
 	showToast,
 	useNavigation,
 } from "@vicinae/api";
+import {
+	deleteSecretPayload,
+	writeSecretPayload,
+	cleanupStaleSecrets,
+} from "./lib/secure-tmp";
+import { importClipboardRecords, type ClipboardRecord } from "./lib/clipboard-import";
+import { installExtensions as installExtensionsCore, type ExtensionPick } from "./lib/extensions-install";
+import { findNodeExtensions, type RaycastNodeExtension } from "./lib/raycast";
 
 // ---- Vicinae snippet storage (verified against upstream src/snippet + glaze v7) ----
 //   { id, name, data: { "text": "..." } | { "file": "..." }, createdAt, updatedAt?, expansion? }
@@ -207,24 +215,76 @@ function findSnippetsInExport(
 	return out;
 }
 
-// Tinycast/Raycast rich-text doc: rawContent.content[] -> content[] -> { text }
+// Tinycast/Raycast rich-text doc (TipTap/ProseMirror-like):
+//   rawContent = { type:"doc", content:[ { type:"paragraph", content:[
+//       { type:"text", text:"Hello "}, { type:"text", marks:[...], text:"world" } ] },
+//     { type:"paragraph", content:[...] } ] }
+// Inline leaves inside one block must be CONCATENATED (no newline between
+// adjacent formatted spans); newlines only separate block-level nodes
+// (paragraph/heading/codeBlock/blockquote/list). At the end, collapse runs of
+// 2+ newlines to a single one so the result reads like a plain snippet.
+const RICH_TEXT_BLOCK_TYPES = new Set([
+	"paragraph",
+	"heading",
+	"codeBlock",
+	"blockquote",
+	"bulletList",
+	"orderedList",
+	"listItem",
+	"list",
+	"hardBreak",
+	"horizontalRule",
+	"table",
+	"tableRow",
+	"tableCell",
+	"tableHeader",
+]);
+
 function extractRichText(raw: unknown): string {
 	if (!raw || typeof raw !== "object") return "";
-	const parts: string[] = [];
+	const blocks: string[] = [];
+	let inline = "";
+
+	const flush = () => {
+		blocks.push(inline);
+		inline = "";
+	};
+
+	const isBlock = (n: Record<string, unknown>): boolean => {
+		const t = (n["type"] ?? "").toString();
+		return RICH_TEXT_BLOCK_TYPES.has(t);
+	};
+
 	const walk = (node: Record<string, unknown> | unknown[], depth: number) => {
 		if (depth > 16) return;
 		if (Array.isArray(node)) {
-			for (const el of node) if (el && typeof el === "object") walk(el as Record<string, unknown>, depth + 1);
+			for (const el of node) {
+				if (el && typeof el === "object") {
+					const n = el as Record<string, unknown>;
+					const block = isBlock(n);
+					// close any pending inline run before hitting a block, and close
+					// the block's own text after it (each block = one line)
+					if (block && inline.length > 0) flush();
+					walk(n, depth + 1);
+					if (block && inline.length > 0) flush();
+				}
+			}
 			return;
 		}
 		const n = node as Record<string, unknown>;
-		if (typeof n["text"] === "string") parts.push(n["text"] as string);
+		if (typeof n["text"] === "string") inline += n["text"] as string;
 		const content = n["content"];
 		if (Array.isArray(content)) walk(content, depth + 1);
 		else if (content && typeof content === "object") walk(content as Record<string, unknown>, depth + 1);
 	};
 	walk(raw as Record<string, unknown>, 0);
-	return parts.join("\n");
+	if (inline) flush();
+
+	const text = blocks
+		.join("\n")
+		.replace(/\n{2,}/g, "\n")
+		.replace(/^\n+|\n+$/g, "");
+	return text;
 }
 
 function findClipboardInExport(root: unknown): {
@@ -305,10 +365,52 @@ function findEmojiInExport(root: unknown): RaycastEmoji[] {
 	return ((v2Raw ?? v1Raw) as unknown[]).map((item) => item as RaycastEmoji);
 }
 
+// Recognized Raycast export top-level keys (v1 & v2). Used by
+// looksLikeRaycastExport() to reject unrelated JSON BEFORE any store is
+// modified (CORRECTNESS-001: an invalid .json must never erase snippets via
+// "Replace existing").
+const RAYCAST_EXPORT_KEYS = [
+	"snippets",
+	"builtin_package_snippets",
+	"clipboardHistory",
+	"builtin_package_clipboardHistory",
+	"emoji",
+	"builtin_package_emoji",
+	"quicklinks",
+	"builtin_package_quicklinks",
+	"nodeExtensions",
+	"mcpServers",
+	"notes",
+	"settings",
+	"userActivity",
+	"windowLayouts",
+	"dots",
+	"timeMachine",
+	"ai",
+	"widgets",
+];
+
+/** True if `data` looks like a Raycast export (v1 snippet array, or an object
+ *  carrying at least one recognized Raycast top-level group). */
+export function looksLikeRaycastExport(data: unknown): boolean {
+	if (Array.isArray(data)) {
+		// v1 "Export Snippets" is a bare array of snippet objects — accept any
+		// array that PLAUSIBLY holds snippets (objects with a name/text/keyword)
+		if (data.length === 0) return true; // structurally valid empty export
+		return data.every(
+			(e) => e !== null && typeof e === "object" && ("name" in e || "text" in e || "keyword" in e),
+		);
+	}
+	if (data === null || typeof data !== "object") return false;
+	const keys = Object.keys(data as Record<string, unknown>);
+	return keys.some((k) => RAYCAST_EXPORT_KEYS.includes(k));
+}
+
 function readExportSnippets(file: string, passphrase: string): {
 	snippets: { name: string; text: string; keyword?: string }[];
 	clipboard: { text: string; category: string; applicationPath?: string }[];
 	emoji: RaycastEmoji[];
+	extensions: RaycastNodeExtension[];
 } {
 	const buf = readFileSync(file);
 	const lower = file.toLowerCase();
@@ -321,11 +423,13 @@ function readExportSnippets(file: string, passphrase: string): {
 	if (isPlainJson) {
 		try {
 			const parsed = JSON.parse(buf.toString("utf8"));
+			if (!looksLikeRaycastExport(parsed)) throw new Error("notRaycast");
 			const arr = Array.isArray(parsed)
 				? parsed
 				: (parsed as { snippets?: unknown }).snippets ?? [];
-			return { snippets: findSnippetsInExport(arr), clipboard: [], emoji: [] };
-		} catch {
+			return { snippets: findSnippetsInExport(arr), clipboard: [], emoji: [], extensions: [] };
+		} catch (err) {
+			if (err instanceof Error && err.message === "notRaycast") throw new Error("notRaycast");
 			throw new Error("invalid-json");
 		}
 	}
@@ -338,18 +442,22 @@ function readExportSnippets(file: string, passphrase: string): {
 		// v2 — either legacy gz-json envelope or RAYCFG3 binary envelope
 		const res = decryptV2(buf, passphrase, buf[0] === 0x52);
 		if (!res.ok) throw new Error(res.error);
+		if (!looksLikeRaycastExport(res.data)) throw new Error("notRaycast");
 		return {
 			snippets: findSnippetsInExport(res.data),
 			clipboard: findClipboardInExport(res.data),
 			emoji: findEmojiInExport(res.data),
+			extensions: findNodeExtensions(res.data),
 		};
 	}
 	const res = decryptV1(buf, passphrase);
 	if (!res.ok) throw new Error(res.error);
+	if (!looksLikeRaycastExport(res.data)) throw new Error("notRaycast");
 	return {
 		snippets: findSnippetsInExport(res.data),
 		clipboard: findClipboardInExport(res.data),
 		emoji: findEmojiInExport(res.data),
+		extensions: findNodeExtensions(res.data),
 	};
 }
 
@@ -391,7 +499,8 @@ function toVicinaeSnippet(
 	existingKeywords: Set<string>,
 ): { snippet: VicinaeSnippet | null; skippedReason?: string } {
 	const name = (rc.name ?? "").trim();
-	const text = (rc.text ?? "").trim();
+	const rawText = rc.text ?? "";
+	const text = rawText.trim();
 	const keyword = (rc.keyword ?? "").trim() || undefined;
 	if (!name) return { snippet: null, skippedReason: "missing name" };
 	if (!text) return { snippet: null, skippedReason: "snippet is empty" };
@@ -408,7 +517,7 @@ function toVicinaeSnippet(
 	const snippet: VicinaeSnippet = {
 		id,
 		name,
-		data: { text },
+		data: { text: rawText }, // preserve intentional leading/trailing whitespace
 		createdAt: at,
 		...((keyword ? { expansion: { keyword, apps: [] as string[], word: true } } : {}) as object),
 	};
@@ -508,107 +617,88 @@ function importEmojiMetadata(emojis: RaycastEmoji[]): number {
 // change is observed per tick. So we copy one entry every ~600ms — the import runs
 // at ~1.7 entries/sec. ~4,900 text+link records ≈ 45-50 minutes.
 
-type ClipboardRecord = { text: string; category: string; applicationPath?: string };
+// ---- Inline extension-install fallback (used only if the background handoff
+//      fails on an old runtime) ---
 
-type ClipboardImportResult =
-	| {
-			status: "ok";
-			imported: number;
-			skippedDupes: number;
-			skippedImagesFiles: number;
-			skippedEmpty: number;
-			errors: { byteLen: number; error: string }[];
-	  }
-	| { status: "no-records" };
-
-const CLIPBOARD_COPY_INTERVAL_MS = 600;
-
-function sleep(ms: number): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function importClipboardHistory(records: ClipboardRecord[]): Promise<ClipboardImportResult> {
-	if (records.length === 0) return { status: "no-records" };
-
-	let imported = 0;
-	let skippedDupes = 0;
-	let skippedImagesFiles = 0;
-	let skippedEmpty = 0;
-	let clipboardErrors: { byteLen: number; error: string }[] | null = null;
-
-	let toast: Toast | null = null;
-	try {
-		toast = await showToast({
-			style: Toast.Style.Animated,
-			title: "Importing clipboard history…",
-			message: "0% — copying entries through Vicinae's recorder",
-		});
-	} catch {
-		toast = null;
-	}
-
-	const total = records.length;
-	let lastReport = Date.now();
-
-	for (const r of records) {
-		if (r.category !== "text" && r.category !== "link") {
-			skippedImagesFiles++;
-			continue;
-		}
-		const text = (r.text ?? "").toString();
-		if (!text) {
-			skippedEmpty++;
-			continue;
-		}
-		// concealed=false (default): the copy is observed and recorded into history.
-		// Re-copying identical text bubbles to the top instead of duplicating.
-		// One failed copy must NEVER kill the whole import: catch per record,
-		// remember the failure, keep streaming, report at the end.
-		try {
-			await Clipboard.copy(text);
-			imported++;
-		} catch (err) {
-			if (!clipboardErrors) clipboardErrors = [];
-			clipboardErrors.push({
-				byteLen: Buffer.byteLength(text, "utf8"),
-				error: err instanceof Error ? err.message : String(err),
-			});
-		}
-		// one pasteboard change per poll tick (500ms) — leave margin
-		await sleep(CLIPBOARD_COPY_INTERVAL_MS);
-
-		// throttle toast updates to ~2/sec
-		const now = Date.now();
-		if (toast && now - lastReport > 500) {
-			lastReport = now;
-			const pct = Math.round((imported / total) * 100);
-			toast.message = `${pct}% — ${imported}/${total} copied, ${clipboardErrors ? clipboardErrors.length : 0} failed (runs at ~1.7/sec)`;
-		}
-	}
-
-	if (toast) {
+async function importExtensionsInline(picks: { name: string; author: string }[]): Promise<void> {
+	const toast = await showToast({
+		style: Toast.Style.Animated,
+		title: "Installing Raycast extensions…",
+		message: `0/${picks.length} done`,
+	});
+	const report = await installExtensionsCore(picks, (done, total, installed, skipped, failed) => {
+		toast.message = `${done}/${total} — ${installed} installed, ${skipped} already present, ${failed} failed`;
+	});
+	if (report.failures.length === 0) {
 		toast.style = Toast.Style.Success;
-		toast.title = "Clipboard history imported";
-		toast.message = `${imported} entries copied into Vicinae's history${
-			clipboardErrors && clipboardErrors.length > 0 ? `, ${clipboardErrors.length} failed` : ""
-		}.`;
+		toast.title = "Extensions installed";
+		toast.message = `${report.installed} installed${report.skipped ? `, ${report.skipped} already present` : ""}`;
+	} else {
+		toast.style = Toast.Style.Failure;
+		toast.title = `Extensions finished with ${report.failures.length} failure${report.failures.length > 1 ? "s" : ""}`;
+		toast.message = `${report.installed} installed, ${report.skipped} skipped. First: ${report.failures[0].name} — ${report.failures[0].error}`;
 	}
-
-	return {
-		status: "ok",
-		imported,
-		skippedDupes,
-		skippedImagesFiles,
-		skippedEmpty,
-		errors: clipboardErrors ?? [],
-	};
 }
 
 // ---- UI ----
 
 function ImportForm() {
-	const { push } = useNavigation();
+	const { push, pop } = useNavigation();
 	const [submitting, setSubmitting] = useState(false);
+	// Controlled form values (so the "Choose extensions…" button can act on the
+	// currently-typed file + passphrase without a submit).
+	const [extFile, setExtFile] = useState<string | undefined>();
+	const [extPass, setExtPass] = useState<string>("");
+	// Extensions the user picked in the picker (null = never picked → default all).
+	const [pickedExtensions, setPickedExtensions] = useState<{ name: string; author: string }[] | null>(null);
+
+	async function chooseExtensions(filePath: string | undefined, passphrase: string) {
+		if (!filePath) {
+			await showToast({
+				style: Toast.Style.Failure,
+				title: "Pick a file first",
+				message: "Select your Raycast export above, then choose extensions.",
+			});
+			return;
+		}
+		let parsed;
+		try {
+			parsed = readExportSnippets(filePath, passphrase);
+		} catch (err) {
+			const code = err instanceof Error ? err.message : "corrupt";
+			await showToast({
+				style: Toast.Style.Failure,
+				title: code === "passphrase" ? "Incorrect passphrase" : "Can't read export",
+				message:
+					code === "passphrase"
+						? "Enter the passphrase you set in Raycast → Settings → Extensions → Export Settings & Data."
+						: code === "notRaycast"
+							? "This doesn't look like a Raycast export."
+							: err instanceof Error ? err.message : String(err),
+			});
+			return;
+		}
+		if (parsed.extensions.length === 0) {
+			await showToast({
+				style: Toast.Style.Failure,
+				title: "No extensions in this export",
+				message: "Extensions are only included in a .rayconfig backup (not plain .json).",
+			});
+			return;
+		}
+		push(
+			<ExtensionPicker
+				extensions={parsed.extensions}
+				initialSelected={new Set(
+					(pickedExtensions ?? parsed.extensions).map((e) => e.name),
+				)}
+				onDone={(picks) => {
+					setPickedExtensions(picks);
+					pop();
+				}}
+			/>,
+		);
+	}
 
 	async function onSubmit(input: Form.Values) {
 		const file = Array.isArray(input.raycastFile)
@@ -616,10 +706,15 @@ function ImportForm() {
 			: (input.raycastFile as string | undefined);
 		const replace = Boolean(input.replaceExisting);
 		const includeClipboard = Boolean(input.importClipboard);
+		// Pre-picking extensions (Choose extensions… button) implies importing them,
+		// even if the mount-time checkbox default was false.
+		const includeExtensions =
+			Boolean(input.importExtensions) || pickedExtensions !== null;
 		const passphrase = String(input.passphrase ?? "");
 
 		setSubmitting(true);
 		try {
+			cleanupStaleSecrets();
 			if (!file) {
 				await showToast({
 					style: Toast.Style.Failure,
@@ -633,34 +728,14 @@ function ImportForm() {
 			let entries: { name: string; text: string; keyword?: string }[];
 			let clipboard: ClipboardRecord[];
 			let emojis: RaycastEmoji[];
+			let extensions: RaycastNodeExtension[];
 			try {
 				const parsed = readExportSnippets(file, passphrase);
 				entries = parsed.snippets;
 				clipboard = parsed.clipboard;
 				emojis = parsed.emoji;
+				extensions = parsed.extensions;
 			} catch (err) {
-				// diagnostics: dump what the app actually delivered (no plaintext passphrase — length only)
-				try {
-					const diag = {
-						when: new Date().toISOString(),
-						file,
-						fileSize:
-							typeof file === "string" && existsSync(file) ? readFileSync(file).length : null,
-						fileHead:
-							typeof file === "string" && existsSync(file)
-								? readFileSync(file).subarray(0, 8).toString("hex")
-								: null,
-						passphraseLen: passphrase.length,
-						passphraseSha: createHash("sha256")
-							.update("diag:" + passphrase)
-							.digest("hex")
-							.slice(0, 16),
-						error: err instanceof Error ? err.message : String(err),
-					};
-					writeFileSync("/tmp/vicinae-import-diag.json", JSON.stringify(diag, null, 2));
-				} catch {
-					/* diagnostics must never break the flow */
-				}
 				const code = err instanceof Error ? err.message : "corrupt";
 				const title =
 					code === "notRaycast"
@@ -720,60 +795,76 @@ function ImportForm() {
 			const includeEmoji = Boolean(input.importEmoji);
 			const emojiImported = includeEmoji ? importEmojiMetadata(emojis) : 0;
 
-			// clipboard history (only meaningful for .rayconfig backups)
-			// Runs in a HEADLESS no-view command (import-clipboard) so the loop
-			// survives window dismissal — a view command's worker dies with its
-			// CommandFrame (~CommandFrame → context->unload(), navigation-controller).
-			// The decrypted entries go to a 0600 temp JSON file; only its PATH rides
-			// launchContext (in-memory) — the passphrase never leaves this worker.
-			// Dedup bubbling in the recorder makes re-runs idempotent: entries that
-			// were already imported just bubble to the top, they never duplicate.
-			let clipResult: ClipboardImportResult | null = null;
-			let launched = false;
-			if (includeClipboard && clipboard.length > 0) {
-				const tmpClip = join(tmpdir(), `raycast-import-clip-${at}.json`);
+			// Background work (clipboard stream + extension installs) runs in ONE
+			// headless no-view command (import-background) so it survives window
+			// dismissal. The payload (decrypted clipboard entries + extension picks)
+			// is written to an UNPREDICTABLE 0700 temp dir, ENCRYPTED with
+			// AES-256-GCM under an ephemeral 256-bit key — only {dir, key} rides
+			// launchContext (in-memory); the passphrase never leaves this worker.
+			// The worker deletes the dir on every exit path and a stale sweep
+			// clears leftovers from interrupted runs (SECURITY-003).
+			const clipAvailable = includeClipboard && clipboard.length > 0;
+			// If the user picked extensions (Choose extensions… button), use that
+			// exact set; if they didn't pick but enabled the checkbox, default to
+			// ALL extensions in the export.
+			const extPick =
+				pickedExtensions !== null
+					? pickedExtensions
+					: extensions.map((e) => ({ name: e.name, author: e.author }));
+			const extsAvailable = includeExtensions && extensions.length > 0;
+
+			// helper: write encrypted payload + hand off to the background worker,
+			// falling back to inline (same core loops) if the handoff fails.
+			const runBackground = async (payload: {
+				clipboard?: ClipboardRecord[];
+				extensions?: { name: string; author: string }[];
+			}) => {
+				const sp = writeSecretPayload(payload);
 				try {
-					writeFileSync(tmpClip, JSON.stringify(clipboard), { mode: 0o600 });
 					await showToast({
 						style: Toast.Style.Success,
-						title: "Clipboard import running in the background",
-						message: `${clipboard.length} entries — progress shows as toasts; closing this window is safe.`,
+						title: "Import running in the background",
+						message:
+							payload.clipboard && payload.clipboard.length > 0
+								? `${payload.clipboard.length} clipboard entries + ${
+										payload.extensions?.length ?? 0
+								  } extensions — progress shows as toasts; closing this window is safe.`
+								: `${payload.extensions?.length ?? 0} extensions — progress shows as toasts; closing this window is safe.`,
 					});
 					// control transfers here: on success this command is unloaded
 					await launchCommand({
-						name: "import-clipboard",
+						name: "import-background",
 						type: LaunchType.UserInitiated,
-						context: { file: tmpClip },
+						context: { dir: sp.dir, key: sp.key },
 					});
-					launched = true;
 				} catch (err) {
-					rmSync(tmpClip, { force: true });
+					deleteSecretPayload(sp);
 					await showToast({
 						style: Toast.Style.Failure,
 						title: "Background import unavailable — importing inline instead",
 						message: err instanceof Error ? err.message : String(err),
 					});
-					clipResult = await importClipboardHistory(clipboard);
+					if (payload.clipboard && payload.clipboard.length > 0) {
+						await importClipboardRecords(payload.clipboard);
+					}
+					if (payload.extensions && payload.extensions.length > 0) {
+						await importExtensionsInline(payload.extensions);
+					}
 				}
-			} else if (includeClipboard) {
-				clipResult = {
-					status: "ok",
-					imported: 0,
-					skippedDupes: 0,
-					skippedImagesFiles: 0,
-					skippedEmpty: 0,
-					errors: [],
-				};
-			}
+			};
 
-			if (!launched) {
+			if (extsAvailable || clipAvailable) {
+				await runBackground({
+					...(clipAvailable ? { clipboard } : {}),
+					...(extsAvailable ? { extensions: extPick } : {}),
+				});
+			} else {
 				push(
 					<ResultList
 						imported={imported}
 						skipped={skipped}
 						totalExported={entries.length}
 						replace={replace}
-						clipResult={clipResult}
 						emojiImported={emojiImported}
 					/>,
 				);
@@ -792,9 +883,16 @@ function ImportForm() {
 	return (
 		<Form
 			navigationTitle="Import Raycast Data"
+			isLoading={submitting}
 			actions={
 				<ActionPanel>
 					<Action.SubmitForm title="Import" icon={Icon.Download} onSubmit={onSubmit} />
+					<Action
+						title="Choose extensions…"
+						icon={Icon.CheckList}
+						onAction={() => chooseExtensions(extFile, extPass)}
+						shortcut={{ modifiers: ["cmd"], key: "e" }}
+					/>
 				</ActionPanel>
 			}
 		>
@@ -811,6 +909,11 @@ function ImportForm() {
 				canChooseDirectories={false}
 				allowMultipleSelection={false}
 				storeValue={true}
+				// NOTE: deliberately UNCONTROLLED (no value prop) — the RDK renders the
+				// native picker's own filename display, which breaks if we force `value`.
+				// We only subscribe to onChange to keep our state in sync for the
+				// "Choose extensions…" button / auto-open flow.
+				onChange={(v) => setExtFile(Array.isArray(v) ? (v[0] ?? undefined) : v)}
 			/>
 			<Form.PasswordField
 				id="passphrase"
@@ -821,6 +924,8 @@ function ImportForm() {
 				// submitted values entirely (ExtensionFormModel::submit() skips it) — it does
 				// NOT mean "don't persist". The host persists no form values, so true is safe.
 				storeValue={true}
+				// UNCONTROLLED too (no value prop) for same reason as FilePicker.
+				onChange={setExtPass}
 			/>
 			<Form.Checkbox
 				id="replaceExisting"
@@ -858,7 +963,105 @@ function ImportForm() {
 					"Emoji import restores your frequently-used emoji (ranking) and custom keyword search terms. The emoji table itself is built into Vicinae — this imports metadata only."
 				}
 			/>
+			<Form.Checkbox
+				id="importExtensions"
+				title="Import Raycast extensions"
+				label="Reinstall your installed Raycast extensions (from this backup — .rayconfig only)"
+				defaultValue={pickedExtensions !== null}
+				storeValue={true}
+				// Toggling the checkbox ON opens the picker immediately (so the
+				// option can't be missed); toggling OFF clears any picked selection.
+				onChange={(checked) => {
+					if (checked) {
+						setPickedExtensions(null);
+						chooseExtensions(extFile, extPass);
+					} else {
+						setPickedExtensions(null);
+					}
+				}}
+			/>
+			<Form.Description
+				text={
+					pickedExtensions !== null
+						? `✅ ${pickedExtensions.length} extension${pickedExtensions.length === 1 ? "" : "s"} chosen — toggle the box off to skip, or press "Choose extensions…" (⌘E) to change the selection.`
+						: 'Tick the box above to import extensions (the picker opens automatically) — or press "Choose extensions…" (⌘E) any time. All are pre-selected; already-installed ones are skipped. Only available from a .rayconfig backup.'
+				}
+			/>
 		</Form>
+	);
+}
+
+function ExtensionPicker({
+	extensions,
+	initialSelected,
+	onDone,
+}: {
+	extensions: RaycastNodeExtension[];
+	initialSelected: Set<string>;
+	onDone: (picks: { name: string; author: string }[]) => void;
+}) {
+	const [selected, setSelected] = useState<Set<string>>(() => new Set(initialSelected));
+
+	const toggle = (name: string) => {
+		setSelected((prev) => {
+			const next = new Set(prev);
+			if (next.has(name)) next.delete(name);
+			else next.add(name);
+			return next;
+		});
+	};
+
+	const selectAll = () => setSelected(new Set(extensions.map((e) => e.name)));
+	const deselectAll = () => setSelected(new Set());
+	const count = selected.size;
+
+	const picked = extensions.filter((e) => selected.has(e.name)).map((e) => ({ name: e.name, author: e.author }));
+
+	const done = () => onDone(picked);
+
+	return (
+		<List
+			navigationTitle="Choose Raycast extensions"
+			searchBarPlaceholder={`Search ${extensions.length} extensions…`}
+			actions={
+				<ActionPanel>
+					<Action title={`Use ${count} selected`} icon={Icon.Checkmark} onAction={done} />
+					<Action title="Select all" icon={Icon.CheckCircle} onAction={selectAll} shortcut={{ modifiers: ["cmd"], key: "a" }} />
+					<Action title="Deselect all" icon={Icon.Circle} onAction={deselectAll} shortcut={{ modifiers: ["cmd", "shift"], key: "a" }} />
+				</ActionPanel>
+			}
+		>
+			<List.Section title="Extensions" subtitle={`${count} of ${extensions.length} selected`}>
+				{extensions.map((e) => {
+					const on = selected.has(e.name);
+					return (
+						<List.Item
+							key={e.name}
+							title={e.name}
+							subtitle={e.author}
+							icon={on ? Icon.CheckCircle : Icon.Circle}
+							accessories={on ? [{ icon: Icon.Checkmark }] : []}
+							actions={
+								<ActionPanel>
+									{/* "Use N selected" is the PRIMARY action (Enter) on every item —
+									    the path forward from the picker. List-level actions only
+									    render in the empty-search state. */}
+									<Action title={`Use ${count} selected`} icon={Icon.Checkmark} onAction={done} />
+									<Action
+										title={on ? "Deselect" : "Select"}
+										icon={on ? Icon.Checkmark : Icon.Circle}
+										onAction={() => toggle(e.name)}
+										shortcut={{ modifiers: ["cmd"], key: "s" }}
+									/>
+									<Action title="Select all" icon={Icon.CheckCircle} onAction={selectAll} shortcut={{ modifiers: ["cmd"], key: "a" }} />
+									<Action title="Deselect all" icon={Icon.Circle} onAction={deselectAll} shortcut={{ modifiers: ["cmd", "shift"], key: "a" }} />
+								</ActionPanel>
+							}
+						/>
+					);
+				})}
+			</List.Section>
+		</List>
 	);
 }
 
@@ -867,20 +1070,14 @@ function ResultList({
 	skipped,
 	totalExported,
 	replace,
-	clipResult,
 	emojiImported,
 }: {
 	imported: VicinaeSnippet[];
 	skipped: string[];
 	totalExported: number;
 	replace: boolean;
-	clipResult: ClipboardImportResult | null;
 	emojiImported: number;
 }) {
-	const clipNote =
-		clipResult && clipResult.status === "ok"
-			? `${clipResult.imported} clipboard entries imported${clipResult.skippedDupes ? `, ${clipResult.skippedDupes} already in history (bubbled)` : ""}${clipResult.skippedImagesFiles ? `, ${clipResult.skippedImagesFiles} image/file entries skipped` : ""}`
-			: null;
 	return (
 		<List isLoading={false} navigationTitle="Import result">
 			<List.Section title="Imported" subtitle={`${imported.length} of ${totalExported} snippets`}>
@@ -914,21 +1111,13 @@ function ResultList({
 				)}
 			</List.Section>
 			<List.Section
-				title={
-					emojiImported > 0
-						? `Emoji (${emojiImported} merged)`
-						: clipNote
-							? "Clipboard"
-							: "⚠️ Restart required"
-				}
+				title={emojiImported > 0 ? `Emoji (${emojiImported} merged)` : "⚠️ Restart required"}
 				subtitle={
 					emojiImported > 0
 						? "Emoji frequency + keywords restored. Restart Vicinae to show them."
-						: clipNote
-							? clipNote
-							: replace
-								? "Vicinae snippets were replaced. Quit and reopen Vicinae."
-								: "Quit and reopen Vicinae for the imported snippets to appear."
+						: replace
+							? "Vicinae snippets were replaced. Quit and reopen Vicinae."
+							: "Quit and reopen Vicinae for the imported snippets to appear."
 				}
 			>
 				<List.Item

@@ -1,12 +1,19 @@
-import { inflateRawSync } from "node:zlib";
-import { join, dirname } from "node:path";
-import { mkdirSync, writeFileSync } from "node:fs";
-
 // ---- Minimal dependency-free ZIP extractor (central-directory based) ----
 // Enough for Raycast store extension zips: standard zip64-less archives,
 // compression method 0 (stored) or 8 (deflate). Handles data-descriptor
 // zips correctly by reading the central directory (sizes come from there,
 // not from the local header).
+//
+// SECURITY (SECURITY-001): a zip is untrusted input. Every entry name is
+// sanitized BEFORE any write — absolute paths, drive letters, empty segments
+// and `..` traversal are rejected, and the resolved path must stay inside
+// `destDir` (verified with a prefix check on the normalized absolute path).
+// Symlink entries are skipped (never materialized), so nothing can point
+// outside the extract root.
+
+import { inflateRawSync } from "node:zlib";
+import { join, dirname, resolve, sep, normalize } from "node:path";
+import { mkdirSync, writeFileSync } from "node:fs";
 
 const ZIP_EOCD_SIG = 0x06054b50;
 const ZIP_CD_SIG = 0x02014b50;
@@ -18,6 +25,7 @@ interface CdEntry {
 	compressedSize: number;
 	uncompressedSize: number;
 	localHeaderOffset: number;
+	attrs: number;
 }
 
 function findEocd(buf: Buffer): number {
@@ -47,7 +55,8 @@ function listEntries(buf: Buffer): CdEntry[] {
 		const commentLen = buf.readUInt16LE(p + 32);
 		const localHeaderOffset = buf.readUInt32LE(p + 42);
 		const name = buf.subarray(p + 46, p + 46 + nameLen).toString("utf8");
-		entries.push({ name, compression, compressedSize, uncompressedSize, localHeaderOffset });
+		const attrs = buf.readUInt32LE(p + 38); // external file attributes (unix mode in high 16 bits)
+		entries.push({ name, compression, compressedSize, uncompressedSize, localHeaderOffset, attrs });
 		p += 46 + nameLen + extraLen + commentLen;
 	}
 	return entries;
@@ -72,6 +81,30 @@ function readEntryData(buf: Buffer, entry: CdEntry): Buffer {
 }
 
 /**
+ * Sanitize an entry's relative path so it can't escape `destDir`.
+ * Returns a safe relative path (POSIX-style, using `/`), or null to skip.
+ * Rejects absolute paths, Windows drive prefixes, empty/dot/`..` segments.
+ */
+function safeRelPath(name: string): string | null {
+	let n = name.replace(/\\/g, "/"); // tolerate backslashes from hostile zips
+	if (n.startsWith("/") || /^[a-zA-Z]:\//.test(n)) return null; // absolute
+	const segs: string[] = [];
+	for (const seg of n.split("/")) {
+		if (seg === "" || seg === ".") continue;
+		if (seg === "..") return null; // traversal
+		segs.push(seg);
+	}
+	// entry is just a directory marker (trailing /) or empty -> keep it as dir path
+	return segs.length === 0 ? null : segs.join("/");
+}
+
+/** Check `candidate` (absolute) is inside `base` (absolute, already resolved). */
+function isWithin(base: string, candidate: string): boolean {
+	const rel = candidate.slice(base.length);
+	return rel.length === 0 || rel.startsWith(sep) || rel.startsWith("/");
+}
+
+/**
  * Extract a zip buffer to `destDir`.
  *
  * `stripComponents` drops the first N path segments of every entry (mirrors
@@ -79,7 +112,9 @@ function readEntryData(buf: Buffer, entry: CdEntry): Buffer {
  * because Raycast store zips have a single top-level folder with a
  * package.json at its root).
  *
- * Directory-only entries are ignored. Symlinks are skipped (defensive).
+ * Directory-only entries are ignored as files (their dirs are still created
+ * via parents). Symlinks are skipped (defensive). Entry names are sanitized
+ * (see safeRelPath) so no write can escape `destDir`.
  */
 export function extractZip(
 	zip: Buffer,
@@ -87,21 +122,30 @@ export function extractZip(
 	opts: { stripComponents?: number } = {},
 ): void {
 	const strip = opts.stripComponents ?? 0;
+	const root = resolve(destDir);
 	const entries = listEntries(zip);
 	for (const entry of entries) {
-		const parts = entry.name.split("/");
-		const fileName = parts[parts.length - 1];
-		// directory entry -> ensure dir exists, no file write
-		if (fileName.length === 0) {
-			const dirPath = join(destDir, ...parts.slice(strip));
-			mkdirSync(dirPath, { recursive: true });
+		// symlink entries (unix mode S_IFLNK = 0o120000 in external attrs high bits)
+		const mode = (entry.attrs >>> 16) & 0xffff;
+		if ((mode & 0o170000) === 0o120000) continue;
+
+		const san = safeRelPath(entry.name);
+		if (san === null) continue; // absolute / traversal / empty — skip, never throw on hostile names
+
+		// strip leading segments of the ORIGINAL path
+		const parts = san.split("/");
+		const relParts = parts.slice(strip);
+		if (relParts.length === 0) continue; // entirely stripped (e.g. top folder itself)
+
+		const rel = relParts.join("/");
+		const abs = resolve(root, rel);
+		if (!isWithin(root, abs)) continue; // containment double-check
+
+		const isDir = entry.name.endsWith("/") || rel.endsWith("/");
+		if (isDir) {
+			mkdirSync(abs, { recursive: true });
 			continue;
 		}
-		if (parts.length - 1 - strip < 0) continue; // entry at a stripped depth
-		const rel = parts.slice(strip).join("/");
-		if (/^__MACOSX\//.test(rel)) continue; // macOS resource fork junk
-		// defensive: skip symlinks (unix mode stored in external attrs high bits)
-		const abs = join(destDir, rel);
 		mkdirSync(dirname(abs), { recursive: true });
 		writeFileSync(abs, readEntryData(zip, entry));
 	}

@@ -28,14 +28,19 @@ Import data exported from the official Raycast app into [Vicinae](https://github
   metadata into Vicinae's `<dataDir>/emojis/emojis.json` (`GlyphService` store —
   visitCount/keyword), so your frequently-used emoji rank first again. The glyph
   table itself is built into Vicinae; only metadata is imported.
-- **Extensions** (`Import Raycast Extensions` command): lists every Raycast
-  extension in the backup (`nodeExtensions`) with a default all-selected picker —
-  install all 233 or choose. Each selected extension is downloaded from the
+- **Extensions** (checkbox): lists every Raycast extension in the backup
+  (`nodeExtensions`) with a default all-selected picker — install all 233 or
+  choose. Each selected extension is downloaded from the
   **official Raycast store backend** (`backend.raycast.com`, no auth needed) and
   installed exactly like Vicinae's own store install: extract with
   `stripComponents=1` into `<dataDir>/extensions/store.raycast.<name>/`, then the
   app's extension registry (`QFileSystemWatcher` → `scanAll`) live-registers it —
   **no app restart required**. Already-installed extensions are skipped.
+- **One unified flow:** clipboard + extension importing both run in a **headless
+  background command** launched automatically by `Import Raycast Data`, so you
+  can dismiss the window mid-import (progress arrives as toasts). The background
+  payload is AES-256-GCM encrypted under an ephemeral key (− no plaintext temp
+  files), and imported entries are wrapped with Secure Tmp semantics.
 - Atomic write (tmp + rename) for both stores, with a `.bak-<ts>` backup of the
   previous store.
 
