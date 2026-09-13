@@ -65,12 +65,13 @@ export async function setStoredFirefoxProfile(profilePath: string) {
   await LocalStorage.setItem(FIREFOX_PROFILE_STORAGE_KEY, profilePath);
 }
 
-export async function initDatabase(profilePath: string): Promise<Database> {
-  const dbPath = `${FIREFOX_FOLDER}/${profilePath}/places.sqlite`;
+export async function openProfileDatabase(
+  profilePath: string,
+  fileName: string,
+): Promise<Database | null> {
+  const dbPath = `${FIREFOX_FOLDER}/${profilePath}/${fileName}`;
 
-  if (!existsSync(dbPath)) {
-    throw new Error(`places.sqlite not found for profile: ${profilePath}`);
-  }
+  if (!existsSync(dbPath)) return null;
 
   const bufferRaw = await read(dbPath);
   const SQL = await initSqlJs({
@@ -78,6 +79,16 @@ export async function initDatabase(profilePath: string): Promise<Database> {
   });
 
   return new SQL.Database(new Uint8Array(bufferRaw));
+}
+
+export async function initDatabase(profilePath: string): Promise<Database> {
+  const db = await openProfileDatabase(profilePath, "places.sqlite");
+
+  if (!db) {
+    throw new Error(`places.sqlite not found for profile: ${profilePath}`);
+  }
+
+  return db;
 }
 
 export function createCommonActions(url: string) {
