@@ -2,8 +2,8 @@
 	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
 	"name": "raycast-import",
 	"title": "Raycast Import",
-	"version": "0.2.0",
-	"description": "Import data exported from Raycast (snippets, clipboard history, emoji) into Vicinae.",
+	"version": "0.3.0",
+	"description": "Import data exported from Raycast (snippets, clipboard history, emoji, extensions) into Vicinae.",
 	"categories": ["Productivity", "Data"],
 	"license": "MIT",
 	"author": "danielfstefan",
@@ -18,9 +18,21 @@
 			"mode": "view"
 		},
 		{
+			"name": "import-extensions",
+			"title": "Import Raycast Extensions",
+			"description": "Pick which of your installed Raycast extensions (from a .rayconfig backup) to install into Vicinae — all or a selection",
+			"mode": "view"
+		},
+		{
 			"name": "import-clipboard",
 			"title": "Import Clipboard History (background)",
 			"description": "Headless helper: replays the decrypted clipboard history through Vicinae's own recorder. Launched automatically by 'Import Raycast Data' — no need to run this directly.",
+			"mode": "no-view"
+		},
+		{
+			"name": "install-extensions",
+			"title": "Install Raycast Extensions (background)",
+			"description": "Headless helper: downloads and installs the picked Raycast extensions from the official Raycast store. Launched automatically by 'Import Raycast Extensions' — no need to run this directly.",
 			"mode": "no-view"
 		}
 	],
