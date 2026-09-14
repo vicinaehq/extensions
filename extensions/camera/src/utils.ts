@@ -1,51 +1,25 @@
+import { execFile } from "child_process";
 import { promises as fs } from "fs";
 import os from "os";
 import path from "path";
-import { encode as encodeJpeg } from "jpeg-js";
-import type * as V4l2Camera from "v4l2camera";
+import { promisify } from "util";
 import { Clipboard, open, showToast, Toast } from "@vicinae/api";
 import { CameraDevice, Preferences } from "./types";
 
-type V4l2CameraModule = typeof V4l2Camera;
+const execFileAsync = promisify(execFile);
 
-let cameraModule: V4l2CameraModule | null | undefined;
+const CAPTURE_TIMEOUT_MS = 10_000;
 
-/**
- * v4l2camera is an optional native dependency: it only builds on Linux, where
- * video4linux2 headers are available. On any other platform (or when the
- * native build failed), `require` throws and we treat camera support as
- * unavailable rather than crashing the extension.
- */
-function getCameraModule(): V4l2CameraModule | null {
-	if (cameraModule !== undefined) return cameraModule;
+export async function isFfmpegInstalled(): Promise<boolean> {
 	try {
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		cameraModule = require("v4l2camera") as V4l2CameraModule;
+		await execFileAsync("which", ["ffmpeg"]);
+		return true;
 	} catch {
-		cameraModule = null;
+		return false;
 	}
-	return cameraModule;
-}
-
-export function isCameraBackendAvailable(): boolean {
-	return getCameraModule() !== null;
 }
 
 export async function listCameraDevices(): Promise<CameraDevice[]> {
-	const candidates = await listCameraDevicesFromSysfs();
-	const module = getCameraModule();
-	if (!module) return candidates;
-
-	const devices: CameraDevice[] = [];
-	for (const candidate of candidates) {
-		if (deviceSupportsCapture(module, candidate.path)) {
-			devices.push(candidate);
-		}
-	}
-	return devices;
-}
-
-async function listCameraDevicesFromSysfs(): Promise<CameraDevice[]> {
 	let entries: string[] = [];
 	try {
 		entries = await fs.readdir("/dev");
@@ -78,146 +52,53 @@ async function listCameraDevicesFromSysfs(): Promise<CameraDevice[]> {
 	return devices;
 }
 
-function deviceSupportsCapture(
-	module: V4l2CameraModule,
-	devicePath: string,
-): boolean {
-	// v4l2camera exposes no explicit close/dispose method (matching its own
-	// documented usage); the device fd is released when this Camera instance
-	// is garbage-collected, same as the library's own examples rely on.
-	try {
-		const camera = new module.Camera(devicePath);
-		return camera.formats.length > 0;
-	} catch {
-		return false;
-	}
-}
-
-function pickFormatForResolution(
-	camera: InstanceType<V4l2CameraModule["Camera"]>,
-	resolution?: string,
-): V4l2Camera.CameraFormat | undefined {
-	if (!resolution || resolution === "auto") return undefined;
-	const [width, height] = resolution.split("x").map(Number);
-	return camera.formats.find(
-		(format) => format.width === width && format.height === height,
-	);
-}
-
-function rgbToRgba(rgb: Uint8Array): Uint8Array {
-	const pixelCount = Math.floor(rgb.length / 3);
-	const rgba = new Uint8Array(pixelCount * 4);
-	for (let i = 0; i < pixelCount; i++) {
-		rgba[i * 4] = rgb[i * 3];
-		rgba[i * 4 + 1] = rgb[i * 3 + 1];
-		rgba[i * 4 + 2] = rgb[i * 3 + 2];
-		rgba[i * 4 + 3] = 255;
-	}
-	return rgba;
-}
-
-function encodeFrameAsJpeg(
-	camera: InstanceType<V4l2CameraModule["Camera"]>,
-): Buffer {
-	const format = camera.configGet();
-	if (format.formatName === "MJPG") {
-		return Buffer.from(camera.frameRaw());
-	}
-	const rgba = rgbToRgba(camera.toRGB());
-	const { data } = encodeJpeg(
-		{ data: rgba, width: camera.width, height: camera.height },
-		90,
-	);
-	return data;
-}
-
-const CAPTURE_TIMEOUT_MS = 8000;
-
-function safeStop(camera: InstanceType<V4l2CameraModule["Camera"]>): void {
-	try {
-		camera.stop();
-	} catch {
-		// device already released, or was never started
-	}
+function resolutionArgs(resolution?: string): string[] {
+	if (!resolution || resolution === "auto") return [];
+	return ["-video_size", resolution];
 }
 
 /**
- * Opens the given device, captures exactly one frame, and returns it JPEG-encoded.
- * The device is only held open for the duration of the capture, so this can be
- * called repeatedly (e.g. for a refreshing preview) without leaving the camera busy.
- *
- * Guarded by a timeout: a misbehaving driver or a device that disconnects
- * mid-capture could otherwise leave `camera.capture()`'s callback never firing,
- * which would hang the caller (and, for the preview loop, wedge it) forever.
+ * Captures exactly one frame from the given device and writes it to
+ * `outputPath` as a JPEG. Guarded by a timeout (via ffmpeg's child process,
+ * not a hand-rolled one) so a misbehaving device or driver can't hang the
+ * caller - important since this also drives the repeating live preview.
  */
-export function captureFrameBuffer(
+export async function captureFrameToFile(
 	device: CameraDevice,
+	outputPath: string,
 	resolution?: string,
-): Promise<Buffer> {
-	const module = getCameraModule();
-	if (!module) {
-		return Promise.reject(
-			new Error(
-				"Camera support is unavailable: the v4l2camera native module could not be loaded.",
-			),
+): Promise<void> {
+	try {
+		await execFileAsync(
+			"ffmpeg",
+			[
+				"-y",
+				"-hide_banner",
+				"-loglevel",
+				"error",
+				"-f",
+				"v4l2",
+				...resolutionArgs(resolution),
+				"-i",
+				device.path,
+				"-ss",
+				"00:00:01",
+				"-frames:v",
+				"1",
+				outputPath,
+			],
+			{ timeout: CAPTURE_TIMEOUT_MS, killSignal: "SIGKILL" },
 		);
+	} catch (error) {
+		if (
+			error instanceof Error &&
+			"killed" in error &&
+			(error as { killed?: boolean }).killed
+		) {
+			throw new Error(`${device.label} timed out while capturing a frame.`);
+		}
+		throw error;
 	}
-
-	return new Promise((resolve, reject) => {
-		let settled = false;
-		const settle = (fn: () => void) => {
-			if (settled) return;
-			settled = true;
-			fn();
-		};
-
-		let camera: InstanceType<V4l2CameraModule["Camera"]>;
-		try {
-			camera = new module.Camera(device.path);
-		} catch (error) {
-			settle(() =>
-				reject(error instanceof Error ? error : new Error(String(error))),
-			);
-			return;
-		}
-
-		const timeout = setTimeout(() => {
-			safeStop(camera);
-			settle(() =>
-				reject(new Error(`${device.label} timed out while capturing a frame.`)),
-			);
-		}, CAPTURE_TIMEOUT_MS);
-
-		try {
-			const format = pickFormatForResolution(camera, resolution);
-			if (format) camera.configSet(format);
-			camera.start();
-		} catch (error) {
-			clearTimeout(timeout);
-			safeStop(camera);
-			settle(() =>
-				reject(error instanceof Error ? error : new Error(String(error))),
-			);
-			return;
-		}
-
-		camera.capture((success) => {
-			clearTimeout(timeout);
-			try {
-				if (!success) {
-					throw new Error(`${device.label} did not return a frame.`);
-				}
-				const buffer = encodeFrameAsJpeg(camera);
-				settle(() => resolve(buffer));
-			} catch (error) {
-				settle(() =>
-					reject(error instanceof Error ? error : new Error(String(error))),
-				);
-			} finally {
-				safeStop(camera);
-			}
-		});
-	});
 }
 
 function expandHome(inputPath: string): string {
@@ -242,11 +123,9 @@ export async function capturePhoto(
 	);
 	await fs.mkdir(saveDirectory, { recursive: true });
 
-	const jpegBuffer = await captureFrameBuffer(device, preferences.resolution);
-
 	const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 	const outputPath = path.join(saveDirectory, `webcam-${timestamp}.jpg`);
-	await fs.writeFile(outputPath, jpegBuffer);
+	await captureFrameToFile(device, outputPath, preferences.resolution);
 
 	return outputPath;
 }

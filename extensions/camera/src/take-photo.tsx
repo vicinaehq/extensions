@@ -5,7 +5,7 @@ import {
 	capturePhoto,
 	describePostCaptureOutcome,
 	handleError,
-	isCameraBackendAvailable,
+	isFfmpegInstalled,
 	listCameraDevices,
 	showSuccess,
 } from "./utils";
@@ -13,12 +13,10 @@ import {
 export default async function TakePhoto() {
 	const preferences = getPreferenceValues<TakePhotoPreferences>();
 
-	if (!isCameraBackendAvailable()) {
+	if (!(await isFfmpegInstalled())) {
 		await handleError(
-			"Camera support is unavailable.",
-			new Error(
-				"The v4l2camera native module could not be loaded. It only works on Linux and needs a C/C++ toolchain to build.",
-			),
+			"ffmpeg is required to take a photo.",
+			new Error("ffmpeg was not found in PATH. Install it and try again."),
 		);
 		return;
 	}

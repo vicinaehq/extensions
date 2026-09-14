@@ -18,7 +18,7 @@
   "commands": [
     {
       "name": "open-camera",
-      "title": "Open Camera",
+      "title": "Camera Preview",
       "subtitle": "Live preview or capture a photo",
       "description": "Detect connected cameras, show a refreshing live preview, and capture photos without leaving Vicinae.",
       "mode": "view"
@@ -102,11 +102,7 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.28.2",
-    "jpeg-js": "^0.4.4"
-  },
-  "optionalDependencies": {
-    "v4l2camera": "^1.0.4"
+    "@vicinae/api": "^0.28.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.2",

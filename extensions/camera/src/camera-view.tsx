@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { CameraDevice, Preferences } from "./types";
 import {
 	applyPostCaptureActions,
-	captureFrameBuffer,
+	captureFrameToFile,
 	capturePhoto,
 	describePostCaptureOutcome,
 	handleError,
@@ -68,13 +68,12 @@ export default function CameraView({ device }: Props) {
 			isCapturingFrame.current = true;
 			try {
 				const preferences = getPreferenceValues<Preferences>();
-				const buffer = await captureFrameBuffer(device, preferences.resolution);
 				frameCounter.current += 1;
 				const framePath = path.join(
 					os.tmpdir(),
 					`vicinae-camera-preview-${instanceId.current}-${frameCounter.current}.jpg`,
 				);
-				await fs.writeFile(framePath, buffer);
+				await captureFrameToFile(device, framePath, preferences.resolution);
 
 				const previousFramePath = currentFramePath.current;
 				currentFramePath.current = framePath;
