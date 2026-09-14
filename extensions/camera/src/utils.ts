@@ -102,7 +102,9 @@ function capabilitySectionHasVideoCapture(
 		const line = lines[i];
 		if (line.trim() === "") break;
 		if (indentOf(line) <= headerIndent) break;
-		if (line.trim() === "Video Capture") return true;
+		// Some drivers (common on ARM/embedded systems) report the multiplanar
+		// variant of this capability instead of the plain single-planar one.
+		if (/^Video Capture(?: Multiplanar)?$/.test(line.trim())) return true;
 	}
 	return false;
 }
