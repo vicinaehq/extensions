@@ -6,7 +6,7 @@
 
 ## Features
 
-- **Automatic Camera Detection**: Finds connected video capture devices via `/dev/video*` and sysfs device names.
+- **Automatic Camera Detection**: Finds connected video capture devices via `/dev/video*` and sysfs device names, filtered to actual capture nodes (not metadata/output-only ones) when `v4l2-ctl` is available.
 - **In-App Live Preview**: Shows a refreshing preview (about once per second) right inside the Vicinae window — no external window is opened.
 - **Instant Photo Capture**: Captures a still photo to a configurable folder, with optional auto-copy to clipboard and auto-open.
 - **Quick Capture Command**: A `Take Photo` no-view command for a single-keystroke snapshot from your default camera, ideal for binding to a shortcut.
@@ -21,24 +21,26 @@ This extension requires the following system utility:
 
 Grabbing frames from `/dev/video*` needs either compiled native code or an external program; there's no pure-JavaScript way to do it. `ffmpeg` is the most broadly available, single-package option (it also keeps working on Flatpak/immutable/NixOS systems where installing a full C/C++ toolchain for a native module is awkward or blocked).
 
+`v4l2-ctl` (from the `v4l-utils` package) is optional but recommended: it lets the extension tell an actual capture device apart from the extra metadata or output-only `/dev/videoN` nodes some cameras also expose. Without it, every `/dev/videoN` node is listed, which can include unusable duplicates.
+
 ### Installing ffmpeg
 
 #### Arch Linux / Manjaro / EndeavourOS
 
 ```bash
-sudo pacman -S ffmpeg
+sudo pacman -S ffmpeg v4l-utils
 ```
 
 #### Ubuntu / Debian
 
 ```bash
-sudo apt install ffmpeg
+sudo apt install ffmpeg v4l-utils
 ```
 
 #### Fedora
 
 ```bash
-sudo dnf install ffmpeg
+sudo dnf install ffmpeg v4l-utils
 ```
 
 If `ffmpeg` isn't found, the extension shows a screen with the exact command for your distro and a Retry action — it never fails silently.

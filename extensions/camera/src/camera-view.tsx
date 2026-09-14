@@ -63,6 +63,11 @@ export default function CameraView({ device }: Props) {
 	useEffect(() => {
 		if (!isPreviewActive) return;
 
+		// Scoped to this effect run (not a ref) so it can't be shared across a
+		// stop/restart: a capture already in flight when the preview is stopped
+		// must not publish its frame (or even leave it on disk) once it lands.
+		let cancelled = false;
+
 		const tick = async () => {
 			if (isCapturingFrame.current) return;
 			isCapturingFrame.current = true;
@@ -75,13 +80,23 @@ export default function CameraView({ device }: Props) {
 				);
 				await captureFrameToFile(device, framePath, preferences.resolution);
 
+				if (cancelled) {
+					// Preview was stopped while this capture was in flight - the
+					// frame was never published, so it's this call's job to clean
+					// it up rather than leaving it in the shared temp directory.
+					await cleanupFrame(framePath);
+					return;
+				}
+
 				const previousFramePath = currentFramePath.current;
 				currentFramePath.current = framePath;
 				if (isMounted.current) setPreviewFramePath(framePath);
 				await cleanupFrame(previousFramePath);
 			} catch (error) {
-				if (isMounted.current) setIsPreviewActive(false);
-				await handleError("Live preview stopped.", error);
+				if (!cancelled) {
+					if (isMounted.current) setIsPreviewActive(false);
+					await handleError("Live preview stopped.", error);
+				}
 			} finally {
 				isCapturingFrame.current = false;
 			}
@@ -90,6 +105,7 @@ export default function CameraView({ device }: Props) {
 		tick();
 		const interval = setInterval(tick, PREVIEW_INTERVAL_MS);
 		return () => {
+			cancelled = true;
 			clearInterval(interval);
 			const framePath = currentFramePath.current;
 			currentFramePath.current = null;

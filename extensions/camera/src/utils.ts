@@ -14,14 +14,16 @@ const CAPTURE_TIMEOUT_MS = 10_000;
 // yet), so those are the only two device backends implemented here.
 const platform = os.platform();
 
-export async function isFfmpegInstalled(): Promise<boolean> {
+async function isCommandInstalled(command: string): Promise<boolean> {
 	try {
-		await execFileAsync("which", ["ffmpeg"]);
+		await execFileAsync("which", [command]);
 		return true;
 	} catch {
 		return false;
 	}
 }
+
+export const isFfmpegInstalled = () => isCommandInstalled("ffmpeg");
 
 export async function listCameraDevices(): Promise<CameraDevice[]> {
 	if (platform === "darwin") return listCameraDevicesMacOS();
@@ -29,6 +31,40 @@ export async function listCameraDevices(): Promise<CameraDevice[]> {
 }
 
 async function listCameraDevicesLinux(): Promise<CameraDevice[]> {
+	const candidates = await listCameraDevicesLinuxFromSysfs();
+
+	// /dev/videoN nodes aren't all capture devices - the same physical camera
+	// commonly exposes extra metadata-only or output-only nodes alongside the
+	// one that actually supports capture. v4l2-ctl lets us tell them apart;
+	// without it (it's optional, not a hard requirement) we fall back to
+	// listing every node, which can include unusable duplicates.
+	if (await isCommandInstalled("v4l2-ctl")) {
+		const devices: CameraDevice[] = [];
+		for (const candidate of candidates) {
+			if (await nodeSupportsCapture(candidate.path)) {
+				devices.push(candidate);
+			}
+		}
+		return devices;
+	}
+
+	return candidates;
+}
+
+async function nodeSupportsCapture(devicePath: string): Promise<boolean> {
+	try {
+		const { stdout } = await execFileAsync("v4l2-ctl", [
+			"-d",
+			devicePath,
+			"--info",
+		]);
+		return stdout.includes("Video Capture");
+	} catch {
+		return false;
+	}
+}
+
+async function listCameraDevicesLinuxFromSysfs(): Promise<CameraDevice[]> {
 	let entries: string[] = [];
 	try {
 		entries = await fs.readdir("/dev");
