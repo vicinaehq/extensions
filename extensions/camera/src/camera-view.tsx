@@ -60,9 +60,9 @@ export default function CameraView({ device }: Props) {
 			const preferences = getPreferenceValues<Preferences>();
 			const outputPath = await capturePhoto(device, preferences);
 			setLastPhotoPath(outputPath);
-			showSuccess("Photo captured", outputPath);
+			await showSuccess("Photo captured", outputPath);
 		} catch (error) {
-			handleError("Failed to capture photo.", error);
+			await handleError("Failed to capture photo.", error);
 		} finally {
 			setIsBusy(false);
 		}
@@ -72,9 +72,9 @@ export default function CameraView({ device }: Props) {
 		if (!lastPhotoPath) return;
 		try {
 			await Clipboard.copy({ file: lastPhotoPath });
-			showSuccess("Photo copied to clipboard");
+			await showSuccess("Photo copied to clipboard");
 		} catch (error) {
-			handleError("Failed to copy photo.", error);
+			await handleError("Failed to copy photo.", error);
 		}
 	};
 

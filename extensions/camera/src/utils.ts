@@ -158,7 +158,7 @@ export async function startCameraPreview(
 	}
 
 	if (!(await isFfplayInstalled())) {
-		handleError(
+		await handleError(
 			"ffplay is required for live preview.",
 			new Error(
 				"ffplay was not found in PATH. Install the ffmpeg package to get it.",
@@ -198,7 +198,7 @@ export async function startCameraPreview(
 			label: device.label,
 		};
 		await LocalStorage.setItem(ACTIVE_PREVIEW_KEY, JSON.stringify(session));
-		showSuccess("Camera preview started", device.label);
+		await showSuccess("Camera preview started", device.label);
 		return true;
 	} catch (error) {
 		if (child?.pid) {
@@ -208,7 +208,7 @@ export async function startCameraPreview(
 				// process already exited
 			}
 		}
-		handleError("Failed to start camera preview.", error);
+		await handleError("Failed to start camera preview.", error);
 		return false;
 	}
 }
@@ -228,10 +228,10 @@ export async function stopCameraPreview(): Promise<boolean> {
 		}
 
 		await LocalStorage.removeItem(ACTIVE_PREVIEW_KEY);
-		showSuccess("Camera preview stopped");
+		await showSuccess("Camera preview stopped");
 		return true;
 	} catch (error) {
-		handleError("Failed to stop camera preview.", error);
+		await handleError("Failed to stop camera preview.", error);
 		return false;
 	}
 }
@@ -283,7 +283,7 @@ function expandHome(inputPath: string): string {
 }
 
 export function showSuccess(title: string, message?: string) {
-	showToast({
+	return showToast({
 		style: Toast.Style.Success,
 		title,
 		...(message && { message }),
@@ -291,7 +291,7 @@ export function showSuccess(title: string, message?: string) {
 }
 
 export function handleError(title: string, error: unknown) {
-	showToast({
+	return showToast({
 		style: Toast.Style.Failure,
 		title,
 		message: error instanceof Error ? error.message : "Unknown error",

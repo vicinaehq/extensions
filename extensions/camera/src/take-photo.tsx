@@ -12,7 +12,7 @@ export default async function TakePhoto() {
 	const preferences = getPreferenceValues<TakePhotoPreferences>();
 
 	if (!(await isFfmpegInstalled())) {
-		handleError(
+		await handleError(
 			"ffmpeg is required to take a photo.",
 			new Error("ffmpeg was not found in PATH. Install it and try again."),
 		);
@@ -30,7 +30,7 @@ export default async function TakePhoto() {
 		: devices[0];
 
 	if (!device) {
-		handleError(
+		await handleError(
 			"No camera found.",
 			new Error("No video capture device was detected on this system."),
 		);
@@ -39,8 +39,8 @@ export default async function TakePhoto() {
 
 	try {
 		const outputPath = await capturePhoto(device, preferences);
-		showSuccess("Photo captured", outputPath);
+		await showSuccess("Photo captured", outputPath);
 	} catch (error) {
-		handleError("Failed to capture photo.", error);
+		await handleError("Failed to capture photo.", error);
 	}
 }

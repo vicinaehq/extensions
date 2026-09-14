@@ -20,7 +20,7 @@ export default function OpenCamera() {
 			const found = await listCameraDevices();
 			setDevices(found);
 		} catch (error) {
-			handleError("Failed to detect cameras.", error);
+			await handleError("Failed to detect cameras.", error);
 		} finally {
 			setLoading(false);
 		}
