@@ -43,6 +43,10 @@ sudo dnf install ffmpeg
 
 If `ffmpeg` isn't found, the extension shows a screen with the exact command for your distro and a Retry action — it never fails silently.
 
+### macOS (unsupported for now)
+
+The extension's device detection and capture code has a macOS path (via ffmpeg's `avfoundation` input) and isn't gated behind the platform check, so it will run if you install it on a Mac. In testing, though, actual capture hangs indefinitely: macOS never shows a camera-permission prompt for the plain `ffmpeg` binary spawned by Vicinae's extension host, and no entry is created under System Settings → Privacy & Security → Camera to grant it manually, even though native apps (QuickTime, Photo Booth) access the same camera fine. This looks like a gap in how Vicinae's extension runtime is code-signed/entitled for TCC-gated device access - something that would need to be fixed in Vicinae itself, not in a third-party extension. Because of that, `macOS` is intentionally left out of this extension's declared `platforms` until that's resolved upstream.
+
 ---
 
 ## Usage
@@ -63,7 +67,7 @@ If `ffmpeg` isn't found, the extension shows a screen with the exact command for
 | Capture Resolution | Requested resolution for preview and photos | Auto |
 | Copy to Clipboard | Copy each captured photo to the clipboard | On |
 | Open After Capture | Open each captured photo in your default viewer | Off |
-| Default Camera Device (Take Photo only) | Device path used for quick capture, e.g. `/dev/video0` | Auto-select first camera |
+| Default Camera Device (Take Photo only) | Device path used for quick capture, e.g. `/dev/video0`. Leave empty to auto-select the first detected camera. | Auto-select first camera |
 
 ---
 

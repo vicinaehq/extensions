@@ -10,6 +10,8 @@ ffmpeg is required for this extension to capture photos and preview your camera.
   sudo apt install ffmpeg
 ##### Fedora
   sudo dnf install ffmpeg
+##### macOS
+  brew install ffmpeg
 `;
 
 const NO_DEVICES_FOUND = `## No camera found
