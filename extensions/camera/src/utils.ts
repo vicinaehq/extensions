@@ -58,10 +58,57 @@ async function nodeSupportsCapture(devicePath: string): Promise<boolean> {
 			devicePath,
 			"--info",
 		]);
-		return stdout.includes("Video Capture");
+		return deviceCapsIncludeVideoCapture(stdout);
 	} catch {
 		return false;
 	}
+}
+
+/**
+ * `v4l2-ctl --info` prints two different capability lists: a driver-wide
+ * "Capabilities" block (every capability the physical device supports across
+ * all of its /dev/videoN nodes) and a node-specific "Device Caps" block (what
+ * *this* node actually exposes). A plain substring search over the whole
+ * output can true-positive on a metadata/output-only node just because a
+ * sibling node on the same driver supports capture - so this looks
+ * specifically inside "Device Caps" (falling back to "Capabilities" only for
+ * older v4l2-ctl builds that don't print a separate Device Caps section).
+ */
+function deviceCapsIncludeVideoCapture(info: string): boolean {
+	const lines = info.split("\n");
+	const deviceCapsIndex = lines.findIndex((line) =>
+		line.trim().startsWith("Device Caps"),
+	);
+	if (deviceCapsIndex !== -1) {
+		return capabilitySectionHasVideoCapture(lines, deviceCapsIndex);
+	}
+
+	const capabilitiesIndex = lines.findIndex((line) =>
+		line.trim().startsWith("Capabilities"),
+	);
+	if (capabilitiesIndex !== -1) {
+		return capabilitySectionHasVideoCapture(lines, capabilitiesIndex);
+	}
+
+	return false;
+}
+
+function capabilitySectionHasVideoCapture(
+	lines: string[],
+	headerIndex: number,
+): boolean {
+	const headerIndent = indentOf(lines[headerIndex]);
+	for (let i = headerIndex + 1; i < lines.length; i++) {
+		const line = lines[i];
+		if (line.trim() === "") break;
+		if (indentOf(line) <= headerIndent) break;
+		if (line.trim() === "Video Capture") return true;
+	}
+	return false;
+}
+
+function indentOf(line: string): number {
+	return line.length - line.trimStart().length;
 }
 
 async function listCameraDevicesLinuxFromSysfs(): Promise<CameraDevice[]> {
