@@ -1,0 +1,112 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "camera",
+  "title": "Camera",
+  "description": "Access your webcam directly from Vicinae. Preview a live feed in a dedicated window or capture an instant photo without leaving the launcher.",
+  "categories": [
+    "Media",
+    "System"
+  ],
+  "platforms": [
+    "Linux"
+  ],
+  "license": "MIT",
+  "author": "samumatic",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "open-camera",
+      "title": "Open Camera",
+      "subtitle": "Live preview or capture a photo",
+      "description": "Detect connected cameras, start a live preview window, and capture photos without leaving Vicinae.",
+      "mode": "view"
+    },
+    {
+      "name": "take-photo",
+      "title": "Take Photo",
+      "subtitle": "Quickly capture from your default camera",
+      "description": "Capture a still photo from your default (or first detected) camera without opening a view.",
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "default_device",
+          "type": "textfield",
+          "title": "Default Camera Device",
+          "description": "Video device path used for quick capture, e.g. /dev/video0. Leave empty to auto-select the first detected camera.",
+          "default": "",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "save_directory",
+      "type": "textfield",
+      "title": "Save Directory",
+      "description": "Folder where captured photos are saved.",
+      "default": "~/Pictures/Webcam",
+      "required": true
+    },
+    {
+      "name": "resolution",
+      "type": "dropdown",
+      "title": "Capture Resolution",
+      "description": "Requested capture resolution, used for both the live preview and captured photos. 'Auto' lets the camera negotiate its own default.",
+      "default": "auto",
+      "required": false,
+      "data": [
+        {
+          "title": "Auto",
+          "value": "auto"
+        },
+        {
+          "title": "640 x 480",
+          "value": "640x480"
+        },
+        {
+          "title": "1280 x 720",
+          "value": "1280x720"
+        },
+        {
+          "title": "1920 x 1080",
+          "value": "1920x1080"
+        }
+      ]
+    },
+    {
+      "name": "copy_to_clipboard",
+      "type": "checkbox",
+      "title": "Copy to Clipboard",
+      "label": "Copy captured photos to the clipboard",
+      "description": "Automatically copy each photo to the clipboard right after it is captured.",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "open_after_capture",
+      "type": "checkbox",
+      "title": "Open After Capture",
+      "label": "Open captured photos automatically",
+      "description": "Automatically open each photo in your default image viewer right after it is captured.",
+      "default": false,
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.28.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^26.2.0",
+    "typescript": "^5.9.2"
+  }
+}
