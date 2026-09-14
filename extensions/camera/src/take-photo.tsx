@@ -1,9 +1,11 @@
 import { getPreferenceValues } from "@vicinae/api";
 import { TakePhotoPreferences } from "./types";
 import {
+	applyPostCaptureActions,
 	capturePhoto,
+	describePostCaptureOutcome,
 	handleError,
-	isFfmpegInstalled,
+	isCameraBackendAvailable,
 	listCameraDevices,
 	showSuccess,
 } from "./utils";
@@ -11,10 +13,12 @@ import {
 export default async function TakePhoto() {
 	const preferences = getPreferenceValues<TakePhotoPreferences>();
 
-	if (!(await isFfmpegInstalled())) {
+	if (!isCameraBackendAvailable()) {
 		await handleError(
-			"ffmpeg is required to take a photo.",
-			new Error("ffmpeg was not found in PATH. Install it and try again."),
+			"Camera support is unavailable.",
+			new Error(
+				"The v4l2camera native module could not be loaded. It only works on Linux and needs a C/C++ toolchain to build.",
+			),
 		);
 		return;
 	}
@@ -39,7 +43,9 @@ export default async function TakePhoto() {
 
 	try {
 		const outputPath = await capturePhoto(device, preferences);
-		await showSuccess("Photo captured", outputPath);
+		const outcome = await applyPostCaptureActions(outputPath, preferences);
+		const warning = describePostCaptureOutcome(outcome);
+		await showSuccess("Photo captured", warning ?? outputPath);
 	} catch (error) {
 		await handleError("Failed to capture photo.", error);
 	}

@@ -3,12 +3,6 @@ export type CameraDevice = {
 	label: string;
 };
 
-export type ActivePreviewSession = {
-	pid: number;
-	path: string;
-	label: string;
-};
-
 export type Resolution = "auto" | "640x480" | "1280x720" | "1920x1080";
 
 export type Preferences = {

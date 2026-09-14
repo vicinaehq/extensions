@@ -1,46 +1,44 @@
 ## Overview
 
-**Camera** brings quick webcam access to Vicinae, similar to Raycast's built-in "Open Camera" command. Check yourself before a call, or grab a quick snapshot, without leaving the launcher.
+**Camera** brings quick webcam access to Vicinae, similar to Raycast's built-in "Open Camera" command. Check yourself before a call, or grab a quick snapshot, without leaving the launcher — no separate program to install.
 
 ---
 
 ## Features
 
-- **Automatic Camera Detection**: Finds connected video capture devices using `v4l2-ctl` when available, falling back to `/dev/video*` and sysfs device names otherwise.
-- **Live Preview**: Starts a dedicated preview window (`ffplay`) for the selected camera, with a single action to stop it again.
-- **Instant Photo Capture**: Captures a still photo (`ffmpeg`) to a configurable folder, with optional auto-copy to clipboard and auto-open.
+- **No External Program Required**: Captures through the `v4l2camera` native module, which installs automatically alongside the extension instead of requiring you to install a system package like `ffmpeg`.
+- **Automatic Camera Detection**: Finds connected video capture devices via `/dev/video*` and sysfs device names.
+- **In-App Live Preview**: Shows a refreshing preview (about once per second) right inside the Vicinae window — no external window is opened.
+- **Instant Photo Capture**: Captures a still photo to a configurable folder, with optional auto-copy to clipboard and auto-open.
 - **Quick Capture Command**: A `Take Photo` no-view command for a single-keystroke snapshot from your default camera, ideal for binding to a shortcut.
-- **Managed Process Lifecycle**: Tracks the live preview's PID so it can be stopped cleanly from Vicinae, without touching unrelated processes.
 
 ---
 
 ## Requirements
 
-This extension requires the following system utility:
+Nothing to install manually. The extension depends on the `v4l2camera` native module, which is compiled automatically the first time you install the extension (via `npm install`).
 
-1. **`ffmpeg`** — used to capture photos and, via `ffplay`, to show the live preview.
-
-`v4l2-ctl` (from the `v4l-utils` package) is optional but recommended for more reliable camera names and detection.
-
-### Installing Dependencies
+That build step only works on **Linux**, and needs a C/C++ toolchain plus your kernel's video4linux2 headers. Most desktop Linux systems already have these; if not:
 
 #### Arch Linux / Manjaro / EndeavourOS
 
 ```bash
-sudo pacman -S ffmpeg v4l-utils
+sudo pacman -S base-devel v4l-utils
 ```
 
 #### Ubuntu / Debian
 
 ```bash
-sudo apt install ffmpeg v4l-utils
+sudo apt install build-essential libv4l-dev
 ```
 
 #### Fedora
 
 ```bash
-sudo dnf install ffmpeg v4l-utils
+sudo dnf groupinstall "Development Tools" && sudo dnf install libv4l-devel
 ```
+
+If the native module fails to build (or you're not on Linux), the extension still loads — it just shows a "Camera support unavailable" screen instead of crashing.
 
 ---
 
@@ -49,7 +47,7 @@ sudo dnf install ffmpeg v4l-utils
 1. Open **Vicinae launcher**.
 2. Type **`Open Camera`** and press <kbd>Enter</kbd>.
 3. If more than one camera is detected, pick one from the list.
-4. Press **Start Camera Preview** for a live feed, or **Take Photo** to capture an instant snapshot.
+4. Press **Start Live Preview** for a refreshing feed, or **Take Photo** to capture an instant snapshot.
 5. Use **Take Photo** directly from the root search (or bind it to a shortcut) for a one-keystroke capture from your default camera.
 
 ---
@@ -73,6 +71,7 @@ sudo dnf install ffmpeg v4l-utils
 - Node.js (v20 or newer)
 - npm, pnpm, or bun
 - Vicinae
+- On Linux, a C/C++ toolchain and video4linux2 headers (see Requirements above) to build the native camera module
 
 ### Setup & Build
 
@@ -96,5 +95,5 @@ npm run build
 ## Links
 
 - **[Vicinae](https://github.com/vicinaehq/vicinae)** — A focused Application Launcher for your Desktop.
-- **[FFmpeg](https://ffmpeg.org/)** — Used to capture photos and preview the live camera feed.
-- **[v4l-utils](https://git.linuxtv.org/v4l-utils.git/)** — Optional utility used for more reliable camera detection.
+- **[v4l2camera](https://github.com/bellbind/node-v4l2camera)** — Native Node.js module used to capture frames from video4linux2 devices.
+- **[jpeg-js](https://github.com/eugeneware/jpeg-js)** — Pure-JavaScript JPEG encoder, used when the camera doesn't natively produce MJPEG frames.

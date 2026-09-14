@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "camera",
   "title": "Camera",
-  "description": "Access your webcam directly from Vicinae. Preview a live feed in a dedicated window or capture an instant photo without leaving the launcher.",
+  "description": "Access your webcam directly from Vicinae. Preview a refreshing live feed or capture an instant photo without leaving the launcher.",
   "categories": [
     "Media",
     "System"
@@ -20,7 +20,7 @@
       "name": "open-camera",
       "title": "Open Camera",
       "subtitle": "Live preview or capture a photo",
-      "description": "Detect connected cameras, start a live preview window, and capture photos without leaving Vicinae.",
+      "description": "Detect connected cameras, show a refreshing live preview, and capture photos without leaving Vicinae.",
       "mode": "view"
     },
     {
@@ -102,7 +102,11 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.28.2"
+    "@vicinae/api": "^0.28.2",
+    "jpeg-js": "^0.4.4"
+  },
+  "optionalDependencies": {
+    "v4l2camera": "^1.0.4"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.2",

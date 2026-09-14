@@ -1,3 +1,6 @@
+import { promises as fs } from "fs";
+import os from "os";
+import path from "path";
 import {
 	Action,
 	ActionPanel,
@@ -7,16 +10,18 @@ import {
 	getPreferenceValues,
 	Icon,
 } from "@vicinae/api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CameraDevice, Preferences } from "./types";
 import {
+	applyPostCaptureActions,
+	captureFrameBuffer,
 	capturePhoto,
-	getActivePreviewSession,
+	describePostCaptureOutcome,
 	handleError,
 	showSuccess,
-	startCameraPreview,
-	stopCameraPreview,
 } from "./utils";
+
+const PREVIEW_INTERVAL_MS = 1200;
 
 type Props = {
 	device: CameraDevice;
@@ -24,34 +29,79 @@ type Props = {
 
 export default function CameraView({ device }: Props) {
 	const [isPreviewActive, setIsPreviewActive] = useState(false);
+	const [previewFramePath, setPreviewFramePath] = useState<string | null>(null);
 	const [isBusy, setIsBusy] = useState(false);
 	const [lastPhotoPath, setLastPhotoPath] = useState<string | null>(null);
 
-	const refreshPreviewState = async () => {
-		const session = await getActivePreviewSession();
-		setIsPreviewActive(session?.path === device.path);
+	const isMounted = useRef(true);
+	const isCapturingFrame = useRef(false);
+	const frameCounter = useRef(0);
+	const currentFramePath = useRef<string | null>(null);
+	// Unique per mounted instance so two CameraView instances (e.g. kept alive
+	// in a navigation stack for different devices) can never collide on the
+	// same temp file name.
+	const instanceId = useRef(
+		`${device.path.replace(/[^a-zA-Z0-9]/g, "_")}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+	);
+
+	const cleanupFrame = async (framePath: string | null) => {
+		if (!framePath) return;
+		try {
+			await fs.unlink(framePath);
+		} catch {
+			// already removed or never written
+		}
 	};
 
 	useEffect(() => {
-		refreshPreviewState();
-		const interval = setInterval(refreshPreviewState, 1500);
-		return () => clearInterval(interval);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [device.path]);
+		isMounted.current = true;
+		return () => {
+			isMounted.current = false;
+		};
+	}, []);
 
-	const handleTogglePreview = async () => {
-		setIsBusy(true);
-		try {
-			const preferences = getPreferenceValues<Preferences>();
-			if (isPreviewActive) {
-				await stopCameraPreview();
-			} else {
-				await startCameraPreview(device, preferences.resolution);
+	useEffect(() => {
+		if (!isPreviewActive) return;
+
+		const tick = async () => {
+			if (isCapturingFrame.current) return;
+			isCapturingFrame.current = true;
+			try {
+				const preferences = getPreferenceValues<Preferences>();
+				const buffer = await captureFrameBuffer(device, preferences.resolution);
+				frameCounter.current += 1;
+				const framePath = path.join(
+					os.tmpdir(),
+					`vicinae-camera-preview-${instanceId.current}-${frameCounter.current}.jpg`,
+				);
+				await fs.writeFile(framePath, buffer);
+
+				const previousFramePath = currentFramePath.current;
+				currentFramePath.current = framePath;
+				if (isMounted.current) setPreviewFramePath(framePath);
+				await cleanupFrame(previousFramePath);
+			} catch (error) {
+				if (isMounted.current) setIsPreviewActive(false);
+				await handleError("Live preview stopped.", error);
+			} finally {
+				isCapturingFrame.current = false;
 			}
-		} finally {
-			await refreshPreviewState();
-			setIsBusy(false);
-		}
+		};
+
+		tick();
+		const interval = setInterval(tick, PREVIEW_INTERVAL_MS);
+		return () => {
+			clearInterval(interval);
+			const framePath = currentFramePath.current;
+			currentFramePath.current = null;
+			if (isMounted.current) setPreviewFramePath(null);
+			cleanupFrame(framePath);
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isPreviewActive, device.path]);
+
+	const handleTogglePreview = () => {
+		setIsPreviewActive((active) => !active);
 	};
 
 	const handleTakePhoto = async () => {
@@ -60,7 +110,10 @@ export default function CameraView({ device }: Props) {
 			const preferences = getPreferenceValues<Preferences>();
 			const outputPath = await capturePhoto(device, preferences);
 			setLastPhotoPath(outputPath);
-			await showSuccess("Photo captured", outputPath);
+
+			const outcome = await applyPostCaptureActions(outputPath, preferences);
+			const warning = describePostCaptureOutcome(outcome);
+			await showSuccess("Photo captured", warning ?? outputPath);
 		} catch (error) {
 			await handleError("Failed to capture photo.", error);
 		} finally {
@@ -78,10 +131,16 @@ export default function CameraView({ device }: Props) {
 		}
 	};
 
+	const statusMarkdown = isPreviewActive
+		? previewFramePath
+			? `![Live preview](${previewFramePath})`
+			: "Starting live preview…"
+		: `# ${device.label}\n\n${isBusy ? "Working…" : "Start a live preview or capture a still photo using the actions below."}`;
+
 	return (
 		<Detail
 			navigationTitle={device.label}
-			markdown={`# ${device.label}\n\n${isBusy ? "Working…" : "Start a live preview window or capture a still photo using the actions below."}`}
+			markdown={statusMarkdown}
 			metadata={
 				<Detail.Metadata>
 					<Detail.Metadata.TagList title="Status">
@@ -101,6 +160,13 @@ export default function CameraView({ device }: Props) {
 					/>
 					<Detail.Metadata.Label title="Device Path" text={device.path} />
 
+					{isPreviewActive && (
+						<Detail.Metadata.Label
+							title="Refresh Rate"
+							text={`~${(PREVIEW_INTERVAL_MS / 1000).toFixed(1)}s per frame`}
+						/>
+					)}
+
 					{lastPhotoPath && (
 						<>
 							<Detail.Metadata.Separator />
@@ -116,9 +182,7 @@ export default function CameraView({ device }: Props) {
 			actions={
 				<ActionPanel>
 					<Action
-						title={
-							isPreviewActive ? "Stop Camera Preview" : "Start Camera Preview"
-						}
+						title={isPreviewActive ? "Stop Live Preview" : "Start Live Preview"}
 						icon={isPreviewActive ? Icon.Stop : Icon.Play}
 						style={
 							isPreviewActive ? Action.Style.Destructive : Action.Style.Regular

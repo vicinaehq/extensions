@@ -1,21 +1,25 @@
 import { Action, ActionPanel, Icon, List } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import CameraView from "./camera-view";
-import MissingRequirements from "./missing-ffmpeg";
+import MissingRequirements from "./missing-requirements";
 import { CameraDevice } from "./types";
-import { handleError, isFfmpegInstalled, listCameraDevices } from "./utils";
+import {
+	handleError,
+	isCameraBackendAvailable,
+	listCameraDevices,
+} from "./utils";
 
 export default function OpenCamera() {
 	const [loading, setLoading] = useState(true);
-	const [isFfmpegFound, setIsFfmpegFound] = useState(true);
+	const [isBackendAvailable, setIsBackendAvailable] = useState(true);
 	const [devices, setDevices] = useState<CameraDevice[]>([]);
 
 	const load = async () => {
 		setLoading(true);
 		try {
-			const ffmpegFound = await isFfmpegInstalled();
-			setIsFfmpegFound(ffmpegFound);
-			if (!ffmpegFound) return;
+			const backendAvailable = isCameraBackendAvailable();
+			setIsBackendAvailable(backendAvailable);
+			if (!backendAvailable) return;
 
 			const found = await listCameraDevices();
 			setDevices(found);
@@ -42,8 +46,10 @@ export default function OpenCamera() {
 		);
 	}
 
-	if (!isFfmpegFound) {
-		return <MissingRequirements reason="ffmpeg-not-found" onRefresh={load} />;
+	if (!isBackendAvailable) {
+		return (
+			<MissingRequirements reason="backend-not-available" onRefresh={load} />
+		);
 	}
 
 	if (devices.length === 0) {
