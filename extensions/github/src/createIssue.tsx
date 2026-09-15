@@ -5,6 +5,7 @@ import { useGetLabels } from "./hooks/useGetLabels";
 import { useGetMyRepos } from "./hooks/useGetRepos";
 import { useIssueForm } from "./hooks/useIssueForm";
 import { persister, queryClient } from "./queryClient";
+import { GitHubAuthentication } from "./components/GitHubAuthentication";
 
 function CreateIssue() {
   return (
@@ -12,7 +13,9 @@ function CreateIssue() {
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Command />
+      <GitHubAuthentication>
+        <Command />
+      </GitHubAuthentication>
     </PersistQueryClientProvider>
   );
 }
