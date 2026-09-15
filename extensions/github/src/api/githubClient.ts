@@ -10,5 +10,8 @@ if (!token) {
   );
 }
 
-export const authToken = token;
-export const octokit = new Octokit({ auth: token });
+const octokit = new Octokit({ auth: token });
+
+export const getOctokit = () => {
+  return octokit;
+};

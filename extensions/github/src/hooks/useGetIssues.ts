@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { octokit } from "../api/githubClient";
+import { getOctokit } from "../api/githubClient";
 import { Issue } from "../types";
 import { octokitPaginate } from "../api/octokitPaginate";
 import { getIssueFilterQuery } from "../utils/getIssueFilterQuery";
@@ -11,6 +11,7 @@ export const useGetIssues = (filter: string, query = "") => {
     queryKey: ["githubIssues", q, filter],
     queryFn: async () => {
       if (!filter) return defaultValue;
+      const octokit = getOctokit();
       return octokitPaginate(octokit.search.issuesAndPullRequests, {
         q,
         sort: "updated",
