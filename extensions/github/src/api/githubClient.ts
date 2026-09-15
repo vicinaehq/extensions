@@ -12,7 +12,7 @@ export type GitHubAuthentication =
     }
   | {
       status: "unauthenticated";
-      githubCliStatus: "not-installed" | "not-authenticated";
+      githubCliStatus: "not-installed" | "not-authenticated" | "error";
     };
 
 let octokit: Octokit | undefined;
@@ -34,7 +34,7 @@ const executablePath = [
 
 const getGitHubCliToken = (): Promise<
   | { token: string; status: "authenticated" }
-  | { status: "not-installed" | "not-authenticated" }
+  | { status: "not-installed" | "not-authenticated" | "error" }
 > =>
   new Promise((resolve) => {
     execFile(
@@ -45,7 +45,7 @@ const getGitHubCliToken = (): Promise<
         timeout: 5000,
         env: { ...process.env, PATH: executablePath },
       },
-      (error, stdout) => {
+      (error, stdout, stderr) => {
         if (!error) {
           const token = stdout.trim();
           if (token) {
@@ -54,11 +54,17 @@ const getGitHubCliToken = (): Promise<
           }
         }
 
+        const isNotAuthenticated = stderr
+          .toLowerCase()
+          .includes("no oauth token found for");
+
         resolve({
           status:
             error && "code" in error && error.code === "ENOENT"
               ? "not-installed"
-              : "not-authenticated",
+              : isNotAuthenticated
+                ? "not-authenticated"
+                : "error",
         });
       },
     );

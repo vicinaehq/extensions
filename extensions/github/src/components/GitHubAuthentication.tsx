@@ -43,18 +43,19 @@ export const GitHubAuthentication = ({
     return children;
   }
 
-  const isGitHubCliInstalled =
-    authentication.githubCliStatus !== "not-installed";
-  const markdown = isGitHubCliInstalled
-    ? "# GitHub Authentication Required\n\nGitHub CLI is installed but not authenticated. Sign in with GitHub CLI, or configure a Personal Access Token in the extension preferences."
-    : "# GitHub Authentication Required\n\nInstall and sign in with GitHub CLI, or configure a Personal Access Token in the extension preferences.";
+  const markdown =
+    authentication.githubCliStatus === "not-authenticated"
+      ? "# GitHub Authentication Required\n\nGitHub CLI is installed but not authenticated. Sign in with GitHub CLI, or configure a Personal Access Token in the extension preferences."
+      : authentication.githubCliStatus === "not-installed"
+        ? "# GitHub Authentication Required\n\nInstall and sign in with GitHub CLI, or configure a Personal Access Token in the extension preferences."
+        : "# GitHub Authentication Failed\n\nGitHub CLI could not provide an authentication token. Try again, or configure a Personal Access Token in the extension preferences.";
 
   return (
     <Detail
       markdown={markdown}
       actions={
         <ActionPanel>
-          {isGitHubCliInstalled ? (
+          {authentication.githubCliStatus === "not-authenticated" ? (
             <Action
               title="Sign In with GitHub CLI"
               icon={Icon.Terminal}
@@ -65,13 +66,13 @@ export const GitHubAuthentication = ({
                 )
               }
             />
-          ) : (
+          ) : authentication.githubCliStatus === "not-installed" ? (
             <Action.OpenInBrowser
               title="Install GitHub CLI"
               icon={Icon.Download}
               url="https://cli.github.com/"
             />
-          )}
+          ) : null}
           <Action
             title="Try Again"
             icon={Icon.ArrowClockwise}
