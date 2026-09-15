@@ -23,6 +23,7 @@ const executablePath = [
   "/opt/homebrew/bin",
   "/usr/local/bin",
   "/usr/bin",
+  "/snap/bin",
   join(homedir(), ".local", "bin"),
   join(homedir(), ".nix-profile", "bin"),
   "/run/current-system/sw/bin",
