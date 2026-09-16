@@ -8,6 +8,7 @@ import { persister, queryClient } from "./queryClient";
 import type { FilterType, GitHubPreferences } from "./types";
 import { useGetMyRepos } from "./hooks/useGetRepos";
 import { useGetPullRequests } from "./hooks/useGetPullRequests";
+import { GitHubAuthentication } from "./components/GitHubAuthentication";
 
 function PullRequests() {
   return (
@@ -15,7 +16,9 @@ function PullRequests() {
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Command />
+      <GitHubAuthentication>
+        <Command />
+      </GitHubAuthentication>
     </PersistQueryClientProvider>
   );
 }
