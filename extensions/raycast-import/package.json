@@ -4,12 +4,19 @@
 	"title": "Raycast Import",
 	"version": "0.4.0",
 	"description": "Import data exported from Raycast (snippets, clipboard history, emoji, extensions) into Vicinae.",
-	"categories": ["Productivity", "Data"],
+	"categories": [
+		"Productivity",
+		"Data"
+	],
 	"license": "MIT",
 	"author": "danielfstefan",
 	"contributors": [],
 	"pastContributors": [],
 	"icon": "extension_icon.png",
+	"platforms": [
+		"macOS",
+		"Windows"
+	],
 	"commands": [
 		{
 			"name": "import-data",
