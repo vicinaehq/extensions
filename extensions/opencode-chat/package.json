@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "opencode-chat",
+  "version": "0.1.0",
+  "title": "OpenCode Chat",
+  "description": "Chat with AI models through OpenCode. Supports any provider configured in OpenCode.",
+  "categories": ["Productivity", "Developer Tools"],
+  "keywords": ["ai", "chat", "opencode", "llm", "claude", "gpt", "gemini", "ollama"],
+  "license": "MIT",
+  "author": "aetherall",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "ask-ai",
+      "title": "Ask AI",
+      "subtitle": "OpenCode",
+      "description": "Ask a question or chat with AI models. Works as a fallback command.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "model",
+      "title": "Default Model",
+      "description": "Default model to use in provider/model format (e.g. anthropic/claude-sonnet-4-20250514, openai/gpt-4o)",
+      "required": true,
+      "type": "textfield",
+      "default": "anthropic/claude-sonnet-4-20250514"
+    },
+
+    {
+      "name": "systemPrompt",
+      "title": "System Prompt",
+      "description": "Default system prompt for new conversations. Leave empty for no system prompt.",
+      "required": false,
+      "type": "textfield",
+      "default": "You are a fast, knowledgeable technical assistant in a launcher chat. Keep answers concise and precise — this is for quick exchanges, not essays. Use markdown for structure (headers, code blocks, lists) but stay brief. When a question benefits from up-to-date information, proactively search the web in parallel to give accurate answers. You are not limited to coding — cover any technical topic (systems, networking, math, science, devops, etc.) with the same rigor. If unsure, say so rather than guess."
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@opencode-ai/sdk": "^1.3.5",
+    "@vicinae/api": "^0.16.6",
+    "ai": "^6.0.0",
+    "ai-sdk-provider-opencode-sdk": "^3.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
