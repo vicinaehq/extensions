@@ -1,0 +1,101 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "proton-pass",
+  "title": "Proton Pass",
+  "description": "Search, copy and manage credentials from your Proton Pass vaults",
+  "categories": ["Security"],
+  "license": "MIT",
+  "author": "js0ny",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "search-items",
+      "title": "Proton Pass Search Items",
+      "description": "Search items across all Proton Pass vaults",
+      "mode": "view"
+    },
+    {
+      "name": "list-vaults",
+      "title": "Proton Pass List Vaults",
+      "description": "Browse Proton Pass vaults and their items",
+      "mode": "view"
+    },
+    {
+      "name": "get-totp",
+      "title": "Proton Pass Get TOTP Codes",
+      "description": "Get TOTP codes for items in Proton Pass",
+      "mode": "view"
+    },
+    {
+      "name": "generate-password",
+      "title": "Proton Pass Generate Password",
+      "description": "Generate strong passwords and passphrases",
+      "mode": "view"
+    },
+    {
+      "name": "login",
+      "title": "Proton Pass Login",
+      "description": "Authenticate with Proton Pass",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "type": "textfield",
+      "name": "cliPath",
+      "title": "pass-cli path",
+      "description": "Path to the pass-cli executable. Leave empty to use pass-cli from PATH.",
+      "required": false,
+      "placeholder": "/path/to/pass-cli"
+    },
+    {
+      "type": "dropdown",
+      "name": "keyProvider",
+      "title": "Key provider",
+      "description": "How pass-cli stores encryption keys (PROTON_PASS_KEY_PROVIDER). Auto inherits the environment and lets pass-cli decide.",
+      "required": false,
+      "data": [
+        { "title": "Auto (pass-cli default)", "value": "auto" },
+        { "title": "Keyring (OS credential storage)", "value": "keyring" },
+        { "title": "Filesystem (fs)", "value": "fs" },
+        { "title": "Environment variable (env)", "value": "env" }
+      ]
+    },
+    {
+      "type": "dropdown",
+      "name": "linuxKeyring",
+      "title": "Linux keyring backend",
+      "description": "Linux only: keyring backend for PROTON_PASS_LINUX_KEYRING. Auto inherits the environment. Ignored on other platforms.",
+      "required": false,
+      "data": [
+        { "title": "Auto (pass-cli default)", "value": "auto" },
+        { "title": "Kernel key retention service", "value": "kernel" },
+        { "title": "D-Bus Secret Service (GNOME Keyring etc.)", "value": "dbus" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "name": "cacheItems",
+      "title": "Cache vault/item metadata",
+      "description": "Cache item titles and vault names locally for faster loading. Passwords, notes and TOTP codes are never cached.",
+      "label": "Enable metadata cache",
+      "default": true,
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.23.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
