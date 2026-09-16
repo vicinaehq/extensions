@@ -2,6 +2,7 @@ import { Icon, List } from "@vicinae/api";
 import { useEffect, useMemo, useState } from "react";
 import { Database } from "sql.js";
 
+import { getFavicons } from "./favicons";
 import {
   createCommonActions,
   getFirefoxProfiles,
@@ -68,6 +69,7 @@ export default function Command() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFolderId, setSelectedFolderId] = useState("");
+  const [favicons, setFavicons] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     (async () => {
@@ -206,6 +208,18 @@ export default function Command() {
         // Sort by dateAdded descending (most recent first)
         bookmarks.sort((a, b) => b.dateAdded - a.dateAdded);
         setBookmarks(bookmarks);
+
+        try {
+          setFavicons(
+            await getFavicons(
+              currentProfile,
+              bookmarks.map((bookmark) => bookmark.domain),
+            ),
+          );
+        } catch (error) {
+          console.log("[DEBUG] Failed to load favicons:", String(error));
+          setFavicons(new Map());
+        }
       } catch (error) {
         await showErrorToast("Error loading bookmarks", String(error));
         setFolders([]);
@@ -261,7 +275,7 @@ export default function Command() {
       {folderBookmarks.map((item) => (
         <List.Item
           key={item.id}
-          icon={Icon.Bookmark}
+          icon={favicons.get(item.domain) ?? Icon.Bookmark}
           title={item.title}
           subtitle={item.url}
           accessories={
