@@ -12,7 +12,9 @@
 		"macOS"
 	],
 	"author": "bl4zee1g",
-	"contributors": [],
+	"contributors": [
+		"OrenRotaru"
+	],
 	"pastContributors": [],
 	"icon": "extension_icon.png",
 	"commands": [
