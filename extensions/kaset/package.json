@@ -1,0 +1,278 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "kaset",
+  "title": "Kaset",
+  "description": "Control Kaset, the YouTube Music client for macOS, from Vicinae.",
+  "icon": "extension_icon.png",
+  "license": "MIT",
+  "author": "lolgm",
+  "contributors": [],
+  "pastContributors": [],
+  "categories": [
+    "Media",
+    "Applications"
+  ],
+  "keywords": [
+    "kaset",
+    "music",
+    "youtube music",
+    "player",
+    "media"
+  ],
+  "platforms": [
+    "macOS"
+  ],
+  "preferences": [
+    {
+      "name": "volumeStep",
+      "type": "dropdown",
+      "required": false,
+      "title": "Volume Step",
+      "description": "How much the Volume Up and Volume Down commands change the volume by.",
+      "default": "5",
+      "data": [
+        {
+          "title": "1%",
+          "value": "1"
+        },
+        {
+          "title": "5%",
+          "value": "5"
+        },
+        {
+          "title": "10%",
+          "value": "10"
+        },
+        {
+          "title": "20%",
+          "value": "20"
+        }
+      ]
+    },
+    {
+      "name": "showHud",
+      "type": "checkbox",
+      "required": false,
+      "title": "Feedback",
+      "label": "Show a HUD after background commands",
+      "description": "Turn this off if you bind the playback commands to global shortcuts and do not want any on-screen feedback.",
+      "default": true
+    }
+  ],
+  "commands": [
+    {
+      "name": "now-playing",
+      "icon": "now_playing.png",
+      "title": "Now Playing",
+      "description": "Show the current track with artwork, progress and full playback controls.",
+      "mode": "view",
+      "keywords": [
+        "current",
+        "track",
+        "song",
+        "player"
+      ]
+    },
+    {
+      "name": "queue",
+      "icon": "queue.png",
+      "title": "Play Queue",
+      "description": "Browse the current play queue and jump to any track in it.",
+      "mode": "view",
+      "keywords": [
+        "queue",
+        "up next",
+        "playlist"
+      ]
+    },
+    {
+      "name": "volume",
+      "icon": "volume.png",
+      "title": "Set Volume",
+      "description": "Pick a volume level, or type any value between 0 and 100.",
+      "mode": "view",
+      "keywords": [
+        "volume",
+        "loudness",
+        "sound"
+      ]
+    },
+    {
+      "name": "play-video",
+      "icon": "play_video.png",
+      "title": "Play Video by ID",
+      "description": "Play a YouTube Music item from a video ID or a YouTube link.",
+      "mode": "no-view",
+      "keywords": [
+        "video",
+        "id",
+        "url",
+        "link",
+        "youtube"
+      ],
+      "arguments": [
+        {
+          "name": "video",
+          "type": "text",
+          "placeholder": "Video ID or YouTube link",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "toggle-playback",
+      "icon": "toggle_playback.png",
+      "title": "Toggle Play/Pause",
+      "description": "Toggle between playing and paused.",
+      "mode": "no-view",
+      "keywords": [
+        "play",
+        "pause",
+        "toggle",
+        "playpause"
+      ]
+    },
+    {
+      "name": "play",
+      "icon": "play.png",
+      "title": "Play",
+      "description": "Start or resume playback.",
+      "mode": "no-view",
+      "keywords": [
+        "play",
+        "resume"
+      ]
+    },
+    {
+      "name": "pause",
+      "icon": "pause.png",
+      "title": "Pause",
+      "description": "Pause playback.",
+      "mode": "no-view",
+      "keywords": [
+        "pause",
+        "stop"
+      ]
+    },
+    {
+      "name": "next-track",
+      "icon": "next_track.png",
+      "title": "Next Track",
+      "description": "Skip to the next track.",
+      "mode": "no-view",
+      "keywords": [
+        "next",
+        "skip",
+        "forward"
+      ]
+    },
+    {
+      "name": "previous-track",
+      "icon": "previous_track.png",
+      "title": "Previous Track",
+      "description": "Go back to the previous track.",
+      "mode": "no-view",
+      "keywords": [
+        "previous",
+        "back",
+        "rewind"
+      ]
+    },
+    {
+      "name": "volume-up",
+      "icon": "volume_up.png",
+      "title": "Volume Up",
+      "description": "Raise the volume by the configured step.",
+      "mode": "no-view",
+      "keywords": [
+        "volume",
+        "louder",
+        "increase"
+      ]
+    },
+    {
+      "name": "volume-down",
+      "icon": "volume_down.png",
+      "title": "Volume Down",
+      "description": "Lower the volume by the configured step.",
+      "mode": "no-view",
+      "keywords": [
+        "volume",
+        "quieter",
+        "decrease"
+      ]
+    },
+    {
+      "name": "toggle-mute",
+      "icon": "toggle_mute.png",
+      "title": "Toggle Mute",
+      "description": "Mute or unmute playback.",
+      "mode": "no-view",
+      "keywords": [
+        "mute",
+        "unmute",
+        "silence"
+      ]
+    },
+    {
+      "name": "toggle-shuffle",
+      "icon": "toggle_shuffle.png",
+      "title": "Toggle Shuffle",
+      "description": "Turn shuffle on or off.",
+      "mode": "no-view",
+      "keywords": [
+        "shuffle",
+        "random"
+      ]
+    },
+    {
+      "name": "cycle-repeat",
+      "icon": "cycle_repeat.png",
+      "title": "Cycle Repeat",
+      "description": "Cycle the repeat mode between off, all and one.",
+      "mode": "no-view",
+      "keywords": [
+        "repeat",
+        "loop"
+      ]
+    },
+    {
+      "name": "like-track",
+      "icon": "like_track.png",
+      "title": "Like Track",
+      "description": "Like the current track, or remove an existing like.",
+      "mode": "no-view",
+      "keywords": [
+        "like",
+        "thumbs up",
+        "favourite"
+      ]
+    },
+    {
+      "name": "dislike-track",
+      "icon": "dislike_track.png",
+      "title": "Dislike Track",
+      "description": "Dislike the current track, or remove an existing dislike.",
+      "mode": "no-view",
+      "keywords": [
+        "dislike",
+        "thumbs down"
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.28.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.2"
+  }
+}
