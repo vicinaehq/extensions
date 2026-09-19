@@ -3,6 +3,7 @@ import {
 	ActionPanel,
 	Form,
 	Icon,
+	type LaunchProps,
 	popToRoot,
 	showToast,
 	Toast,
@@ -17,7 +18,7 @@ import type { ContactSummary } from "./lib/types";
 
 const MANUAL = "";
 
-export default function SendSmsCommand() {
+export default function SendSmsCommand(props: LaunchProps) {
 	const { devices, isLoading, daemonDown } = useDevices();
 	const [target, setTarget] = useState<string>("");
 	const [contacts, setContacts] = useState<ContactSummary[]>([]);
@@ -26,10 +27,17 @@ export default function SendSmsCommand() {
 
 	const connected = devices.filter((d) => d.connected && isPaired(d));
 
+	// Launched from a device's action panel, the chosen device travels in
+	// the launch context; without it the ladder would pick its own target.
+	const explicitId =
+		typeof props.launchContext?.deviceId === "string"
+			? props.launchContext.deviceId
+			: undefined;
+
 	useEffect(() => {
 		if (target || connected.length === 0) return;
 		let active = true;
-		void resolveTarget(devices).then((resolution) => {
+		void resolveTarget(devices, { explicitId }).then((resolution) => {
 			if (!active) return;
 			setTarget(
 				resolution.kind === "resolved" ? resolution.device.id : connected[0].id,
@@ -38,7 +46,7 @@ export default function SendSmsCommand() {
 		return () => {
 			active = false;
 		};
-	}, [devices, target, connected]);
+	}, [devices, target, connected, explicitId]);
 
 	useEffect(() => {
 		if (!target) return;

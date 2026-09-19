@@ -253,6 +253,9 @@ export function DeviceListItem({
 										launchCommand({
 											name: "send-file",
 											type: LaunchType.UserInitiated,
+											// Carry the chosen device so the destination command
+											// does not resolve its own, different, target.
+											context: { deviceId: device.id },
 										})
 									}
 								/>
@@ -263,6 +266,9 @@ export function DeviceListItem({
 										launchCommand({
 											name: "send-sms",
 											type: LaunchType.UserInitiated,
+											// Carry the chosen device so the destination command
+											// does not resolve its own, different, target.
+											context: { deviceId: device.id },
 										})
 									}
 								/>
