@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { execAsync, handleError } from './utils';
+import { handleError } from './feedback';
+import { execAsync } from './niri';
 
 function useNiriData<T>(command: string, errorMessage: string): [T[] | Record<string, T>, boolean] {
   const [data, setData] = useState<T[] | Record<string, T>>([]);
