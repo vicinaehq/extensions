@@ -1,9 +1,9 @@
 import { List, Icon, ActionPanel, Action, closeMainWindow } from '@vicinae/api';
 import { useMemo } from 'react';
-import { useNiriArrayData } from './hooks';
-import type { Workspace, Window } from './types';
+import { useNiriArrayData } from './lib/hooks';
+import type { Workspace, Window } from './lib/types';
 import { NiriList } from './components/NiriList';
-import { runNiriAction, showSuccess } from './utils';
+import { runNiriAction } from './lib/niri';
 
 type WorkspaceWindows = {
   workspace: Workspace;

@@ -1,9 +1,9 @@
 import { List, Icon, Color, ActionPanel, Action } from '@vicinae/api';
 import { basename } from 'path';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { collectKeybinds, getNiriConfigPath, loadNiriConfig } from './config';
-import type { Keybind } from './types';
-import { handleError } from './utils';
+import { handleError } from './lib/feedback';
+import { collectKeybinds, getNiriConfigPath, loadNiriConfig } from './lib/keybinds/config';
+import type { Keybind } from './lib/types';
 
 interface Category {
   title: string;

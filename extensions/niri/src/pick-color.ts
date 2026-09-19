@@ -1,4 +1,5 @@
-import { execAsync, handleError, showSuccess } from './utils';
+import { handleError, showSuccess } from './lib/feedback';
+import { execAsync } from './lib/niri';
 import { showToast, Clipboard, Toast } from '@vicinae/api';
 
 export default async function PickColor() {

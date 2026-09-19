@@ -3,7 +3,7 @@ import { homedir } from 'os';
 import { dirname, isAbsolute, join, resolve } from 'path';
 import { parseKdl } from './kdl';
 import type { KdlNode, KdlValue } from './kdl';
-import type { Keybind } from './types';
+import type { Keybind } from '../types';
 
 const SYSTEM_CONFIG_PATH = '/etc/niri/config.kdl';
 

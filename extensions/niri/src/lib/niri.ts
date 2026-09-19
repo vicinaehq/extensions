@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { showToast, Toast } from '@vicinae/api';
+import { handleError, showSuccess } from './feedback';
 
 export const execAsync = promisify(exec);
 
@@ -10,11 +10,7 @@ export async function runNiriAction(action: string) {
     return true;
   } catch (error) {
     console.error(error);
-    showToast({
-      style: Toast.Style.Failure,
-      title: 'Action failed',
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
+    handleError('Action failed', error);
     return false;
   }
 }
@@ -25,11 +21,7 @@ export async function runNiriCommand(command: string) {
     return true;
   } catch (error) {
     console.error(error);
-    showToast({
-      style: Toast.Style.Failure,
-      title: 'Command failed',
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
+    handleError('Command failed', error);
     return false;
   }
 }
@@ -45,20 +37,4 @@ export async function runNiriActionWithRefresh(
     await onRefresh();
   }
   return success;
-}
-
-export function handleError(title: string, error: unknown) {
-  showToast({
-    style: Toast.Style.Failure,
-    title,
-    message: error instanceof Error ? error.message : 'Unknown error',
-  });
-}
-
-export function showSuccess(title: string, message?: string) {
-  showToast({
-    style: Toast.Style.Success,
-    title,
-    ...(message && { message }),
-  });
 }

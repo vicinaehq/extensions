@@ -1,8 +1,9 @@
 import { List, Icon, ActionPanel, Action } from '@vicinae/api';
-import { useNiriObjectData } from './hooks';
-import type { Output } from './types';
+import { useNiriObjectData } from './lib/hooks';
+import type { Output } from './lib/types';
 import { NiriList } from './components/NiriList';
-import { runNiriCommand, runNiriAction, showSuccess } from './utils';
+import { showSuccess } from './lib/feedback';
+import { runNiriAction, runNiriCommand } from './lib/niri';
 
 export default function Outputs() {
   const [outputs, loading, handleRefresh] = useNiriObjectData<Output>(

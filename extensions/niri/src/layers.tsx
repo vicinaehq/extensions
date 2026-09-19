@@ -1,6 +1,6 @@
 import { List, Icon, ActionPanel, Action } from '@vicinae/api';
-import { useNiriArrayData } from './hooks';
-import type { Layer } from './types';
+import { useNiriArrayData } from './lib/hooks';
+import type { Layer } from './lib/types';
 import { NiriList } from './components/NiriList';
 
 export default function Layers() {
