@@ -31,7 +31,6 @@ const IDLE_TIMEOUT_MS = 120_000;
 type Failure = { device: string; file: string; error: string };
 type Outcome = { sent: number; total: number; failures: Failure[] };
 
-/** One file heading to one device. Duplicates are distinct jobs, not one key. */
 type Job = { deviceId: string; deviceName: string; path: string; base: string };
 
 function key(deviceId: string, base: string): string {
@@ -39,20 +38,9 @@ function key(deviceId: string, base: string): string {
 }
 
 /**
- * Sends files and reports what actually happened.
- *
- * `shareFile` resolves as soon as the invite packet is queued — the bytes move
- * afterwards, inside the daemon — so awaiting it proves nothing. The only
- * truthful source of progress and completion is the event stream, which is
- * opened before any transfer starts so no early event is missed.
- *
- * Completion events identify a file only by basename, so jobs are queued per
- * key rather than collapsed into one: sending two files that happen to share a
- * basename needs two completions, not one.
- *
- * A transfer counts as sent only when its own `share.complete` arrives. If the
- * stream dies first, every unconfirmed job becomes a failure — silence is not
- * evidence that bytes moved.
+ * `shareFile` resolves when the invite is queued, not when bytes land, so only
+ * `share.complete` proves a transfer happened. Completion identifies a file by
+ * basename alone, hence the per-key queues.
  */
 function transfer(
 	targets: DeviceSummary[],
@@ -70,10 +58,10 @@ function transfer(
 	const total = jobs.length;
 
 	return new Promise<Outcome>((resolve) => {
-		/** Jobs dispatched and awaiting completion, queued per key. */
 		const outstanding = new Map<string, Job[]>();
 		let undispatched = [...jobs];
 		const failures: Failure[] = [];
+		let dispatching = true;
 		let idleTimer: ReturnType<typeof setTimeout> | undefined;
 		let settled = false;
 
@@ -85,15 +73,22 @@ function transfer(
 			resolve({ sent: total - failures.length, total, failures });
 		};
 
-		/** Fails every job whose completion was never observed. */
 		const abort = (error: string) => {
 			if (settled) return;
+			dispatching = false;
 			const stranded = [...undispatched, ...[...outstanding.values()].flat()];
 			undispatched = [];
 			outstanding.clear();
 			for (const job of stranded) {
 				failures.push({ device: job.deviceName, file: job.base, error });
 			}
+			finish();
+		};
+
+		// A fast first completion must not resolve the batch while later jobs
+		// are still being dispatched.
+		const maybeFinish = () => {
+			if (dispatching || outstanding.size > 0) return;
 			finish();
 		};
 
@@ -110,13 +105,22 @@ function transfer(
 			{
 				onReady: () => {
 					void (async () => {
-						while (undispatched.length > 0) {
+						while (undispatched.length > 0 && !settled) {
 							const job = undispatched.shift() as Job;
+							const k = key(job.deviceId, job.base);
+							// Registered before the await: an unregistered job is
+							// invisible to both maybeFinish and abort.
+							outstanding.set(k, [...(outstanding.get(k) ?? []), job]);
 							try {
 								await shareFile(job.deviceId, job.path);
-								const k = key(job.deviceId, job.base);
-								outstanding.set(k, [...(outstanding.get(k) ?? []), job]);
+								resetIdle();
 							} catch (error) {
+								const queue = outstanding.get(k);
+								if (queue) {
+									const at = queue.indexOf(job);
+									if (at >= 0) queue.splice(at, 1);
+									if (queue.length === 0) outstanding.delete(k);
+								}
 								failures.push({
 									device: job.deviceName,
 									file: job.base,
@@ -124,8 +128,8 @@ function transfer(
 								});
 							}
 						}
-						if (outstanding.size === 0) finish();
-						else resetIdle();
+						dispatching = false;
+						maybeFinish();
 					})();
 				},
 
@@ -154,7 +158,7 @@ function transfer(
 								error: p.error ?? "transfer failed",
 							});
 						}
-						if (outstanding.size === 0) finish();
+						if (outstanding.size === 0) maybeFinish();
 						else resetIdle();
 					}
 				},
@@ -173,8 +177,7 @@ export default function SendFileCommand(props: LaunchProps) {
 
 	const connected = devices.filter((d) => d.connected && isPaired(d));
 
-	// Launched from a device's action panel, the chosen device travels in
-	// the launch context; without it the ladder would pick its own target.
+	// A device chosen in the launcher outranks the ladder's own guess.
 	const explicitId =
 		typeof props.launchContext?.deviceId === "string"
 			? props.launchContext.deviceId
@@ -230,7 +233,6 @@ export default function SendFileCommand(props: LaunchProps) {
 			const outcome = await transfer(targets, files, toast);
 			for (const device of targets) await rememberDevice(device.id);
 
-			// Success is claimed only when every job produced its own completion.
 			if (outcome.failures.length === 0 && outcome.sent === outcome.total) {
 				toast.style = Toast.Style.Success;
 				toast.title =
