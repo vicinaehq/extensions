@@ -31,10 +31,6 @@ export async function setDefaultDeviceId(deviceId: string): Promise<void> {
 	await LocalStorage.setItem(DEFAULT_DEVICE_KEY, deviceId);
 }
 
-export async function clearDefaultDeviceId(): Promise<void> {
-	await LocalStorage.removeItem(DEFAULT_DEVICE_KEY);
-}
-
 export async function getLastDeviceId(): Promise<string | undefined> {
 	return (await LocalStorage.getItem<string>(LAST_DEVICE_KEY)) || undefined;
 }

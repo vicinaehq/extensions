@@ -7,11 +7,6 @@
  * The shapes are modelled exactly as the daemon sends them.
  */
 
-export type KcdRequest = {
-	cmd: string;
-	payload?: unknown;
-};
-
 export type KcdResponse = {
 	ok: boolean;
 	error?: string;
@@ -59,12 +54,6 @@ export type SignalStrength = {
 export type ConnectivityBody = {
 	signalStrengths: Record<string, SignalStrength>;
 };
-
-export type DeviceState =
-	| "PAIRED"
-	| "UNPAIRED"
-	| "PAIR_REQUESTED"
-	| "PAIR_REQUESTED_BY_PEER";
 
 export type DeviceSummary = {
 	id: string;
@@ -132,30 +121,12 @@ export type MprisRemotePlayer = {
 	canControl: boolean;
 };
 
-export type SinkInfo = {
-	name: string;
-	description: string;
-	volume: number;
-	muted: boolean;
-	maxVolume: number;
-};
-
 export type ContactSummary = {
 	uid: string;
 	name: string;
 	phones?: string[];
 	emails?: string[];
 	timestamp: number;
-};
-
-export type StorageVolume = {
-	name: string;
-	path: string;
-};
-
-export type SftpBrowseResponse = {
-	path?: string;
-	volumes?: StorageVolume[];
 };
 
 export type ShareProgressPayload = {
@@ -168,10 +139,6 @@ export type ShareCompletePayload = {
 	file: string;
 	success: boolean;
 	error?: string;
-};
-
-export type SnapshotPayload = {
-	devices: DeviceSummary[];
 };
 
 export const EventType = {

@@ -4,8 +4,6 @@ import type {
 	DeviceSummary,
 	MprisRemotePlayer,
 	PairListenResult,
-	SftpBrowseResponse,
-	SinkInfo,
 	StatusResponse,
 } from "./types";
 
@@ -85,41 +83,12 @@ export function mprisAction(action: MprisAction): Promise<void> {
 	return request<void>("mpris_action", action);
 }
 
-export function listRemoteSinks(deviceId: string): Promise<SinkInfo[]> {
-	return request<SinkInfo[]>("remote_volume_list", { deviceId }).then(
-		(s) => s ?? [],
-	);
-}
-
-export function setRemoteVolume(
-	deviceId: string,
-	name: string,
-	volume: number,
-): Promise<void> {
-	return request<void>("remote_volume_set", { deviceId, name, volume });
-}
-
-export function setRemoteMuted(
-	deviceId: string,
-	name: string,
-	muted: boolean,
-): Promise<void> {
-	return request<void>("remote_volume_mute", { deviceId, name, muted });
-}
-
 export function mountSftp(deviceId: string): Promise<void> {
 	return request<void>("sftp_mount", { deviceId });
 }
 
 export function unmountSftp(deviceId: string): Promise<void> {
 	return request<void>("sftp_unmount", { deviceId });
-}
-
-export function browseSftp(
-	deviceId: string,
-	volume?: string,
-): Promise<SftpBrowseResponse> {
-	return request<SftpBrowseResponse>("sftp_browse", { deviceId, volume });
 }
 
 export function pairDevice(deviceId: string): Promise<void> {
