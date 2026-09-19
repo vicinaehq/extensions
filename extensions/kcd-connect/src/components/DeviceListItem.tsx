@@ -11,13 +11,11 @@ import {
 	Toast,
 } from "@vicinae/api";
 import {
-	lockDevice,
 	mountSftp,
 	mprisAction,
 	ping,
 	pushClipboard,
 	ringDevice,
-	unlockDevice,
 	unmountSftp,
 	unpairDevice,
 } from "../lib/client";
@@ -277,24 +275,6 @@ export function DeviceListItem({
 									onAction={() =>
 										run("Could not ring the device", "Ringing", () =>
 											ringDevice(device.id),
-										)
-									}
-								/>
-								<Action
-									title="Lock"
-									icon={Icon.Lock}
-									onAction={() =>
-										run("Could not lock the device", "Locked", () =>
-											lockDevice(device.id),
-										)
-									}
-								/>
-								<Action
-									title="Unlock"
-									icon={Icon.LockUnlocked}
-									onAction={() =>
-										run("Could not unlock the device", "Unlocked", () =>
-											unlockDevice(device.id),
 										)
 									}
 								/>

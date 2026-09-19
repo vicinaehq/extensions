@@ -25,14 +25,6 @@ export function ringDevice(deviceId: string): Promise<void> {
 	return request<void>("findmyphone", { deviceId });
 }
 
-export function lockDevice(deviceId: string): Promise<void> {
-	return request<void>("lock", { deviceId });
-}
-
-export function unlockDevice(deviceId: string): Promise<void> {
-	return request<void>("unlock", { deviceId });
-}
-
 /**
  * Queues a file transfer. Returns as soon as the invite packet is sent — the
  * bytes move in a background goroutine, so completion is only observable
