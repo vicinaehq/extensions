@@ -50,16 +50,20 @@ function ConfirmPairing({
 }) {
 	const { pop } = useNavigation();
 
+	// A request already waiting when the view opened carries no verification
+	// key, only a certificate fingerprint. Compare whichever one exists rather
+	// than telling the user to check a key that is not on screen.
+	const secret = candidate.verificationKey || candidate.fingerprint || "";
+	const kind = candidate.verificationKey ? "key" : "fingerprint";
+
 	const markdown = [
 		`# ${candidate.deviceName}`,
 		"",
-		"This device is asking to pair. Check that the key below is **exactly** the one shown on the device before you accept.",
+		secret
+			? `This device is asking to pair. Check that the ${kind} below is **exactly** the one shown on the device before you accept.`
+			: "This device is asking to pair, but supplied neither a verification key nor a certificate fingerprint. There is nothing to compare, so accept it only if you are certain the request is yours.",
 		"",
-		candidate.verificationKey
-			? `## \`${candidate.verificationKey}\``
-			: "_This device did not supply a verification key._",
-		"",
-		candidate.fingerprint ? `Certificate: \`${candidate.fingerprint}\`` : "",
+		secret ? `## \`${secret}\`` : "",
 	].join("\n");
 
 	async function accept() {
@@ -83,7 +87,11 @@ function ConfirmPairing({
 			actions={
 				<ActionPanel>
 					<Action
-						title="Keys Match, Pair"
+						title={
+							secret
+								? `${kind === "key" ? "Keys" : "Fingerprints"} Match, Pair`
+								: "Pair Anyway"
+						}
 						icon={Icon.Check}
 						onAction={accept}
 					/>
@@ -150,6 +158,32 @@ export default function PairDeviceCommand() {
 		} catch (error) {
 			toast.hide();
 			await showKcdError(error, "No pairing request received");
+		} finally {
+			setListening(false);
+		}
+	}
+
+	/**
+	 * Incoming requests go through the verification screen, never straight to
+	 * pairing. `pair_listen` reports a request that is already waiting without
+	 * accepting it, so it is safe to call here purely to read the candidate.
+	 */
+	async function reviewIncoming(device: DeviceSummary) {
+		setListening(true);
+		try {
+			const candidate = await listenForPairing();
+			if (candidate.deviceId !== device.id) {
+				await showToast({
+					style: Toast.Style.Failure,
+					title: "A different device is requesting to pair",
+					message: `Review the request from ${candidate.deviceName} first`,
+				});
+				await refresh();
+				return;
+			}
+			push(<ConfirmPairing candidate={candidate} onDone={refresh} />);
+		} catch (error) {
+			await showKcdError(error, "Could not read the pairing request");
 		} finally {
 			setListening(false);
 		}
@@ -242,7 +276,11 @@ export default function PairDeviceCommand() {
 													: "Pair with This Device"
 											}
 											icon={Icon.Link}
-											onAction={() => requestPairing(device)}
+											onAction={() =>
+												device.state === "PAIR_REQUESTED_BY_PEER"
+													? reviewIncoming(device)
+													: requestPairing(device)
+											}
 										/>
 										<Action.CopyToClipboard
 											title="Copy Device ID"
