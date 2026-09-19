@@ -30,8 +30,11 @@ const IDLE_TIMEOUT_MS = 120_000;
 type Failure = { device: string; file: string; error: string };
 type Outcome = { sent: number; total: number; failures: Failure[] };
 
-function key(deviceId: string, file: string): string {
-	return `${deviceId}:${file}`;
+/** One file heading to one device. Duplicates are distinct jobs, not one key. */
+type Job = { deviceId: string; deviceName: string; path: string; base: string };
+
+function key(deviceId: string, base: string): string {
+	return `${deviceId}\u0000${base}`;
 }
 
 /**
@@ -41,18 +44,35 @@ function key(deviceId: string, file: string): string {
  * afterwards, inside the daemon — so awaiting it proves nothing. The only
  * truthful source of progress and completion is the event stream, which is
  * opened before any transfer starts so no early event is missed.
+ *
+ * Completion events identify a file only by basename, so jobs are queued per
+ * key rather than collapsed into one: sending two files that happen to share a
+ * basename needs two completions, not one.
+ *
+ * A transfer counts as sent only when its own `share.complete` arrives. If the
+ * stream dies first, every unconfirmed job becomes a failure — silence is not
+ * evidence that bytes moved.
  */
 function transfer(
 	targets: DeviceSummary[],
 	files: string[],
 	toast: Toast,
 ): Promise<Outcome> {
-	const total = targets.length * files.length;
+	const jobs: Job[] = targets.flatMap((device) =>
+		files.map((file) => ({
+			deviceId: device.id,
+			deviceName: device.name,
+			path: file,
+			base: path.basename(file),
+		})),
+	);
+	const total = jobs.length;
 
 	return new Promise<Outcome>((resolve) => {
-		const pending = new Set<string>();
+		/** Jobs dispatched and awaiting completion, queued per key. */
+		const outstanding = new Map<string, Job[]>();
+		let undispatched = [...jobs];
 		const failures: Failure[] = [];
-		const nameById = new Map(targets.map((d) => [d.id, d.name]));
 		let idleTimer: ReturnType<typeof setTimeout> | undefined;
 		let settled = false;
 
@@ -61,27 +81,27 @@ function transfer(
 			settled = true;
 			if (idleTimer) clearTimeout(idleTimer);
 			watch.close();
-			resolve({
-				sent: total - failures.length - pending.size,
-				total,
-				failures,
-			});
+			resolve({ sent: total - failures.length, total, failures });
+		};
+
+		/** Fails every job whose completion was never observed. */
+		const abort = (error: string) => {
+			if (settled) return;
+			const stranded = [...undispatched, ...[...outstanding.values()].flat()];
+			undispatched = [];
+			outstanding.clear();
+			for (const job of stranded) {
+				failures.push({ device: job.deviceName, file: job.base, error });
+			}
+			finish();
 		};
 
 		const resetIdle = () => {
 			if (idleTimer) clearTimeout(idleTimer);
-			idleTimer = setTimeout(() => {
-				for (const k of pending) {
-					const [deviceId, file] = k.split(/:(.*)/s);
-					failures.push({
-						device: nameById.get(deviceId) ?? deviceId,
-						file,
-						error: "timed out waiting for the device",
-					});
-				}
-				pending.clear();
-				finish();
-			}, IDLE_TIMEOUT_MS);
+			idleTimer = setTimeout(
+				() => abort("timed out waiting for the device"),
+				IDLE_TIMEOUT_MS,
+			);
 		};
 
 		const watch = openWatch(
@@ -89,24 +109,21 @@ function transfer(
 			{
 				onReady: () => {
 					void (async () => {
-						for (const device of targets) {
-							for (const file of files) {
-								const base = path.basename(file);
-								pending.add(key(device.id, base));
-								try {
-									await shareFile(device.id, file);
-								} catch (error) {
-									pending.delete(key(device.id, base));
-									failures.push({
-										device: device.name,
-										file: base,
-										error:
-											error instanceof Error ? error.message : String(error),
-									});
-								}
+						while (undispatched.length > 0) {
+							const job = undispatched.shift() as Job;
+							try {
+								await shareFile(job.deviceId, job.path);
+								const k = key(job.deviceId, job.base);
+								outstanding.set(k, [...(outstanding.get(k) ?? []), job]);
+							} catch (error) {
+								failures.push({
+									device: job.deviceName,
+									file: job.base,
+									error: error instanceof Error ? error.message : String(error),
+								});
 							}
 						}
-						if (pending.size === 0) finish();
+						if (outstanding.size === 0) finish();
 						else resetIdle();
 					})();
 				},
@@ -124,21 +141,25 @@ function transfer(
 					if (event.type === EventType.ShareComplete) {
 						const p = event.payload as unknown as ShareCompletePayload;
 						const k = key(event.deviceId, p.file);
-						if (!pending.delete(k)) return;
+						const queue = outstanding.get(k);
+						if (!queue || queue.length === 0) return;
+						const job = queue.shift() as Job;
+						if (queue.length === 0) outstanding.delete(k);
+
 						if (!p.success) {
 							failures.push({
-								device: nameById.get(event.deviceId) ?? event.deviceId,
-								file: p.file,
+								device: job.deviceName,
+								file: job.base,
 								error: p.error ?? "transfer failed",
 							});
 						}
-						if (pending.size === 0) finish();
+						if (outstanding.size === 0) finish();
 						else resetIdle();
 					}
 				},
 
-				onError: () => finish(),
-				onClose: () => finish(),
+				onError: (error) => abort(error.message),
+				onClose: () => abort("the daemon closed the event stream"),
 			},
 		);
 	});
@@ -201,7 +222,8 @@ export default function SendFileCommand() {
 			const outcome = await transfer(targets, files, toast);
 			for (const device of targets) await rememberDevice(device.id);
 
-			if (outcome.failures.length === 0) {
+			// Success is claimed only when every job produced its own completion.
+			if (outcome.failures.length === 0 && outcome.sent === outcome.total) {
 				toast.style = Toast.Style.Success;
 				toast.title =
 					targets.length > 1
