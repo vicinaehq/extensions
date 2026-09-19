@@ -35,11 +35,8 @@ function pairingStateText(device: DeviceSummary): string {
 }
 
 /**
- * Confirmation screen for an incoming pair request.
- *
- * The verification key is shown as prominently as possible: comparing it with
- * the one on the phone is the only thing standing between a legitimate pairing
- * and a machine-in-the-middle, so it must not be buried in a subtitle.
+ * Comparing the key against the one on the phone is the only defence against a
+ * machine-in-the-middle pairing, so it gets the whole screen.
  */
 function ConfirmPairing({
 	candidate,
@@ -50,9 +47,8 @@ function ConfirmPairing({
 }) {
 	const { pop } = useNavigation();
 
-	// A request already waiting when the view opened carries no verification
-	// key, only a certificate fingerprint. Compare whichever one exists rather
-	// than telling the user to check a key that is not on screen.
+	// A request already waiting carries only a fingerprint; the key exists
+	// solely on the live pair event.
 	const secret = candidate.verificationKey || candidate.fingerprint || "";
 	const kind = candidate.verificationKey ? "key" : "fingerprint";
 
@@ -61,7 +57,7 @@ function ConfirmPairing({
 		"",
 		secret
 			? `This device is asking to pair. Check that the ${kind} below is **exactly** the one shown on the device before you accept.`
-			: "This device is asking to pair, but supplied neither a verification key nor a certificate fingerprint. There is nothing to compare, so accept it only if you are certain the request is yours.",
+			: "This request arrived with no verification key and no certificate fingerprint, so there is nothing to compare it against and it cannot be accepted here. Dismiss it and pair again from the device.",
 		"",
 		secret ? `## \`${secret}\`` : "",
 	].join("\n");
@@ -86,15 +82,13 @@ function ConfirmPairing({
 			markdown={markdown}
 			actions={
 				<ActionPanel>
-					<Action
-						title={
-							secret
-								? `${kind === "key" ? "Keys" : "Fingerprints"} Match, Pair`
-								: "Pair Anyway"
-						}
-						icon={Icon.Check}
-						onAction={accept}
-					/>
+					{secret ? (
+						<Action
+							title={`${kind === "key" ? "Keys" : "Fingerprints"} Match, Pair`}
+							icon={Icon.Check}
+							onAction={accept}
+						/>
+					) : null}
 					<Action title="Cancel" icon={Icon.Xmark} onAction={pop} />
 				</ActionPanel>
 			}
@@ -164,9 +158,8 @@ export default function PairDeviceCommand() {
 	}
 
 	/**
-	 * Incoming requests go through the verification screen, never straight to
-	 * pairing. `pair_listen` reports a request that is already waiting without
-	 * accepting it, so it is safe to call here purely to read the candidate.
+	 * `pair_listen` reports a waiting request without accepting it, so reading
+	 * the candidate before confirmation costs nothing.
 	 */
 	async function reviewIncoming(device: DeviceSummary) {
 		setListening(true);
