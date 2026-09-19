@@ -27,8 +27,7 @@ export default function SendSmsCommand(props: LaunchProps) {
 
 	const connected = devices.filter((d) => d.connected && isPaired(d));
 
-	// Launched from a device's action panel, the chosen device travels in
-	// the launch context; without it the ladder would pick its own target.
+	// A device chosen in the launcher outranks the ladder's own guess.
 	const explicitId =
 		typeof props.launchContext?.deviceId === "string"
 			? props.launchContext.deviceId
@@ -56,8 +55,7 @@ export default function SendSmsCommand(props: LaunchProps) {
 				if (active) setContacts(list);
 			})
 			.catch(() => {
-				// The address book is an assist, not a requirement: a phone that
-				// never granted contacts permission should still be able to send.
+				// A phone that never granted contacts permission must still send.
 				if (active) setContacts([]);
 			});
 		return () => {

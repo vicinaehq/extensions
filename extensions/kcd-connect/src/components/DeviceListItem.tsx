@@ -219,8 +219,7 @@ export function DeviceListItem({
 		<List.Item
 			icon={deviceIcon(device)}
 			title={device.name}
-			// The detail pane squeezes the list column, so a subtitle there would
-			// only ever render truncated — the pane already says all of this.
+			// The detail pane narrows the list column enough to truncate this.
 			subtitle={showDetail ? undefined : deviceStatusText(device)}
 			accessories={[
 				...(isDefault
@@ -253,8 +252,7 @@ export function DeviceListItem({
 										launchCommand({
 											name: "send-file",
 											type: LaunchType.UserInitiated,
-											// Carry the chosen device so the destination command
-											// does not resolve its own, different, target.
+											// Keep this panel's device as the target.
 											context: { deviceId: device.id },
 										})
 									}
@@ -266,8 +264,7 @@ export function DeviceListItem({
 										launchCommand({
 											name: "send-sms",
 											type: LaunchType.UserInitiated,
-											// Carry the chosen device so the destination command
-											// does not resolve its own, different, target.
+											// Keep this panel's device as the target.
 											context: { deviceId: device.id },
 										})
 									}
