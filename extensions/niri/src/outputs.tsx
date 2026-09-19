@@ -70,16 +70,16 @@ export default function Outputs() {
             ]}
             actions={
               <ActionPanel>
-                 <Action
-                   title="Focus Monitor"
-                   icon={Icon.Eye}
-                   onAction={() => focusMonitor(output.name)}
-                 />
-                 <Action
-                   title="Set Dynamic Cast to Monitor"
-                   icon={Icon.Camera}
-                   onAction={() => setDynamicCastMonitor(output.name)}
-                 />
+                <Action
+                  title="Focus Monitor"
+                  icon={Icon.Eye}
+                  onAction={() => focusMonitor(output.name)}
+                />
+                <Action
+                  title="Set Dynamic Cast to Monitor"
+                  icon={Icon.Camera}
+                  onAction={() => setDynamicCastMonitor(output.name)}
+                />
                 {output.vrr_supported && (
                   <Action
                     title={`VRR ${output.vrr_enabled ? 'Off' : 'On'}`}

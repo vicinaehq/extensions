@@ -30,10 +30,14 @@ export default function Workspaces() {
     'Failed to get workspaces'
   );
 
-  const [windows, windowsLoading, handleWindowsRefresh] = useNiriArrayData<Window>('niri msg --json windows', 'Failed to get windows');
+  const [windows, windowsLoading, handleWindowsRefresh] = useNiriArrayData<Window>(
+    'niri msg --json windows',
+    'Failed to get windows'
+  );
 
   const result = useMemo(() => {
-    if (workspacesLoading || windowsLoading) return { loading: true, sorted: [], focusedOutput: undefined };
+    if (workspacesLoading || windowsLoading)
+      return { loading: true, sorted: [], focusedOutput: undefined };
 
     const sorted = workspaces
       .map((workspace) => ({
@@ -56,7 +60,7 @@ export default function Workspaces() {
     if (success) {
       await handleWorkspacesRefresh();
       await handleWindowsRefresh();
-      closeMainWindow({clearRootSearch: true});
+      closeMainWindow({ clearRootSearch: true });
     }
   };
 
@@ -71,7 +75,9 @@ export default function Workspaces() {
         const workspace = workspaceWindows.workspace;
         const displayName = workspace.name || `Workspace ${workspace.idx}`;
         const windowCount = workspaceWindows.windows.length;
-        const activeWindow = workspaceWindows.windows.find((window) => window.id === workspace.active_window_id);
+        const activeWindow = workspaceWindows.windows.find(
+          (window) => window.id === workspace.active_window_id
+        );
         const activeWindowTitle = activeWindow?.title;
 
         return (
