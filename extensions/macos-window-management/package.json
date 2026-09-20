@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "macos-window-management",
-  "title": "Macos Window Management",
-  "description": "Simple window tiling and moinitor management for MacOS",
+  "title": "macOS Window Management",
+  "description": "Simple window tiling and monitor management for macOS",
   "icon": "icon.png",
   "author": "nathandaven",
   "license": "MIT",
