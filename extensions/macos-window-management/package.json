@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "macos-window-management",
+  "title": "Macos Window Management",
+  "description": "Simple window tiling and moinitor management for MacOS",
+  "icon": "icon.png",
+  "author": "nathandaven",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "next-monitor",
+      "title": "Tile Window to Next Monitor",
+      "description": "Moves the window and rotates between monitors",
+      "mode": "no-view"
+    },
+    {
+      "name": "tile-left",
+      "title": "Tile Window as Left",
+      "description": "Split window left",
+      "mode": "no-view"
+    },
+    {
+      "name": "tile-right",
+      "title": "Tile Window as Right",
+      "description": "Split window right",
+      "mode": "no-view"
+    },
+    {
+      "name": "tile-maximize",
+      "title": "Tile Window as Maximized",
+      "description": "Maximizes the window",
+      "mode": "no-view"
+    }
+  ],
+  "scripts": {
+    "prebuild": "mkdir -p assets && swiftc -O src/swift/window-manager.swift -o assets/window-manager",
+    "build": "npm run prebuild && vici build -s .",
+    "dev": "npm run prebuild && vici develop -i .",
+    "lint": "vici lint -s .",
+    "format": "biome format --write src"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.23.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.18",
+    "typescript": "^5.9.2"
+  }
+}
