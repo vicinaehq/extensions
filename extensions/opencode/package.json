@@ -1,0 +1,121 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "opencode",
+  "title": "OpenCode",
+  "description": "Control OpenCode from the launcher: browse and resume sessions, create new work, ask questions, and review changes. OpenCode stays the coding environment.",
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
+  "keywords": [
+    "opencode",
+    "ai",
+    "agent",
+    "chat",
+    "terminal",
+    "developer"
+  ],
+  "license": "MIT",
+  "author": "AdityaZxxx",
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "sessions",
+      "title": "Sessions",
+      "subtitle": "OpenCode",
+      "description": "Browse, search, resume, and manage OpenCode sessions.",
+      "mode": "view",
+      "icon": "icon.png"
+    },
+    {
+      "name": "projects",
+      "title": "Projects",
+      "subtitle": "OpenCode",
+      "description": "Browse projects known to OpenCode and jump into new or recent work.",
+      "mode": "view",
+      "icon": "icon.png"
+    },
+    {
+      "name": "ask",
+      "title": "Ask",
+      "subtitle": "OpenCode",
+      "description": "Ask OpenCode anything, optionally scoped to a project. Streams answers with follow-ups and model selection.",
+      "mode": "view",
+      "icon": "icon.png"
+    },
+    {
+      "name": "review-changes",
+      "title": "Review",
+      "subtitle": "OpenCode",
+      "description": "Read working tree, staged, or branch diffs per file, then ask OpenCode to review or explain them.",
+      "mode": "view",
+      "icon": "icon.png"
+    },
+    {
+      "name": "new-session",
+      "title": "New Session",
+      "subtitle": "OpenCode",
+      "description": "Start a new OpenCode session: pick a project, enter a prompt, and open it in the terminal.",
+      "mode": "view",
+      "icon": "icon.png"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "serverUrl",
+      "type": "textfield",
+      "title": "Server URL",
+      "description": "Explicit OpenCode server endpoint, for example http://127.0.0.1:49374. Leave empty to auto-discover the local OpenCode service.",
+      "required": false,
+      "placeholder": "http://127.0.0.1:49374"
+    },
+    {
+      "name": "serverUsername",
+      "type": "textfield",
+      "title": "Server Username",
+      "description": "HTTP basic auth username for the configured server. Only used when a Server URL is set. Defaults to opencode.",
+      "required": false,
+      "default": "opencode"
+    },
+    {
+      "name": "serverPassword",
+      "type": "password",
+      "title": "Server Password",
+      "description": "HTTP basic auth password for the configured server. Only used when a Server URL is set. Local services discovered automatically handle auth themselves.",
+      "required": false
+    },
+    {
+      "name": "openCodePath",
+      "type": "textfield",
+      "title": "OpenCode Executable",
+      "description": "Path or name of the OpenCode V2 executable used to open sessions, for example /usr/local/bin/opencode. Leave empty to auto-detect opencode2 or opencode on PATH.",
+      "required": false,
+      "placeholder": "opencode"
+    },
+    {
+      "name": "notifyOnCompletion",
+      "type": "checkbox",
+      "title": "Completion Notifications",
+      "label": "Notify when a watched session finishes",
+      "description": "Send a desktop notification when a session you explicitly waited on finishes. Only applies while a Vicinae window is open.",
+      "required": false,
+      "default": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@opencode/client": "^2.0.9",
+    "@vicinae/api": "^0.24.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}
