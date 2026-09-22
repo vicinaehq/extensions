@@ -35,7 +35,7 @@ export function run(
 	options: ExecOptions = {},
 ): Promise<ExecResult> {
 	return new Promise((resolve) => {
-		const env: NodeJS.ProcessEnv = { LC_ALL: "C", ...process.env };
+		const env: NodeJS.ProcessEnv = { ...process.env, LC_ALL: "C" };
 		if (options.env) {
 			Object.assign(env, options.env);
 		}
