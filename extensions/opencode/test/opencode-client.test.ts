@@ -176,18 +176,6 @@ describe("OpenCode client adapter", () => {
     expect(aborted.kind).toBe("timeout");
   });
 
-  test("wait is abortable and does not hang without a timeout", async () => {
-    const { service } = makeService(() => new Promise<Response>(() => {}));
-    const controller = new AbortController();
-    controller.abort();
-    try {
-      await service.wait("ses_test123", controller.signal);
-      throw new Error("expected wait() to reject");
-    } catch (error) {
-      expect(isOpenCodeError(error)).toBe(true);
-    }
-  });
-
   test("pending permissions map every request to its session", async () => {
     const { service, requests } = makeService(({ url }) =>
       url.includes("/api/permission/request")

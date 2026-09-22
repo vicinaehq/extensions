@@ -91,15 +91,6 @@
       "description": "Path or name of the OpenCode V2 executable used to open sessions, for example /usr/local/bin/opencode. Leave empty to auto-detect opencode2 or opencode on PATH.",
       "required": false,
       "placeholder": "opencode"
-    },
-    {
-      "name": "notifyOnCompletion",
-      "type": "checkbox",
-      "title": "Completion Notifications",
-      "label": "Notify when a watched session finishes",
-      "description": "Send a desktop notification when a session you explicitly waited on finishes. Only applies while a Vicinae window is open.",
-      "required": false,
-      "default": false
     }
   ],
   "scripts": {

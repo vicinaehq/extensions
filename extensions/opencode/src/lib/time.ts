@@ -13,3 +13,21 @@ export function relativeTime(timestamp: number | undefined | null): string | und
   if (days < 7) return `${days}d ago`;
   return new Date(timestamp).toLocaleDateString();
 }
+
+/** Group timestamps into the buckets the session list shows. */
+export function timeBucket(timestamp: number, now: number = Date.now()): "Today" | "Yesterday" | "This Week" | "This Month" | "Older" {
+  const startOfDay = (ms: number) => {
+    const date = new Date(ms);
+    date.setHours(0, 0, 0, 0);
+    return date.getTime();
+  };
+  const today = startOfDay(now);
+  if (timestamp >= today) return "Today";
+  if (timestamp >= today - 86_400_000) return "Yesterday";
+  if (timestamp >= today - 6 * 86_400_000) return "This Week";
+  if (timestamp >= today - 29 * 86_400_000) return "This Month";
+  return "Older";
+}
+
+/** Section order for time bucketed lists. */
+export const TIME_BUCKETS = ["Today", "Yesterday", "This Week", "This Month", "Older"] as const;

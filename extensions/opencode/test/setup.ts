@@ -46,6 +46,18 @@ export function installVicinaeStubs(): VicinaeStubs {
       Metadata: Object.assign(stubComponent, { Label: stubComponent, Separator: stubComponent }),
     }),
     Toast: { Style: { Success: "success", Failure: "failure", Animated: "animated" } },
+    Form: Object.assign(stubComponent, {
+      TextArea: stubComponent,
+      TextField: stubComponent,
+      PasswordField: stubComponent,
+      Dropdown: Object.assign(stubComponent, { Item: stubComponent }),
+      Checkbox: stubComponent,
+      DatePicker: stubComponent,
+      Description: stubComponent,
+      TagPicker: Object.assign(stubComponent, { Item: stubComponent }),
+      FilePicker: stubComponent,
+    }),
+    Keyboard: { Shortcut: { Common: {} } },
     Icon: new Proxy({}, { get: (_target, property) => String(property) }),
   }));
 

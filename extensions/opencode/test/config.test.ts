@@ -22,7 +22,6 @@ describe("config", () => {
     expect(config.serverUsername).toBe("opencode");
     expect(config.serverPassword).toBeUndefined();
     expect(config.openCodePath).toBeUndefined();
-    expect(config.notifyOnCompletion).toBe(false);
   });
 
   test("configured values are normalized", () => {
@@ -31,14 +30,12 @@ describe("config", () => {
       serverUsername: "  alice  ",
       serverPassword: "  secret  ",
       openCodePath: " /usr/local/bin/opencode ",
-      notifyOnCompletion: true,
     };
     const config = loadConfig();
     expect(config.serverUrl).toBe("http://127.0.0.1:49374");
     expect(config.serverUsername).toBe("alice");
     expect(config.serverPassword).toBe("secret");
     expect(config.openCodePath).toBe("/usr/local/bin/opencode");
-    expect(config.notifyOnCompletion).toBe(true);
   });
 });
 

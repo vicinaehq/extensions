@@ -52,7 +52,6 @@ export interface OpenCodeService {
   sendPrompt(sessionID: string, text: string): Promise<void>;
   renameSession(id: string, title: string): Promise<void>;
   deleteSession(id: string): Promise<void>;
-  wait(sessionID: string, signal?: AbortSignal): Promise<void>;
   interrupt(sessionID: string): Promise<void>;
   models(): Promise<ModelInfo[]>;
   defaultModel(): Promise<ModelInfo | null>;
@@ -184,12 +183,6 @@ export function createOpenCodeService(
       invoke((client, options) => client.session.update({ sessionID: id, title }, options)),
 
     deleteSession: (id) => invoke((client, options) => client.session.remove({ sessionID: id }, options)),
-
-    wait: (sessionID, signal) =>
-      invoke((client, options) => client.session.wait({ sessionID }, options), {
-        timeoutMs: undefined,
-        signal,
-      }),
 
     interrupt: (sessionID) =>
       invoke((client, options) => client.session.interrupt({ sessionID }, options)).then(() => undefined),

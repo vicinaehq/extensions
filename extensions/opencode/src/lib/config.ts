@@ -5,7 +5,6 @@ export interface ExtensionPreferences {
   readonly serverUsername?: string;
   readonly serverPassword?: string;
   readonly openCodePath?: string;
-  readonly notifyOnCompletion?: boolean;
 }
 
 export interface Config {
@@ -13,7 +12,6 @@ export interface Config {
   readonly serverUsername: string;
   readonly serverPassword?: string;
   readonly openCodePath?: string;
-  readonly notifyOnCompletion: boolean;
 }
 
 /** Load and normalize extension preferences. Sensible defaults, nothing required. */
@@ -27,6 +25,5 @@ export function loadConfig(): Config {
     serverUsername: preferences.serverUsername?.trim() || "opencode",
     ...(serverPassword ? { serverPassword } : {}),
     ...(openCodePath ? { openCodePath } : {}),
-    notifyOnCompletion: preferences.notifyOnCompletion ?? false,
   };
 }
