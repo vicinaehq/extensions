@@ -55,6 +55,7 @@ export type FlathubListedApp = {
 	version: string;
 	branch: string;
 	origin: string;
+	installation?: "system" | "user";
 };
 
 const LIST_COLUMNS = "application,arch,version,branch,origin";
@@ -126,13 +127,28 @@ function parseFlatpakTabular(output: string): FlathubListedApp[] {
  * List installed Flatpak applications (system + user).
  */
 export async function fetchFlathubInstalled(): Promise<FlathubListedApp[]> {
-	const result = await run(
+	const system = await run(
 		"flatpak",
-		["list", "--app", `--columns=${LIST_COLUMNS}`],
+		["list", "--app", "--system", `--columns=${LIST_COLUMNS}`],
 		{ timeout: 60_000 },
 	);
-	if (!result.ok) return [];
-	return parseFlatpakTabular(result.stdout);
+	const user = await run(
+		"flatpak",
+		["list", "--app", "--user", `--columns=${LIST_COLUMNS}`],
+		{ timeout: 60_000 },
+	);
+	const apps: FlathubListedApp[] = [];
+	if (system.ok) {
+		for (const app of parseFlatpakTabular(system.stdout)) {
+			apps.push({ ...app, installation: "system" });
+		}
+	}
+	if (user.ok) {
+		for (const app of parseFlatpakTabular(user.stdout)) {
+			apps.push({ ...app, installation: "user" });
+		}
+	}
+	return apps;
 }
 
 /**

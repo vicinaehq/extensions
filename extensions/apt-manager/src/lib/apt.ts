@@ -28,6 +28,8 @@ export type AptPackage = {
 	manager: "apt" | "flatpak";
 	/** Local path to an app icon, if one is available. */
 	icon: string | null;
+	/** Installation scope for Flatpak apps. */
+	installation?: "system" | "user";
 };
 
 /**
@@ -186,6 +188,7 @@ function flathubToAptPackage(
 		description: "",
 		manager: "flatpak",
 		icon: findFlatpakIcon(pkg.name),
+		installation: pkg.installation,
 	};
 }
 

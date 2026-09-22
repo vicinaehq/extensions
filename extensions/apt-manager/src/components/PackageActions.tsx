@@ -8,7 +8,9 @@ import {
 	useNavigation,
 } from "@vicinae/api";
 import type { AptPackage, PackageListKind } from "../lib/apt";
+import { runFlatpakCommand } from "../lib/flatpakRemotes";
 import { runPrivilegedApGet, runPrivilegedCommand } from "../lib/apt";
+import type { FlatpakInstallation } from "../lib/flatpakRemotes";
 import { askConfirm } from "../lib/confirm";
 import { RunResult } from "./RunResult";
 
@@ -32,6 +34,7 @@ export function PackageActions({
 		args: string[],
 		label: string,
 		confirmMessage: string | null,
+		installation?: FlatpakInstallation,
 	) => {
 		if (confirmMessage) {
 			const confirmed = await askConfirm(label, confirmMessage);
@@ -44,7 +47,9 @@ export function PackageActions({
 		const run =
 			command === "apt-get"
 				? () => runPrivilegedApGet(args, label)
-				: () => runPrivilegedCommand(command, args, label);
+				: command === "flatpak"
+					? () => runFlatpakCommand(installation ?? "system", args, label)
+					: () => runPrivilegedCommand(command, args, label);
 		const result = await run();
 		if (result.ok) {
 			toast.style = Toast.Style.Success;
@@ -62,7 +67,13 @@ export function PackageActions({
 				heading={label}
 				title={label}
 				result={result}
-				sudoArgs={args}
+				sudoArgs={
+					command === "flatpak" && installation === "system"
+						? args
+						: command === "apt-get"
+							? args
+							: undefined
+				}
 				sudoCommand={command}
 			/>,
 		);
@@ -103,6 +114,7 @@ export function PackageActions({
 								["uninstall", "-y", pkg.name],
 								`Remove ${pkg.name}`,
 								`Remove the Flatpak application ${pkg.name}?`,
+								pkg.installation,
 							)
 						}
 					/>
@@ -116,6 +128,7 @@ export function PackageActions({
 								["install", "-y", "flathub", pkg.name],
 								`Install ${pkg.name}`,
 								null,
+								pkg.installation,
 							)
 						}
 					/>
