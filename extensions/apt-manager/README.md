@@ -17,10 +17,10 @@ Launched from the `apt` command:
 ## How it works
 
 - Read-only operations (`apt list`, `apt-cache show`) run without privileges.
-- Every privileged operation (`install`, `remove`, `upgrade`, `cleanup`, repo writes)
-  is run via `pkexec`, which shows the desktop's polkit authentication dialog.
-  If `pkexec` is missing you'll get a readable error plus a "Retry in Terminal (sudo)"
-  action instead.
+- Every privileged operation (`install`, `remove`, `upgrade`, `cleanup`)
+    is run via `pkexec`, which shows the desktop's polkit authentication dialog.
+    If `pkexec` is missing you'll get a readable error plus a "Retry in Terminal (sudo)"
+    action instead. Repository writes are also privileged but do not provide a terminal retry fallback; use `sudo tee` or your editor instead.
 - Command output for long-running operations is shown in a result view after completion.
 
 ## Development

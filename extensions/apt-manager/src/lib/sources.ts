@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { run } from "./exec";
+import { pkexecAvailable } from "./apt";
 
 export const SOURCES_LIST = "/etc/apt/sources.list";
 export const SOURCES_LIST_D = "/etc/apt/sources.list.d";
@@ -327,6 +328,9 @@ export async function writeFilePrivileged(
 	path: string,
 	content: string,
 ): Promise<string | null> {
+	if (!pkexecAvailable()) {
+		return "`pkexec` was not found in PATH. Install polkit (e.g. `apt install policykit-1`) or use the 'Retry in Terminal' action with sudo.";
+	}
 	const result = await run("pkexec", ["tee", path], {
 		input: content,
 		timeout: 120_000,
@@ -339,6 +343,9 @@ export async function writeFilePrivileged(
 export async function deleteFilePrivileged(
 	path: string,
 ): Promise<string | null> {
+	if (!pkexecAvailable()) {
+		return "`pkexec` was not found in PATH. Install polkit (e.g. `apt install policykit-1`) or use the 'Retry in Terminal' action with sudo.";
+	}
 	const result = await run("pkexec", ["rm", "-f", path], { timeout: 120_000 });
 	return result.ok ? null : result.stderr.trim() || "Failed to delete file";
 }

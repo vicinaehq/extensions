@@ -211,6 +211,9 @@ function rewriteEnabled(
 				return lines.join("\n");
 			}
 		}
+		if (!enabled) {
+			lines.splice(repo.endLine, 0, "Enabled: no");
+		}
 		return lines.join("\n");
 	}
 	if (repo.startLine >= 0 && repo.startLine < lines.length) {

@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import {
 	Action,
@@ -63,6 +64,14 @@ export function AddRepoForm({ onAdded }: Props) {
 			: content.replace("Enabled: yes", "Enabled: no");
 
 		const path = join(SOURCES_LIST_D, `${slugify(name)}.sources`);
+		if (existsSync(path)) {
+			await showToast({
+				style: Toast.Style.Failure,
+				title: "Repository already exists",
+				message: `A file already exists at ${path}. Choose a different name.`,
+			});
+			return;
+		}
 		setIsSubmitting(true);
 		const toast = await showToast({
 			style: Toast.Style.Animated,

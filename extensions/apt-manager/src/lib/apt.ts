@@ -247,7 +247,7 @@ export type OperationResult = {
 const APT_ENV = { DEBIAN_FRONTEND: "noninteractive" };
 const PRIVILEGED_TIMEOUT = 20 * 60 * 1000;
 
-function pkexecAvailable(): boolean {
+export function pkexecAvailable(): boolean {
 	return ["/usr/bin/pkexec", "/bin/pkexec"].some((path) => existsSync(path));
 }
 
