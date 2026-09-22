@@ -81,7 +81,7 @@
       "name": "serverPassword",
       "type": "password",
       "title": "Server Password",
-      "description": "HTTP basic auth password for the configured server. Only used when a Server URL is set. Local services discovered automatically handle auth themselves.",
+      "description": "HTTP basic auth password for the configured server. Sent only over HTTPS or to local addresses. Local services discovered automatically handle auth themselves.",
       "required": false
     },
     {

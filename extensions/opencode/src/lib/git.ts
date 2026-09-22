@@ -111,7 +111,7 @@ export async function listChangedFiles(
 ): Promise<ChangedFile[]> {
   const baseArgs = scopeDiffArgs(scope, base);
   if (!baseArgs) return [];
-  const files = parseNumstat(await runner([...baseArgs, "--numstat", "--"]));
+  const files = parseNumstat(await runner([...baseArgs, "--numstat", "--no-renames", "--"]));
   if (scope === "working") {
     // `git diff` omits untracked files; a new file with secrets in it is
     // exactly what a review should catch, so include them via status.

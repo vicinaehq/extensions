@@ -35,9 +35,15 @@ describe("git output parsing", () => {
     ]);
   });
 
-  test("numstat rename entries carry both paths", () => {
-    const files = parseNumstat("5\t2\told/name.ts\tnew/name.ts\n");
-    expect(files).toEqual([{ path: "old/name.ts\tnew/name.ts", additions: 5, deletions: 2, untracked: false }]);
+  test("rename detection is off so every entry is a usable path", async () => {
+    const seen: string[][] = [];
+    const runner: GitRunner = async (args) => {
+      seen.push([...args]);
+      return "";
+    };
+    await listChangedFiles(runner, "working");
+    const numstat = seen.find((args) => args.includes("--numstat"));
+    expect(numstat).toContain("--no-renames");
   });
 
   test("porcelain -z collects untracked paths", () => {

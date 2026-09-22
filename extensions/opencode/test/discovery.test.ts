@@ -63,6 +63,30 @@ describe("discovery", () => {
     expect(endpoint?.headers?.["authorization"]).toBe(`Basic ${Buffer.from("opencode:secret").toString("base64")}`);
   });
 
+  test("remote http with a password is rejected", async () => {
+    try {
+      await resolveEndpoint({ serverUrl: "http://192.168.1.10:4096", serverPassword: "secret" });
+      throw new Error("expected resolveEndpoint to reject");
+    } catch (error) {
+      expect((error as Error).message).toBe("Password auth needs HTTPS on remote servers.");
+    }
+  });
+
+  test("remote https with a password sends basic auth", async () => {
+    const endpoint = await resolveEndpoint({
+      serverUrl: "https://opencode.example.com",
+      serverUsername: "alice",
+      serverPassword: "wonderland",
+    });
+    expect(endpoint?.headers?.["authorization"]).toBe(`Basic ${Buffer.from("alice:wonderland").toString("base64")}`);
+  });
+
+  test("remote http without a password is allowed", async () => {
+    const endpoint = await resolveEndpoint({ serverUrl: "http://192.168.1.10:4096" });
+    expect(endpoint?.url).toBe("http://192.168.1.10:4096");
+    expect(endpoint?.headers).toBeUndefined();
+  });
+
   test("invalid endpoint is rejected", async () => {
     try {
       await resolveEndpoint({ serverUrl: "not-a-url" });

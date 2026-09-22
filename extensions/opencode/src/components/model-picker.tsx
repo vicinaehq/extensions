@@ -14,7 +14,7 @@ export function ModelPickerList(props: {
   readonly onPick: (model: ModelRef) => void;
 }): ReactNode {
   const { pop } = useNavigation();
-  const { models, defaultModelID, failed } = useModels(props.endpoint);
+  const { models, defaultModelID, failed, loaded } = useModels(props.endpoint);
 
   if (failed) {
     return (
@@ -24,9 +24,17 @@ export function ModelPickerList(props: {
     );
   }
 
+  if (loaded && models.length === 0) {
+    return (
+      <List navigationTitle="Choose Model">
+        <List.EmptyView title="No models configured." description="Add a provider in OpenCode first." />
+      </List>
+    );
+  }
+
   return (
     <List
-      isLoading={models.length === 0 && !failed}
+      isLoading={!loaded}
       filtering
       searchBarPlaceholder="Search models"
       navigationTitle="Choose Model"

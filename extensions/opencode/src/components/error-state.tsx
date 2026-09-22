@@ -15,7 +15,8 @@ export function OpenCodeErrorView(props: {
   readonly onRetry?: () => void;
 }): ReactNode {
   const [starting, setStarting] = useState(false);
-  const startable = props.error.kind === "unreachable";
+  // Starting a local service cannot fix a configured remote URL.
+  const startable = props.error.kind === "unreachable" && !props.config.serverUrl;
 
   const start = async () => {
     setStarting(true);

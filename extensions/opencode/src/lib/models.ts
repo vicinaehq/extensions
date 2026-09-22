@@ -25,9 +25,11 @@ export interface ModelsState {
   readonly defaultModelID: string | undefined;
   /** The model list could not be loaded. */
   readonly failed: boolean;
+  /** The first load finished, even when it returned no models. */
+  readonly loaded: boolean;
 }
 
-const EMPTY_MODELS: ModelsState = { models: [], defaultModelID: undefined, failed: false };
+const EMPTY_MODELS: ModelsState = { models: [], defaultModelID: undefined, failed: false, loaded: false };
 
 /** Load the model list and OpenCode's default model for the lifetime of a view. */
 export function useModels(endpoint: Endpoint): ModelsState {
@@ -47,9 +49,10 @@ export function useModels(endpoint: Endpoint): ModelsState {
           models: list,
           defaultModelID: fallback ? modelValue(fallback) : undefined,
           failed: false,
+          loaded: true,
         });
       } catch {
-        if (!controller.signal.aborted) setState({ ...EMPTY_MODELS, failed: true });
+        if (!controller.signal.aborted) setState({ ...EMPTY_MODELS, failed: true, loaded: true });
       }
     })();
     return () => controller.abort();

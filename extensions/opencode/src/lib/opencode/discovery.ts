@@ -37,6 +37,12 @@ function basicAuthHeaders(username?: string, password?: string): Record<string, 
   return { authorization: `Basic ${credentials}` };
 }
 
+/** Loopback hosts accept plaintext HTTP; anything else needs HTTPS for credentials. */
+function isLoopbackHost(hostname: string): boolean {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
+  return host === "localhost" || host.endsWith(".localhost") || host === "::1" || /^127\./.test(host);
+}
+
 /**
  * Resolve the OpenCode endpoint to talk to.
  *
@@ -58,6 +64,16 @@ export async function resolveEndpoint(
         "The configured OpenCode server URL is invalid.",
         `serverUrl: ${config.serverUrl}`,
       );
+    }
+    if (config.serverPassword) {
+      const { protocol, hostname } = new URL(url);
+      if (protocol === "http:" && !isLoopbackHost(hostname)) {
+        throw new OpenCodeError(
+          "rejected",
+          "Password auth needs HTTPS on remote servers.",
+          "Use an https:// URL or point at a local address.",
+        );
+      }
     }
     const headers = basicAuthHeaders(config.serverUsername, config.serverPassword);
     return { url, ...(headers ? { headers } : {}) };

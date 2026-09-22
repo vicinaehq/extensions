@@ -223,9 +223,24 @@ export function AskView(props: { readonly endpoint: Endpoint; readonly config: C
 
   const handleModelChange = useCallback(
     (modelId: string) => {
-      setSelectedModelId(modelId);
       const model = parseModelRef(modelId);
-      if (sessionID && model) void service.switchModel(sessionID, model);
+      if (!model) return;
+      if (!sessionID) {
+        setSelectedModelId(modelId);
+        return;
+      }
+      void (async () => {
+        try {
+          await service.switchModel(sessionID, model);
+          setSelectedModelId(modelId);
+        } catch {
+          await showToast({
+            style: Toast.Style.Failure,
+            title: "Model switch failed",
+            message: "Keeping the previous model.",
+          });
+        }
+      })();
     },
     [service, sessionID],
   );
