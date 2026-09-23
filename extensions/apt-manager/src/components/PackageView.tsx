@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { AptPackage, PackageListKind } from "../lib/apt";
 import { fetchPackageList, flathubAppFromListed } from "../lib/apt";
 import { PackageActions } from "./PackageActions";
-import { AptAppDetail, FlathubAppDetail } from "./PackageListItemDetail";
+import { AptAppDetail, AppImageDetail, FlathubAppDetail } from "./PackageListItemDetail";
 
 const PAGE_START = 500;
 const PAGE_STEP = 1000;
@@ -100,13 +100,22 @@ export function PackageView({ kind, title, emptyTitle }: Props) {
 							keywords={[pkg.suite]}
 							icon={
 								pkg.icon ??
-								(pkg.manager === "flatpak" ? Icon.AppWindow : undefined)
+								(pkg.manager === "flatpak"
+									? Icon.AppWindow
+									: pkg.manager === "appimage"
+										? Icon.Box
+										: undefined)
 							}
 							accessories={accessoriesFor(kind, pkg)}
 							detail={
 								pkg.manager === "flatpak" ? (
 									<FlathubAppDetail
 										app={flathubAppFromListed(pkg)}
+										enabled={showingDetail && selectedId === id}
+									/>
+								) : pkg.manager === "appimage" ? (
+									<AppImageDetail
+										pkg={pkg}
 										enabled={showingDetail && selectedId === id}
 									/>
 								) : (
@@ -136,6 +145,9 @@ function accessoriesFor(
 	kind: PackageListKind,
 	pkg: AptPackage,
 ): List.Item.Accessory[] {
+	if (pkg.manager === "appimage") {
+		return [{ tag: { color: Color.Orange, value: "appimage" } }];
+	}
 	if (pkg.manager === "flatpak") {
 		return [
 			{

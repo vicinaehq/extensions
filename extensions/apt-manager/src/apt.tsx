@@ -20,8 +20,10 @@ import {
 import { askConfirm } from "./lib/confirm";
 import { fetchFlatpakRemotes, hasFlatpakBinary } from "./lib/flatpakRemotes";
 import { loadRepos } from "./lib/sources";
+import { installAppImage } from "./lib/appimage";
 import { ReposView } from "./views/Repos";
 import { FlatpakReposView } from "./views/FlatpakRepos";
+import { InstallAppImageView } from "./views/InstallAppImageView";
 
 export default function Command() {
 	const repoCount = useMemo(() => loadRepos().sources.length, []);
@@ -97,6 +99,18 @@ export default function Command() {
 									emptyTitle="All packages are up to date"
 								/>
 							}
+						/>
+					}
+				/>
+				<RootItem
+					title="Install AppImage"
+					subtitle="Install from URL or local file"
+					icon={Icon.Download}
+					shortcut={{ key: "i", modifiers: ["cmd"] } as Keyboard.Shortcut}
+					actions={
+						<Action.Push
+							title="Install AppImage"
+							target={<InstallAppImageView />}
 						/>
 					}
 				/>

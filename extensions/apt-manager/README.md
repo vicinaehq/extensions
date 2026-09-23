@@ -13,6 +13,8 @@ Launched from the `apt` command:
 - **Clean up system** — `apt-get autoremove --purge` then `apt-get autoclean`.
 - **Repositories** — list sources from `sources.list`/`sources.list.d` (legacy one-line
   and deb822 `.sources`), add new repos as deb822 `.sources` files, enable/disable/remove.
+- **AppImages** — install, remove, and check for updates of AppImage applications
+  installed in `~/Applications`.
 
 ## How it works
 

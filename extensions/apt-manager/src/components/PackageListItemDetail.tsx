@@ -169,3 +169,38 @@ export function FlathubAppDetail({
 		/>
 	);
 }
+
+export function AppImageDetail({
+	pkg,
+	enabled,
+}: {
+	pkg: AptPackage;
+	enabled: boolean;
+}) {
+	return (
+		<List.Item.Detail
+			metadata={
+				<List.Item.Detail.Metadata>
+					<List.Item.Detail.Metadata.Label
+						title="Package"
+						text={pkg.name}
+					/>
+					<List.Item.Detail.Metadata.Label
+						title="Version"
+						text={pkg.version}
+					/>
+					{pkg.description && (
+						<List.Item.Detail.Metadata.Label
+							title="Description"
+							text={pkg.description}
+						/>
+					)}
+					<List.Item.Detail.Metadata.Label
+						title="Manager"
+						text="AppImage"
+					/>
+				</List.Item.Detail.Metadata>
+			}
+		/>
+	);
+}

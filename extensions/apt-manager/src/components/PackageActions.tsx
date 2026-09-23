@@ -10,6 +10,7 @@ import {
 import type { AptPackage, PackageListKind } from "../lib/apt";
 import { runFlatpakCommand } from "../lib/flatpakRemotes";
 import { runPrivilegedApGet, runPrivilegedCommand } from "../lib/apt";
+import { checkAppImageUpdate, removeAppImage } from "../lib/appimage";
 import type { FlatpakInstallation } from "../lib/flatpakRemotes";
 import { askConfirm } from "../lib/confirm";
 import { RunResult } from "./RunResult";
@@ -188,6 +189,103 @@ export function PackageActions({
 							`Upgrade ${pkg.name} to ${pkg.version}?`,
 						)
 					}
+				/>
+				{copyName}
+			</ActionPanel>
+		);
+	}
+
+	if (pkg.manager === "appimage") {
+		return (
+			<ActionPanel title={pkg.name}>
+				{toggleDetail}
+				<Action
+					title={`Remove ${pkg.name} (file only)`}
+					icon={Icon.Trash}
+					style={Action.Style.Destructive}
+					onAction={async () => {
+						const toast = await showToast({
+							style: Toast.Style.Animated,
+							title: `Removing ${pkg.name}`,
+						});
+						const result = await removeAppImage(pkg.name, "file");
+						if (result.ok) {
+							toast.style = Toast.Style.Success;
+							toast.title = `${pkg.name} removed`;
+							toast.message = "File removed";
+						} else {
+							toast.style = Toast.Style.Failure;
+							toast.title = `Failed to remove ${pkg.name}`;
+							toast.message = result.error ?? undefined;
+						}
+						onRefresh();
+					}}
+				/>
+				<Action
+					title={`Remove ${pkg.name} (with desktop entries)`}
+					icon={Icon.Trash}
+					style={Action.Style.Destructive}
+					onAction={async () => {
+						const toast = await showToast({
+							style: Toast.Style.Animated,
+							title: `Removing ${pkg.name}`,
+						});
+						const result = await removeAppImage(pkg.name, "desktop");
+						if (result.ok) {
+							toast.style = Toast.Style.Success;
+							toast.title = `${pkg.name} removed`;
+							toast.message = "File and desktop entry removed";
+						} else {
+							toast.style = Toast.Style.Failure;
+							toast.title = `Failed to remove ${pkg.name}`;
+							toast.message = result.error ?? undefined;
+						}
+						onRefresh();
+					}}
+				/>
+				<Action
+					title={`Remove ${pkg.name} (with config)`}
+					icon={Icon.Trash}
+					style={Action.Style.Destructive}
+					onAction={async () => {
+						const toast = await showToast({
+							style: Toast.Style.Animated,
+							title: `Removing ${pkg.name}`,
+						});
+						const result = await removeAppImage(pkg.name, "config");
+						if (result.ok) {
+							toast.style = Toast.Style.Success;
+							toast.title = `${pkg.name} removed`;
+							toast.message = "File, desktop entry, and config removed";
+						} else {
+							toast.style = Toast.Style.Failure;
+							toast.title = `Failed to remove ${pkg.name}`;
+							toast.message = result.error ?? undefined;
+						}
+						onRefresh();
+					}}
+				/>
+				<Action
+					title="Check for Updates"
+					icon={Icon.ArrowClockwise}
+					onAction={async () => {
+						const toast = await showToast({
+							style: Toast.Style.Animated,
+							title: `Checking for updates`,
+						});
+						const result = await checkAppImageUpdate(pkg.name);
+						if (!result.ok) {
+							toast.style = Toast.Style.Failure;
+							toast.title = `Failed to check for updates`;
+							toast.message = result.error ?? undefined;
+						} else if (result.updateAvailable) {
+							toast.style = Toast.Style.Success;
+							toast.title = `Update available for ${pkg.name}`;
+						} else {
+							toast.style = Toast.Style.Success;
+							toast.title = `${pkg.name} is up to date`;
+						}
+					}}
 				/>
 				{copyName}
 			</ActionPanel>

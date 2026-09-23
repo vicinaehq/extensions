@@ -7,6 +7,7 @@ import {
 	fetchFlathubRemote,
 	findFlatpakIcon,
 } from "./flathub";
+import { fetchAppImages } from "./appimage";
 
 export type PackageFlags = {
 	installed: boolean;
@@ -25,7 +26,7 @@ export type AptPackage = {
 	current: string | null;
 	description: string;
 	/** Package manager that owns this entry. */
-	manager: "apt" | "flatpak";
+	manager: "apt" | "flatpak" | "appimage";
 	/** Local path to an app icon, if one is available. */
 	icon: string | null;
 	/** Installation scope for Flatpak apps. */
@@ -153,7 +154,8 @@ export async function fetchPackageList(
 		const flatpakInstalled = (await fetchFlathubInstalled()).map((pkg) =>
 			flathubToAptPackage(pkg, true),
 		);
-		return [...aptInstalled, ...flatpakInstalled].sort((a, b) =>
+		const appImages = await fetchAppImages();
+		return [...aptInstalled, ...flatpakInstalled, ...appImages].sort((a, b) =>
 			a.name.localeCompare(b.name),
 		);
 	}
@@ -164,7 +166,8 @@ export async function fetchPackageList(
 	const flatpakAvailable = (await fetchFlathubRemote()).map((pkg) =>
 		flathubToAptPackage(pkg, false),
 	);
-	return [...all, ...flatpakAvailable].sort((a, b) =>
+	const appImages = await fetchAppImages();
+	return [...all, ...flatpakAvailable, ...appImages].sort((a, b) =>
 		a.name.localeCompare(b.name),
 	);
 }

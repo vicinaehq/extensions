@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "debian-packages",
   "title": "Debian Packages",
-  "description": "Debian Packages Management Tool",
+  "description": "Debian Packages Management Tool with Flatpak and AppImage support",
   "categories": ["System"],
   "license": "MIT",
   "author": "ali00209",
@@ -13,7 +13,7 @@
     {
       "name": "apt",
       "title": "APT",
-"description": "APT package manager with Flatpak support: install, remove, and upgrade Debian packages; manage Flatpak apps and remotes.",
+      "description": "APT package manager with Flatpak and AppImage support: install, remove, and upgrade Debian packages; manage Flatpak apps and remotes and AppImage applications.",
       "mode": "view"
     }
   ],
