@@ -251,6 +251,18 @@ export async function installAppImage(
 			};
 		}
 	}
+	const desktopPath = targetPath.replace(/\.AppImage$/i, ".desktop");
+	if (!existsSync(desktopPath)) {
+		const appName = basename(targetPath).replace(/\.AppImage$/i, "");
+		const desktopContent = `[Desktop Entry]\nType=Application\nName=${appName}\nExec=${targetPath}\nIcon=${appName}\n`;
+		try {
+			const { writeFileSync } = await import("node:fs");
+			writeFileSync(desktopPath, desktopContent);
+		} catch {
+			const fs = await import("node:fs");
+			fs.writeFileSync(desktopPath, desktopContent);
+		}
+	}
 	return { ok: true, error: null };
 }
 
