@@ -8,15 +8,17 @@ import {
 	useNavigation,
 } from "@vicinae/api";
 import { useState } from "react";
-import { installAppImage } from "../lib/appimage";
+import { installAppImage, installDesktopFile } from "../lib/appimage";
 
 export function InstallAppImageView() {
 	const { pop } = useNavigation();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [sourceType, setSourceType] = useState<"url" | "file">("url");
+	const [desktopLocation, setDesktopLocation] = useState<"user" | "system">("user");
 
 	const onSubmit = async (values: Form.Values) => {
 		const source = String(values.sourceType ?? "url") as "url" | "file";
+		const location = String(values.location ?? "user") as "user" | "system";
 		const input = String(values.input ?? "").trim();
 		if (!input) {
 			await showToast({
@@ -33,17 +35,30 @@ export function InstallAppImageView() {
 		const result = source === "url"
 			? await installAppImage({ type: "url", url: input })
 			: await installAppImage({ type: "file", path: input });
-		setIsSubmitting(false);
-
 		if (!result.ok) {
 			toast.style = Toast.Style.Failure;
 			toast.title = "Installation failed";
 			toast.message = result.error ?? undefined;
+			setIsSubmitting(false);
 			return;
 		}
-
-		toast.style = Toast.Style.Success;
-		toast.title = "AppImage installed";
+		const desktopToast = await showToast({
+			style: Toast.Style.Animated,
+			title: "Creating desktop entry",
+		});
+		const desktopResult = result.targetPath
+			? await installDesktopFile(result.targetPath, location)
+			: { ok: false, error: "No target path" };
+		if (!desktopResult.ok) {
+			toast.style = Toast.Style.Failure;
+			toast.title = "AppImage installed but desktop entry failed";
+			toast.message = desktopResult.error ?? undefined;
+		} else {
+			toast.style = Toast.Style.Success;
+			toast.title = "AppImage installed";
+			toast.message = `Installed in ${location} desktop entry`;
+		}
+		setIsSubmitting(false);
 		pop();
 	};
 
@@ -71,6 +86,20 @@ export function InstallAppImageView() {
 					value="url"
 				/>
 				<Form.Dropdown.Item title="Install from File" value="file" />
+			</Form.Dropdown>
+			<Form.Dropdown
+				id="location"
+				title="Desktop Entry Location"
+				defaultValue={desktopLocation}
+			>
+				<Form.Dropdown.Item
+					title="User (~/.local/share/applications)"
+					value="user"
+				/>
+				<Form.Dropdown.Item
+					title="System (/usr/share/applications)"
+					value="system"
+				/>
 			</Form.Dropdown>
 			<Form.TextField
 				id="input"

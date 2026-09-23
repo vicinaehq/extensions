@@ -7,9 +7,11 @@ import {
 	readFileSync,
 	rmSync,
 	statSync,
+	writeFileSync,
 } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
+import { run } from "./exec";
 import type { AptPackage } from "./apt";
 
 export type AppImageRemoveDepth = "file" | "desktop" | "config";
@@ -27,6 +29,10 @@ export interface AppImageInfo {
 
 function getApplicationsDir(): string {
 	return join(homedir(), "Applications");
+}
+
+function getUserDesktopDir(): string {
+	return join(homedir(), ".local", "share", "applications");
 }
 
 function parseDesktopFile(content: string): {
@@ -121,7 +127,11 @@ export async function discoverAppImageFile(
 
 	let version = "";
 	try {
-		const appDataPath = join(dirname(desktopPath ?? ""), "appdata", `${baseName}.appdata.xml`);
+		const appDataPath = join(
+			dirname(desktopPath ?? ""),
+			"appdata",
+			`${baseName}.appdata.xml`,
+		);
 		if (appDataPath && existsSync(appDataPath)) {
 			const parsed = parseAppDataXml(readFileSync(appDataPath, "utf8"));
 			if (parsed.summary) description = parsed.summary;
@@ -186,7 +196,7 @@ export async function fetchAppImages(): Promise<AptPackage[]> {
 
 export async function installAppImage(
 	source: { type: "url"; url: string } | { type: "file"; path: string },
-): Promise<{ ok: boolean; error: string | null }> {
+): Promise<{ ok: boolean; error: string | null; targetPath?: string }> {
 	const appsDir = getApplicationsDir();
 	if (!existsSync(appsDir)) {
 		try {
@@ -207,24 +217,8 @@ export async function installAppImage(
 			}
 			const buffer = await response.arrayBuffer();
 			const bytes = Buffer.from(buffer);
-			try {
-				const { writeFileSync } = await import("node:fs");
-				writeFileSync(targetPath, bytes);
-			} catch {
-				const fs = await import("node:fs");
-				await new Promise<void>((resolve, reject) => {
-					const stream = fs.createWriteStream(targetPath);
-					stream.on("finish", () => resolve());
-					stream.on("error", (e) => reject(e));
-					stream.write(bytes);
-					stream.end();
-				});
-			}
-			try {
-				chmodSync(targetPath, 0o755);
-			} catch {
-				// chmod may fail silently
-			}
+			writeFileSync(targetPath, bytes);
+			chmodSync(targetPath, 0o755);
 		} catch (err) {
 			return {
 				ok: false,
@@ -239,11 +233,7 @@ export async function installAppImage(
 		targetPath = join(appsDir, basename(srcPath));
 		try {
 			copyFileSync(srcPath, targetPath);
-			try {
-				chmodSync(targetPath, 0o755);
-			} catch {
-				// chmod may fail silently
-			}
+			chmodSync(targetPath, 0o755);
 		} catch (err) {
 			return {
 				ok: false,
@@ -251,16 +241,42 @@ export async function installAppImage(
 			};
 		}
 	}
-	const desktopPath = targetPath.replace(/\.AppImage$/i, ".desktop");
-	if (!existsSync(desktopPath)) {
-		const appName = basename(targetPath).replace(/\.AppImage$/i, "");
-		const desktopContent = `[Desktop Entry]\nType=Application\nName=${appName}\nExec=${targetPath}\nIcon=${appName}\n`;
-		try {
-			const { writeFileSync } = await import("node:fs");
-			writeFileSync(desktopPath, desktopContent);
-		} catch {
-			const fs = await import("node:fs");
-			fs.writeFileSync(desktopPath, desktopContent);
+	return { ok: true, error: null, targetPath };
+}
+
+/**
+ * Create a .desktop file for an AppImage in the specified location.
+ */
+export async function installDesktopFile(
+	appPath: string,
+	location: "user" | "system",
+): Promise<{ ok: boolean; error: string | null }> {
+	const appName = basename(appPath).replace(/\.AppImage$/i, "");
+	const desktopContent = `[Desktop Entry]\nType=Application\nName=${appName}\nExec=${appPath}\nIcon=${appName}\n`;
+	let desktopPath: string;
+
+	if (location === "user") {
+		const desktopDir = getUserDesktopDir();
+		if (!existsSync(desktopDir)) {
+			try {
+				mkdirSync(desktopDir, { recursive: true });
+			} catch {
+				return { ok: false, error: `Failed to create ${desktopDir}` };
+			}
+		}
+		desktopPath = join(desktopDir, `${appName}.desktop`);
+		writeFileSync(desktopPath, desktopContent);
+	} else {
+		desktopPath = join("/usr/share/applications", `${appName}.desktop`);
+		const result = await run("pkexec", ["tee", desktopPath], {
+			input: desktopContent,
+			timeout: 30_000,
+		});
+		if (!result.ok) {
+			return {
+				ok: false,
+				error: result.stderr.trim() || result.stdout.trim() || "Failed to write desktop file",
+			};
 		}
 	}
 	return { ok: true, error: null };
@@ -301,6 +317,17 @@ export async function removeAppImage(
 			const desktopFile = targetPath.replace(/\.AppImage$/i, ".desktop");
 			if (existsSync(desktopFile)) {
 				rmSync(desktopFile, { force: true });
+			}
+			const userDesktop = join(getUserDesktopDir(), `${targetName}.desktop`);
+			if (existsSync(userDesktop)) {
+				rmSync(userDesktop, { force: true });
+			}
+			const sysDesktop = join(
+				"/usr/share/applications",
+				`${targetName}.desktop`,
+			);
+			if (existsSync(sysDesktop)) {
+				rmSync(sysDesktop, { force: true });
 			}
 		}
 		if (depth === "config") {
