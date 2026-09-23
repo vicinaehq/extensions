@@ -22,7 +22,7 @@ export default async function Command() {
       return;
     }
 
-    addToHistory(pickedColor);
+    await addToHistory(pickedColor);
 
     const formattedColor = getFormattedColor(pickedColor);
     if (!formattedColor) {

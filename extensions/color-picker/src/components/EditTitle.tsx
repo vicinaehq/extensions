@@ -11,7 +11,7 @@ export function EditTitle(props: { item: HistoryItem; onEdit: (item: HistoryItem
         <ActionPanel>
           <Action.SubmitForm
             onSubmit={async (values) => {
-              props.onEdit({ ...item, title: values.title });
+              props.onEdit({ ...item, title: values.title ? String(values.title) : undefined });
               pop();
             }}
           />

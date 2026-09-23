@@ -43,7 +43,7 @@ const PickColorAction = ({ onPicked }: { onPicked?: () => void }) => (
         await closeMainWindow();
         const color = await pickScreenColor();
         if (color) {
-          addToHistory(color);
+          await addToHistory(color);
           const formatted = getFormattedColor(color);
           await Clipboard.copy(formatted);
           await showHUD(`Copied color ${formatted} to clipboard`);
@@ -61,7 +61,7 @@ const PickColorAction = ({ onPicked }: { onPicked?: () => void }) => (
 );
 
 export default function Command() {
-  const { history } = useHistory();
+  const { history, isLoading } = useHistory();
   const [selectMode, setSelectMode] = useState<SelectMode>("single");
 
   const getItemKey = useCallback((item: HistoryItem) => `${item.date}-${getFormattedColor(item.color)}`, []);
@@ -72,6 +72,7 @@ export default function Command() {
   if (selectMode === "multi") {
     return (
       <List
+        isLoading={isLoading}
         searchBarAccessory={
           <List.Dropdown
             tooltip="Switch Select Mode"
@@ -101,6 +102,7 @@ export default function Command() {
 
   return (
     <Grid
+      isLoading={isLoading}
       searchBarAccessory={
         <Grid.Dropdown tooltip="Switch Select Mode" value={selectMode} onChange={(v) => setSelectMode(v as SelectMode)}>
           <Grid.Dropdown.Item title="Single-Select Mode" value="single" />
@@ -216,11 +218,11 @@ function Actions({ historyItem, selectMode, selection }: ActionsProps) {
         {preferences.primaryAction === "copy" ? (
           <>
             <Action.CopyToClipboard content={formattedColor} />
-            <Action.Paste content={formattedColor} />
+            <Action.Paste title="Paste to Active App" content={formattedColor} />
           </>
         ) : (
           <>
-            <Action.Paste content={formattedColor} />
+            <Action.Paste title="Paste to Active App" content={formattedColor} />
             <Action.CopyToClipboard content={formattedColor} />
           </>
         )}
@@ -252,7 +254,7 @@ function Actions({ historyItem, selectMode, selection }: ActionsProps) {
             )}
             {anySelected && (
               <ActionPanel.Submenu
-                icon={Icon.Clipboard}
+                icon={Icon.CopyClipboard}
                 title={`Copy ${countSelected} Selected Colors`}
                 shortcut={Keyboard.Shortcut.Common.Copy}
               >

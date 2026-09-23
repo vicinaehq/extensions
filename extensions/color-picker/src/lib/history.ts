@@ -1,27 +1,45 @@
-import { Cache } from "@vicinae/api";
+import { LocalStorage } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import type { HistoryColor, HistoryItem } from "./types";
 import { getFormattedColor } from "./utils";
 
 const MAX_HISTORY_LENGTH = 200;
-const cache = new Cache();
+const STORAGE_KEY = "history";
 
-export function getHistory(): HistoryItem[] {
-  const data = cache.get("history");
-  if (!data) return [];
+let inMemoryHistory: HistoryItem[] | null = null;
+const listeners = new Set<(items: HistoryItem[]) => void>();
+
+export async function getHistory(): Promise<HistoryItem[]> {
+  if (inMemoryHistory !== null) {
+    return inMemoryHistory;
+  }
   try {
-    return JSON.parse(data) as HistoryItem[];
-  } catch {
+    const data = await LocalStorage.getItem<string>(STORAGE_KEY);
+    if (!data) {
+      inMemoryHistory = [];
+      return [];
+    }
+    inMemoryHistory = JSON.parse(data) as HistoryItem[];
+    return inMemoryHistory;
+  } catch (error) {
+    console.error("Failed to read history from LocalStorage:", error);
+    inMemoryHistory = [];
     return [];
   }
 }
 
-export function saveHistory(items: HistoryItem[]) {
-  cache.set("history", JSON.stringify(items));
+export async function saveHistory(items: HistoryItem[]): Promise<void> {
+  inMemoryHistory = items;
+  try {
+    await LocalStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch (error) {
+    console.error("Failed to persist history to LocalStorage:", error);
+  }
+  listeners.forEach((listener) => listener(items));
 }
 
-export function addToHistory(color: HistoryColor, options?: { isFavorite?: boolean }) {
-  const previousHistory = getHistory();
+export async function addToHistory(color: HistoryColor, options?: { isFavorite?: boolean }) {
+  const previousHistory = await getHistory();
   const colorKey = getFormattedColor(color);
   const previousHistoryItem = previousHistory.find((item) => getFormattedColor(item.color) === colorKey);
 
@@ -45,27 +63,33 @@ export function addToHistory(color: HistoryColor, options?: { isFavorite?: boole
     return regularHistoryCount <= maxRegularHistoryLength;
   });
 
-  saveHistory(newHistory);
+  await saveHistory(newHistory);
 }
 
 export function useHistory() {
-  const [history, setHistory] = useState<HistoryItem[]>(() => getHistory());
+  const [history, setHistory] = useState<HistoryItem[]>(() => inMemoryHistory ?? []);
+  const [isLoading, setIsLoading] = useState<boolean>(inMemoryHistory === null);
 
   useEffect(() => {
-    setHistory(getHistory());
-    const unsubscribe = cache.subscribe((key, data) => {
-      if (key === "history") {
-        try {
-          setHistory(data ? JSON.parse(data) : []);
-        } catch {
-          setHistory([]);
-        }
+    let isMounted = true;
+
+    getHistory().then((items) => {
+      if (isMounted) {
+        setHistory(items);
+        setIsLoading(false);
       }
     });
-    return () => {
-      if (typeof unsubscribe === "function") {
-        unsubscribe();
+
+    const listener = (newHistory: HistoryItem[]) => {
+      if (isMounted) {
+        setHistory(newHistory);
       }
+    };
+    listeners.add(listener);
+
+    return () => {
+      isMounted = false;
+      listeners.delete(listener);
     };
   }, []);
 
@@ -73,20 +97,21 @@ export function useHistory() {
     const next = history.map((item) =>
       getFormattedColor(item.color) === getFormattedColor(color) ? updateItem(item) : item,
     );
-    saveHistory(next);
+    void saveHistory(next);
   };
 
   return {
     history,
+    isLoading,
     remove: (color: HistoryColor) => {
       const next = history.filter((item) => getFormattedColor(item.color) !== getFormattedColor(color));
-      saveHistory(next);
+      void saveHistory(next);
     },
     edit: (historyItem: HistoryItem) => {
       const next = history.map((item) =>
         getFormattedColor(item.color) === getFormattedColor(historyItem.color) ? historyItem : item,
       );
-      saveHistory(next);
+      void saveHistory(next);
     },
     addToFavorites: (color: HistoryColor) => update(color, (item) => ({ ...item, isFavorite: true })),
     removeFromFavorites: (color: HistoryColor) => update(color, (item) => ({ ...item, isFavorite: false })),
@@ -108,8 +133,8 @@ export function useHistory() {
 
       const nextHistory = [...history];
       [nextHistory[currentIndex], nextHistory[targetIndex]] = [nextHistory[targetIndex], nextHistory[currentIndex]];
-      saveHistory(nextHistory);
+      void saveHistory(nextHistory);
     },
-    clear: () => saveHistory([]),
+    clear: () => void saveHistory([]),
   };
 }

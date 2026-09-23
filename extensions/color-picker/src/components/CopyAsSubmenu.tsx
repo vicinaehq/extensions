@@ -9,7 +9,7 @@ type CopyAsSubmenuProps = {
 
 export default function CopyAsSubmenu({ color, onCopy }: CopyAsSubmenuProps) {
   return (
-    <ActionPanel.Submenu title="Copy as" icon={Icon.Clipboard} shortcut={Keyboard.Shortcut.Common.Copy}>
+    <ActionPanel.Submenu title="Copy as" icon={Icon.CopyClipboard} shortcut={Keyboard.Shortcut.Common.Copy}>
       <Action.CopyToClipboard title={`HEX`} content={getFormattedColor(color, "hex")} onCopy={onCopy} />
       <Action.CopyToClipboard
         title={`Lowercased HEX`}

@@ -32,7 +32,7 @@ export function getShortcut(index: number) {
   const key = index + 1;
   let shortcut: Keyboard.Shortcut | undefined;
   if (key >= 1 && key <= 9) {
-    shortcut = { modifiers: ["cmd"], key: String(key) as Keyboard.KeyEquivalent };
+    shortcut = { modifiers: ["cmd"], key: String(key) as any };
   }
   return shortcut;
 }
@@ -58,7 +58,7 @@ export function getIcon(color: HistoryColor): Image.ImageLike | undefined {
 
 export function getAccessories(historyItem: HistoryItem) {
   const accessories = new Array<List.Item.Accessory>();
-  accessories.push({ date: new Date(historyItem.date), tooltip: new Date(historyItem.date).toLocaleString() });
+  accessories.push({ text: new Date(historyItem.date).toLocaleDateString(), tooltip: new Date(historyItem.date).toLocaleString() });
   return accessories;
 }
 
@@ -100,7 +100,7 @@ export function getColorByProximity(colors?: Colors<Palette>) {
 export const COPY_FORMATS: Array<{ format: CopyColorsFormat; title: string; icon: Icon }> = [
   { format: "json", title: "Copy Colors as JSON", icon: Icon.CodeBlock },
   { format: "css-classes", title: "Copy Colors as CSS Classes", icon: Icon.Brush },
-  { format: "css-variables", title: "Copy Colors as CSS Variables", icon: Icon.Gear },
+  { format: "css-variables", title: "Copy Colors as CSS Variables", icon: Icon.Cog },
 ];
 
 export function getColor(item: HistoryItem | string): HistoryColor {

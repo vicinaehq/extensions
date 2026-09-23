@@ -6,9 +6,9 @@ import { getFormattedColor } from "./lib/utils";
 import { pickScreenColor } from "./native/picker";
 
 const COLOR_WHEEL_MARKDOWN = `
-# Color Wheel
+# Color Wheel Reference
 
-Click the **Pick from Wheel** button below or use the screen picker to select any color from the spectrum.
+A reference RGB color wheel spectrum. Use the desktop screen picker to sample colors directly from the wheel or anywhere on your screen.
 
 ![RGB Color Wheel](rgb-color-wheel.png)
 `;
@@ -23,7 +23,7 @@ export default function Command() {
         return;
       }
 
-      addToHistory(pickedColor);
+      await addToHistory(pickedColor);
 
       const formattedColor = getFormattedColor(pickedColor);
       if (!formattedColor) {
@@ -51,7 +51,7 @@ export default function Command() {
       markdown={COLOR_WHEEL_MARKDOWN}
       actions={
         <ActionPanel>
-          <Action title="Pick Color Again" onAction={pickAndHandleColor} />
+          <Action title="Pick Color from Screen" onAction={pickAndHandleColor} />
         </ActionPanel>
       }
     />

@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "color-picker",
   "title": "Color Picker",
-  "description": "Pick, organize, and convert colors on Mac, Windows, and Linux",
+  "description": "Pick, organize, and convert colors on Linux",
   "icon": "icon.png",
   "author": "manuelcontrera",
   "pastContributors": [
@@ -13,6 +13,9 @@
     "Developer Tools"
   ],
   "license": "MIT",
+  "platforms": [
+    "Linux"
+  ],
   "commands": [
     {
       "name": "pick-color",
@@ -118,8 +121,8 @@
     },
     {
       "name": "color-wheel",
-      "title": "Color Wheel",
-      "description": "Pick a color with interactive color wheel",
+      "title": "Color Wheel Reference",
+      "description": "Display a color wheel reference and pick colors from screen",
       "mode": "view",
       "icon": "icon.png"
     }
@@ -190,7 +193,7 @@
     "lint": "vici lint"
   },
   "dependencies": {
-    "@vicinae/api": "^0.20.15",
+    "@vicinae/api": "^0.29.0",
     "color-namer": "^1.4.0",
     "colorjs.io": "^0.5.1",
     "lodash": "^4.17.23"

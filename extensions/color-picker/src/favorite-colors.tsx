@@ -14,12 +14,12 @@ function OpenOrganizeColorsAction() {
 }
 
 export default function Command() {
-  const { history, removeFromFavorites } = useHistory();
+  const { history, isLoading, removeFromFavorites } = useHistory();
   const favorites = history?.filter((item) => item.isFavorite) ?? [];
 
   return (
-    <List isLoading={history === undefined} searchBarPlaceholder="Search favorite colors">
-      {history !== undefined && favorites.length === 0 ? (
+    <List isLoading={isLoading} searchBarPlaceholder="Search favorite colors">
+      {!isLoading && favorites.length === 0 ? (
         <List.EmptyView
           icon={Icon.Star}
           title="No favorite colors"

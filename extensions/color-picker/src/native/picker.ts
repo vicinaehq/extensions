@@ -23,35 +23,20 @@ export async function pickScreenColor(): Promise<Color | null> {
     path.join(__dirname, "bin"),
   ].filter(Boolean);
 
-  let binaryPath = "";
-  let args: string[] = [];
-
-  if (platform === "darwin") {
-    const candidate = candidateDirs
-      .map((dir) => path.join(dir, "picker-mac"))
-      .find((p) => existsSync(p));
-
-    binaryPath = candidate || "picker-mac";
-  } else if (platform === "win32") {
-    const candidate = candidateDirs
-      .map((dir) => path.join(dir, "picker-win.exe"))
-      .find((p) => existsSync(p));
-
-    binaryPath = candidate || "picker-win.exe";
-  } else if (platform === "linux") {
-    const candidate = candidateDirs
-      .map((dir) => path.join(dir, "picker-linux.py"))
-      .find((p) => existsSync(p));
-
-    if (candidate) {
-      binaryPath = "python3";
-      args = [candidate];
-    } else {
-      throw new Error("Linux picker script picker-linux.py not found in candidate paths: " + candidateDirs.join(", "));
-    }
-  } else {
-    throw new Error(`Unsupported operating system: ${platform}`);
+  if (platform !== "linux") {
+    throw new Error(`Color picking is currently only supported on Linux (current platform: ${platform})`);
   }
+
+  const candidate = candidateDirs
+    .map((dir) => path.join(dir, "picker-linux.py"))
+    .find((p) => existsSync(p));
+
+  if (!candidate) {
+    throw new Error("Linux picker script picker-linux.py not found in candidate paths: " + candidateDirs.join(", "));
+  }
+
+  const binaryPath = "python3";
+  const args = [candidate];
 
   try {
     const { stdout } = await execFileAsync(binaryPath, args, {

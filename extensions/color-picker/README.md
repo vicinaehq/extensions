@@ -1,8 +1,8 @@
 # Color Picker for Vicinae
 
-A powerful cross-platform color picker, manager, and converter extension for **Vicinae**, ported and adapted from Raycast's popular Color Picker.
+A powerful color picker, manager, and converter extension for **Vicinae** on **Linux**, ported and adapted from Raycast's Color Picker.
 
-Supported on **Linux** (GNOME, KDE, Wayland, X11), **macOS**, and **Windows**.
+Supported on **Linux** (GNOME, KDE, Hyprland, Sway, Wayland, and X11).
 
 ---
 
@@ -11,12 +11,12 @@ Supported on **Linux** (GNOME, KDE, Wayland, X11), **macOS**, and **Windows**.
 ### `pick-color` - Pick Color
 Activates a screen loupe/eyedropper across your monitors, allowing you to sample any pixel.
 - Copies the sampled color directly to the clipboard in your preferred format.
-- Adds the color to your color history.
+- Adds the color to your persistent color history.
 - Shows a HUD confirmation with the copied color.
 
 ### `organize-colors` - Organize Colors
 Manage, search, and export your picked color history.
-- View in grid mode (with live color swatches) or list mode.
+- View in grid mode (with live SVG color swatches) or list mode.
 - Pin your favorite colors to the top.
 - Rename colors with custom titles.
 - Copy colors in 12 different formats (HEX, RGB, RGBA, HSL, HSV, OKLCH, LCH, Display P3, etc.).
@@ -32,16 +32,14 @@ Universal color conversion tool. Pass any color format (or enter one in the sear
 ### `color-names` - Color Names
 Search and identify colors by their descriptive names using the `color-namer` palette.
 
-### `color-wheel` - Color Wheel
-Interactive visual spectrum wheel to pick colors directly from a color disc.
+### `color-wheel` - Color Wheel Reference
+Displays an RGB spectrum color wheel reference with quick access to the desktop screen picker.
 
 ---
 
 ## Screen Picker Architecture
 
-- **Linux**: Uses D-Bus portal (`org.gnome.Shell.Screenshot.PickColor` and `org.freedesktop.portal.Screenshot.PickColor`) for seamless desktop integration under Wayland and X11.
-- **macOS**: Native `NSColorSampler` API providing pixel-accurate magnification and system integration without requiring special accessibility permissions.
-- **Windows**: Lightweight standalone Win32 magnifier with anti-aliasing and scroll-wheel zoom support.
+- **Linux**: Uses D-Bus portal (`org.freedesktop.portal.Screenshot.PickColor` and `org.gnome.Shell.Screenshot.PickColor`) with native fallback tools (`hyprpicker`, `grim`+`slurp`, `xcolor`, `gpick`, `import`) for seamless desktop integration under Wayland and X11.
 
 ---
 
