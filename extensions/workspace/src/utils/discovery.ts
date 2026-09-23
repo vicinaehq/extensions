@@ -105,6 +105,9 @@ export async function scanWorkspaceProjects(
     try {
       entries = await readdir(dir, { withFileTypes: true });
     } catch {
+      if (currentDepth === 0) {
+        throw new Error(`Cannot read workspace folder: ${dir}`);
+      }
       return;
     }
 

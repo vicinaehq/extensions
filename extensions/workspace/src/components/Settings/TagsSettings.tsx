@@ -308,14 +308,14 @@ function BulkAssignTagView({ tagId }: { tagId: string }) {
           actions={
             <ActionPanel>
               <Action icon={Icon.Check} onAction={save} shortcut={{ key: "s", modifiers: ["cmd"] }} title="Save Assignments" />
-              <Action icon={Icon.CheckList} onAction={selectAllFiltered} title="Select All Shown" />
+              <Action icon={Icon.CheckList} onAction={selectAllFiltered} title="Select All in Workspace" />
               <Action icon={Icon.XMarkCircle} onAction={clearFiltered} title="Clear Selection" />
             </ActionPanel>
           }
           icon={{ source: Icon.Tag, tintColor: tag.color as Color }}
           subtitle={
             workspaceRoot === "all"
-              ? "Toggle projects below, then save"
+              ? "Toggle projects below, then save · search does not limit selection"
               : `Only ${path.basename(workspaceRoot)} · toggle, then save`
           }
           title="Save Assignments"
@@ -360,7 +360,7 @@ function BulkAssignTagView({ tagId }: { tagId: string }) {
                         shortcut={{ key: "s", modifiers: ["cmd"] }}
                         title="Save Assignments"
                       />
-                      <Action icon={Icon.CheckList} onAction={selectAllFiltered} title="Select All Shown" />
+                      <Action icon={Icon.CheckList} onAction={selectAllFiltered} title="Select All in Workspace" />
                       <Action icon={Icon.XMarkCircle} onAction={clearFiltered} title="Clear Selection" />
                     </ActionPanel>
                   }
