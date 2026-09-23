@@ -39,7 +39,7 @@ Displays an RGB spectrum color wheel reference with quick access to the desktop 
 
 ## Screen Picker Architecture
 
-- **Linux**: Uses D-Bus portal (`org.freedesktop.portal.Screenshot.PickColor` and `org.gnome.Shell.Screenshot.PickColor`) with native fallback tools (`hyprpicker`, `grim`+`slurp`, `xcolor`, `gpick`, `import`) for seamless desktop integration under Wayland and X11.
+- **Linux**: Uses D-Bus color picking through `org.freedesktop.portal.Screenshot.PickColor` and `org.gnome.Shell.Screenshot.PickColor`.
 
 ---
 
