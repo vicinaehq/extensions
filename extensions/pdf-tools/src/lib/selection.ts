@@ -1,10 +1,11 @@
-import { exec } from "node:child_process";
+import { exec, execFile } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
 import { Clipboard } from "@vicinae/api";
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export interface SelectionOptions {
   minFiles?: number;
@@ -133,16 +134,25 @@ async function pickFilesWithDialog(options: SelectionOptions): Promise<string[]>
     filterName = "Supported files",
   } = options;
 
-  // Linux: Try zenity first, then fallback to kdialog for KDE environments
+  // Linux: Try zenity first, then fallback to kdialog only if zenity is unavailable
   if (process.platform === "linux") {
+    let zenityUnavailable = false;
+
     try {
-      const multFlag = multiple ? '--multiple --separator="|"' : "";
       const patterns = allowedExtensions
         .map((ext) => `*${ext} *${ext.toUpperCase()}`)
         .join(" ");
       const filter = `${filterName} | ${patterns}`;
-      const cmd = `zenity --file-selection ${multFlag} --file-filter="${filter}" --title="${title.replace(/"/g, '\\"')}"`;
-      const { stdout } = await execAsync(cmd);
+      const args = [
+        "--file-selection",
+        `--file-filter=${filter}`,
+        `--title=${title}`,
+      ];
+      if (multiple) {
+        args.push("--multiple", "--separator=|");
+      }
+
+      const { stdout } = await execFileAsync("zenity", args);
       if (!stdout || !stdout.trim()) {
         throw new Error("File selection cancelled");
       }
@@ -154,41 +164,63 @@ async function pickFilesWithDialog(options: SelectionOptions): Promise<string[]>
       if (valid.length > 0) {
         return valid;
       }
+      throw new Error("No valid files selected");
     } catch (err: any) {
-      if (err.message && err.message.includes("cancelled")) {
+      // Exit code 1 from zenity indicates explicit user cancellation (Cancel button or Esc)
+      if (err.code === 1 || (err.message && err.message.includes("cancelled"))) {
         throw new Error("File selection cancelled");
       }
-      // Continue to kdialog fallback if zenity failed or was not found
-    }
-
-    try {
-      const multFlag = multiple ? "--multiple --separate-output" : "";
-      const patterns = allowedExtensions
-        .map((ext) => `*${ext} *${ext.toUpperCase()}`)
-        .join(" ");
-      const filter = `${patterns}|${filterName}`;
-      const cmd = `kdialog --title "${title.replace(/"/g, '\\"')}" --getopenfilename . "${filter}" ${multFlag}`;
-      const { stdout } = await execAsync(cmd);
-      if (!stdout || !stdout.trim()) {
-        throw new Error("File selection cancelled");
-      }
-      const rawPaths = stdout.trim().split(/\r?\n/);
-      const valid = rawPaths
-        .map((p) => cleanFilePath(p, allowedExtensions))
-        .filter((p): p is string => p !== null);
-
-      if (valid.length > 0) {
-        return valid;
-      }
-    } catch (err: any) {
-      if (err.message && err.message.includes("cancelled")) {
-        throw new Error("File selection cancelled");
+      // If zenity was not found (ENOENT or code 127), mark unavailable and try kdialog
+      if (err.code === "ENOENT" || err.code === 127 || (err.message && err.message.includes("not found"))) {
+        zenityUnavailable = true;
+      } else {
+        throw new Error(`File selection failed: ${err.message || String(err)}`);
       }
     }
 
-    throw new Error(
-      "File selection failed: Neither zenity nor kdialog is installed, or no valid files were selected."
-    );
+    if (zenityUnavailable) {
+      try {
+        const patterns = allowedExtensions
+          .map((ext) => `*${ext} *${ext.toUpperCase()}`)
+          .join(" ");
+        const filter = `${patterns}|${filterName}`;
+        const args = [
+          "--title",
+          title,
+          "--getopenfilename",
+          ".",
+          filter,
+        ];
+        if (multiple) {
+          args.push("--multiple", "--separate-output");
+        }
+
+        const { stdout } = await execFileAsync("kdialog", args);
+        if (!stdout || !stdout.trim()) {
+          throw new Error("File selection cancelled");
+        }
+        const rawPaths = stdout.trim().split(/\r?\n/);
+        const valid = rawPaths
+          .map((p) => cleanFilePath(p, allowedExtensions))
+          .filter((p): p is string => p !== null);
+
+        if (valid.length > 0) {
+          return valid;
+        }
+        throw new Error("No valid files selected");
+      } catch (err: any) {
+        // Exit code 1 from kdialog indicates explicit user cancellation
+        if (err.code === 1 || (err.message && err.message.includes("cancelled"))) {
+          throw new Error("File selection cancelled");
+        }
+        if (err.code === "ENOENT" || err.code === 127) {
+          throw new Error(
+            "File selection failed: Neither zenity nor kdialog is installed on this system."
+          );
+        }
+        throw new Error(`File selection failed: ${err.message || String(err)}`);
+      }
+    }
   }
 
   // macOS: Use AppleScript System Events to choose files and convert aliases to POSIX paths
