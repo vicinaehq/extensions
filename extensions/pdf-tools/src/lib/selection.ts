@@ -133,6 +133,7 @@ async function pickFilesWithDialog(options: SelectionOptions): Promise<string[]>
     filterName = "Supported files",
   } = options;
 
+  // Linux: Try zenity first, then fallback to kdialog for KDE environments
   if (process.platform === "linux") {
     try {
       const multFlag = multiple ? '--multiple --separator="|"' : "";
@@ -150,10 +151,80 @@ async function pickFilesWithDialog(options: SelectionOptions): Promise<string[]>
         .map((p) => cleanFilePath(p, allowedExtensions))
         .filter((p): p is string => p !== null);
 
-      if (valid.length === 0) {
+      if (valid.length > 0) {
+        return valid;
+      }
+    } catch (err: any) {
+      if (err.message && err.message.includes("cancelled")) {
+        throw new Error("File selection cancelled");
+      }
+      // Continue to kdialog fallback if zenity failed or was not found
+    }
+
+    try {
+      const multFlag = multiple ? "--multiple --separate-output" : "";
+      const patterns = allowedExtensions
+        .map((ext) => `*${ext} *${ext.toUpperCase()}`)
+        .join(" ");
+      const filter = `${patterns}|${filterName}`;
+      const cmd = `kdialog --title "${title.replace(/"/g, '\\"')}" --getopenfilename . "${filter}" ${multFlag}`;
+      const { stdout } = await execAsync(cmd);
+      if (!stdout || !stdout.trim()) {
+        throw new Error("File selection cancelled");
+      }
+      const rawPaths = stdout.trim().split(/\r?\n/);
+      const valid = rawPaths
+        .map((p) => cleanFilePath(p, allowedExtensions))
+        .filter((p): p is string => p !== null);
+
+      if (valid.length > 0) {
+        return valid;
+      }
+    } catch (err: any) {
+      if (err.message && err.message.includes("cancelled")) {
+        throw new Error("File selection cancelled");
+      }
+    }
+
+    throw new Error(
+      "File selection failed: Neither zenity nor kdialog is installed, or no valid files were selected."
+    );
+  }
+
+  // macOS: Use AppleScript System Events to choose files and convert aliases to POSIX paths
+  if (process.platform === "darwin") {
+    try {
+      const prompt = title.replace(/"/g, '\\"');
+      const mult = multiple ? "with multiple selections allowed" : "";
+      const typeList = allowedExtensions.map((e) => `"${e.replace(/^\./, "")}"`).join(",");
+      const script = `tell application "System Events"
+activate
+set theFiles to choose file with prompt "${prompt}" of type {${typeList}} ${mult}
+set posixList to {}
+if class of theFiles is list then
+repeat with aFile in theFiles
+set end of posixList to POSIX path of aFile
+end repeat
+else
+set end of posixList to POSIX path of theFiles
+end if
+set AppleScript's text item delimiters to ASCII character 10
+return posixList as text
+end tell`;
+
+      const { stdout } = await execAsync(`osascript -e '${script.replace(/'/g, "'\\''")}'`);
+      if (!stdout.trim()) {
+        throw new Error("File selection cancelled");
+      }
+      const paths = stdout
+        .split(/\r?\n/)
+        .map((p) => cleanFilePath(p.trim(), allowedExtensions))
+        .filter((p): p is string => p !== null);
+
+      if (paths.length === 0) {
         throw new Error("No valid files selected");
       }
-      return valid;
+      return paths;
     } catch (err: any) {
       if (err.message && err.message.includes("cancelled")) {
         throw new Error("File selection cancelled");
@@ -162,26 +233,7 @@ async function pickFilesWithDialog(options: SelectionOptions): Promise<string[]>
     }
   }
 
-  if (process.platform === "darwin") {
-    try {
-      const prompt = title.replace(/"/g, '\\"');
-      const mult = multiple ? "with multiple selections allowed" : "";
-      const typeList = allowedExtensions.map((e) => `"${e.replace(/^\./, "")}"`).join(",");
-      const script = `choose file with prompt "${prompt}" of type {${typeList}} ${mult}`;
-      const { stdout } = await execAsync(`osascript -e '${script}'`);
-      if (!stdout.trim()) {
-        throw new Error("File selection cancelled");
-      }
-      const paths = stdout
-        .split(",")
-        .map((p) => cleanFilePath(p.trim(), allowedExtensions))
-        .filter((p): p is string => p !== null);
-      return paths;
-    } catch {
-      throw new Error("File selection cancelled");
-    }
-  }
-
+  // Windows: Use PowerShell OpenFileDialog
   if (process.platform === "win32") {
     try {
       const multBool = multiple ? "$true" : "$false";

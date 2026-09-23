@@ -51,7 +51,16 @@ export async function watermarkPDF(
   const dir = path.dirname(filePath);
   const ext = path.extname(filePath);
   const baseName = path.basename(filePath, ext);
-  const outputPath = path.join(dir, `${baseName} [watermarked].pdf`);
+
+  // Generate a collision-free output file path to avoid silent overwrites
+  let outputPath = path.join(dir, `${baseName} [watermarked]${ext}`);
+  if (fs.existsSync(outputPath)) {
+    let counter = 1;
+    while (fs.existsSync(path.join(dir, `${baseName} [watermarked] (${counter})${ext}`))) {
+      counter++;
+    }
+    outputPath = path.join(dir, `${baseName} [watermarked] (${counter})${ext}`);
+  }
 
   fs.writeFileSync(outputPath, pdfBytes);
   return outputPath;

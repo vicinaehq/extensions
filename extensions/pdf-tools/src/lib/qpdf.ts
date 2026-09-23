@@ -1,19 +1,27 @@
-import { exec } from "node:child_process";
+import { execFile } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 /**
- * Escapes shell argument safely
+ * Sanitizes errors to ensure sensitive data (such as passwords) and raw command strings
+ * are never leaked to user toasts, logs, or error messages.
  */
-function escapeArg(arg: string): string {
-  return `"${arg.replace(/(["\\$`])/g, "\\$1")}"`;
-}
+function sanitizeError(err: any, sensitive: string[] = []): string {
+  let msg = "";
+  if (err.stderr && typeof err.stderr === "string" && err.stderr.trim()) {
+    msg = err.stderr.trim();
+  } else if (err.message && typeof err.message === "string") {
+    // Strip "Command failed: qpdf ..." lines
+    const lines = err.message.split(/\r?\n/);
+    const filtered = lines.filter((line: string) => !line.startsWith("Command failed:"));
+    msg = filtered.join("\n").trim() || "An error occurred during operation";
+  } else {
+    msg = String(err);
+  }
 
-export function formatQpdfError(err: any): string {
-  const msg = err.message || String(err);
   if (
     msg.includes("not found") ||
     msg.includes("is not recognized") ||
@@ -22,7 +30,29 @@ export function formatQpdfError(err: any): string {
   ) {
     return "qpdf is not installed or not found in PATH. Please install qpdf ('sudo apt install qpdf' on Linux, 'brew install qpdf' on macOS, or 'winget install qpdf' on Windows).";
   }
+
+  // Redact any sensitive passwords or arguments
+  for (const secret of sensitive) {
+    if (secret && secret.length > 0) {
+      msg = msg.split(secret).join("********");
+    }
+  }
+
   return msg;
+}
+
+/**
+ * Executes qpdf with arguments safely without shell interpolation.
+ */
+async function runQpdf(
+  args: string[],
+  sensitive: string[] = []
+): Promise<{ stdout: string; stderr: string }> {
+  try {
+    return await execFileAsync("qpdf", args);
+  } catch (err: any) {
+    throw new Error(sanitizeError(err, sensitive));
+  }
 }
 
 /**
@@ -32,13 +62,13 @@ export function formatQpdfError(err: any): string {
  */
 export async function isPDFDocumentLocked(filePath: string): Promise<boolean> {
   try {
-    await execAsync(`qpdf --is-encrypted ${escapeArg(filePath)}`);
+    await execFileAsync("qpdf", ["--is-encrypted", filePath]);
     return true; // Exit code 0: encrypted
   } catch (err: any) {
     if (err.code === 2) {
       return false; // Exit code 2: not encrypted
     }
-    throw new Error(`Failed to inspect PDF: ${formatQpdfError(err)}`);
+    throw new Error(`Failed to inspect PDF: ${sanitizeError(err)}`);
   }
 }
 
@@ -50,9 +80,11 @@ export async function isPDFDocumentLocked(filePath: string): Promise<boolean> {
  */
 export async function verifyPassword(filePath: string, password: string): Promise<boolean> {
   try {
-    await execAsync(
-      `qpdf --requires-password --password=${escapeArg(password)} ${escapeArg(filePath)}`
-    );
+    await execFileAsync("qpdf", [
+      "--requires-password",
+      `--password=${password}`,
+      filePath,
+    ]);
     return false;
   } catch (err: any) {
     if (err.code === 3 || err.code === 2) {
@@ -66,7 +98,7 @@ export async function verifyPassword(filePath: string, password: string): Promis
  * Get total number of pages in a PDF document.
  */
 export async function getPDFPageCount(filePath: string): Promise<number> {
-  const { stdout } = await execAsync(`qpdf --show-npages ${escapeArg(filePath)}`);
+  const { stdout } = await runQpdf(["--show-npages", filePath]);
   const count = parseInt(stdout.trim(), 10);
   if (isNaN(count) || count <= 0) {
     throw new Error(`Could not determine page count for "${path.basename(filePath)}"`);
@@ -75,7 +107,24 @@ export async function getPDFPageCount(filePath: string): Promise<number> {
 }
 
 /**
- * Merge multiple PDF files into one.
+ * Generates a collision-free output file path if a file already exists.
+ */
+export function getUniqueFilePath(outputDir: string, safeFilename: string): string {
+  const targetPath = path.join(outputDir, safeFilename);
+  if (!fs.existsSync(targetPath)) {
+    return targetPath;
+  }
+  const ext = path.extname(safeFilename);
+  const base = path.basename(safeFilename, ext);
+  let counter = 1;
+  while (fs.existsSync(path.join(outputDir, `${base} (${counter})${ext}`))) {
+    counter++;
+  }
+  return path.join(outputDir, `${base} (${counter})${ext}`);
+}
+
+/**
+ * Merge multiple PDF files into one without overwriting existing files.
  */
 export async function mergePDFs(filePaths: string[], outputFilename: string): Promise<string> {
   if (filePaths.length < 2) {
@@ -86,16 +135,13 @@ export async function mergePDFs(filePaths: string[], outputFilename: string): Pr
   const safeFilename = outputFilename.toLowerCase().endsWith(".pdf")
     ? outputFilename
     : `${outputFilename}.pdf`;
-  const outputPath = path.join(outputDir, safeFilename);
-
-  const escapedInputs = filePaths.map((p) => escapeArg(p)).join(" ");
-  const cmd = `qpdf --empty --pages ${escapedInputs} -- ${escapeArg(outputPath)}`;
+  const outputPath = getUniqueFilePath(outputDir, safeFilename);
 
   try {
-    await execAsync(cmd);
+    await runQpdf(["--empty", "--pages", ...filePaths, "--", outputPath]);
     return outputPath;
   } catch (err: any) {
-    throw new Error(`Failed to merge PDF files: ${formatQpdfError(err)}`);
+    throw new Error(`Failed to merge PDF files: ${sanitizeError(err)}`);
   }
 }
 
@@ -103,11 +149,15 @@ export async function mergePDFs(filePaths: string[], outputFilename: string): Pr
  * Protect a PDF file with AES-256 password encryption in place.
  */
 export async function protectPDF(filePath: string, password: string): Promise<void> {
-  const cmd = `qpdf --encrypt ${escapeArg(password)} ${escapeArg(password)} 256 -- ${escapeArg(filePath)} --replace-input`;
   try {
-    await execAsync(cmd);
+    await runQpdf(
+      ["--encrypt", password, password, "256", "--", filePath, "--replace-input"],
+      [password]
+    );
   } catch (err: any) {
-    throw new Error(`Failed to protect PDF "${path.basename(filePath)}": ${formatQpdfError(err)}`);
+    throw new Error(
+      `Failed to protect PDF "${path.basename(filePath)}": ${sanitizeError(err, [password])}`
+    );
   }
 }
 
@@ -120,11 +170,15 @@ export async function unlockPDF(filePath: string, password: string): Promise<voi
     throw new Error(`Incorrect password for "${path.basename(filePath)}"`);
   }
 
-  const cmd = `qpdf --decrypt --password=${escapeArg(password)} ${escapeArg(filePath)} --replace-input`;
   try {
-    await execAsync(cmd);
+    await runQpdf(
+      ["--decrypt", `--password=${password}`, filePath, "--replace-input"],
+      [password]
+    );
   } catch (err: any) {
-    throw new Error(`Failed to unlock PDF "${path.basename(filePath)}": ${formatQpdfError(err)}`);
+    throw new Error(
+      `Failed to unlock PDF "${path.basename(filePath)}": ${sanitizeError(err, [password])}`
+    );
   }
 }
 
@@ -147,10 +201,9 @@ export async function splitByPageCount(
   for (let start = 1; start <= totalPages; start += pageCount) {
     const stop = Math.min(start + pageCount - 1, totalPages);
     const outName = `${baseName} [${suffix} ${partNumber}].pdf`;
-    const outPath = path.join(dir, outName);
+    const outPath = getUniqueFilePath(dir, outName);
 
-    const cmd = `qpdf ${escapeArg(filePath)} --pages ${escapeArg(filePath)} ${start}-${stop} -- ${escapeArg(outPath)}`;
-    await execAsync(cmd);
+    await runQpdf([filePath, "--pages", filePath, `${start}-${stop}`, "--", outPath]);
 
     outputFiles.push(outPath);
     partNumber++;
@@ -186,15 +239,12 @@ export async function splitByFileSize(
       let bestStop = start;
 
       // First check if single page alone exceeds or fits
-      await execAsync(
-        `qpdf ${escapeArg(filePath)} --pages ${escapeArg(filePath)} ${start}-${start} -- ${escapeArg(tempPath)}`
-      );
+      await runQpdf([filePath, "--pages", filePath, `${start}-${start}`, "--", tempPath]);
       const singlePageSize = fs.statSync(tempPath).size;
 
       if (singlePageSize >= maxSizeBytes || start === totalPages) {
-        // Single page exceeds or is last page
         const outName = `${baseName} [${suffix} ${partNumber}].pdf`;
-        const outPath = path.join(dir, outName);
+        const outPath = getUniqueFilePath(dir, outName);
         fs.renameSync(tempPath, outPath);
         outputFiles.push(outPath);
         start++;
@@ -205,25 +255,20 @@ export async function splitByFileSize(
       // Binary search for maximum number of pages fitting within maxSizeBytes
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);
-        await execAsync(
-          `qpdf ${escapeArg(filePath)} --pages ${escapeArg(filePath)} ${start}-${mid} -- ${escapeArg(tempPath)}`
-        );
+        await runQpdf([filePath, "--pages", filePath, `${start}-${mid}`, "--", tempPath]);
         const currentSize = fs.statSync(tempPath).size;
 
         if (currentSize <= maxSizeBytes) {
           bestStop = mid;
-          low = mid + 1; // Try more pages
+          low = mid + 1;
         } else {
-          high = mid - 1; // Too big, reduce pages
+          high = mid - 1;
         }
       }
 
-      // Generate the final part with bestStop
       const outName = `${baseName} [${suffix} ${partNumber}].pdf`;
-      const outPath = path.join(dir, outName);
-      await execAsync(
-        `qpdf ${escapeArg(filePath)} --pages ${escapeArg(filePath)} ${start}-${bestStop} -- ${escapeArg(outPath)}`
-      );
+      const outPath = getUniqueFilePath(dir, outName);
+      await runQpdf([filePath, "--pages", filePath, `${start}-${bestStop}`, "--", outPath]);
 
       outputFiles.push(outPath);
       start = bestStop + 1;
