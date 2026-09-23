@@ -63,6 +63,18 @@ export function ProjectPickerList(props: {
     );
   }
 
+  if (projects !== undefined && sorted.length === 0) {
+    return (
+      <List navigationTitle={props.navigationTitle}>
+        <List.EmptyView
+          icon={Icon.Folder}
+          title="No projects yet"
+          description="Open a repository with OpenCode and it will show up here."
+        />
+      </List>
+    );
+  }
+
   return (
     <List
       isLoading={projects === undefined}

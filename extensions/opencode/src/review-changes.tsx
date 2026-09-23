@@ -19,6 +19,8 @@ import {
   type ReviewScope,
 } from "./lib/git";
 import { buildExplainPrompt, buildReviewPrompt } from "./lib/prompts";
+import { mapOpenCodeError, type OpenCodeError } from "./lib/opencode/errors";
+import { OpenCodeErrorView } from "./components/error-state";
 import { ProjectPickerList, basename } from "./components/project-picker";
 import { OpenTUIAction, OpenTerminalAction, SentView } from "./components/actions";
 
@@ -197,6 +199,7 @@ function ReviewScopeStep(props: {
 }): ReactNode {
   const { pop, push } = useNavigation();
   const [vcs, setVcs] = useState<VcsInfo | null | undefined>(undefined);
+  const [vcsError, setVcsError] = useState<OpenCodeError | null>(null);
   const [gitOK, setGitOK] = useState<boolean | undefined>(undefined);
   const [scope, setScope] = useState<ReviewScope>("working");
   const [files, setFiles] = useState<ChangedFile[]>([]);
@@ -215,15 +218,27 @@ function ReviewScopeStep(props: {
     void service
       .vcs(props.project.canonical)
       .then((info) => {
-        if (!cancelled) setVcs(info);
+        if (cancelled) return;
+        setVcs(info);
+        setVcsError(null);
       })
-      .catch(() => {
-        if (!cancelled) setVcs(null);
+      .catch((caught) => {
+        if (cancelled) return;
+        // Not-found means the directory has no version control, a normal
+        // state. Every other failure (unreachable, auth) keeps the mapped
+        // error so the view reports the real problem.
+        const mapped = mapOpenCodeError(caught);
+        if (mapped.kind === "not-found") {
+          setVcs(null);
+          setVcsError(null);
+        } else {
+          setVcsError(mapped);
+        }
       });
     return () => {
       cancelled = true;
     };
-  }, [props.project.canonical, service]);
+  }, [props.project.canonical, service, reloadKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -275,6 +290,16 @@ function ReviewScopeStep(props: {
         config={props.config}
         againTitle="Back to Changes"
         onAgain={sender.reset}
+      />
+    );
+  }
+
+  if (vcsError) {
+    return (
+      <OpenCodeErrorView
+        error={vcsError}
+        config={props.config}
+        onRetry={() => setReloadKey((v) => v + 1)}
       />
     );
   }

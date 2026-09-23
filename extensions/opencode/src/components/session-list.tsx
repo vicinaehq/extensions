@@ -11,6 +11,7 @@ import { useLiveEvents } from "../lib/live-events";
 import { DeleteSessionAction, OpenSessionAction, showActionError } from "./actions";
 import { PromptForm, RenameSessionForm } from "./prompt-form";
 import { SessionTranscriptView } from "./session-transcript";
+import { buildResumeCommand } from "../lib/launch";
 import { OpenCodeErrorView } from "./error-state";
 
 const BASE_PAGE_SIZE = 100;
@@ -89,9 +90,9 @@ function SessionActions(props: {
 }): ReactNode {
   const { push } = useNavigation();
   const directory = props.session.location?.directory;
-  const resumeCommand = directory
-    ? `cd ${directory} && ${props.config.openCodePath || "opencode"} --session ${props.session.id}`
-    : `${props.config.openCodePath || "opencode"} --session ${props.session.id}`;
+  // Directory and session ID come from server responses, so the copied
+  // command quotes every argument.
+  const resumeCommand = buildResumeCommand(props.session.id, directory, props.config.openCodePath);
   return (
     <ActionPanel>
       <OpenSessionAction
@@ -357,6 +358,14 @@ export function SessionListView(props: {
     }));
   }, [visible]);
 
+  // A filter whose directory vanished (search, refresh) would trap the list
+  // behind an empty result; reset it so All Projects is reachable again.
+  useEffect(() => {
+    if (directoryFilter !== "all" && !directories.includes(directoryFilter)) {
+      setDirectoryFilter("all");
+    }
+  }, [directories, directoryFilter]);
+
   if (error) {
     return <OpenCodeErrorView error={error} config={props.config} onRetry={() => setReloadKey((v) => v + 1)} />;
   }
@@ -391,7 +400,7 @@ export function SessionListView(props: {
       searchBarPlaceholder="Search sessions"
       navigationTitle={props.navigationTitle}
       searchBarAccessory={
-        directories.length > 1 ? (
+        directories.length > 1 || directoryFilter !== "all" ? (
           <List.Dropdown
             tooltip="Project"
             value={directoryFilter}

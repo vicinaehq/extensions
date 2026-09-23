@@ -127,9 +127,11 @@ export function SessionTranscriptView(props: {
   const tools = messages ? uniqueTools(messages) : [];
   const markdown = failed
     ? `**Transcript could not be loaded.**\n\n${failed}`
-    : messages && messages.length > 0
-      ? transcriptMarkdown(messages)
-      : "…";
+    : messages === undefined
+      ? "…"
+      : messages.length > 0
+        ? transcriptMarkdown(messages)
+        : "**No transcript messages.**";
 
   // Loading feedback: Detail has no isLoading prop, so an animated toast
   // covers the wait and is hidden once the transcript arrives.

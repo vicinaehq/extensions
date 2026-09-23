@@ -60,6 +60,14 @@ describe("launch", () => {
     }
   });
 
+  test("resume command quotes every argument", async () => {
+    stubs.spawnedCommands = [];
+    const { buildResumeCommand } = await import("../src/lib/launch");
+    const command = buildResumeCommand("ses_x'1", "/tmp/some dir", "/usr/local/bin/opencode");
+    expect(command).toContain("cd -- '/tmp/some dir'");
+    expect(command).toContain("'/usr/local/bin/opencode' --session 'ses_x'\"'\"'1'");
+  });
+
   test("a terminal opens at the directory with safe quoting", async () => {
     stubs.spawnedCommands = [];
     await openTerminalAt("/tmp/some dir with 'quotes'");

@@ -258,9 +258,13 @@ export function AskView(props: { readonly endpoint: Endpoint; readonly config: C
       void showToast({ title: "Type a prompt first" });
       return;
     }
+    if (busy) {
+      void showToast({ title: "OpenCode is still responding" });
+      return;
+    }
     void send(text);
     void clearSearchBar();
-  }, [searchText, send]);
+  }, [searchText, send, busy]);
 
   const askActions = (
     <ActionPanel>

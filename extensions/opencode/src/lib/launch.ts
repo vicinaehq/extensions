@@ -52,6 +52,16 @@ function posixQuote(value: string): string {
   return `'${value.replaceAll("'", `'"'"'`)}'`;
 }
 
+/**
+ * Copyable shell command that resumes a session in the TUI. Every argument is
+ * quoted, since directory and session ID come from server responses.
+ */
+export function buildResumeCommand(sessionID: string, directory: string | undefined, configured?: string): string {
+  const binary = posixQuote(configured || "opencode");
+  const cd = directory ? `cd -- ${posixQuote(directory)} && ` : "";
+  return `${cd}${binary} --session ${posixQuote(sessionID)}`;
+}
+
 /** Open a terminal window whose working directory is `directory`. */
 export async function openTerminalAt(directory: string): Promise<void> {
   const command = `cd -- ${posixQuote(directory)} && exec "$SHELL"`;
