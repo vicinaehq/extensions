@@ -40,7 +40,9 @@ function basicAuthHeaders(username?: string, password?: string): Record<string, 
 /** Loopback hosts accept plaintext HTTP; anything else needs HTTPS for credentials. */
 function isLoopbackHost(hostname: string): boolean {
   const host = hostname.toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
-  return host === "localhost" || host.endsWith(".localhost") || host === "::1" || /^127\./.test(host);
+  // A full four-octet address in the 127/8 range only. A prefix match would
+  // let hostnames such as 127.attacker.example pass as loopback.
+  return host === "localhost" || host.endsWith(".localhost") || host === "::1" || /^127(?:\.\d{1,3}){3}$/.test(host);
 }
 
 /**

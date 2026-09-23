@@ -72,6 +72,17 @@ describe("discovery", () => {
     }
   });
 
+  test("a 127.* hostname that is not a loopback address is rejected", async () => {
+    // 127.attacker.example resolves outside the machine, so the password
+    // must not travel over plaintext HTTP.
+    try {
+      await resolveEndpoint({ serverUrl: "http://127.attacker.example:4096", serverPassword: "secret" });
+      throw new Error("expected resolveEndpoint to reject");
+    } catch (error) {
+      expect((error as Error).message).toBe("Password auth needs HTTPS on remote servers.");
+    }
+  });
+
   test("remote https with a password sends basic auth", async () => {
     const endpoint = await resolveEndpoint({
       serverUrl: "https://opencode.example.com",
