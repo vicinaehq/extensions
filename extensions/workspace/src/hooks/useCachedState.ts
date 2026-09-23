@@ -35,6 +35,18 @@ function write(key: string, next: Slot) {
   emit(key);
 }
 
+export function peekCachedState<T>(key: string, fallback: T): T {
+  const slot = slots.get(key);
+  if (!slot) {
+    return fallback;
+  }
+  return slot.value as T;
+}
+
+export function isCachedStateHydrated(key: string): boolean {
+  return slots.get(key)?.hydrated ?? false;
+}
+
 export function useCachedState<T>(key: string, initialValue: T): [T, (value: T) => void, boolean] {
   getOrCreateSlot(key, initialValue);
 
@@ -77,6 +89,10 @@ export function useCachedState<T>(key: string, initialValue: T): [T, (value: T) 
       loading.delete(key);
       const current = getOrCreateSlot(key, initialValue);
 
+      if (current.hydrated) {
+        return;
+      }
+
       if (raw !== undefined && raw !== null) {
         try {
           const parsed = typeof raw === "string" ? (JSON.parse(raw) as T) : (raw as T);
@@ -95,6 +111,12 @@ export function useCachedState<T>(key: string, initialValue: T): [T, (value: T) 
 
   const setCachedState = useCallback(
     (next: T) => {
+      const current = getOrCreateSlot(key, initialValue);
+      // Writes before LocalStorage loads would persist defaults and skip hydration.
+      if (!current.hydrated) {
+        return;
+      }
+
       write(key, { hydrated: true, value: next });
       void LocalStorage.setItem(key, JSON.stringify(next));
     },
