@@ -1,8 +1,9 @@
 import { List, Icon, ActionPanel, Action } from '@vicinae/api';
-import { useNiriArrayData, useNiriObjectData } from './hooks';
-import type { Window, Output, Workspace } from './types';
+import { useNiriArrayData, useNiriObjectData } from './lib/hooks';
+import type { Window, Output, Workspace } from './lib/types';
 import { NiriList } from './components/NiriList';
-import { runNiriAction, runNiriActionWithRefresh, showSuccess } from './utils';
+import { showSuccess } from './lib/feedback';
+import { runNiriAction, runNiriActionWithRefresh } from './lib/niri';
 
 export default function Windows() {
   const [windows, windowsLoading, handleRefresh] = useNiriArrayData<Window>(
