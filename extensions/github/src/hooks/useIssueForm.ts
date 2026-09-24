@@ -3,9 +3,11 @@ import { useState } from "react";
 import z from "zod";
 import { octokit } from "../api/githubClient";
 import { Assignee, Label, Repository } from "../types";
+import { useGetInferredRepo } from "./useGetInferredRepo";
 
-export const useIssueForm = () => {
-  const [repo, setRepo] = useState<Repository | null>(null);
+export const useIssueForm = (path?: string) => {
+  const inferredRepo = useGetInferredRepo(path);
+  const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [label, setLabel] = useState<Label | null>(null);
@@ -13,6 +15,7 @@ export const useIssueForm = () => {
   const [errors, setErrors] = useState<z.ZodError<IssueSchemaType> | null>(
     null,
   );
+  const repo = selectedRepo || inferredRepo || null;
 
   const handleCreateIssue = async () => {
     setErrors(null);
@@ -55,10 +58,10 @@ export const useIssueForm = () => {
       return;
     }
   };
-  console.log(errors);
+
   return {
     repo,
-    setRepo,
+    setRepo: setSelectedRepo,
     title,
     setTitle,
     description,
