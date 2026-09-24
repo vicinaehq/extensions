@@ -8,7 +8,7 @@
 
 Search, pin, and open projects from every folder you work in.
 
-Workspace is a [Vicinae](https://vicinae.com) extension. Add workspace folders and it lists every project inside, with git status, per-workspace opening app, and a JSON backup of your setup.
+Workspace is a [Vicinae](https://vicinae.com) extension. Add workspace folders and it lists every project inside, with git status, a custom app per workspace, and a JSON backup of your setup.
 
 ## Screenshots
 
@@ -29,13 +29,13 @@ Workspace is a [Vicinae](https://vicinae.com) extension. Add workspace folders a
 2. Set a default app (and a terminal, if you want) in **Workspace Settings**.
 3. Open **Workspace**, search, and hit enter.
 
-Pin the `Workspace` command in Vicinae if you want the fastest loop.
+Pin the `Workspace` command in Vicinae to reach it faster.
 
 ## Commands
 
-- **Workspace** – Search and open projects
-- **Manage Workspaces** – Add, remove, and reorder workspace folders
-- **Workspace Settings** – Apps, git status, backup, and reset
+- **Workspace**: Search and open projects
+- **Manage Workspaces**: Add, remove, and reorder workspace folders
+- **Workspace Settings**: Apps, git status, backup, and reset
 
 ## Installation
 

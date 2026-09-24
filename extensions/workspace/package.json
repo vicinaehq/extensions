@@ -2,10 +2,10 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "workspace",
   "title": "Workspace",
-  "description": "Manage and access your workspace projects. Boost your focus with quick project opening, git status tracking, and customizable application overrides.",
+  "description": "Open your workspace projects fast, with git status and a custom app per workspace.",
   "icon": "extension-icon.png",
   "author": "tiagem",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "platforms": [
     "Linux",

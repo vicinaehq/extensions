@@ -3,18 +3,33 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import os from "os";
 import path from "path";
 
-import { App, ExportedSettings, RecentProject, SettingsBackup } from "@/types";
+import { App, ExportedSettings, RecentProject, SettingsBackup, UsageStore } from "@/types";
 import { DEFAULT_RECENT_PROJECTS_COUNT } from "@/utils/constants";
+import {
+  clampScanDepth,
+  DEFAULT_IGNORE_PATTERNS,
+  DEFAULT_SCAN_DEPTH,
+  normalizeIgnorePatterns,
+} from "@/utils/discovery";
+import { normalizeProjectTags, normalizeTags } from "@/utils/tags";
+import { normalizeUsageStore } from "@/utils/usage";
 import { normalizeApp } from "@/utils/validation";
 
 export const DEFAULT_SETTINGS: ExportedSettings = {
   defaultApp: null,
+  ignorePatterns: DEFAULT_IGNORE_PATTERNS,
+  includeNested: false,
   onboardingCompleted: false,
   pinnedProjects: [],
+  projectTags: {},
   recentProjects: [],
   recentProjectsCount: DEFAULT_RECENT_PROJECTS_COUNT,
+  requireMarkers: false,
+  scanDepth: DEFAULT_SCAN_DEPTH,
   showGitStatus: true,
   showRecentProjects: false,
+  showStashCount: false,
+  tags: [],
   terminalApp: null,
   workspaceApps: {},
   workspaces: [],
@@ -25,7 +40,7 @@ export async function exportSettingsToDownloads(settings: ExportedSettings): Pro
     const backup: SettingsBackup = {
       exportedAt: new Date().toISOString(),
       settings,
-      version: 1,
+      version: 4,
     };
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const filename = `workspace-settings-${timestamp}.json`;
@@ -75,8 +90,13 @@ export function normalizeImportedSettings(payload: unknown, fallback: ExportedSe
       ? (payload.settings as Partial<ExportedSettings>)
       : (payload as Partial<ExportedSettings>);
 
+  const tags = normalizeTags(parsedSettings.tags ?? fallback.tags);
+
   return {
     defaultApp: normalizeApp(parsedSettings.defaultApp),
+    ignorePatterns: normalizeIgnorePatterns(parsedSettings.ignorePatterns, fallback.ignorePatterns),
+    includeNested:
+      typeof parsedSettings.includeNested === "boolean" ? parsedSettings.includeNested : fallback.includeNested,
     onboardingCompleted:
       typeof parsedSettings.onboardingCompleted === "boolean"
         ? parsedSettings.onboardingCompleted
@@ -84,6 +104,7 @@ export function normalizeImportedSettings(payload: unknown, fallback: ExportedSe
     pinnedProjects: Array.isArray(parsedSettings.pinnedProjects)
       ? parsedSettings.pinnedProjects.filter((value): value is string => typeof value === "string")
       : fallback.pinnedProjects,
+    projectTags: normalizeProjectTags(parsedSettings.projectTags ?? fallback.projectTags, tags),
     recentProjects: Array.isArray(parsedSettings.recentProjects)
       ? parsedSettings.recentProjects.filter(
           (value): value is RecentProject =>
@@ -97,13 +118,21 @@ export function normalizeImportedSettings(payload: unknown, fallback: ExportedSe
       typeof parsedSettings.recentProjectsCount === "number" && parsedSettings.recentProjectsCount > 0
         ? parsedSettings.recentProjectsCount
         : fallback.recentProjectsCount,
+    requireMarkers:
+      typeof parsedSettings.requireMarkers === "boolean" ? parsedSettings.requireMarkers : fallback.requireMarkers,
+    scanDepth:
+      typeof parsedSettings.scanDepth === "number" ? clampScanDepth(parsedSettings.scanDepth) : fallback.scanDepth,
     showGitStatus:
       typeof parsedSettings.showGitStatus === "boolean" ? parsedSettings.showGitStatus : fallback.showGitStatus,
     showRecentProjects:
       typeof parsedSettings.showRecentProjects === "boolean"
         ? parsedSettings.showRecentProjects
         : fallback.showRecentProjects,
+    showStashCount:
+      typeof parsedSettings.showStashCount === "boolean" ? parsedSettings.showStashCount : fallback.showStashCount,
+    tags,
     terminalApp: normalizeApp(parsedSettings.terminalApp),
+    usage: normalizeImportedUsage(parsedSettings.usage, fallback.usage),
     workspaceApps:
       parsedSettings.workspaceApps && typeof parsedSettings.workspaceApps === "object"
         ? Object.fromEntries(
@@ -119,13 +148,27 @@ export function normalizeImportedSettings(payload: unknown, fallback: ExportedSe
   };
 }
 
+function normalizeImportedUsage(
+  value: UsageStore | undefined,
+  fallback: UsageStore | undefined,
+): UsageStore | undefined {
+  if (value) {
+    return normalizeUsageStore(value);
+  }
+  return fallback ? normalizeUsageStore(fallback) : undefined;
+}
+
 function isRecognizableBackup(payload: unknown): boolean {
   if (!payload || typeof payload !== "object") {
     return false;
   }
 
   const record = payload as Record<string, unknown>;
-  if (record.version === 1 && record.settings && typeof record.settings === "object") {
+  if (
+    (record.version === 1 || record.version === 2 || record.version === 3 || record.version === 4) &&
+    record.settings &&
+    typeof record.settings === "object"
+  ) {
     return true;
   }
 
