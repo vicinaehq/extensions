@@ -1,13 +1,13 @@
 import { RestEndpointMethodTypes } from "@octokit/rest";
 
 export type GitHubPreferences = {
-  personalAccessToken: string;
+  personalAccessToken?: string;
   numberOfResults?: string;
   defaultIssueFilter?: FilterType;
 };
 
 export type GitHubPreferencesMinimal = {
-  personalAccessToken: string;
+  personalAccessToken?: string;
   numberOfResults?: string;
 };
 

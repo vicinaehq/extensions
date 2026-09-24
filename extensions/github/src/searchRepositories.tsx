@@ -5,6 +5,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { useDebounce } from "@uidotdev/usehooks";
 import { persister, queryClient } from "./queryClient";
 import { useSearchRepos } from "./hooks/useSearchRepos";
+import { GitHubAuthentication } from "./components/GitHubAuthentication";
 
 function Repositories() {
   return (
@@ -12,7 +13,9 @@ function Repositories() {
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Command />
+      <GitHubAuthentication>
+        <Command />
+      </GitHubAuthentication>
     </PersistQueryClientProvider>
   );
 }
