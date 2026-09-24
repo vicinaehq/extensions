@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "ask-pi",
+  "title": "Pi",
+  "description": "Ask Pi using the current clipboard",
+  "categories": ["Productivity", "Developer Tools"],
+  "license": "MIT",
+  "author": "Forwall100",
+  "icon": "pi.svg",
+  "commands": [
+    {
+      "name": "ask",
+      "title": "Ask",
+      "description": "Send a request and the current clipboard to Pi",
+      "mode": "view",
+      "arguments": [
+        {
+          "type": "text",
+          "name": "prompt",
+          "placeholder": "Ask Pi",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "test": "node --no-warnings --test src/pi.test.ts"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.28.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.17",
+    "typescript": "^5.9.2"
+  }
+}
