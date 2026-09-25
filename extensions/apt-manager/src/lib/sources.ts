@@ -329,7 +329,7 @@ export async function writeFilePrivileged(
 	content: string,
 ): Promise<string | null> {
 	if (!pkexecAvailable()) {
-		return "`pkexec` was not found in PATH. Install polkit (e.g. `apt install policykit-1`) or use the 'Retry in Terminal' action with sudo.";
+		return "`pkexec` was not found in PATH. Install polkit (e.g. `apt install policykit-1`) or write the file yourself with `sudo` in a terminal.";
 	}
 	const result = await run("pkexec", ["tee", path], {
 		input: content,
@@ -344,7 +344,7 @@ export async function deleteFilePrivileged(
 	path: string,
 ): Promise<string | null> {
 	if (!pkexecAvailable()) {
-		return "`pkexec` was not found in PATH. Install polkit (e.g. `apt install policykit-1`) or use the 'Retry in Terminal' action with sudo.";
+		return "`pkexec` was not found in PATH. Install polkit (e.g. `apt install policykit-1`) or remove the file yourself with `sudo` in a terminal.";
 	}
 	const result = await run("pkexec", ["rm", "-f", path], { timeout: 120_000 });
 	return result.ok ? null : result.stderr.trim() || "Failed to delete file";

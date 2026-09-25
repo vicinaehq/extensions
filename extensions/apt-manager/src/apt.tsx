@@ -1,122 +1,122 @@
 import {
-	Action,
-	ActionPanel,
-	Icon,
-	type Keyboard,
-	List,
-	showToast,
-	Toast,
-	useNavigation,
+  Action,
+  ActionPanel,
+  Icon,
+  type Keyboard,
+  List,
+  showToast,
+  Toast,
+  useNavigation,
 } from "@vicinae/api";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { PackageView } from "./components/PackageView";
 import { RunResult } from "./components/RunResult";
 import {
-	type OperationResult,
-	runAptCleanup,
-	runAptUpgradeAll,
+  type OperationResult,
+  runAptCleanup,
+  runAptUpgradeAll,
 } from "./lib/apt";
 import { askConfirm } from "./lib/confirm";
 import { fetchFlatpakRemotes, hasFlatpakBinary } from "./lib/flatpakRemotes";
 import { loadRepos } from "./lib/sources";
-import { installAppImage } from "./lib/appimage";
 import { ReposView } from "./views/Repos";
 import { FlatpakReposView } from "./views/FlatpakRepos";
-import { InstallAppImageView } from "./views/InstallAppImageView";
+import { InstallPackageView } from "./views/InstallPackageView";
 
 export default function Command() {
-	const repoCount = useMemo(() => loadRepos().sources.length, []);
-	const flatpakAvailable = useMemo(() => hasFlatpakBinary(), []);
-	const [flatpakRepoCount, setFlatpakRepoCount] = useState<number | null>(null);
-	const runAndShow = usePrivilegedRunner();
+  const repoCount = useMemo(() => loadRepos().sources.length, []);
+  const flatpakAvailable = useMemo(() => hasFlatpakBinary(), []);
+  const [flatpakRepoCount, setFlatpakRepoCount] = useState<number | null>(null);
+  const runAndShow = usePrivilegedRunner();
 
-	useEffect(() => {
-		if (!flatpakAvailable) return;
-		let cancelled = false;
-		fetchFlatpakRemotes().then((result) => {
-			if (!cancelled) setFlatpakRepoCount(result.remotes.length);
-		});
-		return () => {
-			cancelled = true;
-		};
-	}, [flatpakAvailable]);
+  useEffect(() => {
+    if (!flatpakAvailable) return;
+    let cancelled = false;
+    fetchFlatpakRemotes().then((result) => {
+      if (!cancelled) setFlatpakRepoCount(result.remotes.length);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [flatpakAvailable]);
 
-	return (
-		<List
-			navigationTitle="Apt Manager"
-			searchBarPlaceholder="Search commands..."
-		>
-			<List.Section title="Packages">
-				<RootItem
-					title="Installed packages"
-					subtitle="Packages currently installed"
-					icon={Icon.CheckCircle}
-					shortcut={{ key: "1", modifiers: ["cmd"] } as Keyboard.Shortcut}
-					actions={
-						<Action.Push
-							title="List Installed"
-							target={
-								<PackageView
-									kind="installed"
-									title="Installed"
-									emptyTitle="No installed packages"
-								/>
-							}
-						/>
-					}
-				/>
-				<RootItem
-					title="All packages"
-					subtitle="Everything known to the apt cache"
-					icon={Icon.Box}
-					shortcut={{ key: "2", modifiers: ["cmd"] } as Keyboard.Shortcut}
-					actions={
-						<Action.Push
-							title="List All"
-							target={
-								<PackageView
-									kind="all"
-									title="All Packages"
-									emptyTitle="No packages found"
-								/>
-							}
-						/>
-					}
-				/>
-				<RootItem
-					title="Upgradable packages"
-					subtitle="Packages with a newer version available"
-					icon={Icon.ArrowClockwise}
-					shortcut={{ key: "3", modifiers: ["cmd"] } as Keyboard.Shortcut}
-					actions={
-						<Action.Push
-							title="List Upgradable"
-							target={
-								<PackageView
-									kind="upgradable"
-									title="Upgradable"
-									emptyTitle="All packages are up to date"
-								/>
-							}
-						/>
-					}
-				/>
-				<RootItem
-					title="Install AppImage"
-					subtitle="Install from URL or local file"
+  return (
+    <List
+      navigationTitle="Apt Manager"
+      searchBarPlaceholder="Search commands..."
+    >
+      <List.Section title="Packages">
+        <RootItem
+          title="All packages"
+          subtitle="Everything known to the apt cache"
+          icon={Icon.Box}
+          shortcut={{ key: "2", modifiers: ["cmd"] } as Keyboard.Shortcut}
+          actions={
+            <Action.Push
+              title="List All"
+              target={
+                <PackageView
+                  kind="all"
+                  title="All Packages"
+                  emptyTitle="No packages found"
+                />
+              }
+            />
+          }
+        />
+        <RootItem
+          title="Installed packages"
+          subtitle="Packages currently installed"
+          icon={Icon.CheckCircle}
+          shortcut={{ key: "1", modifiers: ["cmd"] } as Keyboard.Shortcut}
+          actions={
+            <Action.Push
+              title="List Installed"
+              target={
+                <PackageView
+                  kind="installed"
+                  title="Installed"
+                  emptyTitle="No installed packages"
+                />
+              }
+            />
+          }
+        />
+
+        <RootItem
+          title="Upgradable packages"
+          subtitle="Packages with a newer version available"
+          icon={Icon.ArrowClockwise}
+          shortcut={{ key: "3", modifiers: ["cmd"] } as Keyboard.Shortcut}
+          actions={
+            <Action.Push
+              title="List Upgradable"
+              target={
+                <PackageView
+                  kind="upgradable"
+                  title="Upgradable"
+                  emptyTitle="All packages are up to date"
+                />
+              }
+            />
+          }
+        />
+<RootItem
+					title="Install Package"
+					subtitle="Install a .AppImage, .deb, or .flatpak file"
 					icon={Icon.Download}
 					shortcut={{ key: "i", modifiers: ["cmd"] } as Keyboard.Shortcut}
 					actions={
 						<Action.Push
-							title="Install AppImage"
-							target={<InstallAppImageView />}
+							title="Install Package"
+							target={<InstallPackageView />}
 						/>
 					}
 				/>
-			</List.Section>
-			<List.Section title="System">
-				<RootItem
+      </List.Section>
+      <List.Section title="System">
+<RootItem
 					title="Update all packages"
 					subtitle="apt update then upgrade with new packages"
 					icon={Icon.Bolt}
@@ -125,15 +125,29 @@ export default function Command() {
 						runAndShow(
 							runAptUpgradeAll,
 							"Update all packages",
-							["upgrade", "-y", "--with-new-pkgs"],
+							undefined,
 							"Run apt update then upgrade all packages?",
+							{
+								label: "Retry Update in Terminal (sudo)",
+								args: [
+									"sudo",
+									"bash",
+									"-c",
+									"apt-get update && apt-get upgrade -y --with-new-pkgs",
+								],
+							},
 						)
 					}
 					extraActions={
 						<Action.RunInTerminal
 							title="Retry in Terminal (sudo)"
 							icon={Icon.Terminal}
-							args={["sudo", "apt-get", "upgrade", "-y", "--with-new-pkgs"]}
+							args={[
+								"sudo",
+								"bash",
+								"-c",
+								"apt-get update && apt-get upgrade -y --with-new-pkgs",
+							]}
 							options={{ hold: true }}
 						/>
 					}
@@ -148,90 +162,99 @@ export default function Command() {
 						runAndShow(
 							runAptCleanup,
 							"Clean up system",
-							["autoremove", "-y", "--purge"],
+							undefined,
 							"Run autoremove --purge and autoclean?",
+							{
+								label: "Retry Cleanup in Terminal (sudo)",
+								args: [
+									"sudo",
+									"bash",
+									"-c",
+									"apt-get autoremove -y --purge && apt-get autoclean",
+								],
+							},
 						)
 					}
 				/>
-			</List.Section>
-			<List.Section title="Repositories">
-				<RootItem
-					title="Repositories"
-					subtitle={`${repoCount} configured source(s)`}
-					icon={Icon.Globe01}
-					shortcut={{ key: "r", modifiers: ["cmd"] } as Keyboard.Shortcut}
-					actions={
-						<Action.Push title="Manage Repositories" target={<ReposView />} />
-					}
-				/>
-				{flatpakAvailable && (
-					<RootItem
-						title="Flatpak repositories"
-						subtitle={
-							flatpakRepoCount === null
-								? "Scanning…"
-								: `${flatpakRepoCount} configured remote(s)`
-						}
-						icon={Icon.AppWindow}
-						shortcut={{ key: "f", modifiers: ["cmd"] } as Keyboard.Shortcut}
-						actions={
-							<Action.Push
-								title="Manage Flatpak Repositories"
-								target={<FlatpakReposView />}
-							/>
-						}
-					/>
-				)}
-			</List.Section>
-		</List>
-	);
+      </List.Section>
+      <List.Section title="Repositories">
+        <RootItem
+          title="Repositories"
+          subtitle={`${repoCount} configured source(s)`}
+          icon={Icon.Globe01}
+          shortcut={{ key: "r", modifiers: ["cmd"] } as Keyboard.Shortcut}
+          actions={
+            <Action.Push title="Manage Repositories" target={<ReposView />} />
+          }
+        />
+        {flatpakAvailable && (
+          <RootItem
+            title="Flatpak repositories"
+            subtitle={
+              flatpakRepoCount === null
+                ? "Scanning…"
+                : `${flatpakRepoCount} configured remote(s)`
+            }
+            icon={Icon.AppWindow}
+            shortcut={{ key: "f", modifiers: ["cmd"] } as Keyboard.Shortcut}
+            actions={
+              <Action.Push
+                title="Manage Flatpak Repositories"
+                target={<FlatpakReposView />}
+              />
+            }
+          />
+        )}
+      </List.Section>
+    </List>
+  );
 }
 
 type RootItemProps = {
-	title: string;
-	subtitle?: string;
-	icon: Icon;
-	shortcut: Keyboard.Shortcut;
-	actions?: ReactNode;
-	extraActions?: ReactNode;
-	destructive?: boolean;
-	onAction?: () => void;
+  title: string;
+  subtitle?: string;
+  icon: Icon;
+  shortcut: Keyboard.Shortcut;
+  actions?: ReactNode;
+  extraActions?: ReactNode;
+  destructive?: boolean;
+  onAction?: () => void;
 };
 
 function RootItem({
-	title,
-	subtitle,
-	icon,
-	shortcut,
-	actions,
-	extraActions,
-	destructive,
-	onAction,
+  title,
+  subtitle,
+  icon,
+  shortcut,
+  actions,
+  extraActions,
+  destructive,
+  onAction,
 }: RootItemProps) {
-	return (
-		<List.Item
-			title={title}
-			subtitle={subtitle}
-			icon={icon}
-			actions={
-				<ActionPanel title={title}>
-					{actions ??
-						(onAction ? (
-							<Action
-								title="Run"
-								icon={Icon.Play}
-								style={
-									destructive ? Action.Style.Destructive : Action.Style.Regular
-								}
-								shortcut={shortcut}
-								onAction={onAction}
-							/>
-						) : null)}
-					{extraActions}
-				</ActionPanel>
-			}
-		/>
-	);
+  return (
+    <List.Item
+      title={title}
+      subtitle={subtitle}
+      icon={icon}
+      actions={
+        <ActionPanel title={title}>
+          {actions ??
+            (onAction ? (
+              <Action
+                title="Run"
+                icon={Icon.Play}
+                style={
+                  destructive ? Action.Style.Destructive : Action.Style.Regular
+                }
+                shortcut={shortcut}
+                onAction={onAction}
+              />
+            ) : null)}
+          {extraActions}
+        </ActionPanel>
+      }
+    />
+  );
 }
 
 function usePrivilegedRunner() {
@@ -239,8 +262,9 @@ function usePrivilegedRunner() {
 	return async (
 		run: () => Promise<OperationResult>,
 		heading: string,
-		sudoArgs: string[],
+		sudoArgs: string[] | undefined,
 		confirmMessage: string | null,
+		terminalRetry?: { label: string; args: string[] },
 	) => {
 		if (confirmMessage) {
 			const confirmed = await askConfirm(heading, confirmMessage);
@@ -267,6 +291,7 @@ function usePrivilegedRunner() {
 				title={heading}
 				result={result}
 				sudoArgs={sudoArgs}
+				terminalRetry={terminalRetry}
 			/>,
 		);
 	};

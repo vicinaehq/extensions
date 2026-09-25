@@ -17,6 +17,10 @@ export type ExecOptions = {
 	 */
 	timeout?: number;
 	/**
+	 * Working directory for the child process.
+	 */
+	cwd?: string;
+	/**
 	 * Replace (or extend) the environment passed to the child.
 	 */
 	env?: Record<string, string>;
@@ -47,6 +51,7 @@ export function run(
 				timeout: options.timeout ?? 120_000,
 				maxBuffer: options.maxBuffer ?? DEFAULT_MAX_BUFFER,
 				encoding: "utf8",
+				cwd: options.cwd,
 			},
 			(error, stdout, stderr) => {
 				if (!error) {

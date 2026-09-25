@@ -10,6 +10,7 @@ import {
 	useNavigation,
 } from "@vicinae/api";
 import { useState } from "react";
+import { RunResult } from "../components/RunResult";
 import { runAptUpdate } from "../lib/apt";
 import {
 	buildDeb822Source,
@@ -23,7 +24,7 @@ type Props = {
 };
 
 export function AddRepoForm({ onAdded }: Props) {
-	const { pop } = useNavigation();
+	const { pop, push } = useNavigation();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const onSubmit = async (values: Form.Values) => {
@@ -93,7 +94,22 @@ export function AddRepoForm({ onAdded }: Props) {
 
 		const shouldUpdate = Boolean(values.updateNow);
 		if (shouldUpdate) {
-			await runAptUpdate();
+			const updateResult = await runAptUpdate();
+			if (!updateResult.ok) {
+				toast.style = Toast.Style.Failure;
+				toast.title = "Repository added, but updating package lists failed";
+				toast.message =
+					updateResult.stderr.trim().slice(0, 140) ||
+					`exit code ${updateResult.code ?? "unknown"}`;
+				push(
+					<RunResult
+						heading="Update package lists"
+						title="Update package lists"
+						result={updateResult}
+						sudoArgs={["update"]}
+					/>,
+				);
+			}
 			pop();
 			return;
 		}

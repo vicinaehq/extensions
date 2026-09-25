@@ -13,8 +13,13 @@ Launched from the `apt` command:
 - **Clean up system** — `apt-get autoremove --purge` then `apt-get autoclean`.
 - **Repositories** — list sources from `sources.list`/`sources.list.d` (legacy one-line
   and deb822 `.sources`), add new repos as deb822 `.sources` files, enable/disable/remove.
-- **AppImages** — install, remove, and check for updates of AppImage applications
-  installed in `~/Applications`.
+- **Install package files** — install a local `.deb` (via `apt`), `.flatpak`
+  (via `flatpak`), or `.AppImage` file from one dialog. The extension detects
+  the extension and runs the matching method.
+- **AppImages** — install (from a local file) and remove AppImage applications
+  installed in `~/Applications`. Download an AppImage yourself, then point the
+  extension at the file; it copies it into `~/Applications` and extracts its
+  icon and metadata for the launcher entry.
 
 ## How it works
 

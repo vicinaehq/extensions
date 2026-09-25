@@ -90,7 +90,7 @@ export function PackageView({ kind, title, emptyTitle }: Props) {
 				/>
 			) : (
 				filtered.slice(0, visible).map((pkg) => {
-					const id = `${pkg.name}/${pkg.arch}`;
+					const id = pkg.fileName ?? `${pkg.name}/${pkg.arch}`;
 					return (
 						<List.Item
 							key={id}

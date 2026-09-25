@@ -76,7 +76,9 @@ export async function fetchFlatpakRemotes(): Promise<{
 	return { remotes, error: null };
 }
 
-function installationFlag(installation: FlatpakInstallation): string {
+export function flatpakInstallationFlag(
+	installation: FlatpakInstallation,
+): string {
 	return installation === "user" ? "--user" : "--system";
 }
 
@@ -87,7 +89,7 @@ export function flatpakRemoteModifyArgs(
 ): string[] {
 	return [
 		"remote-modify",
-		installationFlag(remote.installation),
+		flatpakInstallationFlag(remote.installation),
 		enabled ? "--enable" : "--disable",
 		remote.name,
 	];
@@ -97,7 +99,7 @@ export function flatpakRemoteModifyArgs(
 export function flatpakRemoteDeleteArgs(remote: FlatpakRemote): string[] {
 	return [
 		"remote-delete",
-		installationFlag(remote.installation),
+		flatpakInstallationFlag(remote.installation),
 		"--force",
 		remote.name,
 	];
@@ -112,7 +114,7 @@ export function flatpakRemoteAddArgs(
 ): string[] {
 	const args = [
 		"remote-add",
-		installationFlag(installation),
+		flatpakInstallationFlag(installation),
 		"--if-not-exists",
 	];
 	if (title?.trim()) args.push(`--title=${title.trim()}`);
@@ -125,7 +127,7 @@ export function flatpakAppstreamArgs(
 	installation: FlatpakInstallation,
 	name: string,
 ): string[] {
-	return ["update", "--appstream", installationFlag(installation), name];
+	return ["update", "--appstream", flatpakInstallationFlag(installation), name];
 }
 
 /**

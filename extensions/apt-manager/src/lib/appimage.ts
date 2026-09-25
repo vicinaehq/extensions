@@ -3,29 +3,42 @@ import {
 	copyFileSync,
 	existsSync,
 	mkdirSync,
+	mkdtempSync,
 	readdirSync,
 	readFileSync,
+	realpathSync,
 	rmSync,
 	statSync,
 	writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
-import { basename, dirname, join } from "node:path";
+import { homedir, tmpdir } from "node:os";
+import { basename, dirname, extname, join } from "node:path";
 import { run } from "./exec";
 import type { AptPackage } from "./apt";
 
 export type AppImageRemoveDepth = "file" | "desktop" | "config";
 
+export interface AppImageManifest {
+	url: string | null;
+	installedAt: string;
+}
+
 export interface AppImageInfo {
+	/** On-disk filename of the AppImage (unique identity). */
+	fileName: string;
+	/** Display name (from the embedded desktop/metainfo, else the filename). */
 	name: string;
+	/** Full path to the AppImage file. */
 	path: string;
 	version: string;
 	description: string;
+	/** Absolute path to an extracted PNG icon, or null if unavailable. */
 	icon: string | null;
 	url: string | null;
 	desktopPath: string | null;
-	configDir: string | null;
 }
+
+const EXTRACT_TIMEOUT = 180_000;
 
 function getApplicationsDir(): string {
 	return join(homedir(), "Applications");
@@ -35,16 +48,44 @@ function getUserDesktopDir(): string {
 	return join(homedir(), ".local", "share", "applications");
 }
 
+function getSidecarDir(appPath: string): string {
+	return `${appPath}.d`;
+}
+
+function getManifestPath(appPath: string): string {
+	return join(getSidecarDir(appPath), "manifest.json");
+}
+
+export function parseVersionFromFileName(fileName: string): string {
+	const base = fileName.replace(/\.appimage$/i, "");
+	const match = base.match(/(\d+\.\d+(?:\.\d+)*)/);
+	return match ? match[1] : "";
+}
+
+function readManifest(appPath: string): Partial<AppImageManifest> | null {
+	const manifestPath = getManifestPath(appPath);
+	if (!existsSync(manifestPath)) return null;
+	try {
+		const raw = JSON.parse(readFileSync(manifestPath, "utf8")) as Partial<AppImageManifest>;
+		return typeof raw === "object" && raw !== null ? raw : null;
+	} catch {
+		return null;
+	}
+}
+
+function writeManifest(
+	appPath: string,
+	manifest: AppImageManifest,
+): void {
+	writeFileSync(getManifestPath(appPath), `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
 function parseDesktopFile(content: string): {
 	name: string | null;
 	comment: string | null;
-	icon: string | null;
-	exec: string | null;
 } {
 	let name: string | null = null;
 	let comment: string | null = null;
-	let icon: string | null = null;
-	let exec: string | null = null;
 	let inSection = false;
 	for (const line of content.split("\n")) {
 		const trimmed = line.trim();
@@ -58,30 +99,20 @@ function parseDesktopFile(content: string): {
 		if (eq === -1) continue;
 		const key = trimmed.slice(0, eq).trim().toLowerCase();
 		const value = trimmed.slice(eq + 1).trim();
-		switch (key) {
-			case "name":
-				name = value;
-				break;
-			case "comment":
-				comment = value;
-				break;
-			case "icon":
-				icon = value;
-				break;
-			case "exec":
-				exec = value;
-				break;
-		}
+		if (key === "name") name = value;
+		if (key === "comment") comment = value;
 	}
-	return { name, comment, icon, exec };
+	return { name, comment };
 }
 
 function parseAppDataXml(content: string): {
 	summary: string | null;
 	description: string | null;
+	url: string | null;
 } {
 	let summary: string | null = null;
 	let description: string | null = null;
+	let url: string | null = null;
 	const summaryMatch = content.match(/<summary[^>]*>([\s\S]*?)<\/summary>/i);
 	if (summaryMatch) summary = summaryMatch[1].trim();
 	const descMatch = content.match(/<description[^>]*>([\s\S]*?)<\/description>/i);
@@ -89,70 +120,282 @@ function parseAppDataXml(content: string): {
 		const inner = descMatch[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 		description = inner || null;
 	}
-	return { summary, description };
+	const urlMatch =
+		content.match(/<url[^>]*type="homepage"[^>]*>\s*([^<]+?)\s*<\/url>/i) ??
+		content.match(/<url[^>]*>\s*([^<]+?)\s*<\/url>/i);
+	if (urlMatch) url = urlMatch[1].trim();
+	return { summary, description, url };
+}
+
+function readPngDimensions(buffer: Buffer): { width: number; height: number } | null {
+	if (buffer.length < 24 || buffer.readUInt32BE(12) !== 0x49484452) return null;
+	return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
+}
+
+/** Find the largest PNG under the icon resource directories of an extracted AppImage. */
+function pickLargestIcon(root: string): string | null {
+	let best: string | null = null;
+	let bestArea = 0;
+	const scan = (dir: string) => {
+		let entries: string[];
+		try {
+			entries = readdirSync(dir);
+		} catch {
+			return;
+		}
+		for (const entry of entries) {
+			const full = join(dir, entry);
+			let isDirectory = false;
+			let isFile = false;
+			try {
+				const stat = statSync(full);
+				isDirectory = stat.isDirectory();
+				isFile = stat.isFile();
+			} catch {
+				continue;
+			}
+			if (isDirectory) {
+				scan(full);
+			} else if (isFile && entry.toLowerCase().endsWith(".png")) {
+				let buffer: Buffer;
+				try {
+					buffer = readFileSync(full);
+				} catch {
+					continue;
+				}
+				const dims = readPngDimensions(buffer);
+				if (dims) {
+					const area = dims.width * dims.height;
+					if (area > bestArea) {
+						bestArea = area;
+						best = full;
+					}
+				}
+			}
+		}
+	};
+	scan(join(root, "usr", "share", "icons"));
+	scan(join(root, "usr", "share", "pixmaps"));
+	if (best) return best;
+	const dirIcon = join(root, ".DirIcon");
+	if (existsSync(dirIcon)) {
+		try {
+			const resolved = realpathSync(dirIcon);
+			if (resolved.toLowerCase().endsWith(".png") && statSync(resolved).isFile()) {
+				return resolved;
+			}
+		} catch {
+			// ignore
+		}
+	}
+	return null;
+}
+
+function findRootDesktop(root: string): string | null {
+	let entries: string[];
+	try {
+		entries = readdirSync(root);
+	} catch {
+		return null;
+	}
+	for (const entry of entries) {
+		if (entry.startsWith(".") || !entry.endsWith(".desktop")) continue;
+		const full = join(root, entry);
+		try {
+			if (statSync(full).isFile()) return full;
+		} catch {
+			// ignore
+		}
+	}
+	return null;
+}
+
+function findMetaInfo(root: string): string | null {
+	for (const dir of [join(root, "usr", "share", "metainfo"), join(root, "usr", "share", "appdata")]) {
+		let entries: string[];
+		try {
+			entries = readdirSync(dir);
+		} catch {
+			continue;
+		}
+		for (const entry of entries) {
+			if (/\.(metainfo|appdata)\.xml$/i.test(entry)) {
+				const full = join(dir, entry);
+				if (statSync(full).isFile()) return full;
+			}
+		}
+	}
+	return null;
+}
+
+/**
+ * Best-effort metadata extraction: run the AppImage's embedded runtime, then
+ * persist the .desktop, metainfo, icon and a manifest into the sidecar.
+ * Never fails the install and never leaves temp files behind.
+ * Resolves true if usable metadata was extracted (icon, name or metainfo).
+ */
+async function extractAppImageSidecar(appPath: string): Promise<boolean> {
+	const sidecar = getSidecarDir(appPath);
+	const fileName = basename(appPath);
+	const baseName = fileName.replace(/\.appimage$/i, "");
+	const tempDir = mkdtempSync(join(tmpdir(), "appimage-extract-"));
+	try {
+		const result = await run(appPath, ["--appimage-extract"], {
+			cwd: tempDir,
+			timeout: EXTRACT_TIMEOUT,
+		});
+		if (!result.ok) return false;
+		const root = join(tempDir, "squashfs-root");
+		if (!existsSync(root)) return false;
+
+		let name: string | null = null;
+		let comment: string | null = null;
+		let description: string | null = null;
+		let metaUrl: string | null = null;
+		let metaInfoPath: string | null = null;
+
+		const desktopFile = findRootDesktop(root);
+		if (desktopFile) {
+			const parsed = parseDesktopFile(readFileSync(desktopFile, "utf8"));
+			name = parsed.name;
+			comment = parsed.comment;
+		}
+		metaInfoPath = findMetaInfo(root);
+		if (metaInfoPath) {
+			const xml = readFileSync(metaInfoPath, "utf8");
+			const parsed = parseAppDataXml(xml);
+			if (parsed.summary) description = parsed.summary;
+			if (parsed.description) description = parsed.description;
+			if (parsed.url) metaUrl = parsed.url;
+		}
+		const iconSrc = pickLargestIcon(root);
+
+		if (!iconSrc && !name && !comment && !metaInfoPath) return false;
+
+		mkdirSync(sidecar, { recursive: true });
+		let iconPath: string | null = null;
+		if (iconSrc) {
+			iconPath = join(sidecar, `icon${extname(iconSrc).toLowerCase()}`);
+			copyFileSync(iconSrc, iconPath);
+		}
+		if (metaInfoPath) {
+			copyFileSync(metaInfoPath, join(sidecar, "app.metainfo.xml"));
+		}
+		writeFileSync(
+			join(sidecar, "app.desktop"),
+			buildDesktopContent(appPath, baseName, {
+				name: name || baseName,
+				description: comment || description || "",
+				icon: iconPath,
+			}),
+		);
+		writeManifest(appPath, {
+			url: metaUrl,
+			installedAt: new Date().toISOString(),
+		});
+		return true;
+	} catch {
+		// best-effort
+		return false;
+	} finally {
+		rmSync(tempDir, { recursive: true, force: true });
+	}
+}
+
+function buildDesktopContent(
+	appPath: string,
+	baseName: string,
+	info: Pick<AppImageInfo, "name" | "description" | "icon">,
+): string {
+	const exec = appPath.includes(" ") ? `"${appPath}"` : appPath;
+	const lines = [
+		"[Desktop Entry]",
+		"Type=Application",
+		`Name=${info.name || baseName}`,
+		`Exec=${exec}`,
+		`Icon=${info.icon || baseName}`,
+		"Terminal=false",
+		"Categories=Utility;",
+	];
+	if (info.description) lines.push(`Comment=${info.description}`);
+	return `${lines.join("\n")}\n`;
 }
 
 export async function discoverAppImageFile(
 	dir: string,
 ): Promise<AppImageInfo | null> {
-	const lowerName = basename(dir).toLowerCase();
-	if (!lowerName.endsWith(".appimage")) return null;
-	if (!existsSync(dir)) return null;
+	const fileName = basename(dir);
+	if (!fileName.toLowerCase().endsWith(".appimage")) return null;
+	try {
+		if (!statSync(dir).isFile()) return null;
+	} catch {
+		return null;
+	}
 
-	const baseName = basename(dir, ".AppImage");
-	const desktopPath = [
-		join(dirname(dir), `${baseName}.desktop`),
-		join(dirname(dir), `${baseName.toLowerCase()}.desktop`),
-	].find((p) => existsSync(p)) ?? null;
+	const baseName = fileName.replace(/\.appimage$/i, "");
+	const sidecar = getSidecarDir(dir);
+	const sidecarExists = existsSync(sidecar);
 
 	let name = baseName;
 	let description = "";
 	let icon: string | null = null;
 	let url: string | null = null;
+	let desktopPath: string | null = null;
 
-	if (desktopPath && existsSync(desktopPath)) {
-		try {
-			const parsed = parseDesktopFile(readFileSync(desktopPath, "utf8"));
-			if (parsed.name) name = parsed.name;
-			if (parsed.comment) description = parsed.comment;
-			if (parsed.icon) icon = parsed.icon;
-			if (parsed.exec) {
-				const urlMatch = parsed.exec.match(/https?:\/\/[^\s"']+/);
-				if (urlMatch) url = urlMatch[0];
+	if (sidecarExists) {
+		const manifest = readManifest(dir);
+		if (manifest?.url) url = manifest.url;
+		const sideDesktop = join(sidecar, "app.desktop");
+		if (existsSync(sideDesktop)) {
+			desktopPath = sideDesktop;
+			try {
+				const parsed = parseDesktopFile(readFileSync(sideDesktop, "utf8"));
+				if (parsed.name) name = parsed.name;
+				if (parsed.comment) description = parsed.comment;
+			} catch {
+				// ignore parse errors
 			}
-		} catch {
-			// ignore parse errors
 		}
+		const sideMeta = join(sidecar, "app.metainfo.xml");
+		if (existsSync(sideMeta)) {
+			try {
+				const parsed = parseAppDataXml(readFileSync(sideMeta, "utf8"));
+				if (parsed.summary) description = parsed.summary;
+				if (parsed.description) description = parsed.description;
+				if (parsed.url && !url) url = parsed.url;
+			} catch {
+				// ignore parse errors
+			}
+		}
+		const iconPng = join(sidecar, "icon.png");
+		const iconSvg = join(sidecar, "icon.svg");
+		if (existsSync(iconPng)) icon = iconPng;
+		else if (existsSync(iconSvg)) icon = null;
 	}
 
-	let version = "";
-	try {
-		const appDataPath = join(
-			dirname(desktopPath ?? ""),
-			"appdata",
-			`${baseName}.appdata.xml`,
-		);
-		if (appDataPath && existsSync(appDataPath)) {
-			const parsed = parseAppDataXml(readFileSync(appDataPath, "utf8"));
-			if (parsed.summary) description = parsed.summary;
-			if (parsed.description) {
-				const verMatch = parsed.description.match(/(\d+\.(\d+\.)*\d+)/);
-				if (verMatch) version = verMatch[1];
+	if (!desktopPath) {
+		const siblingDesktop = join(dirname(dir), `${baseName}.desktop`);
+		if (existsSync(siblingDesktop)) {
+			desktopPath = siblingDesktop;
+			try {
+				const parsed = parseDesktopFile(readFileSync(siblingDesktop, "utf8"));
+				if (parsed.name) name = parsed.name;
+				if (parsed.comment) description = parsed.comment;
+			} catch {
+				// ignore parse errors
 			}
 		}
-	} catch {
-		// ignore
 	}
 
 	return {
+		fileName,
 		name,
 		path: dir,
-		version,
+		version: parseVersionFromFileName(fileName),
 		description,
 		icon,
 		url,
 		desktopPath,
-		configDir: null,
 	};
 }
 
@@ -162,20 +405,15 @@ export async function discoverAppImageFile(
 export async function fetchAppImages(): Promise<AptPackage[]> {
 	const appsDir = getApplicationsDir();
 	if (!existsSync(appsDir)) return [];
-	let entries: string[];
-	try {
-		entries = readdirSync(appsDir);
-	} catch {
-		return [];
-	}
 	const packages: AptPackage[] = [];
-	for (const entry of entries) {
+	for (const entry of readdirSync(appsDir)) {
+		if (!entry.toLowerCase().endsWith(".appimage")) continue;
 		const fullPath = join(appsDir, entry);
-		if (!existsSync(fullPath)) continue;
 		const info = await discoverAppImageFile(fullPath);
 		if (!info) continue;
 		packages.push({
 			name: info.name,
+			fileName: info.fileName,
 			suite: "appimage",
 			version: info.version || "unknown",
 			arch: "",
@@ -194,9 +432,22 @@ export async function fetchAppImages(): Promise<AptPackage[]> {
 	return packages.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+export type AppImageInstallResult = {
+	ok: boolean;
+	error: string | null;
+	targetPath?: string;
+	info?: AppImageInfo;
+	hasMetadata?: boolean;
+};
+
+/**
+ * Install an AppImage from a local file by copying it into ~/Applications and
+ * extracting its icon/metadata into a sidecar directory. Downloads are not
+ * performed by this extension; users obtain the AppImage themselves.
+ */
 export async function installAppImage(
-	source: { type: "url"; url: string } | { type: "file"; path: string },
-): Promise<{ ok: boolean; error: string | null; targetPath?: string }> {
+	path: string,
+): Promise<AppImageInstallResult> {
 	const appsDir = getApplicationsDir();
 	if (!existsSync(appsDir)) {
 		try {
@@ -205,43 +456,29 @@ export async function installAppImage(
 			return { ok: false, error: `Failed to create ${appsDir}` };
 		}
 	}
-	let targetPath: string;
-	if (source.type === "url") {
-		const url = source.url;
-		const urlName = basename(url).split("?")[0] || "app.AppImage";
-		targetPath = join(appsDir, urlName);
-		try {
-			const response = await fetch(url);
-			if (!response.ok) {
-				return { ok: false, error: `Download failed: ${response.status}` };
-			}
-			const buffer = await response.arrayBuffer();
-			const bytes = Buffer.from(buffer);
-			writeFileSync(targetPath, bytes);
-			chmodSync(targetPath, 0o755);
-		} catch (err) {
-			return {
-				ok: false,
-				error: `Download failed: ${err instanceof Error ? err.message : String(err)}`,
-			};
-		}
-	} else {
-		const srcPath = source.path;
-		if (!existsSync(srcPath)) {
-			return { ok: false, error: `File not found: ${srcPath}` };
-		}
-		targetPath = join(appsDir, basename(srcPath));
-		try {
-			copyFileSync(srcPath, targetPath);
-			chmodSync(targetPath, 0o755);
-		} catch (err) {
-			return {
-				ok: false,
-				error: `Copy failed: ${err instanceof Error ? err.message : String(err)}`,
-			};
-		}
+	if (!existsSync(path)) {
+		return { ok: false, error: `File not found: ${path}` };
 	}
-	return { ok: true, error: null, targetPath };
+	const targetPath = join(appsDir, basename(path));
+	try {
+		copyFileSync(path, targetPath);
+		chmodSync(targetPath, 0o755);
+	} catch (err) {
+		return {
+			ok: false,
+			error: `Copy failed: ${err instanceof Error ? err.message : String(err)}`,
+		};
+	}
+
+	const hasMetadata = await extractAppImageSidecar(targetPath);
+	const info = await discoverAppImageFile(targetPath);
+	return {
+		ok: true,
+		error: null,
+		targetPath,
+		info: info ?? undefined,
+		hasMetadata,
+	};
 }
 
 /**
@@ -250,9 +487,15 @@ export async function installAppImage(
 export async function installDesktopFile(
 	appPath: string,
 	location: "user" | "system",
+	info?: AppImageInfo,
 ): Promise<{ ok: boolean; error: string | null }> {
-	const appName = basename(appPath).replace(/\.AppImage$/i, "");
-	const desktopContent = `[Desktop Entry]\nType=Application\nName=${appName}\nExec=${appPath}\nIcon=${appName}\n`;
+	const baseName = basename(appPath).replace(/\.appimage$/i, "");
+	const infoForEntry: Pick<AppImageInfo, "name" | "description" | "icon"> = {
+		name: info?.name ?? baseName,
+		description: info?.description ?? "",
+		icon: info?.icon ?? null,
+	};
+	const desktopContent = buildDesktopContent(appPath, baseName, infoForEntry);
 	let desktopPath: string;
 
 	if (location === "user") {
@@ -260,14 +503,24 @@ export async function installDesktopFile(
 		if (!existsSync(desktopDir)) {
 			try {
 				mkdirSync(desktopDir, { recursive: true });
-			} catch {
-				return { ok: false, error: `Failed to create ${desktopDir}` };
+			} catch (err) {
+				return {
+					ok: false,
+					error: `Failed to create ${desktopDir}: ${err instanceof Error ? err.message : String(err)}`,
+				};
 			}
 		}
-		desktopPath = join(desktopDir, `${appName}.desktop`);
-		writeFileSync(desktopPath, desktopContent);
+		desktopPath = join(desktopDir, `${baseName}.desktop`);
+		try {
+			writeFileSync(desktopPath, desktopContent);
+		} catch (err) {
+			return {
+				ok: false,
+				error: `Failed to write desktop file: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
 	} else {
-		desktopPath = join("/usr/share/applications", `${appName}.desktop`);
+		desktopPath = join("/usr/share/applications", `${baseName}.desktop`);
 		const result = await run("pkexec", ["tee", desktopPath], {
 			input: desktopContent,
 			timeout: 30_000,
@@ -283,7 +536,7 @@ export async function installDesktopFile(
 }
 
 export async function removeAppImage(
-	name: string,
+	fileName: string,
 	depth: AppImageRemoveDepth,
 ): Promise<{ ok: boolean; error: string | null }> {
 	const appsDir = getApplicationsDir();
@@ -291,50 +544,47 @@ export async function removeAppImage(
 		return { ok: false, error: "Applications directory not found" };
 	}
 	let targetPath: string | null = null;
-	let targetName: string | null = null;
 	for (const entry of readdirSync(appsDir)) {
-		const fullPath = join(appsDir, entry);
-		if (!existsSync(fullPath)) continue;
-		try {
-			const info = await discoverAppImageFile(fullPath);
-			if (info && info.name === name) {
-				targetPath = info.path;
-				targetName = info.name;
-				break;
-			}
-		} catch {
-			continue;
+		if (!entry.toLowerCase().endsWith(".appimage")) continue;
+		if (entry === fileName || entry.toLowerCase() === fileName.toLowerCase()) {
+			targetPath = join(appsDir, entry);
+			break;
 		}
 	}
-	if (!targetPath || !targetName) {
-		return { ok: false, error: `AppImage "${name}" not found` };
+	if (!targetPath) {
+		return { ok: false, error: `AppImage "${fileName}" not found` };
+	}
+	const baseName = basename(targetPath).replace(/\.appimage$/i, "");
+	const sysDesktop = join("/usr/share/applications", `${baseName}.desktop`);
+	if (
+		(depth === "desktop" || depth === "config") &&
+		existsSync(sysDesktop)
+	) {
+		const result = await run("pkexec", ["rm", "-f", sysDesktop], {
+			timeout: 60_000,
+		});
+		if (!result.ok) {
+			return {
+				ok: false,
+				error:
+					result.stderr.trim() ||
+					result.stdout.trim() ||
+					"Failed to remove the system desktop entry",
+			};
+		}
 	}
 	try {
-		if (depth === "file" || depth === "desktop" || depth === "config") {
-			rmSync(targetPath, { recursive: true, force: true });
-		}
-		if (depth === "desktop") {
-			const desktopFile = targetPath.replace(/\.AppImage$/i, ".desktop");
-			if (existsSync(desktopFile)) {
-				rmSync(desktopFile, { force: true });
-			}
-			const userDesktop = join(getUserDesktopDir(), `${targetName}.desktop`);
-			if (existsSync(userDesktop)) {
-				rmSync(userDesktop, { force: true });
-			}
-			const sysDesktop = join(
-				"/usr/share/applications",
-				`${targetName}.desktop`,
-			);
-			if (existsSync(sysDesktop)) {
-				rmSync(sysDesktop, { force: true });
-			}
+		rmSync(targetPath, { recursive: true, force: true });
+		rmSync(getSidecarDir(targetPath), { recursive: true, force: true });
+		if (depth === "desktop" || depth === "config") {
+			const siblingDesktop = join(appsDir, `${baseName}.desktop`);
+			if (existsSync(siblingDesktop)) rmSync(siblingDesktop, { force: true });
+			const userDesktop = join(getUserDesktopDir(), `${baseName}.desktop`);
+			if (existsSync(userDesktop)) rmSync(userDesktop, { force: true });
 		}
 		if (depth === "config") {
-			const configDir = join(homedir(), ".config", targetName);
-			if (existsSync(configDir)) {
-				rmSync(configDir, { recursive: true, force: true });
-			}
+			const configDir = join(homedir(), ".config", baseName);
+			if (existsSync(configDir)) rmSync(configDir, { recursive: true, force: true });
 		}
 	} catch (err) {
 		return {
@@ -343,59 +593,4 @@ export async function removeAppImage(
 		};
 	}
 	return { ok: true, error: null };
-}
-
-export async function checkAppImageUpdate(
-	name: string,
-): Promise<{ ok: boolean; error: string | null; updateAvailable: boolean }> {
-	const appsDir = getApplicationsDir();
-	if (!existsSync(appsDir)) {
-		return { ok: false, error: "Applications directory not found", updateAvailable: false };
-	}
-	let targetPath: string | null = null;
-	let appUrl: string | null = null;
-	for (const entry of readdirSync(appsDir)) {
-		const fullPath = join(appsDir, entry);
-		if (!existsSync(fullPath)) continue;
-		try {
-			const info = await discoverAppImageFile(fullPath);
-			if (info && info.name === name) {
-				targetPath = info.path;
-				appUrl = info.url;
-				break;
-			}
-		} catch {
-			continue;
-		}
-	}
-	if (!targetPath) {
-		return { ok: false, error: `AppImage "${name}" not found`, updateAvailable: false };
-	}
-	let localMtime = 0;
-	try {
-		localMtime = statSync(targetPath).mtimeMs;
-	} catch {
-		// ignore
-	}
-	if (!appUrl) {
-		return { ok: true, error: null, updateAvailable: false };
-	}
-	try {
-		const response = await fetch(appUrl, { method: "HEAD" });
-		if (!response.ok) {
-			return { ok: true, error: null, updateAvailable: false };
-		}
-		const lastModified = response.headers.get("last-modified");
-		if (lastModified) {
-			const remoteTime = new Date(lastModified).getTime();
-			return {
-				ok: true,
-				error: null,
-				updateAvailable: remoteTime > localMtime,
-			};
-		}
-	} catch {
-		// ignore network errors
-	}
-	return { ok: true, error: null, updateAvailable: false };
 }

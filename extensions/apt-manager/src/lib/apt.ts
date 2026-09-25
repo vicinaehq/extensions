@@ -31,6 +31,8 @@ export type AptPackage = {
 	icon: string | null;
 	/** Installation scope for Flatpak apps. */
 	installation?: "system" | "user";
+	/** For AppImages: the on-disk filename (unique identity). */
+	fileName?: string;
 };
 
 /**
