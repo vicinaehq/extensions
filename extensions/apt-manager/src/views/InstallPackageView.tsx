@@ -117,7 +117,7 @@ export function InstallPackageView() {
 				toast.title = "AppImage installed";
 				if (result.hasMetadata === false) {
 					toast.message =
-						"Could not read AppImage metadata; icon and update info unavailable";
+						"Could not read AppImage metadata; icon and app details unavailable";
 				} else {
 					toast.message = `Installed in ${desktopLocation} desktop entry`;
 				}
@@ -143,8 +143,8 @@ export function InstallPackageView() {
 					result.stderr.trim().slice(0, 140) ||
 					`exit code ${result.code ?? "unknown"}`;
 			}
-			showRunResult(label, result, ["install", "-y", path]);
 			pop();
+			showRunResult(label, result, ["install", "-y", path]);
 			return;
 		}
 
@@ -176,15 +176,15 @@ export function InstallPackageView() {
 			toast.style = Toast.Style.Success;
 			toast.title = `${fileLabel} installed`;
 		} else {
-			toast.style = Toast.Style.Failure;
-			toast.title = `${label} failed`;
-			toast.message =
-				result.stderr.trim().slice(0, 140) ||
-				`exit code ${result.code ?? "unknown"}`;
-		}
-		showRunResult(label, result, ["install", "-y", remote, path], "flatpak");
-		pop();
-	};
+toast.style = Toast.Style.Failure;
+				toast.title = `${label} failed`;
+				toast.message =
+					result.stderr.trim().slice(0, 140) ||
+					`exit code ${result.code ?? "unknown"}`;
+			}
+			pop();
+			showRunResult(label, result, ["install", "-y", remote, path], "flatpak");
+		};
 
 	return (
 		<Form

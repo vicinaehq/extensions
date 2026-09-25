@@ -18,8 +18,10 @@ Launched from the `apt` command:
   the extension and runs the matching method.
 - **AppImages** — install (from a local file) and remove AppImage applications
   installed in `~/Applications`. Download an AppImage yourself, then point the
-  extension at the file; it copies it into `~/Applications` and extracts its
-  icon and metadata for the launcher entry.
+  extension at the file; it copies it into `~/Applications` and, when
+  `unsquashfs` (package `squashfs-tools`) is available, extracts its icon and
+  metadata for the launcher entry. The AppImage is **never executed** during
+  installation. Without `squashfs-tools`, the launcher entry uses the filename.
 
 ## How it works
 
@@ -46,3 +48,6 @@ npm run lint
   polkit agent of your desktop session or the fallback terminal action.
 - Optional: `flatpak` to manage Flatpak applications and repositories. The
   Flatpak sections are hidden when the CLI is not installed.
+- Optional: `squashfs-tools` (`unsquashfs`) to extract AppImage icon and
+  metadata without running the file; without it AppImages are listed by their
+  filename.

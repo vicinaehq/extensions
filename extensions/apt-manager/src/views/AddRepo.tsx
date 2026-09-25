@@ -95,12 +95,16 @@ export function AddRepoForm({ onAdded }: Props) {
 		const shouldUpdate = Boolean(values.updateNow);
 		if (shouldUpdate) {
 			const updateResult = await runAptUpdate();
-			if (!updateResult.ok) {
+			const updateFailed = !updateResult.ok;
+			if (updateFailed) {
 				toast.style = Toast.Style.Failure;
 				toast.title = "Repository added, but updating package lists failed";
 				toast.message =
 					updateResult.stderr.trim().slice(0, 140) ||
 					`exit code ${updateResult.code ?? "unknown"}`;
+			}
+			pop();
+			if (updateFailed) {
 				push(
 					<RunResult
 						heading="Update package lists"
@@ -110,7 +114,6 @@ export function AddRepoForm({ onAdded }: Props) {
 					/>,
 				);
 			}
-			pop();
 			return;
 		}
 		pop();

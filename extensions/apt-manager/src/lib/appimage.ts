@@ -40,6 +40,21 @@ export interface AppImageInfo {
 
 const EXTRACT_TIMEOUT = 180_000;
 
+const UNSQUASHFS_PATHS = [
+	"/usr/bin/unsquashfs",
+	"/usr/sbin/unsquashfs",
+	"/bin/unsquashfs",
+];
+
+/**
+ * Locate the `unsquashfs` binary from squashfs-tools, the established
+ * non-executing tool used to extract AppImage contents. Returns null when it
+ * is not installed on this system.
+ */
+function findUnSquashfs(): string | null {
+	return UNSQUASHFS_PATHS.find((path) => existsSync(path)) ?? null;
+}
+
 function getApplicationsDir(): string {
 	return join(homedir(), "Applications");
 }
@@ -229,23 +244,25 @@ function findMetaInfo(root: string): string | null {
 }
 
 /**
- * Best-effort metadata extraction: run the AppImage's embedded runtime, then
- * persist the .desktop, metainfo, icon and a manifest into the sidecar.
+ * Best-effort metadata extraction: unpack the AppImage's embedded filesystem
+ * with `unsquashfs` (squashfs-tools) and persist the .desktop, metainfo, icon
+ * and a manifest into the sidecar. The AppImage itself is never executed.
  * Never fails the install and never leaves temp files behind.
  * Resolves true if usable metadata was extracted (icon, name or metainfo).
  */
 async function extractAppImageSidecar(appPath: string): Promise<boolean> {
+	const unsquashfs = findUnSquashfs();
+	if (!unsquashfs) return false;
 	const sidecar = getSidecarDir(appPath);
 	const fileName = basename(appPath);
 	const baseName = fileName.replace(/\.appimage$/i, "");
-	const tempDir = mkdtempSync(join(tmpdir(), "appimage-extract-"));
+	const tempDir = mkdtempSync(join(tmpdir(), "appimage-metadata-"));
 	try {
-		const result = await run(appPath, ["--appimage-extract"], {
-			cwd: tempDir,
+		const result = await run(unsquashfs, ["-d", join(tempDir, "root"), appPath], {
 			timeout: EXTRACT_TIMEOUT,
 		});
 		if (!result.ok) return false;
-		const root = join(tempDir, "squashfs-root");
+		const root = join(tempDir, "root");
 		if (!existsSync(root)) return false;
 
 		let name: string | null = null;
