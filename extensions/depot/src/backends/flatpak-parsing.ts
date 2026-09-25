@@ -201,31 +201,9 @@ export function selectFlatpakSearchScopes(
   remotes: readonly FlatpakRemote[],
   preferredScope: FlatpakScope,
 ): FlatpakScope[] {
-  const namesByScope = new Map<FlatpakScope, string[]>();
-
-  for (const scope of ["user", "system"] as const) {
-    namesByScope.set(
-      scope,
-      remotes
-        .filter((remote) => remote.scope === scope)
-        .map((remote) => remote.name)
-        .sort(),
-    );
-  }
-
-  const userRemotes = namesByScope.get("user") ?? [];
-  const systemRemotes = namesByScope.get("system") ?? [];
-  if (
-    userRemotes.length > 0 &&
-    userRemotes.length === systemRemotes.length &&
-    userRemotes.every((remote, index) => remote === systemRemotes[index])
-  ) {
-    return [preferredScope];
-  }
-
   return sortFlatpakScopes(
     (["user", "system"] as const).filter(
-      (scope) => (namesByScope.get(scope)?.length ?? 0) > 0,
+      (scope) => remotes.some((remote) => remote.scope === scope),
     ),
     preferredScope,
   );

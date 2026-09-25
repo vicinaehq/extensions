@@ -19,11 +19,13 @@ import {
   rankAptSearchResults,
 } from "./apt-parsing";
 import {
+  inspectAptRemovalPlan,
   isConservativeRemovalCandidate,
   parseAptRemovalSimulation,
   parseAptMarkOutput,
   parseDpkgInstalledMetadata,
   parseDpkgOwnershipOutput,
+  resolveInstalledAptPackageId,
 } from "./apt-installed-parsing";
 import { parseDesktopEntry, type DesktopEntry } from "./desktop-entry";
 import { parseAptUpgradableOutput } from "./apt-update-parsing";
@@ -270,12 +272,24 @@ export class AptBackend implements PackageBackend {
     await requireExecutable(APT_GET, "APT removal is not available");
     await requireExecutable(PKEXEC, "Polkit authentication is not available");
 
-    if (pkg.source !== this.source || !(await this.isInstalled(id))) {
+    if (pkg.source !== this.source) {
       return "not-installed";
     }
 
-    const metadata = await this.getInstalledMetadata([id]);
-    if (!isConservativeRemovalCandidate(metadata.get(id))) {
+    const installedIds = await this.getInstalledPackageIds([id]);
+    if (installedIds.size === 0) return "not-installed";
+
+    const targetId = resolveInstalledAptPackageId(id, installedIds);
+    if (!targetId) {
+      throw new AptOperationError(
+        "unsafe",
+        "Removal was blocked because the installed package architecture is ambiguous",
+        [...installedIds].join("\n"),
+      );
+    }
+
+    const metadata = await this.getInstalledMetadata([targetId]);
+    if (!isConservativeRemovalCandidate(metadata.get(targetId))) {
       throw new AptOperationError(
         "unsafe",
         "This package is protected from removal",
@@ -284,12 +298,12 @@ export class AptBackend implements PackageBackend {
 
     const simulation = await runProcess(
       APT_GET,
-      ["--simulate", "--no-auto-remove", "remove", "--", id],
+      ["--simulate", "--no-auto-remove", "remove", "--", targetId],
       { env: APT_ENV, maxOutputBytes: 1024 * 1024 },
     );
     const planned = [...new Set(parseAptRemovalSimulation(simulation.stdout))];
-    const target = packageNameWithoutArchitecture(id);
-    if (!planned.some((plannedId) => packageNameWithoutArchitecture(plannedId) === target)) {
+    const removalPlan = inspectAptRemovalPlan(targetId, planned);
+    if (!removalPlan.includesTarget) {
       throw new AptOperationError(
         "failed",
         "APT could not prepare this removal",
@@ -297,21 +311,18 @@ export class AptBackend implements PackageBackend {
       );
     }
 
-    const additional = planned.filter(
-      (plannedId) => packageNameWithoutArchitecture(plannedId) !== target,
-    );
-    if (additional.length > 0) {
+    if (removalPlan.additionalIds.length > 0) {
       throw new AptOperationError(
         "unsafe",
         "Removal was blocked because other software would also be removed",
-        additional.join("\n"),
+        removalPlan.additionalIds.join("\n"),
       );
     }
 
     try {
       await runProcess(
         PKEXEC,
-        [APT_GET, "--yes", "--no-auto-remove", "remove", "--", id],
+        [APT_GET, "--yes", "--no-auto-remove", "remove", "--", targetId],
         { captureStdout: false, maxOutputBytes: 512 * 1024 },
       );
     } catch (error) {
@@ -332,7 +343,7 @@ export class AptBackend implements PackageBackend {
       throw error;
     }
 
-    if (await this.isInstalled(id)) {
+    if (await this.isInstalled(targetId)) {
       throw new AptOperationError(
         "failed",
         "APT finished, but the package is still installed",
@@ -516,10 +527,6 @@ function chunks<T>(values: readonly T[], size: number): T[][] {
     result.push(values.slice(index, index + size));
   }
   return result;
-}
-
-function packageNameWithoutArchitecture(id: string): string {
-  return id.split(":", 1)[0] ?? id;
 }
 
 async function requireExecutable(path: string, message: string): Promise<void> {

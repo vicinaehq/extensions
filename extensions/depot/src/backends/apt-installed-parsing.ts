@@ -71,6 +71,30 @@ export function parseAptRemovalSimulation(output: string): string[] {
   return packages;
 }
 
+export function resolveInstalledAptPackageId(
+  requestedId: string,
+  installedIds: ReadonlySet<string>,
+): string | undefined {
+  if (installedIds.has(requestedId)) return requestedId;
+  if (requestedId.includes(":")) return undefined;
+
+  const matches = [...installedIds].filter(
+    (installedId) => installedId.split(":", 1)[0] === requestedId,
+  );
+  return matches.length === 1 ? matches[0] : undefined;
+}
+
+export function inspectAptRemovalPlan(
+  targetId: string,
+  plannedIds: readonly string[],
+): { includesTarget: boolean; additionalIds: string[] } {
+  const uniqueIds = [...new Set(plannedIds)];
+  return {
+    includesTarget: uniqueIds.includes(targetId),
+    additionalIds: uniqueIds.filter((plannedId) => plannedId !== targetId),
+  };
+}
+
 export function parseAptMarkOutput(output: string): Set<string> {
   return new Set(
     output

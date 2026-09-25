@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  inspectAptRemovalPlan,
   isConservativeRemovalCandidate,
   parseAptRemovalSimulation,
   parseAptMarkOutput,
   parseDpkgInstalledMetadata,
   parseDpkgOwnershipOutput,
+  resolveInstalledAptPackageId,
 } from "../src/backends/apt-installed-parsing.ts";
 import { parseDesktopEntry } from "../src/backends/desktop-entry.ts";
 
@@ -63,6 +65,32 @@ test("parses exact packages from an APT removal simulation", () => {
     ["vlc", "dependent-app"],
   );
   assert.deepEqual(parseAptRemovalSimulation("No packages will be removed"), []);
+});
+
+test("resolves one exact installed APT package architecture", () => {
+  assert.equal(
+    resolveInstalledAptPackageId("vlc", new Set(["vlc:amd64"])),
+    "vlc:amd64",
+  );
+  assert.equal(
+    resolveInstalledAptPackageId("vlc", new Set(["vlc:amd64", "vlc:i386"])),
+    undefined,
+  );
+  assert.equal(
+    resolveInstalledAptPackageId("vlc:i386", new Set(["vlc:amd64", "vlc:i386"])),
+    "vlc:i386",
+  );
+});
+
+test("treats another architecture as an additional APT removal", () => {
+  assert.deepEqual(
+    inspectAptRemovalPlan("vlc:amd64", ["vlc:amd64", "vlc:i386"]),
+    { includesTarget: true, additionalIds: ["vlc:i386"] },
+  );
+  assert.deepEqual(inspectAptRemovalPlan("vlc:amd64", ["vlc:i386"]), {
+    includesTarget: false,
+    additionalIds: ["vlc:i386"],
+  });
 });
 
 test("parses manually installed APT package IDs", () => {

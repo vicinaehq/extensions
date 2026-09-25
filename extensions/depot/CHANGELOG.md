@@ -11,3 +11,5 @@
   the outer edge across Install, Remove, and Update.
 - Add backend preferences, package details, stale-search cancellation, tests,
   release documentation, and continuous integration.
+- Enforce architecture-exact APT removal safeguards, search every configured
+  Flatpak scope, serialize update operations, and surface partial source errors.

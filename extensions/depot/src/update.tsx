@@ -25,6 +25,8 @@ import {
   updateAccessories,
 } from "./utils/software-accessories";
 import { sortSoftwareAlphabetically } from "./utils/software-results";
+import { OperationLock } from "./utils/operation-lock";
+import { updateSourceErrors } from "./utils/update-errors";
 
 export default function UpdateCommand() {
   const {
@@ -41,63 +43,68 @@ export default function UpdateCommand() {
     aptEnabled,
     flatpakEnabled,
   );
-  const activeOperations = useRef(new Set<string>());
+  const operationLock = useRef(new OperationLock()).current;
   const availableUpdates = sortSoftwareAlphabetically([
     ...updates.aptUpdates,
     ...updates.flatpakUpdates,
   ]);
   const totalUpdates = availableUpdates.length;
+  const sourceErrors = updateSourceErrors(
+    updates.aptError,
+    updates.flatpakError,
+  );
 
   const updateOne = async (update: SoftwareUpdate) => {
     const key = updateKey(update);
-    if (activeOperations.current.has(key)) return;
-    activeOperations.current.add(key);
-
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: `Updating ${update.name}`,
-      message: update.source === "apt"
-        ? "Authenticate when prompted"
-        : `Flatpak · ${update.flatpak?.scope ?? "unknown"}`,
-    });
+    if (!operationLock.tryAcquire(key)) return;
 
     try {
-      if (update.source === "apt") await aptBackend.update(update);
-      else await flatpakBackend.update(update);
-      updates.forget(update);
-      updates.reload();
-      toast.style = Toast.Style.Success;
-      toast.title = `${update.name} updated`;
-      toast.message = update.availableVersion ?? update.id;
-    } catch (error) {
-      console.error(`Failed to update ${update.id}`, error);
-      toast.style = Toast.Style.Failure;
-      toast.title = operationErrorMessage(error, "Software update failed");
-      toast.message = update.id;
+      const toast = await showToast({
+        style: Toast.Style.Animated,
+        title: `Updating ${update.name}`,
+        message: update.source === "apt"
+          ? "Authenticate when prompted"
+          : `Flatpak · ${update.flatpak?.scope ?? "unknown"}`,
+      });
+
+      try {
+        if (update.source === "apt") await aptBackend.update(update);
+        else await flatpakBackend.update(update);
+        updates.forget(update);
+        updates.reload();
+        toast.style = Toast.Style.Success;
+        toast.title = `${update.name} updated`;
+        toast.message = update.availableVersion ?? update.id;
+      } catch (error) {
+        console.error(`Failed to update ${update.id}`, error);
+        toast.style = Toast.Style.Failure;
+        toast.title = operationErrorMessage(error, "Software update failed");
+        toast.message = update.id;
+      }
     } finally {
-      activeOperations.current.delete(key);
+      operationLock.release(key);
     }
   };
 
   const updateAll = async () => {
-    if (totalUpdates === 0 || activeOperations.current.has("all")) return;
-    const confirmed = await confirmAlert({
-      title: `Update ${totalUpdates} software item${totalUpdates === 1 ? "" : "s"}?`,
-      message: `APT: ${updates.aptUpdates.length}\nFlatpak: ${updates.flatpakUpdates.length}`,
-      primaryAction: { title: "Update All" },
-      dismissAction: { title: "Cancel", style: Alert.ActionStyle.Cancel },
-    });
-    if (!confirmed) return;
-
-    activeOperations.current.add("all");
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: "Updating software",
-      message: "Authenticate when prompted",
-    });
-    const failures: string[] = [];
+    if (totalUpdates === 0 || !operationLock.tryAcquire("all")) return;
 
     try {
+      const confirmed = await confirmAlert({
+        title: `Update ${totalUpdates} software item${totalUpdates === 1 ? "" : "s"}?`,
+        message: `APT: ${updates.aptUpdates.length}\nFlatpak: ${updates.flatpakUpdates.length}`,
+        primaryAction: { title: "Update All" },
+        dismissAction: { title: "Cancel", style: Alert.ActionStyle.Cancel },
+      });
+      if (!confirmed) return;
+
+      const toast = await showToast({
+        style: Toast.Style.Animated,
+        title: "Updating software",
+        message: "Authenticate when prompted",
+      });
+      const failures: string[] = [];
+
       if (updates.aptUpdates.length > 0) {
         try {
           await aptBackend.updateAll();
@@ -126,47 +133,50 @@ export default function UpdateCommand() {
         toast.message = "Successful sources were updated; check the refreshed list";
       }
     } finally {
-      activeOperations.current.delete("all");
+      operationLock.release("all");
     }
   };
 
   const refreshMetadata = async () => {
-    if (activeOperations.current.has("refresh")) return;
-    activeOperations.current.add("refresh");
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: "Refreshing software metadata",
-      message: aptEnabled
-        ? "Authenticate for APT when prompted"
-        : "Refreshing configured Flatpak remotes",
-    });
+    if (!operationLock.tryAcquire("refresh")) return;
 
-    const refreshes: Promise<void>[] = [];
-    if (aptEnabled) refreshes.push(aptBackend.refreshMetadata());
-    if (flatpakEnabled) refreshes.push(flatpakBackend.refreshMetadata());
-    const results = await Promise.allSettled(refreshes);
-    const failures = results.flatMap((result) => {
-      if (result.status === "fulfilled") return [];
-      if (
-        result.reason instanceof FlatpakOperationError &&
-        result.reason.kind === "unavailable"
-      ) {
-        return [];
+    try {
+      const toast = await showToast({
+        style: Toast.Style.Animated,
+        title: "Refreshing software metadata",
+        message: aptEnabled
+          ? "Authenticate for APT when prompted"
+          : "Refreshing configured Flatpak remotes",
+      });
+
+      const refreshes: Promise<void>[] = [];
+      if (aptEnabled) refreshes.push(aptBackend.refreshMetadata());
+      if (flatpakEnabled) refreshes.push(flatpakBackend.refreshMetadata());
+      const results = await Promise.allSettled(refreshes);
+      const failures = results.flatMap((result) => {
+        if (result.status === "fulfilled") return [];
+        if (
+          result.reason instanceof FlatpakOperationError &&
+          result.reason.kind === "unavailable"
+        ) {
+          return [];
+        }
+        console.error("Metadata refresh failed", result.reason);
+        return [operationErrorMessage(result.reason, "Metadata refresh failed")];
+      });
+
+      updates.reload();
+      if (failures.length === 0) {
+        toast.style = Toast.Style.Success;
+        toast.title = "Software metadata refreshed";
+        toast.message = "Checking for updates";
+      } else {
+        toast.style = Toast.Style.Failure;
+        toast.title = failures.length > 1 ? "Metadata refresh failed" : failures[0]!;
+        toast.message = "Available cached metadata will still be shown";
       }
-      console.error("Metadata refresh failed", result.reason);
-      return [operationErrorMessage(result.reason, "Metadata refresh failed")];
-    });
-
-    updates.reload();
-    activeOperations.current.delete("refresh");
-    if (failures.length === 0) {
-      toast.style = Toast.Style.Success;
-      toast.title = "Software metadata refreshed";
-      toast.message = "Checking for updates";
-    } else {
-      toast.style = Toast.Style.Failure;
-      toast.title = failures.length > 1 ? "Metadata refresh failed" : failures[0]!;
-      toast.message = "Available cached metadata will still be shown";
+    } finally {
+      operationLock.release("refresh");
     }
   };
 
@@ -196,6 +206,15 @@ export default function UpdateCommand() {
       searchBarPlaceholder="Search available updates..."
       actions={<ActionPanel>{sharedActions}</ActionPanel>}
     >
+      {totalUpdates > 0 && sourceErrors.length > 0 && (
+        <List.Item
+          id="update-source-errors"
+          title="Some update sources could not be checked"
+          subtitle={sourceErrors.join(" · ")}
+          actions={<ActionPanel>{sharedActions}</ActionPanel>}
+        />
+      )}
+
       {availableUpdates.map((update) => (
         <UpdateItem
           key={updateKey(update)}

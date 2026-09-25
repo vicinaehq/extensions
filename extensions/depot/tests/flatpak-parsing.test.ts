@@ -59,7 +59,7 @@ test("parses remotes and continues without Flathub", () => {
   assert.equal(selectFlatpakRemote([]), undefined);
 });
 
-test("searches identical remote sets only once in the preferred scope", () => {
+test("searches every configured Flatpak scope in preference order", () => {
   assert.deepEqual(
     selectFlatpakSearchScopes(
       [
@@ -68,7 +68,7 @@ test("searches identical remote sets only once in the preferred scope", () => {
       ],
       "user",
     ),
-    ["user"],
+    ["user", "system"],
   );
   assert.deepEqual(
     selectFlatpakSearchScopes(
@@ -79,6 +79,16 @@ test("searches identical remote sets only once in the preferred scope", () => {
       "user",
     ),
     ["user", "system"],
+  );
+  assert.deepEqual(
+    selectFlatpakSearchScopes(
+      [
+        { name: "flathub", scope: "user" },
+        { name: "flathub", scope: "system" },
+      ],
+      "system",
+    ),
+    ["system", "user"],
   );
 });
 
