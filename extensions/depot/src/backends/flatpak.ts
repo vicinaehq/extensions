@@ -5,8 +5,11 @@ import type {
   SoftwareUpdate,
 } from "../types";
 import { DepotOperationError } from "../errors.ts";
+import { LINUX_EXECUTABLES } from "../linux.ts";
 import {
+  C_LOCALE_ENV,
   ProcessExecutionError,
+  requireExecutable,
   runProcess,
   summarizeProcessOutput,
 } from "../utils/process";
@@ -25,13 +28,10 @@ import {
   type FlatpakSearchRecord,
   sortFlatpakScopes,
 } from "./flatpak-parsing";
-import { requireFlatpakExecutable } from "./flatpak-availability";
 
-const FLATPAK = "/usr/bin/flatpak";
 const SEARCH_LIMIT = 40;
 const SEARCH_CANDIDATE_LIMIT = 400;
 const SEARCH_TIMEOUT_MS = 20_000;
-const FLATPAK_ENV = { ...process.env, LC_ALL: "C", LANG: "C" };
 const ALL_SCOPES: readonly FlatpakScope[] = ["user", "system"];
 const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
 const SEARCH_CACHE_LIMIT = 12;
@@ -64,7 +64,7 @@ export class FlatpakBackend implements PackageBackend {
 
   constructor(
     preferredScope: FlatpakScope = "user",
-    executable = FLATPAK,
+    executable = LINUX_EXECUTABLES.flatpak,
   ) {
     this.executable = executable;
     this.preferredScope = preferredScope;
@@ -136,7 +136,7 @@ export class FlatpakBackend implements PackageBackend {
           ],
           {
             signal,
-            env: FLATPAK_ENV,
+            env: C_LOCALE_ENV,
             maxLines: SEARCH_CANDIDATE_LIMIT,
             maxOutputBytes: 1024 * 1024,
             timeoutMs: SEARCH_TIMEOUT_MS,
@@ -230,7 +230,11 @@ export class FlatpakBackend implements PackageBackend {
           target.remote,
           pkg.id,
         ],
-        { captureStdout: false, maxOutputBytes: 512 * 1024 },
+        {
+          captureStdout: false,
+          env: C_LOCALE_ENV,
+          maxOutputBytes: 512 * 1024,
+        },
       );
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
@@ -281,7 +285,7 @@ export class FlatpakBackend implements PackageBackend {
             "--app",
             "--columns=name,description,application,version,branch,origin,installation",
           ],
-          { signal, env: FLATPAK_ENV, maxOutputBytes: 512 * 1024 },
+          { signal, env: C_LOCALE_ENV, maxOutputBytes: 512 * 1024 },
         );
         return parseFlatpakInstalledApplicationsOutput(result.stdout, scope);
       }),
@@ -335,7 +339,11 @@ export class FlatpakBackend implements PackageBackend {
           "--",
           pkg.id,
         ],
-        { captureStdout: false, maxOutputBytes: 512 * 1024 },
+        {
+          captureStdout: false,
+          env: C_LOCALE_ENV,
+          maxOutputBytes: 512 * 1024,
+        },
       );
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
@@ -478,7 +486,7 @@ export class FlatpakBackend implements PackageBackend {
     const result = await runProcess(
       this.executable,
       ["remotes", scopeFlag(scope), "--columns=name"],
-      { signal, env: FLATPAK_ENV, maxOutputBytes: 128 * 1024 },
+      { signal, env: C_LOCALE_ENV, maxOutputBytes: 128 * 1024 },
     );
     return parseFlatpakRemotesOutput(result.stdout, scope);
   }
@@ -494,7 +502,7 @@ export class FlatpakBackend implements PackageBackend {
             "--app",
             "--columns=application,branch,origin,installation",
           ],
-          { signal, env: FLATPAK_ENV, maxOutputBytes: 512 * 1024 },
+          { signal, env: C_LOCALE_ENV, maxOutputBytes: 512 * 1024 },
         );
         return parseFlatpakInstalledOutput(result.stdout, scope);
       }),
@@ -524,7 +532,7 @@ export class FlatpakBackend implements PackageBackend {
       if (cached) args.splice(3, 0, "--cached");
       const result = await runProcess(this.executable, args, {
         signal,
-        env: FLATPAK_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 1024 * 1024,
         timeoutMs: SEARCH_TIMEOUT_MS,
       });
@@ -552,6 +560,7 @@ export class FlatpakBackend implements PackageBackend {
     try {
       await runProcess(this.executable, args, {
         captureStdout: false,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 1024 * 1024,
       });
     } catch (error) {
@@ -579,7 +588,7 @@ export class FlatpakBackend implements PackageBackend {
 
   private async requireExecutable(): Promise<void> {
     try {
-      await requireFlatpakExecutable(this.executable);
+      await requireExecutable(this.executable);
     } catch (error) {
       throw new FlatpakOperationError(
         "unavailable",

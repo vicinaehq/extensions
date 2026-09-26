@@ -1,10 +1,12 @@
-import { constants } from "node:fs";
-import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { FlatpakScope } from "../types";
+import { LINUX_EXECUTABLES } from "../linux.ts";
 import {
+  C_LOCALE_ENV,
   ProcessExecutionError,
+  requireExecutable,
   runProcess,
   summarizeProcessOutput,
 } from "../utils/process.ts";
@@ -16,8 +18,7 @@ import {
 } from "./types.ts";
 import { parseFlatpakBundle, parseFlatpakRef } from "./parsing.ts";
 
-const FLATPAK = "/usr/bin/flatpak";
-const COMMAND_ENV = { ...process.env, LC_ALL: "C", LANG: "C" };
+const FLATPAK = LINUX_EXECUTABLES.flatpak;
 
 export async function inspectFlatpakRef(
   filePath: string,
@@ -86,7 +87,7 @@ export async function inspectFlatpakBundle(
         ["build-import-bundle", repository, filePath],
         {
           signal,
-          env: COMMAND_ENV,
+          env: C_LOCALE_ENV,
           maxOutputBytes: 512 * 1024,
           timeoutMs: 30_000,
         },
@@ -102,12 +103,16 @@ export async function inspectFlatpakBundle(
       throw error;
     }
 
-    const branches = await runProcess(FLATPAK, ["repo", "--branches", repository], {
-      signal,
-      env: COMMAND_ENV,
-      maxOutputBytes: 64 * 1024,
-      timeoutMs: 10_000,
-    });
+    const branches = await runProcess(
+      FLATPAK,
+      ["repo", "--branches", repository],
+      {
+        signal,
+        env: C_LOCALE_ENV,
+        maxOutputBytes: 64 * 1024,
+        timeoutMs: 10_000,
+      },
+    );
     const ref = branches.stdout.split(/\r?\n/).find((line) =>
       line.trim().startsWith("app/")
     )
@@ -120,7 +125,7 @@ export async function inspectFlatpakBundle(
       ["repo", `--metadata=${ref}`, repository],
       {
         signal,
-        env: COMMAND_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 512 * 1024,
         timeoutMs: 10_000,
       },
@@ -176,7 +181,11 @@ export async function installFlatpakFile(
         fileOption,
         pkg.filePath,
       ],
-      { captureStdout: false, maxOutputBytes: 1024 * 1024 },
+      {
+        captureStdout: false,
+        env: C_LOCALE_ENV,
+        maxOutputBytes: 1024 * 1024,
+      },
     );
   } catch (error) {
     if (error instanceof ProcessExecutionError) {
@@ -215,7 +224,7 @@ async function getInstalledVersion(
   signal?: AbortSignal,
 ): Promise<string | undefined> {
   try {
-    await access(FLATPAK, constants.X_OK);
+    await requireExecutable(FLATPAK);
   } catch {
     return undefined;
   }
@@ -224,7 +233,7 @@ async function getInstalledVersion(
     ["list", scopeFlag(scope), "--app", "--columns=application,version"],
     {
       signal,
-      env: COMMAND_ENV,
+      env: C_LOCALE_ENV,
       maxOutputBytes: 512 * 1024,
       timeoutMs: 10_000,
     },
@@ -238,7 +247,7 @@ async function getInstalledVersion(
 
 async function requireFlatpak(): Promise<void> {
   try {
-    await access(FLATPAK, constants.X_OK);
+    await requireExecutable(FLATPAK);
   } catch {
     throw new LocalPackageError("unavailable", "Flatpak is not installed");
   }

@@ -1,8 +1,9 @@
-import { constants } from "node:fs";
-import { access } from "node:fs/promises";
 import { DepotOperationError } from "../errors.ts";
+import { LINUX_EXECUTABLES } from "../linux.ts";
 import {
+  C_LOCALE_ENV,
   ProcessExecutionError,
+  requireExecutable,
   runProcess,
   summarizeProcessOutput,
 } from "../utils/process.ts";
@@ -11,8 +12,7 @@ import type {
   AptDaemonRequest,
 } from "./aptdaemon.ts";
 
-const PKEXEC = "/usr/bin/pkexec";
-const COMMAND_ENV = { ...process.env, LC_ALL: "C", LANG: "C" };
+const PKEXEC = LINUX_EXECUTABLES.pkexec;
 
 export interface AptTransactionOptions {
   aptDaemonRequest?: AptDaemonRequest;
@@ -46,10 +46,13 @@ export async function runAptTransaction(
   options: AptTransactionOptions,
 ): Promise<void> {
   if (options.simulationArgs) {
-    await requireExecutable(options.directExecutable, options.unavailableMessage);
+    await requireAptExecutable(
+      options.directExecutable,
+      options.unavailableMessage,
+    );
     try {
       await runProcess(options.directExecutable, options.simulationArgs, {
-        env: COMMAND_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 1024 * 1024,
       });
     } catch (error) {
@@ -68,8 +71,15 @@ export async function runAptTransaction(
     }
   }
 
-  await requireExecutable(options.directExecutable, options.unavailableMessage);
-  await requireExecutable(PKEXEC, "Polkit authentication is not available");
+  await requireAptExecutable(options.directExecutable, options.unavailableMessage);
+  try {
+    await requireExecutable(PKEXEC);
+  } catch {
+    throw new AptTransactionError(
+      "unavailable",
+      "Polkit authentication is not available",
+    );
+  }
 
   try {
     await runProcess(
@@ -77,7 +87,7 @@ export async function runAptTransaction(
       [options.directExecutable, ...options.directArgs],
       {
         captureStdout: false,
-        env: COMMAND_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 1024 * 1024,
       },
     );
@@ -139,9 +149,9 @@ function throwTransactionError(
   throw new AptTransactionError("failed", options.failureMessage, details);
 }
 
-async function requireExecutable(path: string, message: string): Promise<void> {
+async function requireAptExecutable(path: string, message: string): Promise<void> {
   try {
-    await access(path, constants.X_OK);
+    await requireExecutable(path);
   } catch {
     throw new AptTransactionError("unavailable", message);
   }

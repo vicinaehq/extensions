@@ -1,7 +1,9 @@
 # Depot for Vicinae
 
-Search, install, integrate, remove, and update Linux software without leaving
-Vicinae.
+Depot is a Linux-only, Ubuntu-first software manager for Vicinae. It searches,
+installs, integrates, removes, and updates software without leaving the launcher.
+APT is the primary repository backend; Flatpak and local AppImage integration
+are optional Linux capabilities.
 
 **Depot Install** → type `vlc` → choose APT or Flatpak → press Enter.
 
@@ -37,7 +39,9 @@ keyboard-first, searchable, and native to Vicinae.
 ## Requirements
 
 - Vicinae 0.28.1
-- Ubuntu or another Debian-based distribution using APT
+- Ubuntu using the standard APT/dpkg toolchain (primary target)
+- Another Debian-based Linux distribution using the standard APT/dpkg paths
+  (best-effort compatibility)
 - Polkit for authenticated APT operations; Depot uses aptdaemon's D-Bus API
   when available, with `pkexec` as the compatibility fallback
 - Flatpak with a configured remote, if Flatpak support is wanted
@@ -115,11 +119,11 @@ bypasses aptdaemon's extra packaging-quality gate, not Depot's safety checks.
 Systems without aptdaemon use the direct `pkexec` fallback.
 
 To keep Depot visible while an external authentication dialog owns focus, use
-Vicinae's defaults: `close_on_focus_loss: false` and
-`pop_to_root_on_close: false`. When either behavior is enabled globally,
-Vicinae—not the extension—can hide or reset the active command. Depot does not
-silently change the user's global launcher configuration. A native desktop
-notification still reports every completed transaction.
+`close_on_focus_loss: false`. `pop_to_root_on_close: true` is compatible with
+that flow and makes an intentional close return to Vicinae Home the next time
+the launcher opens. Depot does not silently change the user's global launcher
+configuration. A native desktop notification still reports every completed
+transaction.
 
 See [SECURITY.md](SECURITY.md) for the security model and reporting guidance.
 
@@ -135,9 +139,23 @@ npm run build
 
 Use `npm run dev` while Vicinae is running for live extension development.
 
+The source tree stays intentionally direct:
+
+- `src/backends/` owns APT, Flatpak, AppStream, and desktop metadata.
+- `src/local-packages/` owns inspection and installation of user-selected files.
+- `src/hooks/` owns demand-driven command state and cancellation.
+- `src/utils/` contains small shared primitives without backend policy.
+- `src/linux.ts` is the single contract for trusted Linux executable and user
+  data paths.
+
 ## Compatibility
 
-Supported: Ubuntu and Debian-based systems using APT, with optional Flatpak.
+Primary support: Ubuntu with APT, plus optional Flatpak and local AppImages.
+
+Best effort: Debian and Ubuntu-derived Linux systems that retain the standard
+`/usr/bin` locations for APT, dpkg, Polkit, and optional Flatpak tooling. Depot
+uses absolute trusted executable paths deliberately; it does not resolve
+privileged package-manager commands through a mutable `PATH`.
 
 Not supported: Snap, DNF, pacman/AUR, Nix, and Homebrew.
 

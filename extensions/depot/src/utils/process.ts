@@ -1,4 +1,12 @@
 import { spawn } from "node:child_process";
+import { constants } from "node:fs";
+import { access } from "node:fs/promises";
+
+export const C_LOCALE_ENV = {
+  ...process.env,
+  LC_ALL: "C",
+  LANG: "C",
+};
 
 export interface ProcessResult {
   stdout: string;
@@ -57,6 +65,10 @@ export class ProcessTimeoutError extends Error {
 export function isProcessAborted(error: unknown): boolean {
   return error instanceof ProcessAbortedError ||
     (error instanceof Error && error.name === "AbortError");
+}
+
+export async function requireExecutable(path: string): Promise<void> {
+  await access(path, constants.X_OK);
 }
 
 export function summarizeProcessOutput(

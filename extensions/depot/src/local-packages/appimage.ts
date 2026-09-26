@@ -16,7 +16,8 @@ import {
 } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { basename, dirname, join, posix, relative, resolve } from "node:path";
-import { runProcess } from "../utils/process.ts";
+import { LINUX_EXECUTABLES, userDataDirectory } from "../linux.ts";
+import { C_LOCALE_ENV, runProcess } from "../utils/process.ts";
 import {
   buildManagedDesktopEntry,
   packageNameFromFile,
@@ -33,9 +34,8 @@ import {
   type ManagedAppImageRecord,
 } from "./types.ts";
 
-const UNSQUASHFS = "/usr/bin/unsquashfs";
-const UPDATE_DESKTOP_DATABASE = "/usr/bin/update-desktop-database";
-const COMMAND_ENV = { ...process.env, LC_ALL: "C", LANG: "C" };
+const UNSQUASHFS = LINUX_EXECUTABLES.unsquashfs;
+const UPDATE_DESKTOP_DATABASE = LINUX_EXECUTABLES.updateDesktopDatabase;
 const MAX_ICON_BYTES = 2 * 1024 * 1024;
 
 interface SquashfsEntry {
@@ -176,7 +176,7 @@ export async function integrateAppImage(
   const applicationsDirectory = options.applicationsDirectory ??
     join(homedir(), "Applications");
   const desktopEntriesDirectory = options.desktopEntriesDirectory ??
-    join(homedir(), ".local", "share", "applications");
+    join(userDataDirectory(), "applications");
   const iconsDirectory = join(applicationsDirectory, ".icons");
   const recordsDirectory = join(options.supportPath, "appimages");
   await Promise.all([
@@ -265,12 +265,16 @@ export async function integrateAppImage(
   if (options.refreshDesktopDatabase !== false) {
     try {
       await access(UPDATE_DESKTOP_DATABASE, constants.X_OK);
-      await runProcess(UPDATE_DESKTOP_DATABASE, [desktopEntriesDirectory], {
-        allowNonZero: true,
-        captureStdout: false,
-        maxOutputBytes: 64 * 1024,
-        timeoutMs: 10_000,
-      });
+      await runProcess(
+        UPDATE_DESKTOP_DATABASE,
+        [desktopEntriesDirectory],
+        {
+          allowNonZero: true,
+          captureStdout: false,
+          maxOutputBytes: 64 * 1024,
+          timeoutMs: 10_000,
+        },
+      );
     } catch {
       // Desktop database refresh is optional; the entry remains valid without it.
     }
@@ -300,7 +304,7 @@ async function extractType2Metadata(
       ["-ll", "-offset", String(offset), filePath, "*.desktop"],
       {
         signal,
-        env: COMMAND_ENV,
+        env: C_LOCALE_ENV,
         allowNonZero: true,
         maxOutputBytes: 256 * 1024,
         timeoutMs: 15_000,
@@ -316,7 +320,7 @@ async function extractType2Metadata(
       ["-cat", "-offset", String(offset), filePath, desktopEntry.path],
       {
         signal,
-        env: COMMAND_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 128 * 1024,
         timeoutMs: 10_000,
       },
@@ -377,7 +381,7 @@ async function extractEmbeddedPng(
       ],
       {
         signal,
-        env: COMMAND_ENV,
+        env: C_LOCALE_ENV,
         allowNonZero: true,
         maxOutputBytes: 128 * 1024,
         timeoutMs: 15_000,
@@ -411,7 +415,7 @@ async function resolveSquashfsFile(
       ["-ll", "-offset", String(offset), filePath, currentPath],
       {
         signal,
-        env: COMMAND_ENV,
+        env: C_LOCALE_ENV,
         allowNonZero: true,
         maxOutputBytes: 64 * 1024,
         timeoutMs: 10_000,

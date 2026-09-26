@@ -1,5 +1,3 @@
-import { access } from "node:fs/promises";
-import { constants } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import type {
   PackageBackend,
@@ -7,7 +5,10 @@ import type {
   SoftwareUpdate,
 } from "../types";
 import { DepotOperationError } from "../errors.ts";
+import { LINUX_EXECUTABLES } from "../linux.ts";
 import {
+  C_LOCALE_ENV,
+  requireExecutable,
   runProcess,
   summarizeProcessOutput,
 } from "../utils/process";
@@ -34,15 +35,16 @@ import {
 import { parseDesktopEntry, type DesktopEntry } from "./desktop-entry";
 import { parseAptUpgradableOutput } from "./apt-update-parsing";
 
-const APT = "/usr/bin/apt";
-const APT_CACHE = "/usr/bin/apt-cache";
-const APT_GET = "/usr/bin/apt-get";
-const APT_MARK = "/usr/bin/apt-mark";
-const DPKG_QUERY = "/usr/bin/dpkg-query";
+const {
+  apt: APT,
+  aptCache: APT_CACHE,
+  aptGet: APT_GET,
+  aptMark: APT_MARK,
+  dpkgQuery: DPKG_QUERY,
+} = LINUX_EXECUTABLES;
 const SEARCH_LIMIT = 40;
 const SEARCH_CANDIDATE_LIMIT = 800;
 const SEARCH_TIMEOUT_MS = 10_000;
-const APT_ENV = { ...process.env, LC_ALL: "C", LANG: "C" };
 const DPKG_FORMAT = "${binary:Package}\\t${db:Status-Abbrev}\\n";
 const DPKG_METADATA_FORMAT =
   "${binary:Package}\\t${db:Status-Abbrev}\\t${Essential}\\t${Priority}\\t${Section}\\n";
@@ -71,7 +73,10 @@ export class AptBackend implements PackageBackend {
   readonly source = "apt" as const;
 
   async search(query: string, signal?: AbortSignal): Promise<SoftwareItem[]> {
-    await requireExecutable(APT_CACHE, "APT search is not available");
+    await requireAptExecutable(
+      APT_CACHE,
+      "APT search is not available",
+    );
 
     const normalizedQuery = query.trim().slice(0, 100);
     if (normalizedQuery.length < 2) return [];
@@ -82,7 +87,7 @@ export class AptBackend implements PackageBackend {
       .map(escapeAptSearchPattern);
     const searchOptions = {
       signal,
-      env: APT_ENV,
+      env: C_LOCALE_ENV,
       maxLines: SEARCH_CANDIDATE_LIMIT,
       maxOutputBytes: 1024 * 1024,
       timeoutMs: SEARCH_TIMEOUT_MS,
@@ -94,7 +99,11 @@ export class AptBackend implements PackageBackend {
         ["search", "--names-only", "--", ...patterns],
         searchOptions,
       ),
-      runProcess(APT_CACHE, ["search", "--", ...patterns], searchOptions),
+      runProcess(
+        APT_CACHE,
+        ["search", "--", ...patterns],
+        searchOptions,
+      ),
     ]);
 
     signal?.throwIfAborted();
@@ -128,7 +137,7 @@ export class AptBackend implements PackageBackend {
     const result = await runProcess(
       APT_CACHE,
       ["show", "--no-all-versions", "--", id],
-      { signal, env: APT_ENV, maxOutputBytes: 512 * 1024 },
+      { signal, env: C_LOCALE_ENV, maxOutputBytes: 512 * 1024 },
     );
     const details = parseAptPackageDetails(result.stdout);
 
@@ -150,12 +159,20 @@ export class AptBackend implements PackageBackend {
 
   async isInstalled(id: string, signal?: AbortSignal): Promise<boolean> {
     assertPackageId(id);
-    await requireExecutable(DPKG_QUERY, "Installed package state is not available");
+    await requireAptExecutable(
+      DPKG_QUERY,
+      "Installed package state is not available",
+    );
 
     const result = await runProcess(
       DPKG_QUERY,
       ["--show", `--showformat=${DPKG_FORMAT}`, "--", id],
-      { signal, allowNonZero: true, env: APT_ENV, maxOutputBytes: 64 * 1024 },
+      {
+        signal,
+        allowNonZero: true,
+        env: C_LOCALE_ENV,
+        maxOutputBytes: 64 * 1024,
+      },
     );
 
     return parseDpkgStatusOutput(result.stdout).size > 0;
@@ -194,14 +211,20 @@ export class AptBackend implements PackageBackend {
   }
 
   async listInstalled(signal?: AbortSignal): Promise<SoftwareItem[]> {
-    await requireExecutable(DPKG_QUERY, "Installed package state is not available");
-    await requireExecutable(APT_MARK, "APT manual package state is not available");
+    await requireAptExecutable(
+      DPKG_QUERY,
+      "Installed package state is not available",
+    );
+    await requireAptExecutable(
+      APT_MARK,
+      "APT manual package state is not available",
+    );
 
     const [desktopFiles, manualResult] = await Promise.all([
       loadDesktopEntries(signal),
       runProcess(APT_MARK, ["showmanual"], {
         signal,
-        env: APT_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 512 * 1024,
       }),
     ]);
@@ -214,7 +237,7 @@ export class AptBackend implements PackageBackend {
         {
           signal,
           allowNonZero: true,
-          env: APT_ENV,
+          env: C_LOCALE_ENV,
           maxOutputBytes: 512 * 1024,
         },
       );
@@ -255,7 +278,10 @@ export class AptBackend implements PackageBackend {
   async remove(pkg: SoftwareItem): Promise<"removed" | "not-installed"> {
     const id = pkg.id;
     assertPackageId(id);
-    await requireExecutable(APT_GET, "APT removal is not available");
+    await requireAptExecutable(
+      APT_GET,
+      "APT removal is not available",
+    );
 
     if (pkg.source !== this.source) {
       return "not-installed";
@@ -284,7 +310,7 @@ export class AptBackend implements PackageBackend {
     const simulation = await runProcess(
       APT_GET,
       ["--simulate", "--no-auto-remove", "remove", "--", targetId],
-      { env: APT_ENV, maxOutputBytes: 1024 * 1024 },
+      { env: C_LOCALE_ENV, maxOutputBytes: 1024 * 1024 },
     );
     const planned = [...new Set(parseAptRemovalSimulation(simulation.stdout))];
     const removalPlan = inspectAptRemovalPlan(targetId, planned);
@@ -324,14 +350,17 @@ export class AptBackend implements PackageBackend {
   }
 
   async listUpdates(signal?: AbortSignal): Promise<SoftwareUpdate[]> {
-    await requireExecutable(APT, "APT update information is not available");
+    await requireAptExecutable(
+      APT,
+      "APT update information is not available",
+    );
 
     const result = await runProcess(
       APT,
       ["list", "--upgradable"],
       {
         signal,
-        env: APT_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 2 * 1024 * 1024,
         timeoutMs: 20_000,
       },
@@ -421,7 +450,10 @@ export class AptBackend implements PackageBackend {
     signal?: AbortSignal,
   ): Promise<Set<string>> {
     if (ids.length === 0) return new Set();
-    await requireExecutable(DPKG_QUERY, "Installed package state is not available");
+    await requireAptExecutable(
+      DPKG_QUERY,
+      "Installed package state is not available",
+    );
 
     const result = await runProcess(
       DPKG_QUERY,
@@ -429,7 +461,7 @@ export class AptBackend implements PackageBackend {
       {
         signal,
         allowNonZero: true,
-        env: APT_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 128 * 1024,
       },
     );
@@ -440,7 +472,7 @@ export class AptBackend implements PackageBackend {
   private async hasCandidate(id: string): Promise<boolean> {
     const result = await runProcess(APT_CACHE, ["policy", "--", id], {
       allowNonZero: true,
-      env: APT_ENV,
+      env: C_LOCALE_ENV,
       maxOutputBytes: 128 * 1024,
     });
     const candidate = result.stdout.match(/^\s*Candidate:\s*(\S+)/m)?.[1];
@@ -458,7 +490,7 @@ export class AptBackend implements PackageBackend {
       {
         signal,
         allowNonZero: true,
-        env: APT_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 512 * 1024,
       },
     );
@@ -496,9 +528,9 @@ function chunks<T>(values: readonly T[], size: number): T[][] {
   return result;
 }
 
-async function requireExecutable(path: string, message: string): Promise<void> {
+async function requireAptExecutable(path: string, message: string): Promise<void> {
   try {
-    await access(path, constants.X_OK);
+    await requireExecutable(path);
   } catch (error) {
     throw new AptOperationError("unavailable", message, String(error));
   }

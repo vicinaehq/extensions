@@ -1,16 +1,15 @@
 import { constants } from "node:fs";
 import { access, readdir } from "node:fs/promises";
-import { homedir } from "node:os";
 import { join } from "node:path";
-import { runProcess } from "../utils/process";
+import { LINUX_EXECUTABLES, userDataDirectory } from "../linux.ts";
+import { C_LOCALE_ENV, runProcess } from "../utils/process";
 import {
   appStreamSearchTerm,
   parseAppStreamSearchOutput,
   type AppStreamComponent,
 } from "./appstream-parsing";
 
-const APPSTREAM_CLI = "/usr/bin/appstreamcli";
-const APPSTREAM_ENV = { ...process.env, LC_ALL: "C", LANG: "C" };
+const APPSTREAM_CLI = LINUX_EXECUTABLES.appstreamCli;
 const SEARCH_LIMIT = 100;
 const SEARCH_MAX_LINES = 1_200;
 const SEARCH_TIMEOUT_MS = 5_000;
@@ -39,7 +38,7 @@ export class AppStreamBackend {
       ],
       {
         signal,
-        env: APPSTREAM_ENV,
+        env: C_LOCALE_ENV,
         maxLines: SEARCH_MAX_LINES,
         maxOutputBytes: 768 * 1024,
         timeoutMs: SEARCH_TIMEOUT_MS,
@@ -64,7 +63,7 @@ export class AppStreamBackend {
       ["get", "--details", "--no-color", "--", componentId],
       {
         signal,
-        env: APPSTREAM_ENV,
+        env: C_LOCALE_ENV,
         maxOutputBytes: 768 * 1024,
         timeoutMs: DETAILS_TIMEOUT_MS,
       },
@@ -131,7 +130,7 @@ async function collectIconDirectories(): Promise<string[]> {
   }
 
   for (const root of [
-    join(homedir(), ".local/share/flatpak/appstream"),
+    join(userDataDirectory(), "flatpak", "appstream"),
     "/var/lib/flatpak/appstream",
   ]) {
     for (const remote of await childDirectories(root)) {

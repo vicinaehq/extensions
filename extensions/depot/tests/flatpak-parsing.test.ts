@@ -12,7 +12,7 @@ import {
   selectFlatpakRemote,
   sortFlatpakScopes,
 } from "../src/backends/flatpak-parsing.ts";
-import { requireFlatpakExecutable } from "../src/backends/flatpak-availability.ts";
+import { requireExecutable } from "../src/utils/process.ts";
 
 test("parses Flatpak search output and ignores malformed records", () => {
   const output = [
@@ -171,5 +171,5 @@ test("validates Flatpak IDs and remote names", () => {
 });
 
 test("reports a missing Flatpak binary without failing APT", async () => {
-  await assert.rejects(requireFlatpakExecutable("/definitely/missing-flatpak"));
+  await assert.rejects(requireExecutable("/definitely/missing-flatpak"));
 });

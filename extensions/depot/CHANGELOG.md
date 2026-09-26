@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Make the support policy explicitly Linux-only and Ubuntu-first, centralize
+  trusted system executable paths, and honor `XDG_DATA_HOME` for user data.
+- Document launcher focus settings so authentication keeps Depot visible while
+  deliberate closes still return to Vicinae Home.
 - Enrich APT and Flatpak search results progressively with local AppStream names,
   descriptions, application identifiers, homepages, and cached icons.
 - Rank exact application names and IDs, desktop applications, and installed

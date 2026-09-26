@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "depot",
   "title": "Depot",
-  "description": "Install, remove, and update APT and Flatpak applications without leaving Vicinae",
+  "description": "Manage APT, Flatpak, and local AppImage software on Ubuntu and Debian-based Linux",
   "categories": ["Applications", "System"],
   "license": "MIT",
   "platforms": ["Linux"],

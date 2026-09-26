@@ -1,8 +1,9 @@
-import { constants } from "node:fs";
-import { access } from "node:fs/promises";
 import { runAptTransaction } from "../backends/apt-transaction.ts";
+import { LINUX_EXECUTABLES } from "../linux.ts";
 import {
+  C_LOCALE_ENV,
   ProcessExecutionError,
+  requireExecutable,
   runProcess,
   summarizeProcessOutput,
 } from "../utils/process.ts";
@@ -13,10 +14,8 @@ import {
 } from "./types.ts";
 import { parseDebianControl, parseInstalledDebOutput } from "./parsing.ts";
 
-const DPKG_DEB = "/usr/bin/dpkg-deb";
-const DPKG_QUERY = "/usr/bin/dpkg-query";
-const APT = "/usr/bin/apt";
-const COMMAND_ENV = { ...process.env, LC_ALL: "C", LANG: "C" };
+const { apt: APT, dpkgDeb: DPKG_DEB, dpkgQuery: DPKG_QUERY } =
+  LINUX_EXECUTABLES;
 const INSTALLED_FORMAT = "${db:Status-Abbrev}\t${Version}\n";
 
 export async function inspectDebPackage(
@@ -25,13 +24,16 @@ export async function inspectDebPackage(
   fileSize: number,
   signal?: AbortSignal,
 ): Promise<LocalDebPackage> {
-  await requireExecutable(DPKG_DEB, "Debian package inspection is not available");
+  await requireDebianExecutable(
+    DPKG_DEB,
+    "Debian package inspection is not available",
+  );
 
   let result;
   try {
     result = await runProcess(DPKG_DEB, ["--field", filePath], {
       signal,
-      env: COMMAND_ENV,
+      env: C_LOCALE_ENV,
       maxOutputBytes: 512 * 1024,
       timeoutMs: 10_000,
     });
@@ -114,7 +116,7 @@ async function installedVersion(
   signal?: AbortSignal,
 ): Promise<string | undefined> {
   try {
-    await access(DPKG_QUERY, constants.X_OK);
+    await requireExecutable(DPKG_QUERY);
   } catch {
     return undefined;
   }
@@ -124,16 +126,19 @@ async function installedVersion(
     {
       signal,
       allowNonZero: true,
-      env: COMMAND_ENV,
+      env: C_LOCALE_ENV,
       maxOutputBytes: 64 * 1024,
     },
   );
   return parseInstalledDebOutput(result.stdout)?.version;
 }
 
-async function requireExecutable(path: string, message: string): Promise<void> {
+async function requireDebianExecutable(
+  path: string,
+  message: string,
+): Promise<void> {
   try {
-    await access(path, constants.X_OK);
+    await requireExecutable(path);
   } catch {
     throw new LocalPackageError("unavailable", message);
   }

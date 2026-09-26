@@ -5,6 +5,8 @@
 Depot delegates repository package management to APT, Flatpak, and Polkit, and
 uses narrowly scoped file operations for local AppImages:
 
+- Depot is Linux-only and targets Ubuntu's standard APT/dpkg layout first.
+  Privileged tools use fixed `/usr/bin` paths rather than a mutable `PATH`.
 - Package identifiers are validated and passed as subprocess arguments with
   shell execution disabled.
 - AppStream metadata is read locally, used only for display and ranking, and
@@ -29,7 +31,8 @@ uses narrowly scoped file operations for local AppImages:
 - AppImages are untrusted local executables. Inspection checks AppImage and
   payload signatures and extracts Type 2 metadata with `unsquashfs`; it never
   executes the selected AppImage. Integration copies it to `~/Applications`
-  and does not auto-launch it.
+  and creates its desktop entry under `XDG_DATA_HOME/applications` (or the
+  standard `~/.local/share/applications` fallback) without auto-launching it.
 - AppImage desktop entries use a newly generated, quoted `Exec` value pointing
   only to the managed copy. Embedded `Exec` commands are ignored. Embedded icons
   are size-bounded and accepted only after PNG signature validation.
