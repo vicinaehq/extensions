@@ -33,7 +33,10 @@ import {
   type LocalInstallOutcome,
   type LocalPackage,
 } from "./local-packages/index.ts";
-import { reportOperationResult } from "./utils/operation-feedback";
+import {
+  reportOperationResult,
+  restoreDepotWindow,
+} from "./utils/operation-feedback";
 import { isProcessAborted } from "./utils/process";
 import { escapeMarkdown } from "./utils/package-details";
 import { LatestRequest } from "./utils/latest-request";
@@ -284,6 +287,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
       });
     } finally {
       operating.current = false;
+      restoreDepotWindow();
     }
   };
 

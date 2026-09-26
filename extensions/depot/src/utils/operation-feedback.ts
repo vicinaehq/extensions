@@ -1,7 +1,8 @@
-import { Toast } from "@vicinae/api";
-import { runProcess } from "./process.ts";
-
-const NOTIFY_SEND = "/usr/bin/notify-send";
+import {
+  Toast,
+  open,
+  sendDesktopNotification,
+} from "@vicinae/api";
 
 export interface OperationFeedback {
   status: "success" | "failure";
@@ -19,28 +20,17 @@ export function reportOperationResult(
   toast.title = feedback.title;
   toast.message = feedback.message;
 
-  void sendDesktopNotification(feedback);
+  void sendDesktopNotification({
+    title: feedback.title,
+    body: feedback.message,
+    urgency: feedback.status === "success" ? "Normal" : "High",
+  }).catch((error: unknown) => {
+    console.debug("Desktop notification could not be delivered", error);
+  });
 }
 
-async function sendDesktopNotification(
-  feedback: OperationFeedback,
-): Promise<void> {
-  try {
-    await runProcess(
-      NOTIFY_SEND,
-      [
-        "--app-name=Depot",
-        `--urgency=${feedback.status === "success" ? "normal" : "critical"}`,
-        feedback.title,
-        feedback.message,
-      ],
-      {
-        captureStdout: false,
-        maxOutputBytes: 64 * 1024,
-        timeoutMs: 5_000,
-      },
-    );
-  } catch (error) {
-    console.debug("Desktop notification could not be delivered", error);
-  }
+export function restoreDepotWindow(): void {
+  void open("vicinae://open").catch((error: unknown) => {
+    console.debug("Vicinae window could not be restored", error);
+  });
 }

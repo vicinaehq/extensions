@@ -1,5 +1,6 @@
 import { constants } from "node:fs";
 import { access } from "node:fs/promises";
+import { runAptTransaction } from "../backends/apt-transaction.ts";
 import {
   ProcessExecutionError,
   runProcess,
@@ -15,7 +16,6 @@ import { parseDebianControl, parseInstalledDebOutput } from "./parsing.ts";
 const DPKG_DEB = "/usr/bin/dpkg-deb";
 const DPKG_QUERY = "/usr/bin/dpkg-query";
 const APT = "/usr/bin/apt";
-const PKEXEC = "/usr/bin/pkexec";
 const COMMAND_ENV = { ...process.env, LC_ALL: "C", LANG: "C" };
 const INSTALLED_FORMAT = "${db:Status-Abbrev}\t${Version}\n";
 
@@ -74,46 +74,26 @@ export async function inspectDebPackage(
 export async function installDebPackage(
   pkg: LocalDebPackage,
 ): Promise<LocalInstallOutcome> {
-  await requireExecutable(APT, "APT installation is not available");
-  await requireExecutable(PKEXEC, "Polkit authentication is not available");
-
   const currentVersion = await installedVersion(pkg.packageId);
   if (currentVersion === pkg.version) return { status: "already-installed" };
 
-  try {
-    await runProcess(
-      PKEXEC,
-      [APT, "--yes", "--no-remove", "install", "--", pkg.filePath],
-      { captureStdout: false, maxOutputBytes: 1024 * 1024 },
-    );
-  } catch (error) {
-    if (error instanceof ProcessExecutionError) {
-      const details = summarizeProcessOutput(error.result.stderr);
-      if (error.result.exitCode === 126) {
-        throw new LocalPackageError("cancelled", "Installation was cancelled", details);
-      }
-      if (error.result.exitCode === 127) {
-        throw new LocalPackageError(
-          "authentication",
-          "Authentication was cancelled or denied",
-          details,
-        );
-      }
-      if (/could not get lock|unable to acquire.*lock|is another process using it/i.test(details ?? "")) {
-        throw new LocalPackageError(
-          "busy",
-          "Another package-management operation is currently running",
-          details,
-        );
-      }
-      throw new LocalPackageError(
-        "failed",
-        "Debian package installation failed",
-        details,
-      );
-    }
-    throw error;
-  }
+  await runAptTransaction({
+    aptDaemonArgs: pkg.filePath.endsWith(".deb")
+      ? ["--install", pkg.filePath]
+      : undefined,
+    directExecutable: APT,
+    directArgs: ["--yes", "--no-remove", "install", "--", pkg.filePath],
+    simulationArgs: [
+      "--simulate",
+      "--no-remove",
+      "install",
+      "--",
+      pkg.filePath,
+    ],
+    unavailableMessage: "APT installation is not available",
+    cancelledMessage: "Installation was cancelled",
+    failureMessage: "Debian package installation failed",
+  });
 
   const installed = await installedVersion(pkg.packageId);
   if (!installed) {

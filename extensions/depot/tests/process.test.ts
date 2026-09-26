@@ -17,6 +17,13 @@ test("passes arguments literally without shell interpretation", async () => {
   assert.equal(result.stdout, value);
 });
 
+test("writes explicit process input without invoking a shell", async () => {
+  const input = "yes\n$(printf not-executed)\n";
+  const result = await runProcess("/usr/bin/cat", [], { input });
+
+  assert.equal(result.stdout, input);
+});
+
 test("aborts an active child process", async () => {
   const controller = new AbortController();
   const pending = runProcess(

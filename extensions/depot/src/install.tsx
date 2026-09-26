@@ -21,7 +21,10 @@ import { useAppStreamSearch } from "./hooks/use-appstream-search";
 import { useAptSearch } from "./hooks/use-apt-search";
 import { useFlatpakSearch } from "./hooks/use-flatpak-search";
 import type { DepotPreferences, SoftwareItem } from "./types";
-import { reportOperationResult } from "./utils/operation-feedback";
+import {
+  reportOperationResult,
+  restoreDepotWindow,
+} from "./utils/operation-feedback";
 import { installAccessories } from "./utils/software-accessories";
 import {
   rankSoftwareResults,
@@ -102,6 +105,7 @@ export default function InstallCommand() {
       });
     } finally {
       installing.current.delete(installKey);
+      restoreDepotWindow();
     }
   };
 

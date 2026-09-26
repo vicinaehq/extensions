@@ -29,6 +29,11 @@
 - Report install, integration, removal, update, and metadata-refresh results with
   one-shot desktop notifications, so completion remains visible when an external
   Polkit dialog causes Vicinae to hide.
+- Restore the existing Vicinae command after external authentication, preserving
+  its search and navigation state for the next action.
+- Prefer aptdaemon's demand-activated APT transaction service when available so
+  system-managed authorization can be reused briefly and future package batches
+  can run as one transaction; retain `pkexec` as the portable fallback.
 
 ## 1.0.0 - 2026-09-25
 

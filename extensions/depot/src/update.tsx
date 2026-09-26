@@ -33,7 +33,10 @@ import {
   sortSoftwareAlphabetically,
 } from "./utils/software-results";
 import { OperationLock } from "./utils/operation-lock";
-import { reportOperationResult } from "./utils/operation-feedback";
+import {
+  reportOperationResult,
+  restoreDepotWindow,
+} from "./utils/operation-feedback";
 import { updateSourceErrors } from "./utils/update-errors";
 
 export default function UpdateCommand() {
@@ -99,6 +102,7 @@ export default function UpdateCommand() {
       }
     } finally {
       operationLock.release(key);
+      restoreDepotWindow();
     }
   };
 
@@ -162,6 +166,7 @@ export default function UpdateCommand() {
       }
     } finally {
       operationLock.release("all");
+      restoreDepotWindow();
     }
   };
 
@@ -216,6 +221,7 @@ export default function UpdateCommand() {
       }
     } finally {
       operationLock.release("refresh");
+      restoreDepotWindow();
     }
   };
 

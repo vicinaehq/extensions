@@ -8,10 +8,13 @@ import type {
 } from "../types";
 import { DepotOperationError } from "../errors.ts";
 import {
-  ProcessExecutionError,
   runProcess,
   summarizeProcessOutput,
 } from "../utils/process";
+import {
+  aptDaemonPackageArgs,
+  runAptTransaction,
+} from "./apt-transaction.ts";
 import {
   escapeAptSearchPattern,
   isValidAptPackageId,
@@ -37,7 +40,6 @@ const APT_CACHE = "/usr/bin/apt-cache";
 const APT_GET = "/usr/bin/apt-get";
 const APT_MARK = "/usr/bin/apt-mark";
 const DPKG_QUERY = "/usr/bin/dpkg-query";
-const PKEXEC = "/usr/bin/pkexec";
 const SEARCH_LIMIT = 40;
 const SEARCH_CANDIDATE_LIMIT = 800;
 const SEARCH_TIMEOUT_MS = 10_000;
@@ -163,8 +165,6 @@ export class AptBackend implements PackageBackend {
   async install(pkg: SoftwareItem): Promise<"installed" | "already-installed"> {
     const id = pkg.id;
     assertPackageId(id);
-    await requireExecutable(APT_GET, "APT installation is not available");
-    await requireExecutable(PKEXEC, "Polkit authentication is not available");
 
     if (await this.isInstalled(id)) return "already-installed";
     if (!(await this.hasCandidate(id))) {
@@ -174,29 +174,15 @@ export class AptBackend implements PackageBackend {
       );
     }
 
-    try {
-      await runProcess(
-        PKEXEC,
-        [APT_GET, "--yes", "--no-remove", "install", "--", id],
-        { captureStdout: false, maxOutputBytes: 512 * 1024 },
-      );
-    } catch (error) {
-      if (error instanceof ProcessExecutionError) {
-        const details = summarizeProcessOutput(error.result.stderr);
-        if (error.result.exitCode === 126) {
-          throw new AptOperationError("cancelled", "Installation was cancelled", details);
-        }
-        if (error.result.exitCode === 127) {
-          throw new AptOperationError(
-            "authentication",
-            "Authentication was cancelled or denied",
-            details,
-          );
-        }
-        throw new AptOperationError("failed", "Package installation failed", details);
-      }
-      throw error;
-    }
+    await runAptTransaction({
+      aptDaemonArgs: aptDaemonPackageArgs("install", [id]),
+      directExecutable: APT_GET,
+      directArgs: ["--yes", "--no-remove", "install", "--", id],
+      simulationArgs: ["--simulate", "--no-remove", "install", "--", id],
+      unavailableMessage: "APT installation is not available",
+      cancelledMessage: "Installation was cancelled",
+      failureMessage: "Package installation failed",
+    });
 
     if (!(await this.isInstalled(id))) {
       throw new AptOperationError(
@@ -271,7 +257,6 @@ export class AptBackend implements PackageBackend {
     const id = pkg.id;
     assertPackageId(id);
     await requireExecutable(APT_GET, "APT removal is not available");
-    await requireExecutable(PKEXEC, "Polkit authentication is not available");
 
     if (pkg.source !== this.source) {
       return "not-installed";
@@ -320,29 +305,14 @@ export class AptBackend implements PackageBackend {
       );
     }
 
-    try {
-      await runProcess(
-        PKEXEC,
-        [APT_GET, "--yes", "--no-auto-remove", "remove", "--", targetId],
-        { captureStdout: false, maxOutputBytes: 512 * 1024 },
-      );
-    } catch (error) {
-      if (error instanceof ProcessExecutionError) {
-        const details = summarizeProcessOutput(error.result.stderr);
-        if (error.result.exitCode === 126) {
-          throw new AptOperationError("cancelled", "Removal was cancelled", details);
-        }
-        if (error.result.exitCode === 127) {
-          throw new AptOperationError(
-            "authentication",
-            "Authentication was cancelled or denied",
-            details,
-          );
-        }
-        throw new AptOperationError("failed", "Package removal failed", details);
-      }
-      throw error;
-    }
+    await runAptTransaction({
+      aptDaemonArgs: aptDaemonPackageArgs("remove", [targetId]),
+      directExecutable: APT_GET,
+      directArgs: ["--yes", "--no-auto-remove", "remove", "--", targetId],
+      unavailableMessage: "APT removal is not available",
+      cancelledMessage: "Removal was cancelled",
+      failureMessage: "Package removal failed",
+    });
 
     if (await this.isInstalled(targetId)) {
       throw new AptOperationError(
@@ -394,28 +364,57 @@ export class AptBackend implements PackageBackend {
       throw new AptOperationError("not-found", "APT package is not installed");
     }
 
-    await this.runPrivilegedApt(
-      ["--yes", "--no-remove", "--only-upgrade", "install", "--", pkg.id],
-      "Update was cancelled",
-      "Package update failed",
-    );
+    await runAptTransaction({
+      aptDaemonArgs: aptDaemonPackageArgs("upgrade", [pkg.id]),
+      directExecutable: APT_GET,
+      directArgs: [
+        "--yes",
+        "--no-remove",
+        "--only-upgrade",
+        "install",
+        "--",
+        pkg.id,
+      ],
+      simulationArgs: [
+        "--simulate",
+        "--no-remove",
+        "--only-upgrade",
+        "install",
+        "--",
+        pkg.id,
+      ],
+      unavailableMessage: "APT package management is not available",
+      cancelledMessage: "Update was cancelled",
+      failureMessage: "Package update failed",
+    });
   }
 
   async updateAll(): Promise<void> {
-    if ((await this.listUpdates()).length === 0) return;
-    await this.runPrivilegedApt(
-      ["--yes", "--no-remove", "upgrade"],
-      "Update was cancelled",
-      "APT update failed",
-    );
+    const updates = await this.listUpdates();
+    if (updates.length === 0) return;
+    await runAptTransaction({
+      aptDaemonArgs: aptDaemonPackageArgs(
+        "upgrade",
+        updates.map((update) => update.id),
+      ),
+      directExecutable: APT_GET,
+      directArgs: ["--yes", "--no-remove", "upgrade"],
+      simulationArgs: ["--simulate", "--no-remove", "upgrade"],
+      unavailableMessage: "APT package management is not available",
+      cancelledMessage: "Update was cancelled",
+      failureMessage: "APT update failed",
+    });
   }
 
   async refreshMetadata(): Promise<void> {
-    await this.runPrivilegedApt(
-      ["update"],
-      "Metadata refresh was cancelled",
-      "APT package metadata refresh failed",
-    );
+    await runAptTransaction({
+      aptDaemonArgs: ["--refresh"],
+      directExecutable: APT_GET,
+      directArgs: ["update"],
+      unavailableMessage: "APT package management is not available",
+      cancelledMessage: "Metadata refresh was cancelled",
+      failureMessage: "APT package metadata refresh failed",
+    });
   }
 
   private async getInstalledPackageIds(
@@ -465,38 +464,6 @@ export class AptBackend implements PackageBackend {
       },
     );
     return parseDpkgInstalledMetadata(result.stdout);
-  }
-
-  private async runPrivilegedApt(
-    args: readonly string[],
-    cancelledMessage: string,
-    failureMessage: string,
-  ): Promise<void> {
-    await requireExecutable(APT_GET, "APT package management is not available");
-    await requireExecutable(PKEXEC, "Polkit authentication is not available");
-
-    try {
-      await runProcess(PKEXEC, [APT_GET, ...args], {
-        captureStdout: false,
-        maxOutputBytes: 1024 * 1024,
-      });
-    } catch (error) {
-      if (error instanceof ProcessExecutionError) {
-        const details = summarizeProcessOutput(error.result.stderr);
-        if (error.result.exitCode === 126) {
-          throw new AptOperationError("cancelled", cancelledMessage, details);
-        }
-        if (error.result.exitCode === 127) {
-          throw new AptOperationError(
-            "authentication",
-            "Authentication was cancelled or denied",
-            details,
-          );
-        }
-        throw new AptOperationError("failed", failureMessage, details);
-      }
-      throw error;
-    }
   }
 }
 

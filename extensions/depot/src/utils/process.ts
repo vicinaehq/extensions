@@ -12,6 +12,7 @@ export interface ProcessOptions {
   signal?: AbortSignal;
   allowNonZero?: boolean;
   captureStdout?: boolean;
+  input?: string | Buffer;
   maxOutputBytes?: number;
   maxLines?: number;
   timeoutMs?: number;
@@ -79,8 +80,12 @@ export function runProcess(
     const child = spawn(file, [...args], {
       env: options.env,
       shell: false,
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: [options.input === undefined ? "ignore" : "pipe", "pipe", "pipe"],
     });
+
+    if (options.input !== undefined) {
+      child.stdin?.end(options.input);
+    }
 
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
@@ -116,7 +121,7 @@ export function runProcess(
       }, options.timeoutMs);
     }
 
-    child.stdout.on("data", (chunk: Buffer) => {
+    child.stdout!.on("data", (chunk: Buffer) => {
       stdoutBytes += chunk.length;
       if (captureStdout) stdoutChunks.push(chunk);
       lineCount += chunk.toString("utf8").split("\n").length - 1;
@@ -131,7 +136,7 @@ export function runProcess(
       }
     });
 
-    child.stderr.on("data", (chunk: Buffer) => {
+    child.stderr!.on("data", (chunk: Buffer) => {
       stderrBytes += chunk.length;
       if (stderrBytes <= maxOutputBytes) stderrChunks.push(chunk);
       if (stderrBytes > maxOutputBytes) {

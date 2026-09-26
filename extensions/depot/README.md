@@ -38,7 +38,8 @@ keyboard-first, searchable, and native to Vicinae.
 
 - Vicinae 0.28.1
 - Ubuntu or another Debian-based distribution using APT
-- Polkit and `pkexec` for authenticated APT operations
+- Polkit for authenticated APT operations; aptdaemon is used when available,
+  with `pkexec` as the compatibility fallback
 - Flatpak with a configured remote, if Flatpak support is wanted
 - `dpkg-deb` for local Debian package inspection
 - `unsquashfs` for optional AppImage desktop metadata and icon extraction
@@ -105,11 +106,15 @@ never discovers repositories, imports keys itself, stores passwords, invokes a
 shell, or performs package operations without an explicit user action.
 
 APT authentication is owned by the system's Polkit policy. Depot never sees or
-caches the password. On systems where Vicinae closes on focus loss, the launcher
-may hide while the external authentication dialog is active; Depot sends a
-one-shot desktop notification when the requested operation succeeds or fails.
-Users who prefer Vicinae to remain visible can disable **Close on focus loss** in
-Vicinae's settings. Depot does not change that setting automatically.
+caches the password. When aptdaemon is installed, Depot uses its demand-activated
+transaction service so the system can retain authorization for its normal short
+grace period and so multiple package IDs can share one transaction. Systems
+without aptdaemon keep the direct `pkexec` fallback.
+
+An external authentication dialog can still make Vicinae hide when **Close on
+focus loss** is enabled. Depot reopens the existing window after the transaction,
+preserving the command and navigation state, and also sends a desktop result
+notification. Depot does not change the user's global Vicinae setting.
 
 See [SECURITY.md](SECURITY.md) for the security model and reporting guidance.
 
@@ -139,10 +144,9 @@ Known limitations:
   icons or screenshots.
 - The first Flatpak search can be slower while the Flatpak CLI queries remotes.
 - Packages requiring terminal-based configuration may not install successfully.
-- Some Polkit policies require authentication for every privileged APT action.
-  Depot does not weaken those policies or retain credentials between actions.
-- Desktop completion notifications require the optional `notify-send` command;
-  the in-window result toast remains available when it is absent.
+- On systems without an authenticated transaction broker, the `pkexec` fallback
+  may require authentication for every privileged APT action. Depot does not
+  weaken system policy or retain credentials itself.
 - Type 1 AppImages can be validated and integrated, but embedded metadata
   extraction currently targets the modern Type 2 SquashFS format.
 - Embedded AppImage icons are accepted only when they are bounded, valid PNG
