@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import type {
   PackageBackend,
+  SoftwareOperationOptions,
   SoftwareItem,
   SoftwareUpdate,
 } from "../types";
@@ -178,7 +179,10 @@ export class AptBackend implements PackageBackend {
     return parseDpkgStatusOutput(result.stdout).size > 0;
   }
 
-  async install(pkg: SoftwareItem): Promise<"installed" | "already-installed"> {
+  async install(
+    pkg: SoftwareItem,
+    options?: SoftwareOperationOptions,
+  ): Promise<"installed" | "already-installed"> {
     const id = pkg.id;
     assertPackageId(id);
 
@@ -198,7 +202,7 @@ export class AptBackend implements PackageBackend {
       unavailableMessage: "APT installation is not available",
       cancelledMessage: "Installation was cancelled",
       failureMessage: "Package installation failed",
-    });
+    }, options);
 
     if (!(await this.isInstalled(id))) {
       throw new AptOperationError(
@@ -275,7 +279,10 @@ export class AptBackend implements PackageBackend {
       .sort((left, right) => left.name.localeCompare(right.name));
   }
 
-  async remove(pkg: SoftwareItem): Promise<"removed" | "not-installed"> {
+  async remove(
+    pkg: SoftwareItem,
+    options?: SoftwareOperationOptions,
+  ): Promise<"removed" | "not-installed"> {
     const id = pkg.id;
     assertPackageId(id);
     await requireAptExecutable(
@@ -337,7 +344,7 @@ export class AptBackend implements PackageBackend {
       unavailableMessage: "APT removal is not available",
       cancelledMessage: "Removal was cancelled",
       failureMessage: "Package removal failed",
-    });
+    }, options);
 
     if (await this.isInstalled(targetId)) {
       throw new AptOperationError(
@@ -383,7 +390,10 @@ export class AptBackend implements PackageBackend {
       );
   }
 
-  async update(pkg: SoftwareUpdate): Promise<void> {
+  async update(
+    pkg: SoftwareUpdate,
+    options?: SoftwareOperationOptions,
+  ): Promise<void> {
     if (pkg.source !== this.source) {
       throw new AptOperationError("not-found", "Invalid APT update target");
     }
@@ -414,10 +424,10 @@ export class AptBackend implements PackageBackend {
       unavailableMessage: "APT package management is not available",
       cancelledMessage: "Update was cancelled",
       failureMessage: "Package update failed",
-    });
+    }, options);
   }
 
-  async updateAll(): Promise<void> {
+  async updateAll(options?: SoftwareOperationOptions): Promise<void> {
     const updates = await this.listUpdates();
     if (updates.length === 0) return;
     await runAptTransaction({
@@ -431,10 +441,10 @@ export class AptBackend implements PackageBackend {
       unavailableMessage: "APT package management is not available",
       cancelledMessage: "Update was cancelled",
       failureMessage: "APT update failed",
-    });
+    }, options);
   }
 
-  async refreshMetadata(): Promise<void> {
+  async refreshMetadata(options?: SoftwareOperationOptions): Promise<void> {
     await runAptTransaction({
       aptDaemonRequest: { kind: "refresh-cache" },
       directExecutable: APT_GET,
@@ -442,7 +452,7 @@ export class AptBackend implements PackageBackend {
       unavailableMessage: "APT package management is not available",
       cancelledMessage: "Metadata refresh was cancelled",
       failureMessage: "APT package metadata refresh failed",
-    });
+    }, options);
   }
 
   private async getInstalledPackageIds(

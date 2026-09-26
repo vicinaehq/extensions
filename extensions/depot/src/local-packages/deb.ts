@@ -12,6 +12,7 @@ import {
   type LocalDebPackage,
   type LocalInstallOutcome,
 } from "./types.ts";
+import type { SoftwareOperationOptions } from "../types.ts";
 import { parseDebianControl, parseInstalledDebOutput } from "./parsing.ts";
 
 const { apt: APT, dpkgDeb: DPKG_DEB, dpkgQuery: DPKG_QUERY } =
@@ -75,6 +76,7 @@ export async function inspectDebPackage(
 
 export async function installDebPackage(
   pkg: LocalDebPackage,
+  options?: SoftwareOperationOptions,
 ): Promise<LocalInstallOutcome> {
   const currentVersion = await installedVersion(pkg.packageId);
   if (currentVersion === pkg.version) return { status: "already-installed" };
@@ -99,7 +101,7 @@ export async function installDebPackage(
     unavailableMessage: "APT installation is not available",
     cancelledMessage: "Installation was cancelled",
     failureMessage: "Debian package installation failed",
-  });
+  }, options);
 
   const installed = await installedVersion(pkg.packageId);
   if (!installed) {

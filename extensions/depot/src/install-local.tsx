@@ -18,11 +18,14 @@ import { homedir } from "node:os";
 import { basename, dirname, extname, join } from "node:path";
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedValue } from "./hooks/use-debounced-value";
+import { useSoftwareOperation } from "./hooks/use-software-operation";
+import { RecentActionsAction } from "./components/recent-actions";
 import {
   isOperationCancelled,
   operationErrorMessage,
 } from "./errors.ts";
 import type { DepotPreferences } from "./types";
+import { recordRecentAction } from "./recent-actions";
 import {
   LocalPackageError,
   formatFileSize,
@@ -33,7 +36,10 @@ import {
   localPackageSourceLabel,
   type LocalPackage,
 } from "./local-packages/index.ts";
-import { reportOperationResult } from "./utils/operation-feedback";
+import {
+  reportOperationResult,
+  updateOperationToast,
+} from "./utils/operation-feedback";
 import { isProcessAborted } from "./utils/process";
 import { escapeMarkdown } from "./utils/package-details";
 import { LatestRequest } from "./utils/latest-request";
@@ -125,6 +131,7 @@ export default function InstallLocalPackageCommand() {
       onSearchTextChange={setSearchText}
       filtering={false}
       isLoading={isLoading}
+      actions={<ActionPanel><RecentActionsAction /></ActionPanel>}
     >
       {files.map((file) => (
         <List.Item
@@ -143,6 +150,7 @@ export default function InstallLocalPackageCommand() {
               />
               <Action.ShowInFinder title="Show Package File" path={file.path} select />
               <Action.CopyToClipboard title="Copy File Path" content={file.path} />
+              <RecentActionsAction />
             </ActionPanel>
           }
         />
@@ -217,6 +225,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
   const [pkg, setPackage] = useState<LocalPackage>();
   const [error, setError] = useState<string>();
   const operating = useRef(false);
+  const operation = useSoftwareOperation();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -253,10 +262,27 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
         : `Installing ${pkg.name}`,
       message: operationMessage(pkg),
     });
+    const operationOptions = operation.start(
+      filePath,
+      (progress) => updateOperationToast(toast, progress),
+    );
     try {
       const result = await installLocalPackage(pkg, {
         appImageSupportPath: environment.supportPath,
+        ...operationOptions,
       });
+      if (result.status === "installed") {
+        await recordRecentAction({
+          kind: pkg.kind === "appimage" ? "integrated" : "installed",
+          name: pkg.name,
+          identifier: localPackageIdentifier(pkg) ?? pkg.fileName,
+          source: pkg.kind === "deb"
+            ? "APT"
+            : pkg.kind === "appimage"
+            ? "AppImage"
+            : "Flatpak",
+        });
+      }
       reportOperationResult(toast, {
         status: "success",
         title: result.status === "already-installed"
@@ -282,6 +308,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
         message: pkg.fileName,
       });
     } finally {
+      operation.finish(filePath);
       operating.current = false;
     }
   };
@@ -307,6 +334,15 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
               onAction={install}
             />
           )}
+          {operation.isCancellable(filePath) && (
+            <Action
+              title="Cancel Installation"
+              icon={Icon.XMarkCircle}
+              style={Action.Style.Destructive}
+              shortcut={{ modifiers: ["ctrl"], key: "x" }}
+              onAction={() => operation.cancel(filePath)}
+            />
+          )}
           <Action.ShowInFinder
             title="Show Package File"
             path={filePath}
@@ -329,6 +365,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
               url={pkg.homepage}
             />
           )}
+          <RecentActionsAction />
         </ActionPanel>
       }
     />

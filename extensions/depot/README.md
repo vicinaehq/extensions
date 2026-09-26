@@ -29,7 +29,10 @@ keyboard-first, searchable, and native to Vicinae.
 - Friendly application names, summaries, and icons from local AppStream metadata
 - Installed-state detection and package details
 - Graphical Polkit authentication for APT operations
+- Truthful APT transaction phases and aptdaemon-reported progress
 - Desktop completion notifications for explicit package operations
+- Safe APT cancellation when aptdaemon marks a transaction cancellable
+- A bounded, local recent-actions list
 - User- or system-scoped Flatpak support
 - Metadata review before any local package installation
 - User-level AppImage integration under `~/Applications`
@@ -101,6 +104,20 @@ AppStream uses the operating system's existing local metadata and cache. Depot
 does not download a catalogue, build its own package database, run a daemon, or
 perform work while Vicinae is idle.
 
+## Transactions and recent actions
+
+APT operations show the phase and percentage reported by aptdaemon. When that
+backend explicitly marks a transaction cancellable, **Cancel** appears in the
+action panel with `Ctrl+X`. Depot does not terminate APT, dpkg, Flatpak, or
+`pkexec` processes arbitrarily. Backends without reliable progress expose an
+honest working state instead of a fabricated percentage.
+
+Successful installs, AppImage integrations, removals, and updates appear under
+**Recent Actions** in command action panels. Depot keeps at most 25 summaries in
+Vicinae's local extension storage. It does not copy package-manager logs, paths
+unrelated to the action, or authentication data. The list can be cleared from
+its action panel.
+
 ## Security
 
 Repository search uses only APT sources and Flatpak remotes already configured
@@ -169,7 +186,9 @@ Known limitations:
 - Packages requiring terminal-based configuration may not install successfully.
 - On systems without an authenticated transaction broker, the `pkexec` fallback
   may require authentication for every privileged APT action. Depot does not
-  weaken system policy or retain credentials itself.
+  weaken system policy or retain credentials itself. That fallback also does
+  not expose cancellation or exact progress because interrupting it would be
+  unsafe.
 - Type 1 AppImages can be validated and integrated, but embedded metadata
   extraction currently targets the modern Type 2 SquashFS format.
 - Embedded AppImage icons are accepted only when they are bounded, valid PNG

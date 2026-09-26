@@ -14,13 +14,19 @@ import { useMemo, useRef } from "react";
 import { aptBackend } from "./backends/apt";
 import { FlatpakBackend } from "./backends/flatpak";
 import { ShowSoftwareDetailsAction } from "./components/software-details";
+import { RecentActionsAction } from "./components/recent-actions";
 import {
   isOperationCancelled,
   operationErrorMessage,
 } from "./errors.ts";
 import { useInstalledSoftware } from "./hooks/use-installed-software";
+import { useSoftwareOperation } from "./hooks/use-software-operation";
 import type { DepotPreferences, SoftwareItem } from "./types";
-import { reportOperationResult } from "./utils/operation-feedback";
+import { recordRecentAction } from "./recent-actions";
+import {
+  reportOperationResult,
+  updateOperationToast,
+} from "./utils/operation-feedback";
 import {
   removeAccessories,
   softwareSourceLabel,
@@ -46,6 +52,7 @@ export default function RemoveCommand() {
     flatpakEnabled,
   );
   const removing = useRef(new Set<string>());
+  const operation = useSoftwareOperation();
   const packages = sortSoftwareAlphabetically([
     ...installed.aptPackages,
     ...installed.flatpakPackages,
@@ -76,12 +83,24 @@ export default function RemoveCommand() {
       title: `Removing ${pkg.name}`,
       message: pkg.source === "apt" ? "Authenticate when prompted" : source,
     });
+    const options = operation.start(
+      key,
+      (progress) => updateOperationToast(toast, progress),
+    );
 
     try {
       const outcome = pkg.source === "apt"
-        ? await aptBackend.remove(pkg)
-        : await flatpakBackend.remove(pkg);
+        ? await aptBackend.remove(pkg, options)
+        : await flatpakBackend.remove(pkg, options);
       installed.removeFromList(pkg);
+      if (outcome === "removed") {
+        await recordRecentAction({
+          kind: "removed",
+          name: pkg.name,
+          identifier: pkg.id,
+          source: pkg.source === "apt" ? "APT" : "Flatpak",
+        });
+      }
       reportOperationResult(toast, {
         status: "success",
         title: outcome === "not-installed"
@@ -101,6 +120,7 @@ export default function RemoveCommand() {
         message: pkg.id,
       });
     } finally {
+      operation.finish(key);
       removing.current.delete(key);
     }
   };
@@ -109,12 +129,16 @@ export default function RemoveCommand() {
     <List
       isLoading={installed.isLoading}
       searchBarPlaceholder="Search installed applications..."
+      actions={<ActionPanel><RecentActionsAction /></ActionPanel>}
     >
       {packages.map((pkg) => (
         <InstalledItem
           key={softwareItemKey(pkg)}
           pkg={pkg}
           onRemove={() => remove(pkg)}
+          onCancel={operation.isCancellable(softwareItemKey(pkg))
+            ? () => operation.cancel(softwareItemKey(pkg))
+            : undefined}
           onRefresh={installed.refresh}
         />
       ))}
@@ -176,6 +200,7 @@ function InstalledSoftwareEmptyView({
             icon={Icon.Cog}
             onAction={() => openExtensionPreferences()}
           />
+          <RecentActionsAction />
         </ActionPanel>
       }
     />
@@ -185,10 +210,12 @@ function InstalledSoftwareEmptyView({
 function InstalledItem({
   pkg,
   onRemove,
+  onCancel,
   onRefresh,
 }: {
   pkg: SoftwareItem;
   onRemove(): void;
+  onCancel?: () => void;
   onRefresh(): void;
 }) {
   const source = softwareSourceLabel(pkg, "scope");
@@ -203,9 +230,15 @@ function InstalledItem({
       actions={
         <ActionPanel>
           <RemoveAction onRemove={onRemove} />
+          {onCancel && <CancelRemovalAction onCancel={onCancel} />}
           <ShowSoftwareDetailsAction
             pkg={pkg}
-            primaryActions={<RemoveAction onRemove={onRemove} />}
+            primaryActions={
+              <>
+                <RemoveAction onRemove={onRemove} />
+                {onCancel && <CancelRemovalAction onCancel={onCancel} />}
+              </>
+            }
           />
           <Action.CopyToClipboard title="Copy Package ID" content={pkg.id} />
           <Action
@@ -213,8 +246,21 @@ function InstalledItem({
             icon={Icon.ArrowClockwise}
             onAction={onRefresh}
           />
+          <RecentActionsAction />
         </ActionPanel>
       }
+    />
+  );
+}
+
+function CancelRemovalAction({ onCancel }: { onCancel(): void }) {
+  return (
+    <Action
+      title="Cancel Removal"
+      icon={Icon.XMarkCircle}
+      style={Action.Style.Destructive}
+      shortcut={{ modifiers: ["ctrl"], key: "x" }}
+      onAction={onCancel}
     />
   );
 }

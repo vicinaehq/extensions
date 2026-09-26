@@ -11,6 +11,7 @@ import type {
   AptDaemonError,
   AptDaemonRequest,
 } from "./aptdaemon.ts";
+import type { SoftwareOperationOptions } from "../types.ts";
 
 const PKEXEC = LINUX_EXECUTABLES.pkexec;
 
@@ -44,8 +45,13 @@ export class AptTransactionError
 
 export async function runAptTransaction(
   options: AptTransactionOptions,
+  operation: SoftwareOperationOptions = {},
 ): Promise<void> {
   if (options.simulationArgs) {
+    operation.onProgress?.({
+      message: "Checking transaction safety",
+      cancellable: false,
+    });
     await requireAptExecutable(
       options.directExecutable,
       options.unavailableMessage,
@@ -63,7 +69,10 @@ export async function runAptTransaction(
   if (options.aptDaemonRequest) {
     const aptdaemon = await import("./aptdaemon.ts");
     try {
-      await aptdaemon.runAptDaemonTransaction(options.aptDaemonRequest);
+      await aptdaemon.runAptDaemonTransaction(
+        options.aptDaemonRequest,
+        operation,
+      );
       return;
     } catch (error) {
       if (!(error instanceof aptdaemon.AptDaemonError)) throw error;
@@ -81,6 +90,10 @@ export async function runAptTransaction(
     );
   }
 
+  operation.onProgress?.({
+    message: "APT is working",
+    cancellable: false,
+  });
   try {
     await runProcess(
       PKEXEC,

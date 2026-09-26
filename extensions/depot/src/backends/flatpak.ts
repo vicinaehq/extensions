@@ -1,6 +1,7 @@
 import type {
   FlatpakScope,
   PackageBackend,
+  SoftwareOperationOptions,
   SoftwareItem,
   SoftwareUpdate,
 } from "../types";
@@ -194,9 +195,16 @@ export class FlatpakBackend implements PackageBackend {
     return (await this.listInstalledRecords(signal)).some((app) => app.id === id);
   }
 
-  async install(pkg: SoftwareItem): Promise<"installed" | "already-installed"> {
+  async install(
+    pkg: SoftwareItem,
+    options?: SoftwareOperationOptions,
+  ): Promise<"installed" | "already-installed"> {
     assertAppId(pkg.id);
     await this.requireExecutable();
+    options?.onProgress?.({
+      message: "Checking Flatpak installation",
+      cancellable: false,
+    });
 
     const target = pkg.flatpak;
     if (
@@ -219,6 +227,10 @@ export class FlatpakBackend implements PackageBackend {
     }
 
     try {
+      options?.onProgress?.({
+        message: "Installing with Flatpak",
+        cancellable: false,
+      });
       await runProcess(
         this.executable,
         [
@@ -309,9 +321,16 @@ export class FlatpakBackend implements PackageBackend {
       .sort((left, right) => left.name.localeCompare(right.name));
   }
 
-  async remove(pkg: SoftwareItem): Promise<"removed" | "not-installed"> {
+  async remove(
+    pkg: SoftwareItem,
+    options?: SoftwareOperationOptions,
+  ): Promise<"removed" | "not-installed"> {
     assertAppId(pkg.id);
     await this.requireExecutable();
+    options?.onProgress?.({
+      message: "Checking Flatpak installation",
+      cancellable: false,
+    });
 
     const target = pkg.flatpak;
     if (
@@ -328,6 +347,10 @@ export class FlatpakBackend implements PackageBackend {
     if (!isInstalledInScope) return "not-installed";
 
     try {
+      options?.onProgress?.({
+        message: "Removing with Flatpak",
+        cancellable: false,
+      });
       await runProcess(
         this.executable,
         [
@@ -412,8 +435,15 @@ export class FlatpakBackend implements PackageBackend {
     }).sort((left, right) => left.name.localeCompare(right.name));
   }
 
-  async update(pkg: SoftwareUpdate): Promise<void> {
+  async update(
+    pkg: SoftwareUpdate,
+    options?: SoftwareOperationOptions,
+  ): Promise<void> {
     assertAppId(pkg.id);
+    options?.onProgress?.({
+      message: "Checking Flatpak installation",
+      cancellable: false,
+    });
     const target = pkg.flatpak;
     if (
       pkg.source !== this.source ||
@@ -441,10 +471,15 @@ export class FlatpakBackend implements PackageBackend {
         pkg.id,
       ],
       "Flatpak application update failed",
+      options,
     );
   }
 
-  async updateAll(): Promise<void> {
+  async updateAll(options?: SoftwareOperationOptions): Promise<void> {
+    options?.onProgress?.({
+      message: "Checking Flatpak updates",
+      cancellable: false,
+    });
     const updates = await this.listUpdates();
     for (const scope of ALL_SCOPES) {
       const ids = updates
@@ -463,12 +498,17 @@ export class FlatpakBackend implements PackageBackend {
           ...ids,
         ],
         "Flatpak application update failed",
+        options,
       );
     }
   }
 
-  async refreshMetadata(): Promise<void> {
+  async refreshMetadata(options?: SoftwareOperationOptions): Promise<void> {
     await this.requireExecutable();
+    options?.onProgress?.({
+      message: "Refreshing Flatpak metadata",
+      cancellable: false,
+    });
     await this.listUpdateRecords(false);
   }
 
@@ -555,8 +595,13 @@ export class FlatpakBackend implements PackageBackend {
   private async runFlatpakTransaction(
     args: readonly string[],
     failureMessage: string,
+    options?: SoftwareOperationOptions,
   ): Promise<void> {
     await this.requireExecutable();
+    options?.onProgress?.({
+      message: "Updating with Flatpak",
+      cancellable: false,
+    });
     try {
       await runProcess(this.executable, args, {
         captureStdout: false,

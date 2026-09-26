@@ -4,7 +4,12 @@ import {
   type DBusPromise,
   type MessageBus,
   systemBus,
+  variantValue,
 } from "dbus-native";
+import type {
+  SoftwareOperationOptions,
+  SoftwareOperationProgress,
+} from "../types.ts";
 
 const SERVICE = "org.debian.apt";
 const DAEMON_PATH = "/org/debian/apt";
@@ -51,6 +56,7 @@ interface AptDaemonInterface extends DBusInterface {
 
 interface AptDaemonTransactionInterface extends DBusInterface {
   Run(): DBusPromise<void>;
+  Cancel(): DBusPromise<void>;
 }
 
 interface AptDaemonErrorDetails {
@@ -63,8 +69,12 @@ let daemonPromise: Promise<AptDaemonInterface> | undefined;
 
 export async function runAptDaemonTransaction(
   request: AptDaemonRequest,
+  options: SoftwareOperationOptions = {},
 ): Promise<void> {
   try {
+    if (options.signal?.aborted) {
+      throw new AptDaemonError("cancelled", "Transaction was cancelled");
+    }
     const activeBus = getBus();
     const daemon = await getDaemon(activeBus);
     const transactionPath = await createTransaction(daemon, request);
@@ -73,10 +83,47 @@ export async function runAptDaemonTransaction(
       transactionPath,
       TRANSACTION_INTERFACE,
     );
-    await runTransaction(transaction);
+    await runTransaction(transaction, options);
   } catch (error) {
     if (error instanceof AptDaemonError) throw error;
     throw classifyDbusError(error);
+  }
+}
+
+export function describeAptDaemonStatus(status: string): string {
+  switch (status) {
+    case "status-setting-up":
+      return "Preparing transaction";
+    case "status-query":
+      return "Checking package state";
+    case "status-authenticating":
+      return "Waiting for authentication";
+    case "status-waiting":
+      return "Waiting for APT";
+    case "status-waiting-lock":
+      return "Waiting for the package-manager lock";
+    case "status-loading-cache":
+      return "Loading package metadata";
+    case "status-resolving-dep":
+      return "Resolving dependencies";
+    case "status-downloading":
+      return "Downloading packages";
+    case "status-downloading-repo":
+      return "Downloading package metadata";
+    case "status-committing":
+      return "Applying package changes";
+    case "status-cleaning-up":
+      return "Cleaning up";
+    case "status-cancelling":
+      return "Cancelling transaction";
+    case "status-finished":
+      return "Finishing";
+    case "status-waiting-medium":
+      return "Waiting for installation media";
+    case "status-waiting-config-file-prompt":
+      return "Waiting for a configuration choice";
+    default:
+      return "APT is working";
   }
 }
 
@@ -145,15 +192,74 @@ async function createTransaction(
 
 async function runTransaction(
   transaction: AptDaemonTransactionInterface,
+  options: SoftwareOperationOptions,
 ): Promise<void> {
   let resolveFinished: (exitState: string) => void = () => undefined;
   const finished = new Promise<string>((resolve) => {
     resolveFinished = resolve;
   });
   const onFinished = (exitState: string) => resolveFinished(exitState);
+  let status = "status-setting-up";
+  let progress: number | undefined;
+  let cancellable = false;
+  let cancellationRequested = false;
 
+  const reportProgress = () => {
+    const update: SoftwareOperationProgress = {
+      message: describeAptDaemonStatus(status),
+      cancellable,
+    };
+    if (progress !== undefined) update.percent = progress;
+    try {
+      options.onProgress?.(update);
+    } catch (error) {
+      console.debug("APT progress callback failed", error);
+    }
+  };
+
+  const requestCancellation = () => {
+    cancellationRequested = true;
+    if (!cancellable) return;
+    cancellable = false;
+    reportProgress();
+    void transaction.Cancel().catch((error: unknown) => {
+      console.debug("APT transaction could not be cancelled", error);
+    });
+  };
+
+  const onPropertyChanged = (propertyName: string, encodedValue: unknown) => {
+    const value = variantValue(encodedValue);
+    if (propertyName === "Status" && typeof value === "string") {
+      status = value;
+    } else if (propertyName === "Progress" && typeof value === "number") {
+      progress = normalizeProgress(value);
+    } else if (propertyName === "Cancellable" && typeof value === "boolean") {
+      cancellable = value;
+      if (cancellationRequested && cancellable) requestCancellation();
+    } else {
+      return;
+    }
+    reportProgress();
+  };
+
+  let subscribedToProperties = false;
   await transaction.$subscribe("Finished", onFinished);
   try {
+    await transaction.$subscribe("PropertyChanged", onPropertyChanged);
+    subscribedToProperties = true;
+    options.signal?.addEventListener("abort", requestCancellation, { once: true });
+
+    const initialProperties = await transaction.$readAllProps();
+    if (typeof initialProperties.Status === "string") {
+      status = initialProperties.Status;
+    }
+    if (typeof initialProperties.Progress === "number") {
+      progress = normalizeProgress(initialProperties.Progress);
+    }
+    cancellable = initialProperties.Cancellable === true;
+    reportProgress();
+    if (options.signal?.aborted) requestCancellation();
+
     await transaction.Run();
     const exitState = await finished;
     const properties = await transaction.$readAllProps();
@@ -170,8 +276,17 @@ async function runTransaction(
     if (error instanceof AptDaemonError) throw error;
     throw classifyDbusError(error);
   } finally {
+    options.signal?.removeEventListener("abort", requestCancellation);
     await transaction.$unsubscribe("Finished", onFinished).catch(() => undefined);
+    if (subscribedToProperties) {
+      await transaction.$unsubscribe("PropertyChanged", onPropertyChanged).catch(() => undefined);
+    }
   }
+}
+
+function normalizeProgress(value: number): number | undefined {
+  if (!Number.isFinite(value) || value < 0 || value > 100) return undefined;
+  return Math.round(value);
 }
 
 function parseErrorDetails(value: unknown): AptDaemonErrorDetails {

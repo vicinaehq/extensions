@@ -13,6 +13,7 @@ import { aptBackend } from "./backends/apt";
 import { enrichSoftwareItems } from "./backends/appstream-parsing";
 import { FlatpakBackend } from "./backends/flatpak";
 import { ShowSoftwareDetailsAction } from "./components/software-details";
+import { RecentActionsAction } from "./components/recent-actions";
 import {
   isOperationCancelled,
   operationErrorMessage,
@@ -20,8 +21,13 @@ import {
 import { useAppStreamSearch } from "./hooks/use-appstream-search";
 import { useAptSearch } from "./hooks/use-apt-search";
 import { useFlatpakSearch } from "./hooks/use-flatpak-search";
+import { useSoftwareOperation } from "./hooks/use-software-operation";
 import type { DepotPreferences, SoftwareItem } from "./types";
-import { reportOperationResult } from "./utils/operation-feedback";
+import { recordRecentAction } from "./recent-actions";
+import {
+  reportOperationResult,
+  updateOperationToast,
+} from "./utils/operation-feedback";
 import { installAccessories } from "./utils/software-accessories";
 import {
   rankSoftwareResults,
@@ -31,6 +37,7 @@ import {
 export default function InstallCommand() {
   const [searchText, setSearchText] = useState("");
   const installing = useRef(new Set<string>());
+  const operation = useSoftwareOperation();
   const {
     aptEnabled = true,
     flatpakEnabled = true,
@@ -70,13 +77,25 @@ export default function InstallCommand() {
         ? "Authenticate when prompted"
         : `Flatpak · ${pkg.flatpak?.scope ?? flatpakScope}`,
     });
+    const options = operation.start(
+      installKey,
+      (progress) => updateOperationToast(toast, progress),
+    );
 
     try {
       const outcome = pkg.source === "apt"
-        ? await aptBackend.install(pkg)
-        : await flatpakBackend.install(pkg);
+        ? await aptBackend.install(pkg, options)
+        : await flatpakBackend.install(pkg, options);
       if (pkg.source === "apt") aptSearch.markInstalled(pkg.id);
       else flatpakSearch.markInstalled(pkg.id);
+      if (outcome === "installed") {
+        await recordRecentAction({
+          kind: "installed",
+          name: pkg.name,
+          identifier: pkg.id,
+          source: pkg.source === "apt" ? "APT" : "Flatpak",
+        });
+      }
       reportOperationResult(toast, {
         status: "success",
         title: outcome === "already-installed"
@@ -101,6 +120,7 @@ export default function InstallCommand() {
         message: pkg.id,
       });
     } finally {
+      operation.finish(installKey);
       installing.current.delete(installKey);
     }
   };
@@ -111,6 +131,7 @@ export default function InstallCommand() {
       searchBarPlaceholder={searchPlaceholder(aptEnabled, flatpakEnabled)}
       searchText={searchText}
       onSearchTextChange={setSearchText}
+      actions={<ActionPanel><RecentActionsAction /></ActionPanel>}
     >
       {results.map((pkg) => (
         <List.Item
@@ -132,22 +153,33 @@ export default function InstallCommand() {
                   onAction={() => install(pkg)}
                 />
               )}
+              {operation.isCancellable(softwareItemKey(pkg)) && (
+                <CancelInstallAction
+                  onCancel={() => operation.cancel(softwareItemKey(pkg))}
+                />
+              )}
               <ShowSoftwareDetailsAction
                 pkg={pkg}
                 primaryActions={!pkg.installed
-                  ? (
+                  ? (<>
                     <Action
                       title="Install"
                       icon={Icon.Download}
                       onAction={() => install(pkg)}
                     />
-                  )
+                    {operation.isCancellable(softwareItemKey(pkg)) && (
+                      <CancelInstallAction
+                        onCancel={() => operation.cancel(softwareItemKey(pkg))}
+                      />
+                    )}
+                  </>)
                   : undefined}
               />
               <Action.CopyToClipboard
                 title="Copy Package ID"
                 content={pkg.id}
               />
+              <RecentActionsAction />
             </ActionPanel>
           }
         />
@@ -163,6 +195,18 @@ export default function InstallCommand() {
         flatpakEnabled={flatpakEnabled}
       />
     </List>
+  );
+}
+
+function CancelInstallAction({ onCancel }: { onCancel(): void }) {
+  return (
+    <Action
+      title="Cancel Installation"
+      icon={Icon.XMarkCircle}
+      style={Action.Style.Destructive}
+      shortcut={{ modifiers: ["ctrl"], key: "x" }}
+      onAction={onCancel}
+    />
   );
 }
 

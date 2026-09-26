@@ -18,12 +18,18 @@ import {
   FlatpakOperationError,
 } from "./backends/flatpak";
 import { ShowSoftwareDetailsAction } from "./components/software-details";
+import { RecentActionsAction } from "./components/recent-actions";
 import {
   isOperationCancelled,
   operationErrorMessage,
 } from "./errors.ts";
 import { useSoftwareUpdates } from "./hooks/use-software-updates";
+import { useSoftwareOperation } from "./hooks/use-software-operation";
 import type { DepotPreferences, SoftwareUpdate } from "./types";
+import {
+  recordRecentAction,
+  recordRecentActions,
+} from "./recent-actions";
 import {
   softwareSourceLabel,
   updateAccessories,
@@ -33,7 +39,10 @@ import {
   sortSoftwareAlphabetically,
 } from "./utils/software-results";
 import { OperationLock } from "./utils/operation-lock";
-import { reportOperationResult } from "./utils/operation-feedback";
+import {
+  reportOperationResult,
+  updateOperationToast,
+} from "./utils/operation-feedback";
 import { updateSourceErrors } from "./utils/update-errors";
 
 export default function UpdateCommand() {
@@ -52,6 +61,7 @@ export default function UpdateCommand() {
     flatpakEnabled,
   );
   const operationLock = useRef(new OperationLock()).current;
+  const operation = useSoftwareOperation();
   const availableUpdates = sortSoftwareAlphabetically([
     ...updates.aptUpdates,
     ...updates.flatpakUpdates,
@@ -74,10 +84,20 @@ export default function UpdateCommand() {
           ? "Authenticate when prompted"
           : `Flatpak · ${update.flatpak?.scope ?? "unknown"}`,
       });
+      const options = operation.start(
+        key,
+        (progress) => updateOperationToast(toast, progress),
+      );
 
       try {
-        if (update.source === "apt") await aptBackend.update(update);
-        else await flatpakBackend.update(update);
+        if (update.source === "apt") await aptBackend.update(update, options);
+        else await flatpakBackend.update(update, options);
+        await recordRecentAction({
+          kind: "updated",
+          name: update.name,
+          identifier: update.id,
+          source: update.source === "apt" ? "APT" : "Flatpak",
+        });
         updates.removeFromList(update);
         updates.refresh();
         reportOperationResult(toast, {
@@ -98,6 +118,7 @@ export default function UpdateCommand() {
         });
       }
     } finally {
+      operation.finish(key);
       operationLock.release(key);
     }
   };
@@ -118,11 +139,21 @@ export default function UpdateCommand() {
         title: "Updating software",
         message: "Authenticate when prompted",
       });
+      const options = operation.start(
+        "all",
+        (progress) => updateOperationToast(toast, progress),
+      );
       const failures: string[] = [];
 
       if (updates.aptUpdates.length > 0) {
         try {
-          await aptBackend.updateAll();
+          await aptBackend.updateAll(options);
+          await recordRecentActions(updates.aptUpdates.map((update) => ({
+            kind: "updated" as const,
+            name: update.name,
+            identifier: update.id,
+            source: "APT" as const,
+          })));
         } catch (error) {
           if (isOperationCancelled(error)) {
             await toast.hide();
@@ -134,7 +165,13 @@ export default function UpdateCommand() {
       }
       if (updates.flatpakUpdates.length > 0) {
         try {
-          await flatpakBackend.updateAll();
+          await flatpakBackend.updateAll(options);
+          await recordRecentActions(updates.flatpakUpdates.map((update) => ({
+            kind: "updated" as const,
+            name: update.name,
+            identifier: update.id,
+            source: "Flatpak" as const,
+          })));
         } catch (error) {
           if (isOperationCancelled(error)) {
             await toast.hide();
@@ -160,6 +197,7 @@ export default function UpdateCommand() {
         });
       }
     } finally {
+      operation.finish("all");
       operationLock.release("all");
     }
   };
@@ -175,10 +213,23 @@ export default function UpdateCommand() {
           ? "Authenticate for APT when prompted"
           : "Refreshing configured Flatpak remotes",
       });
+      const aptOptions = aptEnabled
+        ? operation.start(
+          "refresh",
+          (progress) => updateOperationToast(toast, progress),
+        )
+        : {
+          onProgress: (progress: Parameters<typeof updateOperationToast>[1]) =>
+            updateOperationToast(toast, progress),
+        };
 
       const refreshes: Promise<void>[] = [];
-      if (aptEnabled) refreshes.push(aptBackend.refreshMetadata());
-      if (flatpakEnabled) refreshes.push(flatpakBackend.refreshMetadata());
+      if (aptEnabled) refreshes.push(aptBackend.refreshMetadata(aptOptions));
+      if (flatpakEnabled) {
+        refreshes.push(flatpakBackend.refreshMetadata(
+          aptEnabled ? undefined : aptOptions,
+        ));
+      }
       const results = await Promise.allSettled(refreshes);
       if (results.some((result) =>
         result.status === "rejected" && isOperationCancelled(result.reason)
@@ -214,6 +265,7 @@ export default function UpdateCommand() {
         });
       }
     } finally {
+      operation.finish("refresh");
       operationLock.release("refresh");
     }
   };
@@ -227,6 +279,18 @@ export default function UpdateCommand() {
           onAction={updateAll}
         />
       )}
+      {operation.isCancellable("all") && (
+        <CancelUpdateAction
+          title="Cancel Update All"
+          onCancel={() => operation.cancel("all")}
+        />
+      )}
+      {operation.isCancellable("refresh") && (
+        <CancelUpdateAction
+          title="Cancel Metadata Refresh"
+          onCancel={() => operation.cancel("refresh")}
+        />
+      )}
       {(aptEnabled || flatpakEnabled) && (
         <Action
           title="Refresh Package Metadata"
@@ -235,6 +299,7 @@ export default function UpdateCommand() {
           onAction={refreshMetadata}
         />
       )}
+      <RecentActionsAction />
     </>
   );
 
@@ -258,6 +323,9 @@ export default function UpdateCommand() {
           key={softwareItemKey(update)}
           update={update}
           onUpdate={() => updateOne(update)}
+          onCancel={operation.isCancellable(softwareItemKey(update))
+            ? () => operation.cancel(softwareItemKey(update))
+            : undefined}
           sharedActions={sharedActions}
         />
       ))}
@@ -322,10 +390,12 @@ function UpdatesEmptyView({
 function UpdateItem({
   update,
   onUpdate,
+  onCancel,
   sharedActions,
 }: {
   update: SoftwareUpdate;
   onUpdate(): void;
+  onCancel?: () => void;
   sharedActions: React.ReactNode;
 }) {
   const source = softwareSourceLabel(update, "scope");
@@ -340,11 +410,17 @@ function UpdateItem({
       actions={
         <ActionPanel>
           <UpdateAction onUpdate={onUpdate} />
+          {onCancel && (
+            <CancelUpdateAction title="Cancel Update" onCancel={onCancel} />
+          )}
           <ShowSoftwareDetailsAction
             pkg={update}
             primaryActions={
               <>
                 <UpdateAction onUpdate={onUpdate} />
+                {onCancel && (
+                  <CancelUpdateAction title="Cancel Update" onCancel={onCancel} />
+                )}
                 {sharedActions}
               </>
             }
@@ -353,6 +429,24 @@ function UpdateItem({
           <Action.CopyToClipboard title="Copy Package ID" content={update.id} />
         </ActionPanel>
       }
+    />
+  );
+}
+
+function CancelUpdateAction({
+  title,
+  onCancel,
+}: {
+  title: string;
+  onCancel(): void;
+}) {
+  return (
+    <Action
+      title={title}
+      icon={Icon.XMarkCircle}
+      style={Action.Style.Destructive}
+      shortcut={{ modifiers: ["ctrl"], key: "x" }}
+      onAction={onCancel}
     />
   );
 }

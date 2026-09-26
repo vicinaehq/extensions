@@ -1,6 +1,6 @@
 import { open, lstat, readFile } from "node:fs/promises";
 import { basename, extname, resolve } from "node:path";
-import type { FlatpakScope } from "../types";
+import type { FlatpakScope, SoftwareOperationOptions } from "../types";
 import { inspectAppImage, integrateAppImage } from "./appimage.ts";
 import { inspectDebPackage, installDebPackage } from "./deb.ts";
 import {
@@ -20,7 +20,7 @@ export interface LocalPackageInspectionOptions {
   signal?: AbortSignal;
 }
 
-export interface LocalPackageInstallOptions {
+export interface LocalPackageInstallOptions extends SoftwareOperationOptions {
   appImageSupportPath: string;
   applicationsDirectory?: string;
   desktopEntriesDirectory?: string;
@@ -110,11 +110,19 @@ export async function installLocalPackage(
   await assertSelectedFileUnchanged(pkg);
   switch (pkg.kind) {
     case "deb":
-      return installDebPackage(pkg);
+      return installDebPackage(pkg, options);
     case "flatpak-bundle":
     case "flatpakref":
+      options.onProgress?.({
+        message: "Installing with Flatpak",
+        cancellable: false,
+      });
       return installFlatpakFile(pkg);
     case "appimage":
+      options.onProgress?.({
+        message: "Integrating AppImage",
+        cancellable: false,
+      });
       return integrateAppImage(pkg, {
         supportPath: options.appImageSupportPath,
         applicationsDirectory: options.applicationsDirectory,

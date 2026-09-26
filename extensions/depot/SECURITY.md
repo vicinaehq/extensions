@@ -42,11 +42,18 @@ uses narrowly scoped file operations for local AppImages:
   never guessed or recursively deleted.
 - Install, remove, refresh, and update operations require an explicit user
   action. There are no background services or scheduled package operations.
+- APT cancellation is offered only while aptdaemon's documented `Cancellable`
+  property is true and uses its `Cancel()` method. Depot never kills a package
+  manager merely to make a UI cancellation appear immediate. Flatpak and
+  `pkexec` transactions therefore remain non-cancellable in the current UI.
 - Completion notifications use Vicinae's native notification API and are sent
   only after an explicit operation. Notification or window-restoration failure
   never changes the package operation result.
 - APT removal is limited to visible, manually installed applications and is
   blocked when its simulation would remove additional packages.
+- Recent action history is limited to 25 local summaries containing the action,
+  displayed application name, backend identifier, source, and timestamp. It
+  contains no passwords or package-manager output and can be cleared in Depot.
 
 ## Local-file trust
 
