@@ -98,7 +98,7 @@ export async function runAptDaemonTransaction(
     await runTransaction(transaction, request, options);
   } catch (error) {
     if (error instanceof AptDaemonError) throw error;
-    throw classifyDbusError(error);
+    throw classifyAptDaemonDbusError(error);
   }
 }
 
@@ -147,6 +147,7 @@ export function classifyAptDaemonOutcome(
   if (exitState === "exit-cancelled") return "cancelled";
 
   const details = `${error.code ?? ""} ${error.message ?? ""}`;
+  if (/authentication.*cancel/i.test(details)) return "cancelled";
   if (/error-(?:auth-failed|not-authorized)|not authori[sz]ed|authentication/i.test(details)) {
     return "authentication";
   }
@@ -286,7 +287,7 @@ async function runTransaction(
     }
   } catch (error) {
     if (error instanceof AptDaemonError) throw error;
-    throw classifyDbusError(error);
+    throw classifyAptDaemonDbusError(error);
   } finally {
     options.signal?.removeEventListener("abort", requestCancellation);
     await transaction.$unsubscribe("Finished", onFinished).catch(() => undefined);
@@ -476,7 +477,7 @@ function formatDetails(details: AptDaemonErrorDetails): string | undefined {
   return [details.code, details.message].filter(Boolean).join(": ") || undefined;
 }
 
-function classifyDbusError(error: unknown): AptDaemonError {
+export function classifyAptDaemonDbusError(error: unknown): AptDaemonError {
   const details = error instanceof Error ? error.message : String(error);
   const dbusName = error instanceof DBusError ? error.dbusName ?? "" : "";
   const combined = `${dbusName} ${details}`;
@@ -484,15 +485,15 @@ function classifyDbusError(error: unknown): AptDaemonError {
   if (/ServiceUnknown|NameHasNoOwner|ServiceNotFound|NoServer|ECONNREFUSED/i.test(combined)) {
     return new AptDaemonError("unavailable", "aptdaemon is unavailable", details);
   }
-  if (/NotAuthorized|AuthFailed|authentication.*(?:cancel|deni)/i.test(combined)) {
-    return new AptDaemonError(
-      "authentication",
-      "Authentication was cancelled or denied",
-      details,
-    );
-  }
   if (/Cancelled|Canceled/i.test(combined)) {
     return new AptDaemonError("cancelled", "Transaction was cancelled", details);
+  }
+  if (/NotAuthorized|AuthFailed|authentication.*deni/i.test(combined)) {
+    return new AptDaemonError(
+      "authentication",
+      "Authentication was denied",
+      details,
+    );
   }
   if (/NoLock|another package manager|could not get lock|already running/i.test(combined)) {
     return new AptDaemonError(

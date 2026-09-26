@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  classifyAptDaemonDbusError,
   classifyAptDaemonOutcome,
   describeAptDaemonStatus,
   findUnexpectedAptDaemonRemovals,
@@ -22,9 +23,30 @@ test("classifies aptdaemon transaction outcomes", () => {
   );
   assert.equal(
     classifyAptDaemonOutcome("exit-failed", {
+      message: "Authentication was cancelled",
+    }),
+    "cancelled",
+  );
+  assert.equal(
+    classifyAptDaemonOutcome("exit-failed", {
       code: "error-no-package",
     }),
     "failed",
+  );
+});
+
+test("distinguishes D-Bus authentication cancellation from denial", () => {
+  assert.equal(
+    classifyAptDaemonDbusError(
+      new Error("Authentication request was cancelled"),
+    ).kind,
+    "cancelled",
+  );
+  assert.equal(
+    classifyAptDaemonDbusError(
+      new Error("Authentication was denied"),
+    ).kind,
+    "authentication",
   );
 });
 

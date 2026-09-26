@@ -199,6 +199,7 @@ export default function InstallCommand() {
         isLoading={isLoading}
         aptError={aptSearch.error}
         flatpakError={flatpakSearch.error}
+        flatpakWarning={flatpakSearch.warning}
         resultCount={results.length}
         aptEnabled={aptEnabled}
         flatpakEnabled={flatpakEnabled}
@@ -224,6 +225,7 @@ function SearchEmptyView({
   isLoading,
   aptError,
   flatpakError,
+  flatpakWarning,
   resultCount,
   aptEnabled,
   flatpakEnabled,
@@ -232,6 +234,7 @@ function SearchEmptyView({
   isLoading: boolean;
   aptError?: string;
   flatpakError?: string;
+  flatpakWarning?: string;
   resultCount: number;
   aptEnabled: boolean;
   flatpakEnabled: boolean;
@@ -287,7 +290,8 @@ function SearchEmptyView({
     <List.EmptyView
       icon={Icon.MagnifyingGlass}
       title="No software found"
-      description={errors[0] ?? "Try a different application name or description"}
+      description={[...errors, flatpakWarning].filter(Boolean).join(" ") ||
+        "Try a different application name or description"}
     />
   );
 }
