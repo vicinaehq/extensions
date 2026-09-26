@@ -11,7 +11,8 @@ uses narrowly scoped file operations for local AppImages:
   never evaluated as code. Homepage actions still accept only HTTP(S) URLs.
 - APT keeps its normal repository signature and trust checks.
 - Polkit owns privileged authentication; the extension never receives or stores
-  passwords.
+  passwords. Authorization lifetime and repeated prompts are controlled by the
+  system's Polkit policy; Depot does not install or modify policy rules.
 - Only existing APT sources and Flatpak remotes are used. Depot never adds
   repositories, remotes, signing keys, or downloaded scripts during search.
   A selected `.flatpakref` may add only the remote declared in that file, after
@@ -31,6 +32,9 @@ uses narrowly scoped file operations for local AppImages:
   never guessed or recursively deleted.
 - Install, remove, refresh, and update operations require an explicit user
   action. There are no background services or scheduled package operations.
+- Completion notifications are sent only after an explicit operation, through a
+  one-shot `notify-send` subprocess with shell execution disabled. Notification
+  failure never changes the package operation result.
 - APT removal is limited to visible, manually installed applications and is
   blocked when its simulation would remove additional packages.
 

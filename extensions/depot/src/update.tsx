@@ -33,6 +33,7 @@ import {
   sortSoftwareAlphabetically,
 } from "./utils/software-results";
 import { OperationLock } from "./utils/operation-lock";
+import { reportOperationResult } from "./utils/operation-feedback";
 import { updateSourceErrors } from "./utils/update-errors";
 
 export default function UpdateCommand() {
@@ -79,18 +80,22 @@ export default function UpdateCommand() {
         else await flatpakBackend.update(update);
         updates.removeFromList(update);
         updates.refresh();
-        toast.style = Toast.Style.Success;
-        toast.title = `${update.name} updated`;
-        toast.message = update.availableVersion ?? update.id;
+        reportOperationResult(toast, {
+          status: "success",
+          title: `${update.name} updated`,
+          message: update.availableVersion ?? update.id,
+        });
       } catch (error) {
         if (isOperationCancelled(error)) {
           await toast.hide();
           return;
         }
         console.error(`Failed to update ${update.id}`, error);
-        toast.style = Toast.Style.Failure;
-        toast.title = operationErrorMessage(error, "Software update failed");
-        toast.message = update.id;
+        reportOperationResult(toast, {
+          status: "failure",
+          title: operationErrorMessage(error, "Software update failed"),
+          message: update.id,
+        });
       }
     } finally {
       operationLock.release(key);
@@ -143,13 +148,17 @@ export default function UpdateCommand() {
 
       updates.refresh();
       if (failures.length === 0) {
-        toast.style = Toast.Style.Success;
-        toast.title = "Software update completed";
-        toast.message = "Checking for remaining updates";
+        reportOperationResult(toast, {
+          status: "success",
+          title: "Software update completed",
+          message: "Checking for remaining updates",
+        });
       } else {
-        toast.style = Toast.Style.Failure;
-        toast.title = failures.length > 1 ? "Software updates failed" : failures[0]!;
-        toast.message = "Successful sources were updated; check the refreshed list";
+        reportOperationResult(toast, {
+          status: "failure",
+          title: failures.length > 1 ? "Software updates failed" : failures[0]!,
+          message: "Successful sources were updated; check the refreshed list",
+        });
       }
     } finally {
       operationLock.release("all");
@@ -193,13 +202,17 @@ export default function UpdateCommand() {
 
       updates.refresh();
       if (failures.length === 0) {
-        toast.style = Toast.Style.Success;
-        toast.title = "Software metadata refreshed";
-        toast.message = "Checking for updates";
+        reportOperationResult(toast, {
+          status: "success",
+          title: "Software metadata refreshed",
+          message: "Checking for updates",
+        });
       } else {
-        toast.style = Toast.Style.Failure;
-        toast.title = failures.length > 1 ? "Metadata refresh failed" : failures[0]!;
-        toast.message = "Available cached metadata will still be shown";
+        reportOperationResult(toast, {
+          status: "failure",
+          title: failures.length > 1 ? "Metadata refresh failed" : failures[0]!,
+          message: "Available cached metadata will still be shown",
+        });
       }
     } finally {
       operationLock.release("refresh");

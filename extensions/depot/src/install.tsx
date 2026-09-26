@@ -21,6 +21,7 @@ import { useAppStreamSearch } from "./hooks/use-appstream-search";
 import { useAptSearch } from "./hooks/use-apt-search";
 import { useFlatpakSearch } from "./hooks/use-flatpak-search";
 import type { DepotPreferences, SoftwareItem } from "./types";
+import { reportOperationResult } from "./utils/operation-feedback";
 import { installAccessories } from "./utils/software-accessories";
 import {
   rankSoftwareResults,
@@ -76,25 +77,29 @@ export default function InstallCommand() {
         : await flatpakBackend.install(pkg);
       if (pkg.source === "apt") aptSearch.markInstalled(pkg.id);
       else flatpakSearch.markInstalled(pkg.id);
-      toast.style = Toast.Style.Success;
-      toast.title = outcome === "already-installed"
-        ? `${pkg.id} is already installed`
-        : `${pkg.id} installed`;
-      toast.message = pkg.source === "apt"
-        ? "APT installation completed"
-        : "Flatpak installation completed";
+      reportOperationResult(toast, {
+        status: "success",
+        title: outcome === "already-installed"
+          ? `${pkg.id} is already installed`
+          : `${pkg.id} installed`,
+        message: pkg.source === "apt"
+          ? "APT installation completed"
+          : "Flatpak installation completed",
+      });
     } catch (installError) {
       if (isOperationCancelled(installError)) {
         await toast.hide();
         return;
       }
       console.error(`Failed to install ${pkg.id}`, installError);
-      toast.style = Toast.Style.Failure;
-      toast.title = operationErrorMessage(
-        installError,
-        "Software installation failed",
-      );
-      toast.message = pkg.id;
+      reportOperationResult(toast, {
+        status: "failure",
+        title: operationErrorMessage(
+          installError,
+          "Software installation failed",
+        ),
+        message: pkg.id,
+      });
     } finally {
       installing.current.delete(installKey);
     }

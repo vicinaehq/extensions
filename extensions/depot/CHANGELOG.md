@@ -26,6 +26,9 @@
   `DepotOperationError` while retaining domain-level software terminology.
 - Name commands consistently as Depot Install, Depot Install Local, Depot
   Remove, and Depot Update.
+- Report install, integration, removal, update, and metadata-refresh results with
+  one-shot desktop notifications, so completion remains visible when an external
+  Polkit dialog causes Vicinae to hide.
 
 ## 1.0.0 - 2026-09-25
 

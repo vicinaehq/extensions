@@ -20,6 +20,7 @@ import {
 } from "./errors.ts";
 import { useInstalledSoftware } from "./hooks/use-installed-software";
 import type { DepotPreferences, SoftwareItem } from "./types";
+import { reportOperationResult } from "./utils/operation-feedback";
 import {
   removeAccessories,
   softwareSourceLabel,
@@ -81,20 +82,24 @@ export default function RemoveCommand() {
         ? await aptBackend.remove(pkg)
         : await flatpakBackend.remove(pkg);
       installed.removeFromList(pkg);
-      toast.style = Toast.Style.Success;
-      toast.title = outcome === "not-installed"
-        ? `${pkg.name} is not installed`
-        : `${pkg.name} removed`;
-      toast.message = pkg.id;
+      reportOperationResult(toast, {
+        status: "success",
+        title: outcome === "not-installed"
+          ? `${pkg.name} is not installed`
+          : `${pkg.name} removed`,
+        message: pkg.id,
+      });
     } catch (error) {
       if (isOperationCancelled(error)) {
         await toast.hide();
         return;
       }
       console.error(`Failed to remove ${pkg.id}`, error);
-      toast.style = Toast.Style.Failure;
-      toast.title = operationErrorMessage(error, "Software removal failed");
-      toast.message = pkg.id;
+      reportOperationResult(toast, {
+        status: "failure",
+        title: operationErrorMessage(error, "Software removal failed"),
+        message: pkg.id,
+      });
     } finally {
       removing.current.delete(key);
     }

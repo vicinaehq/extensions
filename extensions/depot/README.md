@@ -27,6 +27,7 @@ keyboard-first, searchable, and native to Vicinae.
 - Friendly application names, summaries, and icons from local AppStream metadata
 - Installed-state detection and package details
 - Graphical Polkit authentication for APT operations
+- Desktop completion notifications for explicit package operations
 - User- or system-scoped Flatpak support
 - Metadata review before any local package installation
 - User-level AppImage integration under `~/Applications`
@@ -103,6 +104,13 @@ its declared remote is displayed before the user confirms installation. Depot
 never discovers repositories, imports keys itself, stores passwords, invokes a
 shell, or performs package operations without an explicit user action.
 
+APT authentication is owned by the system's Polkit policy. Depot never sees or
+caches the password. On systems where Vicinae closes on focus loss, the launcher
+may hide while the external authentication dialog is active; Depot sends a
+one-shot desktop notification when the requested operation succeeds or fails.
+Users who prefer Vicinae to remain visible can disable **Close on focus loss** in
+Vicinae's settings. Depot does not change that setting automatically.
+
 See [SECURITY.md](SECURITY.md) for the security model and reporting guidance.
 
 ## Development
@@ -131,6 +139,10 @@ Known limitations:
   icons or screenshots.
 - The first Flatpak search can be slower while the Flatpak CLI queries remotes.
 - Packages requiring terminal-based configuration may not install successfully.
+- Some Polkit policies require authentication for every privileged APT action.
+  Depot does not weaken those policies or retain credentials between actions.
+- Desktop completion notifications require the optional `notify-send` command;
+  the in-window result toast remains available when it is absent.
 - Type 1 AppImages can be validated and integrated, but embedded metadata
   extraction currently targets the modern Type 2 SquashFS format.
 - Embedded AppImage icons are accepted only when they are bounded, valid PNG

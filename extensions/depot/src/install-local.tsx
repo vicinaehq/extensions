@@ -33,6 +33,7 @@ import {
   type LocalInstallOutcome,
   type LocalPackage,
 } from "./local-packages/index.ts";
+import { reportOperationResult } from "./utils/operation-feedback";
 import { isProcessAborted } from "./utils/process";
 import { escapeMarkdown } from "./utils/package-details";
 import { LatestRequest } from "./utils/latest-request";
@@ -258,25 +259,29 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
         appImageSupportPath: environment.supportPath,
       });
       setOutcome(result);
-      toast.style = Toast.Style.Success;
-      toast.title = result.status === "already-installed"
-        ? `${pkg.name} is already installed`
-        : pkg.kind === "appimage"
-        ? `${pkg.name} integrated`
-        : `${pkg.name} installed`;
-      toast.message = result.managedPath ?? localPackageSourceLabel(pkg);
+      reportOperationResult(toast, {
+        status: "success",
+        title: result.status === "already-installed"
+          ? `${pkg.name} is already installed`
+          : pkg.kind === "appimage"
+          ? `${pkg.name} integrated`
+          : `${pkg.name} installed`,
+        message: result.managedPath ?? localPackageSourceLabel(pkg),
+      });
     } catch (installError) {
       if (isOperationCancelled(installError)) {
         await toast.hide();
         return;
       }
       console.error("Local package installation failed", installError);
-      toast.style = Toast.Style.Failure;
-      toast.title = operationErrorMessage(
-        installError,
-        "Local package installation failed",
-      );
-      toast.message = pkg.fileName;
+      reportOperationResult(toast, {
+        status: "failure",
+        title: operationErrorMessage(
+          installError,
+          "Local package installation failed",
+        ),
+        message: pkg.fileName,
+      });
     } finally {
       operating.current = false;
     }
