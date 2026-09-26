@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Enrich APT and Flatpak search results progressively with local AppStream names,
+  descriptions, application identifiers, homepages, and cached icons.
+- Rank exact application names and IDs, desktop applications, and installed
+  results ahead of weaker package-description matches.
+- Add transparent `vscode` and `obs` search aliases without hiding alternative
+  package sources.
+
 ## 1.0.0 - 2026-09-25
 
 - Introduce Depot as a keyboard-first package manager for Vicinae.

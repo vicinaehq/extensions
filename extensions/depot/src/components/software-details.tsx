@@ -7,6 +7,8 @@ import {
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { AptOperationError, aptBackend } from "../backends/apt";
+import { appStreamBackend } from "../backends/appstream";
+import { enrichSoftwarePackages } from "../backends/appstream-parsing";
 import type { SoftwarePackage, SoftwareUpdate } from "../types";
 import {
   escapeMarkdown,
@@ -57,6 +59,8 @@ function SoftwareDetails({ pkg, primaryActions }: SoftwareDetailsProps) {
           ...pkg,
           ...aptDetails,
           name: pkg.name,
+          description: pkg.description,
+          homepage: aptDetails.homepage ?? pkg.homepage,
         });
       })
       .catch((detailsError: unknown) => {
@@ -68,6 +72,32 @@ function SoftwareDetails({ pkg, primaryActions }: SoftwareDetailsProps) {
       })
       .finally(() => {
         if (!controller.signal.aborted) setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [pkg]);
+
+  useEffect(() => {
+    const componentId = pkg.appstream?.componentId;
+    if (!componentId) return;
+
+    const controller = new AbortController();
+    appStreamBackend.getDetails(componentId, controller.signal)
+      .then((components) => {
+        if (controller.signal.aborted) return;
+        const enriched = enrichSoftwarePackages([pkg], components)[0];
+        if (!enriched) return;
+        setDetails((current) => ({
+          ...current,
+          homepage: current.homepage ?? enriched.homepage,
+          longDescription: current.longDescription ?? enriched.longDescription,
+          appstream: enriched.appstream ?? current.appstream,
+        }));
+      })
+      .catch((detailsError: unknown) => {
+        if (!isProcessAborted(detailsError)) {
+          console.debug("AppStream details unavailable", detailsError);
+        }
       });
 
     return () => controller.abort();
@@ -92,6 +122,30 @@ function SoftwareDetails({ pkg, primaryActions }: SoftwareDetailsProps) {
             text={packageSourceLabel(details)}
           />
           <Detail.Metadata.Label title="Package ID" text={details.id} />
+          {details.appstream?.componentId &&
+            details.appstream.componentId.toLocaleLowerCase() !==
+              details.id.toLocaleLowerCase() && (
+            <Detail.Metadata.Label
+              title="Application ID"
+              text={details.appstream.componentId}
+            />
+          )}
+          {details.appstream?.isGuiApplication && (
+            <Detail.Metadata.Label title="Type" text="Desktop Application" />
+          )}
+          {details.appstream?.categories &&
+            details.appstream.categories.length > 0 && (
+            <Detail.Metadata.Label
+              title="Categories"
+              text={details.appstream.categories.join(", ")}
+            />
+          )}
+          {details.appstream?.license && (
+            <Detail.Metadata.Label
+              title="License"
+              text={details.appstream.license}
+            />
+          )}
           {details.version && !isSoftwareUpdate(details) && (
             <Detail.Metadata.Label title="Version" text={details.version} />
           )}

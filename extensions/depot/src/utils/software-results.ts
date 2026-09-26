@@ -1,4 +1,5 @@
 import type { SoftwarePackage } from "../types";
+import { expandedSearchQueries } from "../backends/appstream-parsing.ts";
 
 const RESULT_LIMIT = 60;
 
@@ -42,8 +43,20 @@ export function sortSoftwareAlphabetically<T extends SoftwarePackage>(
 }
 
 function scoreSoftwarePackage(pkg: SoftwarePackage, query: string): number {
+  const queries = expandedSearchQueries(query);
+  return Math.min(...queries.map((candidate, index) =>
+    scoreSoftwarePackageForQuery(pkg, candidate, index > 0)
+  ));
+}
+
+function scoreSoftwarePackageForQuery(
+  pkg: SoftwarePackage,
+  query: string,
+  isAlias: boolean,
+): number {
   const name = normalize(pkg.name);
   const id = normalize(pkg.id);
+  const applicationId = normalize(pkg.appstream?.componentId ?? "");
   const description = normalize(pkg.description);
   const queryTokens = words(query);
   const nameTokens = words(name);
@@ -55,12 +68,12 @@ function scoreSoftwarePackage(pkg: SoftwarePackage, query: string): number {
     .filter(Boolean);
   const compactQuery = query.replace(/\s+/g, "");
 
-  if (name === query || id === query) {
-    return 0;
-  }
+  if (!isAlias && id === query) return 0;
 
   let score: number;
-  if (name.startsWith(`${query} `)) {
+  if (name === query || applicationId === query) {
+    score = isAlias ? 2 : 1;
+  } else if (name.startsWith(`${query} `)) {
     score = 5;
   } else if (idSegments.some((segment) =>
     segment === query || segment.replace(/\s+/g, "") === compactQuery
@@ -90,7 +103,9 @@ function scoreSoftwarePackage(pkg: SoftwarePackage, query: string): number {
     score = 60;
   }
 
-  return score + noisePenalty(pkg, queryTokens);
+  const applicationBonus = pkg.appstream?.isGuiApplication ? -1 : 0;
+  const installedBonus = pkg.installed ? -0.25 : 0;
+  return score + noisePenalty(pkg, queryTokens) + applicationBonus + installedBonus;
 }
 
 function noisePenalty(pkg: SoftwarePackage, queryTokens: readonly string[]): number {

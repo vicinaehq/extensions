@@ -68,6 +68,45 @@ test("keeps exact APT and Flatpak choices together ahead of plugins", () => {
   ]);
 });
 
+test("uses friendly AppStream names and GUI status for ranking", () => {
+  const cli = aptPackage("obs-cli", "Command-line OBS controller");
+  const studio = {
+    ...aptPackage("obs-studio", "Live stream and record videos"),
+    name: "OBS Studio",
+    appstream: {
+      componentId: "com.obsproject.Studio",
+      kind: "desktop-application",
+      isGuiApplication: true,
+    },
+  };
+
+  const results = rankSoftwareResults("obs", [cli, studio]);
+
+  assert.equal(results[0]?.id, "obs-studio");
+});
+
+test("recognizes the transparent vscode alias without hiding alternatives", () => {
+  const results = rankSoftwareResults(
+    "vscode",
+    [aptPackage("vscode-langservers-extracted", "Language servers")],
+    [{
+      ...flatpakPackage(
+        "com.visualstudio.code",
+        "Visual Studio Code",
+        "Code editing. Redefined.",
+      ),
+      appstream: {
+        componentId: "com.visualstudio.code",
+        kind: "desktop-application",
+        isGuiApplication: true,
+      },
+    }],
+  );
+
+  assert.equal(results[0]?.id, "com.visualstudio.code");
+  assert.equal(results.length, 2);
+});
+
 test("prefers a desktop application over a similarly named command-line tool", () => {
   const results = rankSoftwareResults(
     "telegram",

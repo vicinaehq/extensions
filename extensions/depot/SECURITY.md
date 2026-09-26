@@ -6,6 +6,8 @@ Depot delegates package management to APT, Flatpak, and Polkit:
 
 - Package identifiers are validated and passed as subprocess arguments with
   shell execution disabled.
+- AppStream metadata is read locally, used only for display and ranking, and
+  never evaluated as code. Homepage actions still accept only HTTP(S) URLs.
 - APT keeps its normal repository signature and trust checks.
 - Polkit owns privileged authentication; the extension never receives or stores
   passwords.

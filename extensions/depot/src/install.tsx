@@ -10,11 +10,13 @@ import {
 } from "@vicinae/api";
 import { useMemo, useRef, useState } from "react";
 import { AptOperationError, aptBackend } from "./backends/apt";
+import { enrichSoftwarePackages } from "./backends/appstream-parsing";
 import {
   FlatpakBackend,
   FlatpakOperationError,
 } from "./backends/flatpak";
 import { ShowSoftwareDetailsAction } from "./components/software-details";
+import { useAppStreamSearch } from "./hooks/use-appstream-search";
 import { useAptSearch } from "./hooks/use-apt-search";
 import { useFlatpakSearch } from "./hooks/use-flatpak-search";
 import type { SoftwarePackage, SoftwarePreferences } from "./types";
@@ -39,10 +41,14 @@ export default function InstallCommand() {
     flatpakBackend,
     flatpakEnabled,
   );
+  const appStreamComponents = useAppStreamSearch(
+    searchText,
+    aptEnabled || flatpakEnabled,
+  );
   const results = rankSoftwareResults(
     searchText,
-    aptSearch.results,
-    flatpakSearch.results,
+    enrichSoftwarePackages(aptSearch.results, appStreamComponents),
+    enrichSoftwarePackages(flatpakSearch.results, appStreamComponents),
   );
   const isLoading = aptSearch.isLoading || flatpakSearch.isLoading;
   const normalizedQuery = searchText.trim();
@@ -99,6 +105,10 @@ export default function InstallCommand() {
           id={`${pkg.source}:${pkg.id}`}
           title={pkg.name}
           subtitle={pkg.description}
+          icon={pkg.icon
+            ? { source: pkg.icon, fallback: Icon.AppWindow }
+            : Icon.AppWindow}
+          keywords={[pkg.id, pkg.appstream?.componentId ?? ""]}
           accessories={installAccessories(pkg)}
           actions={
             <ActionPanel>

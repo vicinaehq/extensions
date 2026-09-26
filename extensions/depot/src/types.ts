@@ -13,6 +13,14 @@ export interface FlatpakPackageMetadata {
   branch?: string;
 }
 
+export interface AppStreamPackageMetadata {
+  componentId: string;
+  kind: string;
+  isGuiApplication: boolean;
+  categories?: string[];
+  license?: string;
+}
+
 export interface SoftwarePackage {
   id: string;
   name: string;
@@ -22,6 +30,8 @@ export interface SoftwarePackage {
   version?: string;
   homepage?: string;
   longDescription?: string;
+  icon?: string;
+  appstream?: AppStreamPackageMetadata;
   flatpak?: FlatpakPackageMetadata;
 }
 
