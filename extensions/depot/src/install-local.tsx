@@ -264,7 +264,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
     });
     const operationOptions = operation.start(
       filePath,
-      (progress) => updateOperationToast(toast, progress),
+      (status) => updateOperationToast(toast, status),
     );
     try {
       const result = await installLocalPackage(pkg, {

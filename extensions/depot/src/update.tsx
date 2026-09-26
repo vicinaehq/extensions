@@ -86,7 +86,7 @@ export default function UpdateCommand() {
       });
       const options = operation.start(
         key,
-        (progress) => updateOperationToast(toast, progress),
+        (status) => updateOperationToast(toast, status),
       );
 
       try {
@@ -141,13 +141,13 @@ export default function UpdateCommand() {
       });
       const options = operation.start(
         "all",
-        (progress) => updateOperationToast(toast, progress),
+        (status) => updateOperationToast(toast, status),
       );
       const failures: string[] = [];
 
       if (updates.aptUpdates.length > 0) {
         try {
-          await aptBackend.updateAll(options);
+          await aptBackend.updateAll(updates.aptUpdates, options);
           await recordRecentActions(updates.aptUpdates.map((update) => ({
             kind: "updated" as const,
             name: update.name,
@@ -165,7 +165,7 @@ export default function UpdateCommand() {
       }
       if (updates.flatpakUpdates.length > 0) {
         try {
-          await flatpakBackend.updateAll(options);
+          await flatpakBackend.updateAll(updates.flatpakUpdates, options);
           await recordRecentActions(updates.flatpakUpdates.map((update) => ({
             kind: "updated" as const,
             name: update.name,
@@ -216,11 +216,11 @@ export default function UpdateCommand() {
       const aptOptions = aptEnabled
         ? operation.start(
           "refresh",
-          (progress) => updateOperationToast(toast, progress),
+          (status) => updateOperationToast(toast, status),
         )
         : {
-          onProgress: (progress: Parameters<typeof updateOperationToast>[1]) =>
-            updateOperationToast(toast, progress),
+          onStatus: (status: Parameters<typeof updateOperationToast>[1]) =>
+            updateOperationToast(toast, status),
         };
 
       const refreshes: Promise<void>[] = [];

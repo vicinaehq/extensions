@@ -20,6 +20,7 @@ export interface AptTransactionOptions {
   directExecutable: string;
   directArgs: readonly string[];
   simulationArgs?: readonly string[];
+  validateSimulation?: (stdout: string) => void;
   unavailableMessage: string;
   cancelledMessage: string;
   failureMessage: string;
@@ -30,6 +31,7 @@ type AptTransactionErrorKind =
   | "cancelled"
   | "authentication"
   | "busy"
+  | "unsafe"
   | "failed";
 
 export class AptTransactionError
@@ -47,25 +49,6 @@ export async function runAptTransaction(
   options: AptTransactionOptions,
   operation: SoftwareOperationOptions = {},
 ): Promise<void> {
-  if (options.simulationArgs) {
-    operation.onProgress?.({
-      message: "Checking transaction safety",
-      cancellable: false,
-    });
-    await requireAptExecutable(
-      options.directExecutable,
-      options.unavailableMessage,
-    );
-    try {
-      await runProcess(options.directExecutable, options.simulationArgs, {
-        env: C_LOCALE_ENV,
-        maxOutputBytes: 1024 * 1024,
-      });
-    } catch (error) {
-      throwTransactionError(error, options, "direct");
-    }
-  }
-
   if (options.aptDaemonRequest) {
     const aptdaemon = await import("./aptdaemon.ts");
     try {
@@ -80,6 +63,30 @@ export async function runAptTransaction(
     }
   }
 
+  if (options.simulationArgs) {
+    operation.onStatus?.({
+      message: "Checking transaction safety",
+      cancellable: false,
+    });
+    await requireAptExecutable(
+      options.directExecutable,
+      options.unavailableMessage,
+    );
+    try {
+      const simulation = await runProcess(
+        options.directExecutable,
+        options.simulationArgs,
+        {
+          env: C_LOCALE_ENV,
+          maxOutputBytes: 1024 * 1024,
+        },
+      );
+      options.validateSimulation?.(simulation.stdout);
+    } catch (error) {
+      throwTransactionError(error, options, "direct");
+    }
+  }
+
   await requireAptExecutable(options.directExecutable, options.unavailableMessage);
   try {
     await requireExecutable(PKEXEC);
@@ -90,7 +97,7 @@ export async function runAptTransaction(
     );
   }
 
-  operation.onProgress?.({
+  operation.onStatus?.({
     message: "APT is working",
     cancellable: false,
   });
@@ -119,6 +126,8 @@ function throwAptDaemonError(
     ? "Authentication was cancelled or denied"
     : error.kind === "busy"
     ? "Another package-management operation is currently running"
+    : error.kind === "unsafe"
+    ? error.message
     : options.failureMessage;
   throw new AptTransactionError(error.kind, message, error.technicalDetails);
 }

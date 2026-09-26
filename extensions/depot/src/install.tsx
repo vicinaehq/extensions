@@ -79,7 +79,7 @@ export default function InstallCommand() {
     });
     const options = operation.start(
       installKey,
-      (progress) => updateOperationToast(toast, progress),
+      (status) => updateOperationToast(toast, status),
     );
 
     try {

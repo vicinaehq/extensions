@@ -22,6 +22,17 @@ uses narrowly scoped file operations for local AppImages:
   no-removal simulation succeed. Systems without aptdaemon fall back to direct
   `pkexec` + APT. Both paths preserve explicit arguments and APT's simulation
   guard.
+- Depot asks aptdaemon to simulate a pending mutation once and validates its
+  package groups before calling `Run()`. Installs and upgrades are blocked if
+  the resolver proposes any removal; removals are blocked if anything beyond
+  the selected package would be removed. The `pkexec` fallback retains its
+  direct APT simulation and the same removal-plan validation.
+- For aptdaemon removals and upgrades, Depot may check the exact documented
+  Polkit action with `pkcheck` while the read-only simulation runs. The check
+  identifies the extension process using PID, process start time, and UID. It
+  can display the normal system authentication agent sooner, but cannot alter
+  packages; aptdaemon still performs its own authorization check before the
+  validated transaction is queued.
 - Only existing APT sources and Flatpak remotes are used. Depot never adds
   repositories, remotes, signing keys, or downloaded scripts during search.
   A selected `.flatpakref` may add only the remote declared in that file, after

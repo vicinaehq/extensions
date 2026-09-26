@@ -314,33 +314,19 @@ export class AptBackend implements PackageBackend {
       );
     }
 
-    const simulation = await runProcess(
-      APT_GET,
-      ["--simulate", "--no-auto-remove", "remove", "--", targetId],
-      { env: C_LOCALE_ENV, maxOutputBytes: 1024 * 1024 },
-    );
-    const planned = [...new Set(parseAptRemovalSimulation(simulation.stdout))];
-    const removalPlan = inspectAptRemovalPlan(targetId, planned);
-    if (!removalPlan.includesTarget) {
-      throw new AptOperationError(
-        "failed",
-        "APT could not prepare this removal",
-        summarizeProcessOutput(simulation.stderr || simulation.stdout),
-      );
-    }
-
-    if (removalPlan.additionalIds.length > 0) {
-      throw new AptOperationError(
-        "unsafe",
-        "Removal was blocked because other software would also be removed",
-        removalPlan.additionalIds.join("\n"),
-      );
-    }
-
     await runAptTransaction({
       aptDaemonRequest: { kind: "remove-packages", packageIds: [targetId] },
       directExecutable: APT_GET,
       directArgs: ["--yes", "--no-auto-remove", "remove", "--", targetId],
+      simulationArgs: [
+        "--simulate",
+        "--no-auto-remove",
+        "remove",
+        "--",
+        targetId,
+      ],
+      validateSimulation: (output) =>
+        assertSafeRemovalSimulation(targetId, output),
       unavailableMessage: "APT removal is not available",
       cancelledMessage: "Removal was cancelled",
       failureMessage: "Package removal failed",
@@ -427,17 +413,40 @@ export class AptBackend implements PackageBackend {
     }, options);
   }
 
-  async updateAll(options?: SoftwareOperationOptions): Promise<void> {
-    const updates = await this.listUpdates();
+  async updateAll(
+    updates: readonly SoftwareUpdate[],
+    options?: SoftwareOperationOptions,
+  ): Promise<void> {
     if (updates.length === 0) return;
+    for (const update of updates) {
+      if (update.source !== this.source) {
+        throw new AptOperationError("not-found", "Invalid APT update target");
+      }
+      assertPackageId(update.id);
+    }
+    const packageIds = updates.map((update) => update.id);
     await runAptTransaction({
       aptDaemonRequest: {
         kind: "upgrade-packages",
-        packageIds: updates.map((update) => update.id),
+        packageIds,
       },
       directExecutable: APT_GET,
-      directArgs: ["--yes", "--no-remove", "upgrade"],
-      simulationArgs: ["--simulate", "--no-remove", "upgrade"],
+      directArgs: [
+        "--yes",
+        "--no-remove",
+        "--only-upgrade",
+        "install",
+        "--",
+        ...packageIds,
+      ],
+      simulationArgs: [
+        "--simulate",
+        "--no-remove",
+        "--only-upgrade",
+        "install",
+        "--",
+        ...packageIds,
+      ],
       unavailableMessage: "APT package management is not available",
       cancelledMessage: "Update was cancelled",
       failureMessage: "APT update failed",
@@ -505,6 +514,25 @@ export class AptBackend implements PackageBackend {
       },
     );
     return parseDpkgInstalledMetadata(result.stdout);
+  }
+}
+
+function assertSafeRemovalSimulation(targetId: string, output: string): void {
+  const planned = [...new Set(parseAptRemovalSimulation(output))];
+  const removalPlan = inspectAptRemovalPlan(targetId, planned);
+  if (!removalPlan.includesTarget) {
+    throw new AptOperationError(
+      "failed",
+      "APT could not prepare this removal",
+      summarizeProcessOutput(output),
+    );
+  }
+  if (removalPlan.additionalIds.length > 0) {
+    throw new AptOperationError(
+      "unsafe",
+      "Removal was blocked because other software would also be removed",
+      removalPlan.additionalIds.join("\n"),
+    );
   }
 }
 

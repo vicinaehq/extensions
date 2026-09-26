@@ -3,6 +3,8 @@ import test from "node:test";
 import {
   classifyAptDaemonOutcome,
   describeAptDaemonStatus,
+  findUnexpectedAptDaemonRemovals,
+  parseProcStartTime,
 } from "../src/backends/aptdaemon.ts";
 
 test("classifies aptdaemon transaction outcomes", () => {
@@ -40,4 +42,55 @@ test("describes documented aptdaemon transaction phases", () => {
     "Applying package changes",
   );
   assert.equal(describeAptDaemonStatus("future-status"), "APT is working");
+});
+
+test("rejects removals introduced by an install simulation", () => {
+  assert.deepEqual(
+    findUnexpectedAptDaemonRemovals(
+      { kind: "install-packages", packageIds: ["example"] },
+      [["example"], [], [], []],
+      [[], [], ["conflicting-package=1.0"], [], [], [], []],
+    ),
+    ["conflicting-package"],
+  );
+});
+
+test("allows only the requested package in a removal simulation", () => {
+  const request = { kind: "remove-packages", packageIds: ["example:amd64"] } as const;
+  assert.deepEqual(
+    findUnexpectedAptDaemonRemovals(
+      request,
+      [[], [], ["example=1.0"], []],
+      [[], [], [], [], [], [], []],
+    ),
+    [],
+  );
+  assert.deepEqual(
+    findUnexpectedAptDaemonRemovals(
+      request,
+      [[], [], ["example=1.0"], []],
+      [[], [], ["dependent=2.0"], [], [], [], []],
+    ),
+    ["dependent"],
+  );
+});
+
+test("fails closed when aptdaemon simulation groups are malformed", () => {
+  assert.equal(
+    findUnexpectedAptDaemonRemovals(
+      { kind: "upgrade-packages", packageIds: ["example"] },
+      null,
+      [],
+    ),
+    undefined,
+  );
+});
+
+test("reads the race-safe process start time used for Polkit", () => {
+  const fields = ["S", ...Array.from({ length: 18 }, (_, index) => String(index)), "424242"];
+  assert.equal(
+    parseProcStartTime(`123 (Depot worker (test)) ${fields.join(" ")}`),
+    "424242",
+  );
+  assert.equal(parseProcStartTime("invalid"), undefined);
 });

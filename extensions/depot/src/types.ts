@@ -43,15 +43,14 @@ export interface SoftwareUpdate extends SoftwareItem {
   downloadSize?: string;
 }
 
-export interface SoftwareOperationProgress {
+export interface SoftwareOperationStatus {
   message: string;
-  percent?: number;
   cancellable: boolean;
 }
 
 export interface SoftwareOperationOptions {
   signal?: AbortSignal;
-  onProgress?: (progress: SoftwareOperationProgress) => void;
+  onStatus?: (status: SoftwareOperationStatus) => void;
 }
 
 export interface PackageBackend {
@@ -69,6 +68,9 @@ export interface PackageBackend {
   ): Promise<"removed" | "not-installed">;
   listUpdates(signal?: AbortSignal): Promise<SoftwareUpdate[]>;
   update(pkg: SoftwareUpdate, options?: SoftwareOperationOptions): Promise<void>;
-  updateAll(options?: SoftwareOperationOptions): Promise<void>;
+  updateAll(
+    updates: readonly SoftwareUpdate[],
+    options?: SoftwareOperationOptions,
+  ): Promise<void>;
   refreshMetadata(options?: SoftwareOperationOptions): Promise<void>;
 }

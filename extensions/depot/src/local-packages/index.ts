@@ -113,13 +113,13 @@ export async function installLocalPackage(
       return installDebPackage(pkg, options);
     case "flatpak-bundle":
     case "flatpakref":
-      options.onProgress?.({
+      options.onStatus?.({
         message: "Installing with Flatpak",
         cancellable: false,
       });
       return installFlatpakFile(pkg);
     case "appimage":
-      options.onProgress?.({
+      options.onStatus?.({
         message: "Integrating AppImage",
         cancellable: false,
       });

@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import type {
   SoftwareOperationOptions,
-  SoftwareOperationProgress,
+  SoftwareOperationStatus,
 } from "../types.ts";
 
 interface ActiveOperation {
@@ -17,23 +17,23 @@ export function useSoftwareOperation() {
 
   const start = (
     key: string,
-    onProgress: (progress: SoftwareOperationProgress) => void,
+    onStatus: (status: SoftwareOperationStatus) => void,
   ): SoftwareOperationOptions => {
     const controller = new AbortController();
     operations.current.set(key, { controller, cancellable: false });
 
     return {
       signal: controller.signal,
-      onProgress: (progress) => {
+      onStatus: (status) => {
         const active = operations.current.get(key);
         if (!active || active.controller !== controller) return;
-        if (active.cancellable !== progress.cancellable) {
-          active.cancellable = progress.cancellable;
+        if (active.cancellable !== status.cancellable) {
+          active.cancellable = status.cancellable;
           setCancellableKeys((current) =>
-            withCancellableKey(current, key, progress.cancellable)
+            withCancellableKey(current, key, status.cancellable)
           );
         }
-        onProgress(progress);
+        onStatus(status);
       },
     };
   };

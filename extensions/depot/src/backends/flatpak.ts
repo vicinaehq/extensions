@@ -201,7 +201,7 @@ export class FlatpakBackend implements PackageBackend {
   ): Promise<"installed" | "already-installed"> {
     assertAppId(pkg.id);
     await this.requireExecutable();
-    options?.onProgress?.({
+    options?.onStatus?.({
       message: "Checking Flatpak installation",
       cancellable: false,
     });
@@ -227,7 +227,7 @@ export class FlatpakBackend implements PackageBackend {
     }
 
     try {
-      options?.onProgress?.({
+      options?.onStatus?.({
         message: "Installing with Flatpak",
         cancellable: false,
       });
@@ -327,7 +327,7 @@ export class FlatpakBackend implements PackageBackend {
   ): Promise<"removed" | "not-installed"> {
     assertAppId(pkg.id);
     await this.requireExecutable();
-    options?.onProgress?.({
+    options?.onStatus?.({
       message: "Checking Flatpak installation",
       cancellable: false,
     });
@@ -347,7 +347,7 @@ export class FlatpakBackend implements PackageBackend {
     if (!isInstalledInScope) return "not-installed";
 
     try {
-      options?.onProgress?.({
+      options?.onStatus?.({
         message: "Removing with Flatpak",
         cancellable: false,
       });
@@ -440,7 +440,7 @@ export class FlatpakBackend implements PackageBackend {
     options?: SoftwareOperationOptions,
   ): Promise<void> {
     assertAppId(pkg.id);
-    options?.onProgress?.({
+    options?.onStatus?.({
       message: "Checking Flatpak installation",
       cancellable: false,
     });
@@ -475,18 +475,22 @@ export class FlatpakBackend implements PackageBackend {
     );
   }
 
-  async updateAll(options?: SoftwareOperationOptions): Promise<void> {
-    options?.onProgress?.({
-      message: "Checking Flatpak updates",
+  async updateAll(
+    updates: readonly SoftwareUpdate[],
+    options?: SoftwareOperationOptions,
+  ): Promise<void> {
+    options?.onStatus?.({
+      message: "Preparing Flatpak updates",
       cancellable: false,
     });
-    const updates = await this.listUpdates();
+    for (const update of updates) {
+      assertUpdateTarget(update);
+    }
     for (const scope of ALL_SCOPES) {
       const ids = updates
         .filter((pkg) => pkg.flatpak?.scope === scope)
         .map((pkg) => pkg.id);
       if (ids.length === 0) continue;
-      ids.forEach(assertAppId);
       await this.runFlatpakTransaction(
         [
           "update",
@@ -505,7 +509,7 @@ export class FlatpakBackend implements PackageBackend {
 
   async refreshMetadata(options?: SoftwareOperationOptions): Promise<void> {
     await this.requireExecutable();
-    options?.onProgress?.({
+    options?.onStatus?.({
       message: "Refreshing Flatpak metadata",
       cancellable: false,
     });
@@ -598,7 +602,7 @@ export class FlatpakBackend implements PackageBackend {
     options?: SoftwareOperationOptions,
   ): Promise<void> {
     await this.requireExecutable();
-    options?.onProgress?.({
+    options?.onStatus?.({
       message: "Updating with Flatpak",
       cancellable: false,
     });
@@ -647,6 +651,16 @@ export class FlatpakBackend implements PackageBackend {
 function assertAppId(id: string): void {
   if (!isValidFlatpakAppId(id)) {
     throw new FlatpakOperationError("not-found", "Invalid Flatpak application ID");
+  }
+}
+
+function assertUpdateTarget(update: SoftwareUpdate): void {
+  assertAppId(update.id);
+  if (
+    update.source !== "flatpak" ||
+    (update.flatpak?.scope !== "user" && update.flatpak?.scope !== "system")
+  ) {
+    throw new FlatpakOperationError("not-found", "Invalid Flatpak update target");
   }
 }
 

@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import {
   DBusError,
   type DBusInterface,
@@ -6,15 +7,24 @@ import {
   systemBus,
   variantValue,
 } from "dbus-native";
+import { LINUX_EXECUTABLES } from "../linux.ts";
 import type {
   SoftwareOperationOptions,
-  SoftwareOperationProgress,
+  SoftwareOperationStatus,
 } from "../types.ts";
+import {
+  C_LOCALE_ENV,
+  ProcessExecutionError,
+  requireExecutable,
+  runProcess,
+} from "../utils/process.ts";
 
 const SERVICE = "org.debian.apt";
 const DAEMON_PATH = "/org/debian/apt";
 const DAEMON_INTERFACE = "org.debian.apt";
 const TRANSACTION_INTERFACE = "org.debian.apt.transaction";
+const INSTALL_REMOVE_ACTION = "org.debian.apt.install-or-remove-packages";
+const UPGRADE_ACTION = "org.debian.apt.upgrade-packages";
 
 export type AptDaemonRequest =
   | { kind: "install-packages"; packageIds: string[] }
@@ -28,6 +38,7 @@ export type AptDaemonErrorKind =
   | "cancelled"
   | "authentication"
   | "busy"
+  | "unsafe"
   | "failed";
 
 export class AptDaemonError extends Error {
@@ -55,6 +66,7 @@ interface AptDaemonInterface extends DBusInterface {
 }
 
 interface AptDaemonTransactionInterface extends DBusInterface {
+  Simulate(): DBusPromise<void>;
   Run(): DBusPromise<void>;
   Cancel(): DBusPromise<void>;
 }
@@ -83,7 +95,7 @@ export async function runAptDaemonTransaction(
       transactionPath,
       TRANSACTION_INTERFACE,
     );
-    await runTransaction(transaction, options);
+    await runTransaction(transaction, request, options);
   } catch (error) {
     if (error instanceof AptDaemonError) throw error;
     throw classifyDbusError(error);
@@ -192,6 +204,7 @@ async function createTransaction(
 
 async function runTransaction(
   transaction: AptDaemonTransactionInterface,
+  request: AptDaemonRequest,
   options: SoftwareOperationOptions,
 ): Promise<void> {
   let resolveFinished: (exitState: string) => void = () => undefined;
@@ -200,20 +213,18 @@ async function runTransaction(
   });
   const onFinished = (exitState: string) => resolveFinished(exitState);
   let status = "status-setting-up";
-  let progress: number | undefined;
   let cancellable = false;
   let cancellationRequested = false;
 
-  const reportProgress = () => {
-    const update: SoftwareOperationProgress = {
+  const reportStatus = () => {
+    const update: SoftwareOperationStatus = {
       message: describeAptDaemonStatus(status),
       cancellable,
     };
-    if (progress !== undefined) update.percent = progress;
     try {
-      options.onProgress?.(update);
+      options.onStatus?.(update);
     } catch (error) {
-      console.debug("APT progress callback failed", error);
+      console.debug("APT status callback failed", error);
     }
   };
 
@@ -221,7 +232,7 @@ async function runTransaction(
     cancellationRequested = true;
     if (!cancellable) return;
     cancellable = false;
-    reportProgress();
+    reportStatus();
     void transaction.Cancel().catch((error: unknown) => {
       console.debug("APT transaction could not be cancelled", error);
     });
@@ -231,15 +242,13 @@ async function runTransaction(
     const value = variantValue(encodedValue);
     if (propertyName === "Status" && typeof value === "string") {
       status = value;
-    } else if (propertyName === "Progress" && typeof value === "number") {
-      progress = normalizeProgress(value);
     } else if (propertyName === "Cancellable" && typeof value === "boolean") {
       cancellable = value;
       if (cancellationRequested && cancellable) requestCancellation();
     } else {
       return;
     }
-    reportProgress();
+    reportStatus();
   };
 
   let subscribedToProperties = false;
@@ -253,12 +262,15 @@ async function runTransaction(
     if (typeof initialProperties.Status === "string") {
       status = initialProperties.Status;
     }
-    if (typeof initialProperties.Progress === "number") {
-      progress = normalizeProgress(initialProperties.Progress);
-    }
     cancellable = initialProperties.Cancellable === true;
-    reportProgress();
+    reportStatus();
     if (options.signal?.aborted) requestCancellation();
+
+    if (request.kind !== "refresh-cache") {
+      await simulateAndPreauthorize(transaction, request, options.signal);
+      const simulatedProperties = await transaction.$readAllProps();
+      assertSafeSimulation(transaction, request, simulatedProperties);
+    }
 
     await transaction.Run();
     const exitState = await finished;
@@ -284,9 +296,158 @@ async function runTransaction(
   }
 }
 
-function normalizeProgress(value: number): number | undefined {
-  if (!Number.isFinite(value) || value < 0 || value > 100) return undefined;
-  return Math.round(value);
+async function simulateAndPreauthorize(
+  transaction: AptDaemonTransactionInterface,
+  request: AptDaemonRequest,
+  signal?: AbortSignal,
+): Promise<void> {
+  const authorizationController = new AbortController();
+  const authorizationSignal = signal
+    ? AbortSignal.any([signal, authorizationController.signal])
+    : authorizationController.signal;
+  const simulation = transaction.Simulate().catch((error: unknown) => {
+    authorizationController.abort();
+    throw error;
+  });
+  const authorization = preauthorize(request, authorizationSignal);
+  const [simulationResult, authorizationResult] = await Promise.allSettled([
+    simulation,
+    authorization,
+  ]);
+
+  if (simulationResult.status === "rejected") throw simulationResult.reason;
+  if (authorizationResult.status === "rejected") {
+    void transaction.Cancel().catch(() => undefined);
+    throw authorizationResult.reason;
+  }
+}
+
+async function preauthorize(
+  request: AptDaemonRequest,
+  signal: AbortSignal,
+): Promise<void> {
+  const action = preauthorizationAction(request);
+  if (!action) return;
+
+  let subject: string | undefined;
+  try {
+    await requireExecutable(LINUX_EXECUTABLES.pkcheck);
+    const startTime = parseProcStartTime(
+      await readFile("/proc/self/stat", "utf8"),
+    );
+    const uid = process.getuid?.();
+    if (startTime && uid !== undefined) {
+      subject = `${process.pid},${startTime},${uid}`;
+    }
+  } catch {
+    return;
+  }
+  if (!subject) return;
+
+  try {
+    await runProcess(
+      LINUX_EXECUTABLES.pkcheck,
+      [
+        "--action-id",
+        action,
+        "--process",
+        subject,
+        "--allow-user-interaction",
+      ],
+      {
+        signal,
+        captureStdout: false,
+        env: C_LOCALE_ENV,
+        maxOutputBytes: 64 * 1024,
+      },
+    );
+  } catch (error) {
+    if (
+      error instanceof ProcessExecutionError &&
+      (error.result.exitCode === 1 || error.result.exitCode === 3)
+    ) {
+      throw new AptDaemonError(
+        "authentication",
+        "Authentication was cancelled or denied",
+      );
+    }
+    if (signal.aborted) {
+      throw new AptDaemonError("cancelled", "Transaction was cancelled");
+    }
+    // Let aptdaemon perform its normal authorization check when pkcheck is
+    // unavailable or cannot use the desktop authentication agent.
+  }
+}
+
+function preauthorizationAction(request: AptDaemonRequest): string | undefined {
+  if (request.kind === "remove-packages") return INSTALL_REMOVE_ACTION;
+  if (request.kind === "upgrade-packages") return UPGRADE_ACTION;
+  return undefined;
+}
+
+export function parseProcStartTime(stat: string): string | undefined {
+  const commandEnd = stat.lastIndexOf(")");
+  if (commandEnd < 0) return undefined;
+  const fields = stat.slice(commandEnd + 1).trim().split(/\s+/);
+  const startTime = fields[19];
+  return startTime && /^\d+$/.test(startTime) ? startTime : undefined;
+}
+
+function assertSafeSimulation(
+  transaction: AptDaemonTransactionInterface,
+  request: AptDaemonRequest,
+  properties: Record<string, unknown>,
+): void {
+  const unexpected = findUnexpectedAptDaemonRemovals(
+    request,
+    properties.Packages,
+    properties.Dependencies,
+  );
+  if (unexpected?.length === 0) return;
+
+  void transaction.Cancel().catch(() => undefined);
+  if (!unexpected) {
+    throw new AptDaemonError(
+      "unsafe",
+      "APT changes could not be verified safely",
+    );
+  }
+  throw new AptDaemonError(
+    "unsafe",
+    "The operation was blocked because other software would be removed",
+    unexpected.join("\n"),
+  );
+}
+
+export function findUnexpectedAptDaemonRemovals(
+  request: AptDaemonRequest,
+  packageGroups: unknown,
+  dependencyGroups: unknown,
+): string[] | undefined {
+  const requestedRemovals = removalIds(packageGroups);
+  const dependencyRemovals = removalIds(dependencyGroups);
+  if (!requestedRemovals || !dependencyRemovals) return undefined;
+
+  const allowed = request.kind === "remove-packages"
+    ? new Set(request.packageIds.map(packageNameWithoutVersion))
+    : new Set<string>();
+  return [...new Set([...requestedRemovals, ...dependencyRemovals])]
+    .filter((id) => !allowed.has(id));
+}
+
+function removalIds(groups: unknown): string[] | undefined {
+  if (!Array.isArray(groups)) return undefined;
+  const removals = groups[2];
+  const purges = groups[3];
+  if (!Array.isArray(removals) || !Array.isArray(purges)) return undefined;
+  if (![...removals, ...purges].every((value) => typeof value === "string")) {
+    return undefined;
+  }
+  return [...removals, ...purges].map(packageNameWithoutVersion);
+}
+
+function packageNameWithoutVersion(value: string): string {
+  return (value.split("=", 1)[0] ?? value).replace(/:[a-z0-9][a-z0-9-]*$/, "");
 }
 
 function parseErrorDetails(value: unknown): AptDaemonErrorDetails {

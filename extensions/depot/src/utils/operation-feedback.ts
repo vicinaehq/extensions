@@ -1,6 +1,5 @@
 import { Toast, sendDesktopNotification } from "@vicinae/api";
-import type { SoftwareOperationProgress } from "../types.ts";
-import { operationProgressMessage } from "./operation-progress.ts";
+import type { SoftwareOperationStatus } from "../types.ts";
 
 export interface OperationFeedback {
   status: "success" | "failure";
@@ -32,12 +31,12 @@ export function reportOperationResult(
 
 export function updateOperationToast(
   toast: Toast,
-  progress: SoftwareOperationProgress,
+  status: SoftwareOperationStatus,
 ): void {
-  const message = operationProgressMessage(progress);
+  const message = status.message;
   if (toast.message === message) return;
   toast.message = message;
   void toast.update().catch((error: unknown) => {
-    console.debug("Operation progress could not be displayed", error);
+    console.debug("Operation status could not be displayed", error);
   });
 }

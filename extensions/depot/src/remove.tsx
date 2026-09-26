@@ -85,7 +85,7 @@ export default function RemoveCommand() {
     });
     const options = operation.start(
       key,
-      (progress) => updateOperationToast(toast, progress),
+      (status) => updateOperationToast(toast, status),
     );
 
     try {

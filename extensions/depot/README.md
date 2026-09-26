@@ -29,7 +29,7 @@ keyboard-first, searchable, and native to Vicinae.
 - Friendly application names, summaries, and icons from local AppStream metadata
 - Installed-state detection and package details
 - Graphical Polkit authentication for APT operations
-- Truthful APT transaction phases and aptdaemon-reported progress
+- Truthful APT transaction phases
 - Desktop completion notifications for explicit package operations
 - Safe APT cancellation when aptdaemon marks a transaction cancellable
 - A bounded, local recent-actions list
@@ -106,11 +106,18 @@ perform work while Vicinae is idle.
 
 ## Transactions and recent actions
 
-APT operations show the phase and percentage reported by aptdaemon. When that
-backend explicitly marks a transaction cancellable, **Cancel** appears in the
-action panel with `Ctrl+X`. Depot does not terminate APT, dpkg, Flatpak, or
-`pkexec` processes arbitrarily. Backends without reliable progress expose an
-honest working state instead of a fabricated percentage.
+APT operations show the current phase reported by aptdaemon without a jumpy
+percentage display. When that backend explicitly marks a transaction
+cancellable, **Cancel** appears in the action panel with `Ctrl+X`. Depot does
+not terminate APT, dpkg, Flatpak, or `pkexec` processes arbitrarily. Backends
+without detailed phases expose an honest working state.
+
+Depot uses aptdaemon's own simulation result instead of resolving the same APT
+transaction twice. For removals and updates, the relevant Polkit authorization
+check can run alongside that read-only simulation, so an authentication dialog
+appears promptly. The package change is not queued until simulation succeeds
+and Depot verifies that no unexpected removals were introduced. If `pkcheck`
+is unavailable, aptdaemon performs its normal authorization flow.
 
 Successful installs, AppImage integrations, removals, and updates appear under
 **Recent Actions** in command action panels. Depot keeps at most 25 summaries in
@@ -187,7 +194,7 @@ Known limitations:
 - On systems without an authenticated transaction broker, the `pkexec` fallback
   may require authentication for every privileged APT action. Depot does not
   weaken system policy or retain credentials itself. That fallback also does
-  not expose cancellation or exact progress because interrupting it would be
+  not expose cancellation or detailed phases because interrupting it would be
   unsafe.
 - Type 1 AppImages can be validated and integrated, but embedded metadata
   extraction currently targets the modern Type 2 SquashFS format.

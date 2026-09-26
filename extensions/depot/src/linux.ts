@@ -14,6 +14,7 @@ export const LINUX_EXECUTABLES = {
   dpkgDeb: "/usr/bin/dpkg-deb",
   dpkgQuery: "/usr/bin/dpkg-query",
   flatpak: "/usr/bin/flatpak",
+  pkcheck: "/usr/bin/pkcheck",
   pkexec: "/usr/bin/pkexec",
   unsquashfs: "/usr/bin/unsquashfs",
   updateDesktopDatabase: "/usr/bin/update-desktop-database",
