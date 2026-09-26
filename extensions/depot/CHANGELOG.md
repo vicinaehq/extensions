@@ -29,11 +29,15 @@
 - Report install, integration, removal, update, and metadata-refresh results with
   one-shot desktop notifications, so completion remains visible when an external
   Polkit dialog causes Vicinae to hide.
-- Restore the existing Vicinae command after external authentication, preserving
-  its search and navigation state for the next action.
-- Prefer aptdaemon's demand-activated APT transaction service when available so
-  system-managed authorization can be reused briefly and future package batches
-  can run as one transaction; retain `pkexec` as the portable fallback.
+- Use one demand-driven aptdaemon D-Bus connection per active command so
+  Polkit's authorization grace period can apply to repeated actions and future
+  package batches can run as one transaction; retain `pkexec` as the portable
+  fallback.
+- Install inspected vendor `.deb` files through aptdaemon's documented
+  forced-file mode after an APT no-removal simulation, allowing packages such
+  as Warp that omit non-critical Debian control fields.
+- Document the Vicinae focus settings required to keep an active command
+  visible while an external Polkit dialog owns focus.
 
 ## 1.0.0 - 2026-09-25
 

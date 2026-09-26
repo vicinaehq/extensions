@@ -33,10 +33,7 @@ import {
   sortSoftwareAlphabetically,
 } from "./utils/software-results";
 import { OperationLock } from "./utils/operation-lock";
-import {
-  reportOperationResult,
-  reopenDepotCommand,
-} from "./utils/operation-feedback";
+import { reportOperationResult } from "./utils/operation-feedback";
 import { updateSourceErrors } from "./utils/update-errors";
 
 export default function UpdateCommand() {
@@ -102,9 +99,6 @@ export default function UpdateCommand() {
       }
     } finally {
       operationLock.release(key);
-      if (update.source === "apt" || update.flatpak?.scope === "system") {
-        await reopenDepotCommand();
-      }
     }
   };
 
@@ -167,14 +161,6 @@ export default function UpdateCommand() {
       }
     } finally {
       operationLock.release("all");
-      if (
-        updates.aptUpdates.length > 0 ||
-        updates.flatpakUpdates.some((update) =>
-          update.flatpak?.scope === "system"
-        )
-      ) {
-        await reopenDepotCommand();
-      }
     }
   };
 
@@ -229,9 +215,6 @@ export default function UpdateCommand() {
       }
     } finally {
       operationLock.release("refresh");
-      if (aptEnabled || (flatpakEnabled && flatpakScope === "system")) {
-        await reopenDepotCommand();
-      }
     }
   };
 

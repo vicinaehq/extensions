@@ -33,10 +33,7 @@ import {
   type LocalInstallOutcome,
   type LocalPackage,
 } from "./local-packages/index.ts";
-import {
-  reportOperationResult,
-  reopenDepotCommand,
-} from "./utils/operation-feedback";
+import { reportOperationResult } from "./utils/operation-feedback";
 import { isProcessAborted } from "./utils/process";
 import { escapeMarkdown } from "./utils/package-details";
 import { LatestRequest } from "./utils/latest-request";
@@ -248,9 +245,6 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
     if (!pkg || outcome || operating.current) return;
     const confirmed = await confirmAlert(confirmationFor(pkg));
     if (!confirmed) return;
-    const mayRequestAuthentication = pkg.kind === "deb" ||
-      (pkg.kind !== "appimage" && pkg.scope === "system");
-
     operating.current = true;
     const toast = await showToast({
       style: Toast.Style.Animated,
@@ -289,7 +283,6 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
       });
     } finally {
       operating.current = false;
-      if (mayRequestAuthentication) await reopenDepotCommand();
     }
   };
 

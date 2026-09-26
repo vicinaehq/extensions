@@ -20,10 +20,7 @@ import {
 } from "./errors.ts";
 import { useInstalledSoftware } from "./hooks/use-installed-software";
 import type { DepotPreferences, SoftwareItem } from "./types";
-import {
-  reportOperationResult,
-  reopenDepotCommand,
-} from "./utils/operation-feedback";
+import { reportOperationResult } from "./utils/operation-feedback";
 import {
   removeAccessories,
   softwareSourceLabel,
@@ -105,9 +102,6 @@ export default function RemoveCommand() {
       });
     } finally {
       removing.current.delete(key);
-      if (pkg.source === "apt" || pkg.flatpak?.scope === "system") {
-        await reopenDepotCommand();
-      }
     }
   };
 

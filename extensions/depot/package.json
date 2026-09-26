@@ -90,7 +90,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vicinae/api": "0.28.1"
+    "@vicinae/api": "0.28.1",
+    "dbus-native": "^0.15.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

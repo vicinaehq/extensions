@@ -38,8 +38,8 @@ keyboard-first, searchable, and native to Vicinae.
 
 - Vicinae 0.28.1
 - Ubuntu or another Debian-based distribution using APT
-- Polkit for authenticated APT operations; aptdaemon is used when available,
-  with `pkexec` as the compatibility fallback
+- Polkit for authenticated APT operations; Depot uses aptdaemon's D-Bus API
+  when available, with `pkexec` as the compatibility fallback
 - Flatpak with a configured remote, if Flatpak support is wanted
 - `dpkg-deb` for local Debian package inspection
 - `unsquashfs` for optional AppImage desktop metadata and icon extraction
@@ -106,18 +106,20 @@ never discovers repositories, imports keys itself, stores passwords, invokes a
 shell, or performs package operations without an explicit user action.
 
 APT authentication is owned by the system's Polkit policy. Depot never sees or
-caches the password. For repository operations, Depot uses aptdaemon when it is
-installed so the system can retain authorization for its normal short grace
-period and multiple package IDs can share one transaction. Local `.deb` files
-use the direct `pkexec` + APT path because aptdaemon rejects some packages that
-APT can safely resolve and install. Systems without aptdaemon use the same
-direct fallback for all APT operations.
+caches the password. Depot keeps one demand-driven aptdaemon D-Bus connection
+for the lifetime of the active command, allowing Polkit's normal per-action
+authorization grace period to work. Multiple package IDs can share one
+transaction. Local `.deb` files use aptdaemon's documented forced-file mode
+only after Depot's inspection and APT no-removal simulation succeed; this
+bypasses aptdaemon's extra packaging-quality gate, not Depot's safety checks.
+Systems without aptdaemon use the direct `pkexec` fallback.
 
-An external authentication dialog can still make Vicinae hide when **Close on
-focus loss** is enabled. Depot reopens the active command after the transaction
-and also sends a desktop result notification. Install search text is retained;
-other commands return to their main list, ready for another action. Depot does
-not change the user's global Vicinae setting.
+To keep Depot visible while an external authentication dialog owns focus, use
+Vicinae's defaults: `close_on_focus_loss: false` and
+`pop_to_root_on_close: false`. When either behavior is enabled globally,
+Vicinae—not the extension—can hide or reset the active command. Depot does not
+silently change the user's global launcher configuration. A native desktop
+notification still reports every completed transaction.
 
 See [SECURITY.md](SECURITY.md) for the security model and reporting guidance.
 

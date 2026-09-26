@@ -1,10 +1,4 @@
-import {
-  LaunchType,
-  Toast,
-  environment,
-  launchCommand,
-  sendDesktopNotification,
-} from "@vicinae/api";
+import { Toast, sendDesktopNotification } from "@vicinae/api";
 
 export interface OperationFeedback {
   status: "success" | "failure";
@@ -29,18 +23,4 @@ export function reportOperationResult(
   }).catch((error: unknown) => {
     console.debug("Desktop notification could not be delivered", error);
   });
-}
-
-export async function reopenDepotCommand(
-  context?: Record<string, string>,
-): Promise<void> {
-  try {
-    await launchCommand({
-      name: environment.commandName,
-      type: LaunchType.UserInitiated,
-      context,
-    });
-  } catch (error) {
-    console.debug("Depot command could not be reopened", error);
-  }
 }

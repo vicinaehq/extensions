@@ -12,7 +12,6 @@ import {
   summarizeProcessOutput,
 } from "../utils/process";
 import {
-  aptDaemonPackageArgs,
   runAptTransaction,
 } from "./apt-transaction.ts";
 import {
@@ -175,7 +174,7 @@ export class AptBackend implements PackageBackend {
     }
 
     await runAptTransaction({
-      aptDaemonArgs: aptDaemonPackageArgs("install", [id]),
+      aptDaemonRequest: { kind: "install-packages", packageIds: [id] },
       directExecutable: APT_GET,
       directArgs: ["--yes", "--no-remove", "install", "--", id],
       simulationArgs: ["--simulate", "--no-remove", "install", "--", id],
@@ -306,7 +305,7 @@ export class AptBackend implements PackageBackend {
     }
 
     await runAptTransaction({
-      aptDaemonArgs: aptDaemonPackageArgs("remove", [targetId]),
+      aptDaemonRequest: { kind: "remove-packages", packageIds: [targetId] },
       directExecutable: APT_GET,
       directArgs: ["--yes", "--no-auto-remove", "remove", "--", targetId],
       unavailableMessage: "APT removal is not available",
@@ -365,7 +364,7 @@ export class AptBackend implements PackageBackend {
     }
 
     await runAptTransaction({
-      aptDaemonArgs: aptDaemonPackageArgs("upgrade", [pkg.id]),
+      aptDaemonRequest: { kind: "upgrade-packages", packageIds: [pkg.id] },
       directExecutable: APT_GET,
       directArgs: [
         "--yes",
@@ -393,10 +392,10 @@ export class AptBackend implements PackageBackend {
     const updates = await this.listUpdates();
     if (updates.length === 0) return;
     await runAptTransaction({
-      aptDaemonArgs: aptDaemonPackageArgs(
-        "upgrade",
-        updates.map((update) => update.id),
-      ),
+      aptDaemonRequest: {
+        kind: "upgrade-packages",
+        packageIds: updates.map((update) => update.id),
+      },
       directExecutable: APT_GET,
       directArgs: ["--yes", "--no-remove", "upgrade"],
       simulationArgs: ["--simulate", "--no-remove", "upgrade"],
@@ -408,7 +407,7 @@ export class AptBackend implements PackageBackend {
 
   async refreshMetadata(): Promise<void> {
     await runAptTransaction({
-      aptDaemonArgs: ["--refresh"],
+      aptDaemonRequest: { kind: "refresh-cache" },
       directExecutable: APT_GET,
       directArgs: ["update"],
       unavailableMessage: "APT package management is not available",

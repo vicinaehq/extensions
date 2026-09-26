@@ -2,7 +2,6 @@ import {
   Action,
   ActionPanel,
   Icon,
-  LaunchProps,
   List,
   Toast,
   getPreferenceValues,
@@ -22,29 +21,15 @@ import { useAppStreamSearch } from "./hooks/use-appstream-search";
 import { useAptSearch } from "./hooks/use-apt-search";
 import { useFlatpakSearch } from "./hooks/use-flatpak-search";
 import type { DepotPreferences, SoftwareItem } from "./types";
-import {
-  reportOperationResult,
-  reopenDepotCommand,
-} from "./utils/operation-feedback";
+import { reportOperationResult } from "./utils/operation-feedback";
 import { installAccessories } from "./utils/software-accessories";
 import {
   rankSoftwareResults,
   softwareItemKey,
 } from "./utils/software-results";
 
-interface InstallLaunchContext {
-  searchText?: string;
-}
-
-export default function InstallCommand(
-  props: LaunchProps<{
-    arguments: Record<string, never>;
-    launchContext?: InstallLaunchContext;
-  }>,
-) {
-  const [searchText, setSearchText] = useState(
-    props.launchContext?.searchText ?? "",
-  );
+export default function InstallCommand() {
+  const [searchText, setSearchText] = useState("");
   const installing = useRef(new Set<string>());
   const {
     aptEnabled = true,
@@ -117,9 +102,6 @@ export default function InstallCommand(
       });
     } finally {
       installing.current.delete(installKey);
-      if (pkg.source === "apt" || pkg.flatpak?.scope === "system") {
-        await reopenDepotCommand({ searchText });
-      }
     }
   };
 
