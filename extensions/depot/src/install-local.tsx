@@ -3,17 +3,20 @@ import {
   ActionPanel,
   Alert,
   Detail,
-  Form,
+  FileSearch,
   Icon,
+  List,
   Toast,
   confirmAlert,
   environment,
   getPreferenceValues,
   showToast,
 } from "@vicinae/api";
+import { lstat } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, extname, join } from "node:path";
 import { useEffect, useRef, useState } from "react";
+import { useDebouncedValue } from "./hooks/use-debounced-value";
 import type { SoftwarePreferences } from "./types";
 import {
   LocalPackageError,
@@ -29,47 +32,176 @@ import {
 import { isProcessAborted } from "./utils/process";
 import { escapeMarkdown } from "./utils/package-details";
 
+const FILE_SEARCH_LIMIT = 80;
+const RESULT_LIMIT = 40;
+const SUPPORTED_EXTENSIONS = new Set([".deb", ".flatpak", ".flatpakref", ".appimage"]);
+
+interface LocalPackageFile {
+  path: string;
+}
+
 export default function InstallLocalPackageCommand() {
-  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-  const filePath = selectedFiles[0];
+  const [searchText, setSearchText] = useState("");
+  const debouncedSearchText = useDebouncedValue(searchText, 180);
+  const [files, setFiles] = useState<LocalPackageFile[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string>();
+
+  useEffect(() => {
+    const query = debouncedSearchText.trim();
+
+    if (query !== searchText.trim()) {
+      setFiles([]);
+      setSearchError(undefined);
+      setIsLoading(searchText.trim().length > 0);
+      return;
+    }
+
+    if (!query) {
+      setFiles([]);
+      setSearchError(undefined);
+      setIsLoading(false);
+      return;
+    }
+
+    let active = true;
+    const search = async () => {
+      setIsLoading(true);
+      setSearchError(undefined);
+
+      const directFile = await resolveDirectPackageFile(query);
+      if (!active) return;
+
+      if (directFile) {
+        setFiles([directFile]);
+        setIsLoading(false);
+        return;
+      }
+
+      if (query.length < 2) {
+        setFiles([]);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const indexedFiles = await FileSearch.search(query, { limit: FILE_SEARCH_LIMIT });
+        if (!active) return;
+
+        const uniqueFiles = new Map<string, LocalPackageFile>();
+        for (const file of indexedFiles) {
+          if (isSupportedPackagePath(file.path)) {
+            uniqueFiles.set(file.path, { path: file.path });
+          }
+        }
+        setFiles([...uniqueFiles.values()].slice(0, RESULT_LIMIT));
+      } catch (error) {
+        if (!active) return;
+        setFiles([]);
+        setSearchError(error instanceof Error ? error.message : "File search is unavailable");
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+
+    void search();
+    return () => {
+      active = false;
+    };
+  }, [debouncedSearchText, searchText]);
 
   return (
-    <Form
+    <List
       navigationTitle="Depot Install Local"
-      actions={filePath ? (
-        <ActionPanel>
-          <Action.Push
-            title="Inspect Package"
-            icon={Icon.MagnifyingGlass}
-            target={<LocalPackageReview filePath={filePath} />}
-          />
-        </ActionPanel>
-      ) : undefined}
+      searchBarPlaceholder="Search package files or paste an absolute path"
+      searchText={searchText}
+      onSearchTextChange={setSearchText}
+      filtering={false}
+      isLoading={isLoading}
     >
-      <Form.Description
-        title="Supported Formats"
-        text="Debian packages (.deb), Flatpak bundles (.flatpak), Flatpak references (.flatpakref), and AppImages. The file type is validated automatically before any installation occurs."
-      />
-      <Form.FilePicker
-        id="packageFile"
-        title="Package File"
-        autoFocus
-        allowMultipleSelection={false}
-        canChooseDirectories={false}
-        canChooseFiles
-        value={selectedFiles}
-        onChange={(paths) => setSelectedFiles(normalizeFileSelection(paths))}
-      />
-    </Form>
+      {files.map((file) => (
+        <List.Item
+          key={file.path}
+          id={file.path}
+          title={basename(file.path)}
+          subtitle={dirname(file.path)}
+          icon={{ fileIcon: file.path }}
+          accessories={[{ tag: packageFormatLabel(file.path) }]}
+          actions={
+            <ActionPanel>
+              <Action.Push
+                title="Inspect Package"
+                icon={Icon.MagnifyingGlass}
+                target={<LocalPackageReview filePath={file.path} />}
+              />
+              <Action.ShowInFinder title="Show Package File" path={file.path} select />
+              <Action.CopyToClipboard title="Copy File Path" content={file.path} />
+            </ActionPanel>
+          }
+        />
+      ))}
+      {files.length === 0 && (
+        <List.EmptyView
+          icon={Icon.BlankDocument}
+          title={emptyViewTitle(searchText, searchError)}
+          description={emptyViewDescription(searchText, searchError)}
+        />
+      )}
+    </List>
   );
 }
 
-function normalizeFileSelection(value: unknown): string[] {
-  if (typeof value === "string") return value.trim() ? [value] : [];
-  if (!Array.isArray(value)) return [];
-  return value.filter((path): path is string =>
-    typeof path === "string" && path.trim().length > 0
-  ).slice(0, 1);
+async function resolveDirectPackageFile(query: string): Promise<LocalPackageFile | undefined> {
+  let filePath: string;
+  if (query.startsWith("/")) {
+    filePath = query;
+  } else if (query.startsWith("~/")) {
+    filePath = join(homedir(), query.slice(2));
+  } else {
+    return undefined;
+  }
+  if (!isSupportedPackagePath(filePath)) return undefined;
+
+  try {
+    const stat = await lstat(filePath);
+    if (stat.isFile() && !stat.isSymbolicLink()) return { path: filePath };
+  } catch {
+    // The in-command search still runs when a pasted path does not exist.
+  }
+  return undefined;
+}
+
+function isSupportedPackagePath(filePath: string): boolean {
+  return SUPPORTED_EXTENSIONS.has(extname(filePath).toLowerCase());
+}
+
+function packageFormatLabel(filePath: string): string {
+  switch (extname(filePath).toLowerCase()) {
+    case ".deb":
+      return "DEB";
+    case ".flatpak":
+      return "Flatpak";
+    case ".flatpakref":
+      return "Flatpak Ref";
+    default:
+      return "AppImage";
+  }
+}
+
+function emptyViewTitle(query: string, error?: string): string {
+  if (error) return "Local file search failed";
+  if (!query.trim()) return "Search local packages";
+  if (query.trim().length < 2) return "Keep typing";
+  return "No supported package files found";
+}
+
+function emptyViewDescription(query: string, error?: string): string {
+  if (error) return error;
+  if (!query.trim()) {
+    return "Type a filename or paste an absolute path to a .deb, .flatpak, .flatpakref, or AppImage file.";
+  }
+  if (query.trim().length < 2) return "Enter at least two characters to search Vicinae's file index.";
+  return "Try another filename or paste the package's absolute path.";
 }
 
 function LocalPackageReview({ filePath }: { filePath: string }) {

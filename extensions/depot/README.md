@@ -10,8 +10,8 @@ Vicinae.
 ## Commands
 
 - **Depot Install** searches configured APT repositories and Flatpak remotes together.
-- **Depot Install Local** inspects and installs a selected `.deb`, `.flatpak`,
-  `.flatpakref`, or AppImage file.
+- **Depot Install Local** searches local package files by name, then inspects and
+  installs a selected `.deb`, `.flatpak`, `.flatpakref`, or AppImage file.
 - **Depot Remove** lists installed desktop applications and confirms every removal.
 - **Depot Update** shows available updates and supports individual or Update All
   actions.
@@ -49,11 +49,13 @@ The current release candidate is validated on Ubuntu 26.04 amd64.
 
 ## Local packages
 
-`Depot Install Local` accepts one file and determines its format without a
-manual format picker. A filename extension is never enough to establish that a
-file is valid: Debian archives are checked by `dpkg-deb`, Flatpak files are
-checked by Flatpak, and AppImages must contain the expected ELF/AppImage and
-payload signatures.
+`Depot Install Local` opens with its search field focused. Type a package
+filename and press Enter on the selected result, or paste an absolute path.
+Search uses Vicinae's existing file index on demand and does not crawl the home
+directory. Depot then determines the format without a manual format picker. A
+filename extension is never enough to establish that a file is valid: Debian
+archives are checked by `dpkg-deb`, Flatpak files are checked by Flatpak, and
+AppImages must contain the expected ELF/AppImage and payload signatures.
 
 - `.deb` metadata is shown before installation. Depot invokes APT through
   Polkit so APT can resolve dependencies; it does not use raw `dpkg -i` or
