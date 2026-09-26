@@ -1,0 +1,75 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "cardwire-control",
+  "title": "Cardwire and ASUS",
+  "description": "Cardwire GPU mode plus asusd profiles, charge limit, and firmware dGPU",
+  "categories": [
+    "System"
+  ],
+  "license": "MIT",
+  "platforms": [
+    "Linux"
+  ],
+  "author": "busybox11",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "set-cardwire-state",
+      "title": "Set Cardwire state",
+      "description": "Sets the Cardwire GPU state",
+      "mode": "view",
+      "keywords": [
+        "gpu",
+        "cardwire"
+      ]
+    },
+    {
+      "name": "set-asus-state",
+      "title": "Set ASUS state",
+      "description": "Sets asusd platform profile, charge limit, and firmware dGPU",
+      "mode": "view",
+      "keywords": [
+        "asus",
+        "asusd",
+        "profile",
+        "battery"
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "cardwirePath",
+      "title": "cardwire binary",
+      "description": "Path to the cardwire CLI. Leave as cardwire if it is on PATH.",
+      "type": "textfield",
+      "required": false,
+      "default": "cardwire",
+      "placeholder": "cardwire"
+    },
+    {
+      "name": "asusctlPath",
+      "title": "asusctl binary",
+      "description": "Path to the asusctl CLI. Leave as asusctl if it is on PATH.",
+      "type": "textfield",
+      "required": false,
+      "default": "asusctl",
+      "placeholder": "asusctl"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.27.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^26.4.1",
+    "typescript": "^5.9.2"
+  }
+}

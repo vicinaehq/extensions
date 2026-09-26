@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
-import { Action, ActionPanel, Color, Icon, List } from "@vicinae/api";
-import { generate, textStats, type Kind } from "./lib/generator";
-import { actionLabel, getPrefs, produceOutput } from "./lib/output";
-import { parseQuery } from "./lib/run";
+import { useEffect, useMemo, useState } from "react";
+import { Action, ActionPanel, Cache, Clipboard, closeMainWindow, getFrontmostApplication, Icon, List, type Application } from "@vicinae/api";
+import { generate, generateUntilCharacters, textStats, type Kind, type ListStyle } from "./lib/generator";
+import { getPrefs } from "./lib/output";
+import { isKind, parseQuery, stripKindSuffix } from "./lib/parse";
+
+const LAST_KIND_KEY = "lastKind";
+const kindCache = new Cache({ namespace: "generate" });
 
 const KINDS: { id: Kind; title: string; icon: Icon; unit: string }[] = [
   { id: "paragraphs", title: "Paragraphs", icon: Icon.Paragraph, unit: "paragraph" },
@@ -22,56 +25,77 @@ const PRESETS: Record<Kind, number[]> = {
   html: [1, 2, 3, 5],
 };
 
+function readLastKind(): Kind {
+  const stored = kindCache.get(LAST_KIND_KEY);
+  return stored && isKind(stored) ? stored : "paragraphs";
+}
+
+function writeLastKind(kind: Kind) {
+  kindCache.set(LAST_KIND_KEY, kind);
+}
+
 export default function GenerateCommand() {
-  const { action, startWithLorem } = getPrefs();
-  const [kind, setKind] = useState<Kind>("paragraphs");
+  const { startWithLorem, listStyle, htmlTag } = getPrefs();
+  const [kind, setKind] = useState<Kind>(readLastKind);
   const [query, setQuery] = useState("");
   const [generation, setGeneration] = useState(0);
 
   const parsed = parseQuery(query);
+  const charBudget = parsed.characters ? parsed.count : undefined;
   const activeKind = parsed.kind ?? kind;
-  const meta = KINDS.find((item) => item.id === activeKind) ?? KINDS[0];
+  const meta = charBudget
+    ? { title: "Characters", icon: Icon.Text, unit: "character" }
+    : (KINDS.find((item) => item.id === activeKind) ?? KINDS[0]);
+
+  const selectKind = (next: Kind) => {
+    setKind(next);
+    writeLastKind(next);
+  };
 
   const counts = useMemo(() => {
-    const presets = PRESETS[activeKind];
-    if (parsed.count && !presets.includes(parsed.count)) {
-      return [parsed.count, ...presets];
-    }
-    if (parsed.count) {
-      return [parsed.count, ...presets.filter((n) => n !== parsed.count)];
-    }
-    return presets;
-  }, [activeKind, parsed.count]);
+    if (charBudget) return [charBudget];
+    if (parsed.count) return [parsed.count];
+    return PRESETS[activeKind];
+  }, [activeKind, charBudget, parsed.count]);
 
   const items = useMemo(
     () =>
       counts.map((count) => ({
-        id: `${activeKind}-${count}`,
+        id: charBudget ? `characters-${count}` : `${activeKind}-${count}`,
         count,
-        text: generate({ kind: activeKind, count, startWithLorem }),
+        text: charBudget
+          ? generateUntilCharacters(count, startWithLorem)
+          : generate({ kind: activeKind, count, startWithLorem, listStyle, htmlTag }),
       })),
-    [activeKind, counts, generation, startWithLorem],
+    [activeKind, charBudget, counts, generation, htmlTag, listStyle, startWithLorem],
   );
 
   return (
     <List
       isShowingDetail
       searchText={query}
-      searchBarPlaceholder="Count — 3, 5p, 20w, 8l"
+      searchBarPlaceholder="Count — 3, 5p, 20w, 120c"
       onSearchTextChange={(value) => {
         setQuery(value);
         const next = parseQuery(value);
-        if (next.kind) setKind(next.kind);
+        if (next.kind) selectKind(next.kind);
       }}
       searchBarAccessory={
-        <List.Dropdown tooltip="Type" value={kind} onChange={(value) => setKind(value as Kind)}>
+        <List.Dropdown
+          tooltip="Type"
+          value={kind}
+          onChange={(value) => {
+            selectKind(value as Kind);
+            setQuery(stripKindSuffix(query));
+          }}
+        >
           {KINDS.map((item) => (
             <List.Dropdown.Item key={item.id} title={item.title} value={item.id} icon={item.icon} />
           ))}
         </List.Dropdown>
       }
     >
-      {items.map((item, index) => {
+      {items.map((item) => {
         const stats = textStats(item.text);
         const label = `${item.count} ${plural(meta.unit, item.count)}`;
 
@@ -80,11 +104,10 @@ export default function GenerateCommand() {
             key={item.id}
             title={label}
             icon={meta.icon}
-            accessories={index === 0 && parsed.count ? [{ tag: { value: "custom", color: Color.Blue } }] : undefined}
-            actions={<OutputActions content={item.text} action={action} onRegenerate={() => setGeneration((n) => n + 1)} />}
+            actions={<OutputActions content={item.text} onRegenerate={() => setGeneration((n) => n + 1)} />}
             detail={
               <List.Item.Detail
-                markdown={previewMarkdown(activeKind, item.text)}
+                markdown={previewMarkdown(charBudget ? "words" : activeKind, item.text, listStyle)}
                 metadata={
                   <List.Item.Detail.Metadata>
                     <List.Item.Detail.Metadata.Label title="Type" text={meta.title} />
@@ -100,77 +123,48 @@ export default function GenerateCommand() {
           />
         );
       })}
-      <List.EmptyView
-        icon={Icon.Paragraph}
-        title="No matching count"
-        description="Type a count such as 3, 5p, 20w, or 8l."
-      />
     </List>
   );
 }
 
 function OutputActions({
   content,
-  action,
   onRegenerate,
 }: {
   content: string;
-  action: ReturnType<typeof getPrefs>["action"];
   onRegenerate: () => void;
 }) {
-  const labels = actionLabel(action);
-  const copy = (
-    <Action.CopyToClipboard title="Copy to Clipboard" content={content} shortcut="copy" />
-  );
-  const paste = (
-    <Action.Paste title="Paste" content={content} shortcut={{ modifiers: ["cmd", "shift"], key: "v" }} />
-  );
-  const both = (
-    <Action
-      title="Paste and Copy"
-      icon={Icon.CopyClipboard}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
-      onAction={() => produceOutput(content, "pasteAndCopy")}
-    />
-  );
+  const [app, setApp] = useState<Application | undefined>();
+
+  useEffect(() => {
+    getFrontmostApplication()
+      .then(setApp)
+      .catch(() => {});
+  }, []);
 
   return (
     <ActionPanel>
-      <ActionPanel.Section title={labels}>
-        {action === "paste" ? (
-          <>
-            {paste}
-            {copy}
-            {both}
-          </>
-        ) : action === "pasteAndCopy" ? (
-          <>
-            {both}
-            {copy}
-            {paste}
-          </>
-        ) : (
-          <>
-            {copy}
-            {paste}
-            {both}
-          </>
-        )}
-      </ActionPanel.Section>
-      <ActionPanel.Section>
-        <Action
-          title="Regenerate"
-          icon={Icon.ArrowClockwise}
-          shortcut="refresh"
-          onAction={onRegenerate}
-        />
-      </ActionPanel.Section>
+      <Action
+        title={app ? `Paste to ${app.name}` : "Paste to active window"}
+        icon={app?.icon ?? (app?.path ? { fileIcon: app.path } : Icon.CopyClipboard)}
+        onAction={async () => {
+          await closeMainWindow();
+          await Clipboard.paste(content);
+        }}
+      />
+      <Action.CopyToClipboard content={content} shortcut="copy" />
+      <Action
+        title="Regenerate"
+        icon={Icon.ArrowClockwise}
+        shortcut="refresh"
+        onAction={onRegenerate}
+      />
     </ActionPanel>
   );
 }
 
-function previewMarkdown(kind: Kind, text: string): string {
-  if (kind === "html") return "```html\n" + text + "\n```";
+function previewMarkdown(kind: Kind, text: string, listStyle: ListStyle): string {
+  if (kind === "html" || (kind === "list" && listStyle === "html")) return "```html\n" + text + "\n```";
   if (kind === "titles") return "# " + text;
   return text;
 }

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "protonvpn",
+  "title": "ProtonVPN",
+  "description": "Control ProtonVPN from Vicinae",
+  "categories": [
+    "Security"
+  ],
+  "license": "MIT",
+  "platforms": [
+    "Linux"
+  ],
+  "author": "skifli",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "status",
+      "title": "VPN Status",
+      "subtitle": "View connection status, connect, or disconnect",
+      "description": "Show current VPN connection status with options to connect or disconnect",
+      "mode": "view"
+    },
+    {
+      "name": "connect",
+      "title": "Connect to Server",
+      "subtitle": "Browse and connect to a ProtonVPN server",
+      "description": "Browse countries and cities to connect to a ProtonVPN server",
+      "mode": "view"
+    },
+    {
+      "name": "settings",
+      "title": "VPN Settings",
+      "subtitle": "Configure ProtonVPN settings",
+      "description": "View and modify ProtonVPN settings such as NetShield, Kill Switch, and IPv6",
+      "mode": "view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.22.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

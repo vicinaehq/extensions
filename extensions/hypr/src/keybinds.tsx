@@ -2,7 +2,7 @@ import { Action, ActionPanel, Color, Icon, List } from '@vicinae/api';
 import { useState } from 'react';
 import { useHyprctlData } from './hooks';
 import type { HyprctlBind } from './types';
-import { mapHyprBinds } from './utils';
+import { mapHyprBinds } from './utils/keybinds';
 
 export default function Keybinds() {
   const [rawBinds, isLoading] = useHyprctlData<HyprctlBind[]>(

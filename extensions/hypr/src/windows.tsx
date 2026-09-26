@@ -1,6 +1,7 @@
 import {
   Action,
   ActionPanel,
+  Color,
   Icon,
   List,
   WindowManagement,
@@ -8,9 +9,12 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { useHyprctlData } from './hooks';
 import type { HyprClient } from './types';
-import { focusHyprTarget, formatResolution, formatWorkspace } from './utils';
+import { focusHyprTarget } from './utils/dispatch';
+import { formatWorkspace } from './utils/format';
 
-type NativeWindow = Awaited<ReturnType<typeof WindowManagement.getWindows>>[number];
+type NativeWindow = Awaited<
+  ReturnType<typeof WindowManagement.getWindows>
+>[number];
 
 export default function Windows() {
   const [clients, isLoading] = useHyprctlData<HyprClient[]>(
@@ -46,31 +50,42 @@ export default function Windows() {
     () => new Map(nativeWindows.map((window) => [window.id, window])),
     [nativeWindows]
   );
+  const sortedClients = useMemo(
+    () =>
+      [...clients].sort((a, b) => {
+        if (a.focusHistoryID === 0) return -1;
+        if (b.focusHistoryID === 0) return 1;
+
+        return a.workspace.id - b.workspace.id;
+      }),
+    [clients]
+  );
 
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Search clients...">
-      {clients.length === 0 && !isLoading ? (
+      {sortedClients.length === 0 && !isLoading ? (
         <List.EmptyView
           icon={Icon.AppWindow}
           title="No Clients Found"
           description="No Hyprland clients were returned by hyprctl."
         />
       ) : (
-        <List.Section title="Windows" subtitle={clients.length.toString()}>
-          {clients.map((client) => {
+        <List.Section
+          title="Windows"
+          subtitle={sortedClients.length.toString()}
+        >
+          {sortedClients.map((client) => {
             const workspace = formatWorkspace(
               client.workspace.id,
               client.workspace.name
             );
-            const size = formatResolution(client.size[0], client.size[1]);
-            const position = `${client.at[0]},${client.at[1]}`;
             const nativeWindow = nativeWindowsById.get(client.address);
 
             return (
               <List.Item
                 key={client.address}
                 title={client.title || client.class || client.address}
-                subtitle={`${client.class} - Workspace ${workspace} - Monitor ${client.monitor}`}
+                subtitle={nativeWindow?.application?.name ?? client.class}
                 icon={nativeWindow?.application?.icon ?? Icon.AppWindow}
                 keywords={[
                   client.title,
@@ -81,20 +96,30 @@ export default function Windows() {
                   client.pid.toString(),
                 ]}
                 accessories={[
-                  ...(client.visible
-                    ? [{ text: 'Visible', icon: Icon.Eye }]
-                    : []),
                   ...(client.floating
-                    ? [{ text: 'Floating', icon: Icon.AppWindow }]
+                    ? [
+                        {
+                          tag: { value: 'Floating', color: Color.Green },
+                          icon: Icon.FloatingWindow,
+                        },
+                      ]
                     : []),
-                  ...(client.pinned
-                    ? [{ text: 'Pinned', icon: Icon.CheckCircle }]
+                  ...(client.focusHistoryID === 0
+                    ? [
+                        {
+                          tag: { value: 'Current', color: Color.Blue },
+                        },
+                      ]
                     : []),
                   ...(client.fullscreen
-                    ? [{ text: 'Fullscreen', icon: Icon.AppWindow }]
+                    ? [
+                        {
+                          tag: { value: 'Fullscreen', color: Color.Purple },
+                          icon: Icon.Fullscreen,
+                        },
+                      ]
                     : []),
-                  { text: size },
-                  { text: position },
+                  { tag: `WS ${workspace}` },
                 ]}
                 actions={
                   <ActionPanel>

@@ -1,13 +1,5 @@
-import { DynamicList } from ".";
-import { OmarchyCheck } from "./components/OmarchyCheck";
-import { theme } from "./config/style";
+import { RoutedCommand } from ".";
 
-const Command = () => {
-  return (
-    <OmarchyCheck>
-      <DynamicList menu={theme} />
-    </OmarchyCheck>
-  );
-};
-
-export default Command;
+export default function Command() {
+  return <RoutedCommand route="theme" />;
+}

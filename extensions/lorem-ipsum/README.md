@@ -12,21 +12,25 @@ Lorem Ipsum is a [Vicinae](https://vicinae.com) extension for Linux and macOS. P
 
 ## Screenshots
 
-![Preview of generated paragraphs with type, count, and word stats](./.github/assets/screenshot.png)
+![Preview of generated paragraphs with type, count, and word stats](./.github/assets/screenshot-1.png)
+
+[See more screenshots](./.github/assets/)
 
 ## Features
 
 - Preview before you paste, with character, word, and line counts
-- Instant no-view commands for paragraphs, sentences, words, and lists
-- Type a count in the search bar (`3`, `5p`, `20w`, `8l`)
-- Default action pastes into the frontmost app; copy or paste-and-copy remain available
+- Instant no-view commands for paragraphs, sentences, words, lists, and HTML
+- Type a count in the search bar (`3`, `5p`, `20w`, `8l`, `120c`)
+- In preview, Enter pastes into the frontmost app; copy and regenerate use Vicinae's generic action keybinds
+- No-view commands follow the Default Action preference (paste, copy, or both)
 - Classic *Lorem ipsum dolor sit amet…* opening, with a preference to turn it off
+- List style (dashes, numbered, or HTML) and HTML wrap (`p` or `div`)
 
 ## Getting started
 
 1. Run **Generate Lorem Ipsum**, pick a preset, and press Enter to paste.
-2. Or run **Generate Paragraphs**, **Sentences**, **Words**, or **List** from root search for an instant paste.
-3. Type a number in the preview search bar. Suffixes switch type: `p` paragraphs, `s` sentences, `w` words, `t` titles, `l` list, `h` HTML.
+2. Or run **Generate Paragraphs**, **Sentences**, **Words**, **List**, or **HTML** from root search for an instant paste.
+3. Type a number in the preview search bar. Suffixes switch type: `p` paragraphs, `s` sentences, `w` words, `t` titles, `l` list, `h` HTML, `c` characters.
 
 ## Commands
 
@@ -34,19 +38,25 @@ Lorem Ipsum is a [Vicinae](https://vicinae.com) extension for Linux and macOS. P
 - **Generate Paragraphs** – Optional count, then paste immediately
 - **Generate Sentences** – Same, for sentences
 - **Generate Words** – Same, for words
-- **Generate List** – Bullet list (defaults to 5 items)
+- **Generate List** – List (defaults to 5 items)
+- **Generate HTML** – HTML paragraphs (defaults to 1)
 
 ## Preferences
 
-- **Default Action** — paste into the frontmost app (default), copy, or both
+- **Default Action** — what no-view commands do: paste into the frontmost app (default), copy, or both
 - **Classic Opening** — start with *Lorem ipsum dolor sit amet…*
+- **List Style** — markdown dashes, numbered list, or an HTML `<ul>`
+- **HTML Wrap** — wrap each HTML paragraph in `<p>` (default) or `<div>`
+- **Default Count** — per no-view command, used when you omit the count argument
 
 ## Installation
 
-Install and start [Vicinae](https://docs.vicinae.com/), then:
+Install it from the [Vicinae store](https://docs.vicinae.com/install-extensions): open Vicinae, search for the store, then install **Lorem Ipsum**.
+
+Or from source:
 
 ```bash
-git clone https://github.com/TiageMiguel/loremipsum-vicinae.git
+git clone https://github.com/tiagem/loremipsum-vicinae.git
 cd loremipsum-vicinae
 npm install
 npm run build

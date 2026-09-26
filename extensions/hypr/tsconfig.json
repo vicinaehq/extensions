@@ -1,8 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Node 16",
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "compilerOptions": {
+    "types": [
+      "node"
+    ],
     "module": "commonjs",
     "target": "es2020",
     "strict": true,

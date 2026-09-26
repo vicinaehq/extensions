@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getHyprctlJson, handleError } from './utils';
+import { getHyprctlJson, handleError } from './utils/hyprctl';
 
 export function useHyprctlData<T>(
   command: string,

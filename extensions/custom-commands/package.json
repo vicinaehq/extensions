@@ -1,0 +1,52 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "custom-commands",
+  "title": "Custom Commands",
+  "description": "Create and run your own custom shell commands directly from Vicinae. Define commands with arguments, run in terminal or background.",
+  "categories": ["Productivity", "Developer Tools", "System"],
+  "license": "MIT",
+  "platforms": ["Linux", "macOS", "Windows"],
+  "author": "OmerMohideen",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "commands",
+      "title": "Commands",
+      "description": "Create and run your custom shell commands",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "terminal",
+      "title": "Terminal",
+      "description": "Terminal command to run commands that require a terminal (e.g. kitty, gnome-terminal --). Leave empty to use Vicinae default.",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "defaultWorkdir",
+      "title": "Default Working Directory",
+      "description": "Default directory for commands without a custom working directory. Leave empty for home directory.",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.22.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
