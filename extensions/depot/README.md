@@ -106,15 +106,18 @@ never discovers repositories, imports keys itself, stores passwords, invokes a
 shell, or performs package operations without an explicit user action.
 
 APT authentication is owned by the system's Polkit policy. Depot never sees or
-caches the password. When aptdaemon is installed, Depot uses its demand-activated
-transaction service so the system can retain authorization for its normal short
-grace period and so multiple package IDs can share one transaction. Systems
-without aptdaemon keep the direct `pkexec` fallback.
+caches the password. For repository operations, Depot uses aptdaemon when it is
+installed so the system can retain authorization for its normal short grace
+period and multiple package IDs can share one transaction. Local `.deb` files
+use the direct `pkexec` + APT path because aptdaemon rejects some packages that
+APT can safely resolve and install. Systems without aptdaemon use the same
+direct fallback for all APT operations.
 
 An external authentication dialog can still make Vicinae hide when **Close on
-focus loss** is enabled. Depot reopens the existing window after the transaction,
-preserving the command and navigation state, and also sends a desktop result
-notification. Depot does not change the user's global Vicinae setting.
+focus loss** is enabled. Depot reopens the active command after the transaction
+and also sends a desktop result notification. Install search text is retained;
+other commands return to their main list, ready for another action. Depot does
+not change the user's global Vicinae setting.
 
 See [SECURITY.md](SECURITY.md) for the security model and reporting guidance.
 

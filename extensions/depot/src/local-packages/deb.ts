@@ -77,10 +77,10 @@ export async function installDebPackage(
   const currentVersion = await installedVersion(pkg.packageId);
   if (currentVersion === pkg.version) return { status: "already-installed" };
 
+  // Local vendor packages can be installable by APT while failing aptdaemon's
+  // additional quality checks (for example, a missing Installed-Size field).
+  // Keep the APT dry-run, then use the direct Polkit path for compatibility.
   await runAptTransaction({
-    aptDaemonArgs: pkg.filePath.endsWith(".deb")
-      ? ["--install", pkg.filePath]
-      : undefined,
     directExecutable: APT,
     directArgs: ["--yes", "--no-remove", "install", "--", pkg.filePath],
     simulationArgs: [

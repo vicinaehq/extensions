@@ -35,7 +35,7 @@ import {
 import { OperationLock } from "./utils/operation-lock";
 import {
   reportOperationResult,
-  restoreDepotWindow,
+  reopenDepotCommand,
 } from "./utils/operation-feedback";
 import { updateSourceErrors } from "./utils/update-errors";
 
@@ -102,22 +102,23 @@ export default function UpdateCommand() {
       }
     } finally {
       operationLock.release(key);
-      restoreDepotWindow();
+      if (update.source === "apt" || update.flatpak?.scope === "system") {
+        await reopenDepotCommand();
+      }
     }
   };
 
   const updateAll = async () => {
-    if (totalUpdates === 0 || !operationLock.tryAcquire("all")) return;
+    if (totalUpdates === 0) return;
+    const confirmed = await confirmAlert({
+      title: `Update ${totalUpdates} software item${totalUpdates === 1 ? "" : "s"}?`,
+      message: `APT: ${updates.aptUpdates.length}\nFlatpak: ${updates.flatpakUpdates.length}`,
+      primaryAction: { title: "Update All" },
+      dismissAction: { title: "Cancel", style: Alert.ActionStyle.Cancel },
+    });
+    if (!confirmed || !operationLock.tryAcquire("all")) return;
 
     try {
-      const confirmed = await confirmAlert({
-        title: `Update ${totalUpdates} software item${totalUpdates === 1 ? "" : "s"}?`,
-        message: `APT: ${updates.aptUpdates.length}\nFlatpak: ${updates.flatpakUpdates.length}`,
-        primaryAction: { title: "Update All" },
-        dismissAction: { title: "Cancel", style: Alert.ActionStyle.Cancel },
-      });
-      if (!confirmed) return;
-
       const toast = await showToast({
         style: Toast.Style.Animated,
         title: "Updating software",
@@ -166,7 +167,14 @@ export default function UpdateCommand() {
       }
     } finally {
       operationLock.release("all");
-      restoreDepotWindow();
+      if (
+        updates.aptUpdates.length > 0 ||
+        updates.flatpakUpdates.some((update) =>
+          update.flatpak?.scope === "system"
+        )
+      ) {
+        await reopenDepotCommand();
+      }
     }
   };
 
@@ -221,7 +229,9 @@ export default function UpdateCommand() {
       }
     } finally {
       operationLock.release("refresh");
-      restoreDepotWindow();
+      if (aptEnabled || (flatpakEnabled && flatpakScope === "system")) {
+        await reopenDepotCommand();
+      }
     }
   };
 

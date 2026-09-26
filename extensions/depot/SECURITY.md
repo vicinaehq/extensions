@@ -13,10 +13,12 @@ uses narrowly scoped file operations for local AppImages:
 - Polkit owns privileged authentication; the extension never receives or stores
   passwords. Authorization lifetime and repeated prompts are controlled by the
   system's Polkit policy; Depot does not install or modify policy rules.
-- APT mutations prefer the distribution-provided, demand-activated aptdaemon
-  transaction service when it is installed. The direct `pkexec` path remains a
-  compatibility fallback. Both receive explicit argument arrays, and installs
-  and updates retain APT's no-removal simulation guard.
+- Repository APT mutations prefer the distribution-provided, demand-activated
+  aptdaemon transaction service when it is installed. Local `.deb` files use
+  direct `pkexec` + APT because aptdaemon applies additional package-quality
+  checks that reject some files APT accepts. Both paths receive explicit
+  argument arrays, and installs and updates retain APT's no-removal simulation
+  guard.
 - Only existing APT sources and Flatpak remotes are used. Depot never adds
   repositories, remotes, signing keys, or downloaded scripts during search.
   A selected `.flatpakref` may add only the remote declared in that file, after

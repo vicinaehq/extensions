@@ -22,7 +22,7 @@ import { useInstalledSoftware } from "./hooks/use-installed-software";
 import type { DepotPreferences, SoftwareItem } from "./types";
 import {
   reportOperationResult,
-  restoreDepotWindow,
+  reopenDepotCommand,
 } from "./utils/operation-feedback";
 import {
   removeAccessories,
@@ -105,7 +105,9 @@ export default function RemoveCommand() {
       });
     } finally {
       removing.current.delete(key);
-      restoreDepotWindow();
+      if (pkg.source === "apt" || pkg.flatpak?.scope === "system") {
+        await reopenDepotCommand();
+      }
     }
   };
 

@@ -1,6 +1,8 @@
 import {
+  LaunchType,
   Toast,
-  open,
+  environment,
+  launchCommand,
   sendDesktopNotification,
 } from "@vicinae/api";
 
@@ -29,8 +31,16 @@ export function reportOperationResult(
   });
 }
 
-export function restoreDepotWindow(): void {
-  void open("vicinae://open").catch((error: unknown) => {
-    console.debug("Vicinae window could not be restored", error);
-  });
+export async function reopenDepotCommand(
+  context?: Record<string, string>,
+): Promise<void> {
+  try {
+    await launchCommand({
+      name: environment.commandName,
+      type: LaunchType.UserInitiated,
+      context,
+    });
+  } catch (error) {
+    console.debug("Depot command could not be reopened", error);
+  }
 }
