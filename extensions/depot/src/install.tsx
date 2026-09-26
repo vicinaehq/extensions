@@ -10,7 +10,7 @@ import {
 } from "@vicinae/api";
 import { useMemo, useRef, useState } from "react";
 import { aptBackend } from "./backends/apt";
-import { enrichSoftwarePackages } from "./backends/appstream-parsing";
+import { enrichSoftwareItems } from "./backends/appstream-parsing";
 import { FlatpakBackend } from "./backends/flatpak";
 import { ShowSoftwareDetailsAction } from "./components/software-details";
 import {
@@ -20,7 +20,7 @@ import {
 import { useAppStreamSearch } from "./hooks/use-appstream-search";
 import { useAptSearch } from "./hooks/use-apt-search";
 import { useFlatpakSearch } from "./hooks/use-flatpak-search";
-import type { SoftwarePackage, SoftwarePreferences } from "./types";
+import type { DepotPreferences, SoftwareItem } from "./types";
 import { installAccessories } from "./utils/software-accessories";
 import {
   rankSoftwareResults,
@@ -34,7 +34,7 @@ export default function InstallCommand() {
     aptEnabled = true,
     flatpakEnabled = true,
     flatpakScope = "user",
-  } = getPreferenceValues<SoftwarePreferences>();
+  } = getPreferenceValues<DepotPreferences>();
   const flatpakBackend = useMemo(
     () => new FlatpakBackend(flatpakScope),
     [flatpakScope],
@@ -51,13 +51,13 @@ export default function InstallCommand() {
   );
   const results = rankSoftwareResults(
     searchText,
-    enrichSoftwarePackages(aptSearch.results, appStreamComponents),
-    enrichSoftwarePackages(flatpakSearch.results, appStreamComponents),
+    enrichSoftwareItems(aptSearch.results, appStreamComponents),
+    enrichSoftwareItems(flatpakSearch.results, appStreamComponents),
   );
   const isLoading = aptSearch.isLoading || flatpakSearch.isLoading;
   const normalizedQuery = searchText.trim();
 
-  const install = async (pkg: SoftwarePackage) => {
+  const install = async (pkg: SoftwareItem) => {
     const installKey = softwareItemKey(pkg);
     if (installing.current.has(installKey)) return;
     installing.current.add(installKey);

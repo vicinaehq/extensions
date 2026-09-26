@@ -1,8 +1,8 @@
 import type { List } from "@vicinae/api";
-import type { SoftwarePackage, SoftwareUpdate } from "../types";
+import type { SoftwareItem, SoftwareUpdate } from "../types";
 
 export function installAccessories(
-  pkg: SoftwarePackage,
+  pkg: SoftwareItem,
 ): List.Item.Accessory[] {
   return [
     ...(pkg.source === "flatpak" ? [{ text: pkg.id }] : []),
@@ -12,7 +12,7 @@ export function installAccessories(
 }
 
 export function removeAccessories(
-  pkg: SoftwarePackage,
+  pkg: SoftwareItem,
 ): List.Item.Accessory[] {
   return [
     { text: pkg.id },
@@ -35,7 +35,7 @@ export function updateAccessories(
 }
 
 export function softwareSourceLabel(
-  pkg: SoftwarePackage,
+  pkg: SoftwareItem,
   detail: "remote" | "scope",
 ): string {
   if (pkg.source === "apt") return "APT";

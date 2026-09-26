@@ -1,4 +1,4 @@
-export class SoftwareOperationError<Kind extends string> extends Error {
+export class DepotOperationError<Kind extends string> extends Error {
   readonly kind: Kind;
   readonly technicalDetails?: string;
 
@@ -16,10 +16,10 @@ export class SoftwareOperationError<Kind extends string> extends Error {
 }
 
 export function operationErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof SoftwareOperationError ? error.message : fallback;
+  return error instanceof DepotOperationError ? error.message : fallback;
 }
 
 export function isOperationCancelled(error: unknown): boolean {
-  return error instanceof SoftwareOperationError &&
+  return error instanceof DepotOperationError &&
     (error.kind === "cancelled" || error.kind === "authentication");
 }

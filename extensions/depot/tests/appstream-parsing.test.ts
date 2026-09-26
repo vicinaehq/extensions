@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   appStreamSearchTerm,
-  enrichSoftwarePackages,
+  enrichSoftwareItems,
   expandedSearchQueries,
   parseAppStreamSearchOutput,
 } from "../src/backends/appstream-parsing.ts";
-import type { SoftwarePackage } from "../src/types.ts";
+import type { SoftwareItem } from "../src/types.ts";
 
 const OUTPUT = `Identifier: org.videolan.vlc [desktop-application]
 Name: VLC
@@ -103,14 +103,14 @@ test("enriches matching APT and Flatpak results without merging sources", () => 
     ...component,
     iconPath: component.packageId ? "/icons/vlc.png" : "/icons/flatpak-vlc.png",
   }));
-  const apt: SoftwarePackage = {
+  const apt: SoftwareItem = {
     id: "vlc",
     name: "vlc",
     description: "multimedia player and streamer",
     source: "apt",
     installed: false,
   };
-  const flatpak: SoftwarePackage = {
+  const flatpak: SoftwareItem = {
     id: "org.videolan.VLC",
     name: "VLC",
     description: "Media player",
@@ -119,7 +119,7 @@ test("enriches matching APT and Flatpak results without merging sources", () => 
     flatpak: { remote: "flathub", scope: "user" },
   };
 
-  const enriched = enrichSoftwarePackages([apt, flatpak], components);
+  const enriched = enrichSoftwareItems([apt, flatpak], components);
   assert.deepEqual(enriched.map((pkg) => [pkg.source, pkg.name, pkg.icon]), [
     ["apt", "VLC", "/icons/vlc.png"],
     ["flatpak", "VLC", "/icons/flatpak-vlc.png"],

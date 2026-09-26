@@ -1,4 +1,4 @@
-import type { SoftwarePackage } from "../types";
+import type { SoftwareItem } from "../types";
 
 export function safeHomepageUrl(value?: string): string | undefined {
   if (!value) return undefined;
@@ -17,7 +17,7 @@ export function escapeMarkdown(value: string): string {
   return value.replace(/([\\`*_{}[\]<>()#+\-.!|])/g, "\\$1");
 }
 
-export function packageDescriptionMarkdown(pkg: SoftwarePackage): string {
+export function packageDescriptionMarkdown(pkg: SoftwareItem): string {
   const paragraphs = [pkg.description, pkg.longDescription]
     .filter((value): value is string => Boolean(value?.trim()))
     .map((value) => escapeMarkdown(value.trim()));
@@ -25,7 +25,7 @@ export function packageDescriptionMarkdown(pkg: SoftwarePackage): string {
   return paragraphs.join("\n\n") || "No description is available.";
 }
 
-export function packageSourceLabel(pkg: SoftwarePackage): string {
+export function packageSourceLabel(pkg: SoftwareItem): string {
   return pkg.source === "apt"
     ? "APT"
     : `Flatpak · ${pkg.flatpak?.remote ?? "unknown"}`;

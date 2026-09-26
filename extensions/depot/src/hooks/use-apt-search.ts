@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { aptBackend } from "../backends/apt";
-import type { SoftwarePackage } from "../types";
+import type { SoftwareItem } from "../types";
 import { LatestRequest } from "../utils/latest-request";
 import { isProcessAborted } from "../utils/process";
 import { useDebouncedValue } from "./use-debounced-value";
@@ -8,7 +8,7 @@ import { useDebouncedValue } from "./use-debounced-value";
 const SEARCH_DEBOUNCE_MS = 250;
 
 export interface AptSearchState {
-  results: SoftwarePackage[];
+  results: SoftwareItem[];
   isLoading: boolean;
   error: string | undefined;
   markInstalled(id: string): void;
@@ -21,7 +21,7 @@ export function useAptSearch(
   const normalizedQuery = query.trim();
   const debouncedQuery = useDebouncedValue(normalizedQuery, SEARCH_DEBOUNCE_MS);
   const latestRequest = useRef(new LatestRequest());
-  const [results, setResults] = useState<SoftwarePackage[]>([]);
+  const [results, setResults] = useState<SoftwareItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
 

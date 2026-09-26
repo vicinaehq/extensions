@@ -1,5 +1,5 @@
 import type { FlatpakScope } from "../types";
-import { SoftwareOperationError } from "../errors.ts";
+import { DepotOperationError } from "../errors.ts";
 
 export type LocalPackageKind =
   | "deb"
@@ -91,7 +91,7 @@ export type LocalPackageErrorKind =
   | "busy"
   | "failed";
 
-export class LocalPackageError extends SoftwareOperationError<LocalPackageErrorKind> {
+export class LocalPackageError extends DepotOperationError<LocalPackageErrorKind> {
   constructor(
     kind: LocalPackageErrorKind,
     message: string,

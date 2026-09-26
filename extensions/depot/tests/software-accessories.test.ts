@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { SoftwarePackage, SoftwareUpdate } from "../src/types.ts";
+import type { SoftwareItem, SoftwareUpdate } from "../src/types.ts";
 import {
   installAccessories,
   removeAccessories,
@@ -40,7 +40,7 @@ test("keeps the source badge at the right edge after update metadata", () => {
   ]);
 });
 
-function aptPackage(installed: boolean): SoftwarePackage {
+function aptPackage(installed: boolean): SoftwareItem {
   return {
     id: "vlc",
     name: "VLC",
@@ -50,7 +50,7 @@ function aptPackage(installed: boolean): SoftwarePackage {
   };
 }
 
-function flatpakPackage(): SoftwarePackage {
+function flatpakPackage(): SoftwareItem {
   return {
     id: "org.videolan.VLC",
     name: "VLC",

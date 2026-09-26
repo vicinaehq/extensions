@@ -21,7 +21,7 @@ import {
   isOperationCancelled,
   operationErrorMessage,
 } from "./errors.ts";
-import type { SoftwarePreferences } from "./types";
+import type { DepotPreferences } from "./types";
 import {
   LocalPackageError,
   formatFileSize,
@@ -211,7 +211,7 @@ function emptyViewDescription(query: string, error?: string): string {
 }
 
 function LocalPackageReview({ filePath }: { filePath: string }) {
-  const { flatpakScope = "user" } = getPreferenceValues<SoftwarePreferences>();
+  const { flatpakScope = "user" } = getPreferenceValues<DepotPreferences>();
   const [pkg, setPackage] = useState<LocalPackage>();
   const [error, setError] = useState<string>();
   const [outcome, setOutcome] = useState<LocalInstallOutcome>();

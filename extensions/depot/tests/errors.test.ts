@@ -1,23 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  DepotOperationError,
   isOperationCancelled,
   operationErrorMessage,
-  SoftwareOperationError,
 } from "../src/errors.ts";
 
-test("recognizes user-cancelled software operations", () => {
-  const cancelled = new SoftwareOperationError(
+test("recognizes user-cancelled Depot operations", () => {
+  const cancelled = new DepotOperationError(
     "TestOperationError",
     "cancelled",
     "Operation cancelled",
   );
-  const authentication = new SoftwareOperationError(
+  const authentication = new DepotOperationError(
     "TestOperationError",
     "authentication",
     "Authentication cancelled",
   );
-  const failed = new SoftwareOperationError(
+  const failed = new DepotOperationError(
     "TestOperationError",
     "failed",
     "Operation failed",
@@ -29,8 +29,8 @@ test("recognizes user-cancelled software operations", () => {
   assert.equal(isOperationCancelled(new Error("cancelled")), false);
 });
 
-test("uses a software operation's public message with a safe fallback", () => {
-  const error = new SoftwareOperationError(
+test("uses a Depot operation's public message with a safe fallback", () => {
+  const error = new DepotOperationError(
     "TestOperationError",
     "failed",
     "Package manager is busy",

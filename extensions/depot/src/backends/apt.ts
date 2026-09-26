@@ -3,10 +3,10 @@ import { constants } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import type {
   PackageBackend,
-  SoftwarePackage,
+  SoftwareItem,
   SoftwareUpdate,
 } from "../types";
-import { SoftwareOperationError } from "../errors.ts";
+import { DepotOperationError } from "../errors.ts";
 import {
   ProcessExecutionError,
   runProcess,
@@ -56,7 +56,7 @@ export type AptErrorKind =
   | "unsafe"
   | "failed";
 
-export class AptOperationError extends SoftwareOperationError<AptErrorKind> {
+export class AptOperationError extends DepotOperationError<AptErrorKind> {
   constructor(
     kind: AptErrorKind,
     message: string,
@@ -69,7 +69,7 @@ export class AptOperationError extends SoftwareOperationError<AptErrorKind> {
 export class AptBackend implements PackageBackend {
   readonly source = "apt" as const;
 
-  async search(query: string, signal?: AbortSignal): Promise<SoftwarePackage[]> {
+  async search(query: string, signal?: AbortSignal): Promise<SoftwareItem[]> {
     await requireExecutable(APT_CACHE, "APT search is not available");
 
     const normalizedQuery = query.trim().slice(0, 100);
@@ -122,7 +122,7 @@ export class AptBackend implements PackageBackend {
     }));
   }
 
-  async getDetails(id: string, signal?: AbortSignal): Promise<SoftwarePackage> {
+  async getDetails(id: string, signal?: AbortSignal): Promise<SoftwareItem> {
     assertPackageId(id);
     const result = await runProcess(
       APT_CACHE,
@@ -160,7 +160,7 @@ export class AptBackend implements PackageBackend {
     return parseDpkgStatusOutput(result.stdout).size > 0;
   }
 
-  async install(pkg: SoftwarePackage): Promise<"installed" | "already-installed"> {
+  async install(pkg: SoftwareItem): Promise<"installed" | "already-installed"> {
     const id = pkg.id;
     assertPackageId(id);
     await requireExecutable(APT_GET, "APT installation is not available");
@@ -208,7 +208,7 @@ export class AptBackend implements PackageBackend {
     return "installed";
   }
 
-  async listInstalled(signal?: AbortSignal): Promise<SoftwarePackage[]> {
+  async listInstalled(signal?: AbortSignal): Promise<SoftwareItem[]> {
     await requireExecutable(DPKG_QUERY, "Installed package state is not available");
     await requireExecutable(APT_MARK, "APT manual package state is not available");
 
@@ -267,7 +267,7 @@ export class AptBackend implements PackageBackend {
       .sort((left, right) => left.name.localeCompare(right.name));
   }
 
-  async remove(pkg: SoftwarePackage): Promise<"removed" | "not-installed"> {
+  async remove(pkg: SoftwareItem): Promise<"removed" | "not-installed"> {
     const id = pkg.id;
     assertPackageId(id);
     await requireExecutable(APT_GET, "APT removal is not available");

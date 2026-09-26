@@ -1,4 +1,4 @@
-import type { SoftwarePackage } from "../types";
+import type { SoftwareItem } from "../types";
 import { isValidAptPackageId } from "./apt-parsing.ts";
 import { isValidFlatpakAppId } from "./flatpak-parsing.ts";
 
@@ -74,14 +74,14 @@ export function parseAppStreamSearchOutput(
   return components;
 }
 
-export function enrichSoftwarePackages(
-  packages: readonly SoftwarePackage[],
+export function enrichSoftwareItems(
+  items: readonly SoftwareItem[],
   components: readonly AppStreamComponent[],
-): SoftwarePackage[] {
+): SoftwareItem[] {
   const aptComponents = preferredComponents(components, "packageId");
   const flatpakComponents = preferredComponents(components, "flatpakId");
 
-  return packages.map((pkg) => {
+  return items.map((pkg) => {
     const component = pkg.source === "apt"
       ? aptComponents.get(pkg.id)
       : flatpakComponents.get(pkg.id);

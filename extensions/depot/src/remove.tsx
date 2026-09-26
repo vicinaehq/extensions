@@ -19,7 +19,7 @@ import {
   operationErrorMessage,
 } from "./errors.ts";
 import { useInstalledSoftware } from "./hooks/use-installed-software";
-import type { SoftwarePackage, SoftwarePreferences } from "./types";
+import type { DepotPreferences, SoftwareItem } from "./types";
 import {
   removeAccessories,
   softwareSourceLabel,
@@ -34,7 +34,7 @@ export default function RemoveCommand() {
     aptEnabled = true,
     flatpakEnabled = true,
     flatpakScope = "user",
-  } = getPreferenceValues<SoftwarePreferences>();
+  } = getPreferenceValues<DepotPreferences>();
   const flatpakBackend = useMemo(
     () => new FlatpakBackend(flatpakScope),
     [flatpakScope],
@@ -50,7 +50,7 @@ export default function RemoveCommand() {
     ...installed.flatpakPackages,
   ]);
 
-  const remove = async (pkg: SoftwarePackage) => {
+  const remove = async (pkg: SoftwareItem) => {
     const source = softwareSourceLabel(pkg, "scope");
     const confirmed = await confirmAlert({
       title: `Remove ${pkg.name}?`,
@@ -182,7 +182,7 @@ function InstalledItem({
   onRemove,
   onRefresh,
 }: {
-  pkg: SoftwarePackage;
+  pkg: SoftwareItem;
   onRemove(): void;
   onRefresh(): void;
 }) {

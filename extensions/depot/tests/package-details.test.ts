@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { SoftwarePackage } from "../src/types.ts";
+import type { SoftwareItem } from "../src/types.ts";
 import {
   escapeMarkdown,
   packageDescriptionMarkdown,
@@ -28,7 +28,7 @@ test("escapes package metadata before rendering it as markdown", () => {
 });
 
 test("builds details from summary and long description", () => {
-  const pkg: SoftwarePackage = {
+  const pkg: SoftwareItem = {
     id: "vlc",
     name: "VLC",
     description: "Media *player*",

@@ -1,7 +1,7 @@
 export type SoftwareSource = "apt" | "flatpak";
 export type FlatpakScope = "user" | "system";
 
-export interface SoftwarePreferences {
+export interface DepotPreferences {
   aptEnabled?: boolean;
   flatpakEnabled?: boolean;
   flatpakScope?: FlatpakScope;
@@ -21,7 +21,7 @@ export interface AppStreamPackageMetadata {
   license?: string;
 }
 
-export interface SoftwarePackage {
+export interface SoftwareItem {
   id: string;
   name: string;
   description: string;
@@ -35,7 +35,7 @@ export interface SoftwarePackage {
   flatpak?: FlatpakPackageMetadata;
 }
 
-export interface SoftwareUpdate extends SoftwarePackage {
+export interface SoftwareUpdate extends SoftwareItem {
   currentVersion?: string;
   availableVersion?: string;
   repository?: string;
@@ -45,11 +45,11 @@ export interface SoftwareUpdate extends SoftwarePackage {
 
 export interface PackageBackend {
   readonly source: SoftwareSource;
-  search(query: string, signal?: AbortSignal): Promise<SoftwarePackage[]>;
+  search(query: string, signal?: AbortSignal): Promise<SoftwareItem[]>;
   isInstalled(id: string, signal?: AbortSignal): Promise<boolean>;
-  install(pkg: SoftwarePackage): Promise<"installed" | "already-installed">;
-  listInstalled(signal?: AbortSignal): Promise<SoftwarePackage[]>;
-  remove(pkg: SoftwarePackage): Promise<"removed" | "not-installed">;
+  install(pkg: SoftwareItem): Promise<"installed" | "already-installed">;
+  listInstalled(signal?: AbortSignal): Promise<SoftwareItem[]>;
+  remove(pkg: SoftwareItem): Promise<"removed" | "not-installed">;
   listUpdates(signal?: AbortSignal): Promise<SoftwareUpdate[]>;
   update(pkg: SoftwareUpdate): Promise<void>;
   updateAll(): Promise<void>;

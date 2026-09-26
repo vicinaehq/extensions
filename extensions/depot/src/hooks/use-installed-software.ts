@@ -2,17 +2,17 @@ import { useEffect, useState } from "react";
 import { aptBackend } from "../backends/apt";
 import type { FlatpakBackend } from "../backends/flatpak";
 import { operationErrorMessage } from "../errors.ts";
-import type { SoftwarePackage } from "../types";
+import type { SoftwareItem } from "../types";
 import { isProcessAborted } from "../utils/process";
 import { softwareItemKey } from "../utils/software-results";
 
 export interface InstalledSoftwareState {
-  aptPackages: SoftwarePackage[];
-  flatpakPackages: SoftwarePackage[];
+  aptPackages: SoftwareItem[];
+  flatpakPackages: SoftwareItem[];
   isLoading: boolean;
   aptError?: string;
   flatpakError?: string;
-  removeFromList(pkg: SoftwarePackage): void;
+  removeFromList(pkg: SoftwareItem): void;
   refresh(): void;
 }
 
@@ -21,8 +21,8 @@ export function useInstalledSoftware(
   aptEnabled = true,
   flatpakEnabled = true,
 ): InstalledSoftwareState {
-  const [aptPackages, setAptPackages] = useState<SoftwarePackage[]>([]);
-  const [flatpakPackages, setFlatpakPackages] = useState<SoftwarePackage[]>([]);
+  const [aptPackages, setAptPackages] = useState<SoftwareItem[]>([]);
+  const [flatpakPackages, setFlatpakPackages] = useState<SoftwareItem[]>([]);
   const [aptLoading, setAptLoading] = useState(aptEnabled);
   const [flatpakLoading, setFlatpakLoading] = useState(flatpakEnabled);
   const [aptError, setAptError] = useState<string>();
@@ -83,7 +83,7 @@ export function useInstalledSoftware(
     isLoading: aptLoading || flatpakLoading,
     aptError,
     flatpakError,
-    removeFromList: (pkg: SoftwarePackage) => {
+    removeFromList: (pkg: SoftwareItem) => {
       const key = softwareItemKey(pkg);
       if (pkg.source === "apt") {
         setAptPackages((packages) =>

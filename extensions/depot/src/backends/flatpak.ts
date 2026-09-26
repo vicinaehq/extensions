@@ -1,10 +1,10 @@
 import type {
   FlatpakScope,
   PackageBackend,
-  SoftwarePackage,
+  SoftwareItem,
   SoftwareUpdate,
 } from "../types";
-import { SoftwareOperationError } from "../errors.ts";
+import { DepotOperationError } from "../errors.ts";
 import {
   ProcessExecutionError,
   runProcess,
@@ -43,7 +43,7 @@ export type FlatpakErrorKind =
   | "network"
   | "failed";
 
-export class FlatpakOperationError extends SoftwareOperationError<FlatpakErrorKind> {
+export class FlatpakOperationError extends DepotOperationError<FlatpakErrorKind> {
   constructor(
     kind: FlatpakErrorKind,
     message: string,
@@ -70,7 +70,7 @@ export class FlatpakBackend implements PackageBackend {
     this.preferredScope = preferredScope;
   }
 
-  async search(query: string, signal?: AbortSignal): Promise<SoftwarePackage[]> {
+  async search(query: string, signal?: AbortSignal): Promise<SoftwareItem[]> {
     await this.requireExecutable();
 
     const normalizedQuery = query.trim().slice(0, 100);
@@ -114,7 +114,7 @@ export class FlatpakBackend implements PackageBackend {
           scope: record.scope,
           branch: record.branch,
         },
-      } satisfies SoftwarePackage];
+      } satisfies SoftwareItem];
     });
   }
 
@@ -194,7 +194,7 @@ export class FlatpakBackend implements PackageBackend {
     return (await this.listInstalledRecords(signal)).some((app) => app.id === id);
   }
 
-  async install(pkg: SoftwarePackage): Promise<"installed" | "already-installed"> {
+  async install(pkg: SoftwareItem): Promise<"installed" | "already-installed"> {
     assertAppId(pkg.id);
     await this.requireExecutable();
 
@@ -268,7 +268,7 @@ export class FlatpakBackend implements PackageBackend {
     return "installed";
   }
 
-  async listInstalled(signal?: AbortSignal): Promise<SoftwarePackage[]> {
+  async listInstalled(signal?: AbortSignal): Promise<SoftwareItem[]> {
     await this.requireExecutable();
 
     const results = await Promise.all(
@@ -305,7 +305,7 @@ export class FlatpakBackend implements PackageBackend {
       .sort((left, right) => left.name.localeCompare(right.name));
   }
 
-  async remove(pkg: SoftwarePackage): Promise<"removed" | "not-installed"> {
+  async remove(pkg: SoftwareItem): Promise<"removed" | "not-installed"> {
     assertAppId(pkg.id);
     await this.requireExecutable();
 

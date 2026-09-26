@@ -23,7 +23,7 @@ import {
   operationErrorMessage,
 } from "./errors.ts";
 import { useSoftwareUpdates } from "./hooks/use-software-updates";
-import type { SoftwarePreferences, SoftwareUpdate } from "./types";
+import type { DepotPreferences, SoftwareUpdate } from "./types";
 import {
   softwareSourceLabel,
   updateAccessories,
@@ -40,7 +40,7 @@ export default function UpdateCommand() {
     aptEnabled = true,
     flatpakEnabled = true,
     flatpakScope = "user",
-  } = getPreferenceValues<SoftwarePreferences>();
+  } = getPreferenceValues<DepotPreferences>();
   const flatpakBackend = useMemo(
     () => new FlatpakBackend(flatpakScope),
     [flatpakScope],

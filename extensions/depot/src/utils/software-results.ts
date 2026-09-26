@@ -1,9 +1,9 @@
-import type { SoftwarePackage } from "../types";
+import type { SoftwareItem } from "../types";
 import { expandedSearchQueries } from "../backends/appstream-parsing.ts";
 
 const RESULT_LIMIT = 60;
 
-export function softwareItemKey(pkg: SoftwarePackage): string {
+export function softwareItemKey(pkg: SoftwareItem): string {
   return pkg.source === "flatpak"
     ? `flatpak:${pkg.flatpak?.scope ?? "unknown"}:${pkg.id}`
     : `apt:${pkg.id}`;
@@ -11,8 +11,8 @@ export function softwareItemKey(pkg: SoftwarePackage): string {
 
 export function rankSoftwareResults(
   query: string,
-  ...groups: readonly SoftwarePackage[][]
-): SoftwarePackage[] {
+  ...groups: readonly SoftwareItem[][]
+): SoftwareItem[] {
   const normalizedQuery = normalize(query);
   if (!normalizedQuery) return groups.flat().slice(0, RESULT_LIMIT);
 
@@ -21,7 +21,7 @@ export function rankSoftwareResults(
     .map((pkg, originalIndex) => ({
       pkg,
       originalIndex,
-      score: scoreSoftwarePackage(pkg, normalizedQuery),
+      score: scoreSoftwareItem(pkg, normalizedQuery),
     }))
     .sort((left, right) =>
       left.score - right.score ||
@@ -34,7 +34,7 @@ export function rankSoftwareResults(
     .map(({ pkg }) => pkg);
 }
 
-export function sortSoftwareAlphabetically<T extends SoftwarePackage>(
+export function sortSoftwareAlphabetically<T extends SoftwareItem>(
   packages: readonly T[],
 ): T[] {
   return [...packages].sort((left, right) =>
@@ -48,15 +48,15 @@ export function sortSoftwareAlphabetically<T extends SoftwarePackage>(
   );
 }
 
-function scoreSoftwarePackage(pkg: SoftwarePackage, query: string): number {
+function scoreSoftwareItem(pkg: SoftwareItem, query: string): number {
   const queries = expandedSearchQueries(query);
   return Math.min(...queries.map((candidate, index) =>
-    scoreSoftwarePackageForQuery(pkg, candidate, index > 0)
+    scoreSoftwareItemForQuery(pkg, candidate, index > 0)
   ));
 }
 
-function scoreSoftwarePackageForQuery(
-  pkg: SoftwarePackage,
+function scoreSoftwareItemForQuery(
+  pkg: SoftwareItem,
   query: string,
   isAlias: boolean,
 ): number {
@@ -114,7 +114,7 @@ function scoreSoftwarePackageForQuery(
   return score + noisePenalty(pkg, queryTokens) + applicationBonus + installedBonus;
 }
 
-function noisePenalty(pkg: SoftwarePackage, queryTokens: readonly string[]): number {
+function noisePenalty(pkg: SoftwareItem, queryTokens: readonly string[]): number {
   const rawId = pkg.id.toLowerCase();
   const idTokens = words(normalize(rawId));
   const nameAndDescription = normalize(`${pkg.name} ${pkg.description}`);
@@ -180,6 +180,6 @@ function words(value: string): string[] {
   return value.split(" ").filter(Boolean);
 }
 
-function sourceOrder(pkg: SoftwarePackage): number {
+function sourceOrder(pkg: SoftwareItem): number {
   return pkg.source === "apt" ? 0 : 1;
 }

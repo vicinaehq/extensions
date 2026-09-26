@@ -9,8 +9,8 @@ import { useEffect, useState } from "react";
 import { aptBackend } from "../backends/apt";
 import { operationErrorMessage } from "../errors.ts";
 import { appStreamBackend } from "../backends/appstream";
-import { enrichSoftwarePackages } from "../backends/appstream-parsing";
-import type { SoftwarePackage, SoftwareUpdate } from "../types";
+import { enrichSoftwareItems } from "../backends/appstream-parsing";
+import type { SoftwareItem, SoftwareUpdate } from "../types";
 import {
   escapeMarkdown,
   packageDescriptionMarkdown,
@@ -20,7 +20,7 @@ import {
 import { isProcessAborted } from "../utils/process";
 
 interface SoftwareDetailsProps {
-  pkg: SoftwarePackage | SoftwareUpdate;
+  pkg: SoftwareItem | SoftwareUpdate;
   primaryActions?: ReactNode;
 }
 
@@ -38,7 +38,7 @@ export function ShowSoftwareDetailsAction({
 }
 
 function SoftwareDetails({ pkg, primaryActions }: SoftwareDetailsProps) {
-  const [details, setDetails] = useState<SoftwarePackage | SoftwareUpdate>(pkg);
+  const [details, setDetails] = useState<SoftwareItem | SoftwareUpdate>(pkg);
   const [isLoading, setIsLoading] = useState(pkg.source === "apt");
   const [error, setError] = useState<string>();
 
@@ -87,7 +87,7 @@ function SoftwareDetails({ pkg, primaryActions }: SoftwareDetailsProps) {
     appStreamBackend.getDetails(componentId, controller.signal)
       .then((components) => {
         if (controller.signal.aborted) return;
-        const enriched = enrichSoftwarePackages([pkg], components)[0];
+        const enriched = enrichSoftwareItems([pkg], components)[0];
         if (!enriched) return;
         setDetails((current) => ({
           ...current,
@@ -224,7 +224,7 @@ function SoftwareDetails({ pkg, primaryActions }: SoftwareDetailsProps) {
 }
 
 function isSoftwareUpdate(
-  pkg: SoftwarePackage | SoftwareUpdate,
+  pkg: SoftwareItem | SoftwareUpdate,
 ): pkg is SoftwareUpdate {
   return "currentVersion" in pkg || "availableVersion" in pkg;
 }

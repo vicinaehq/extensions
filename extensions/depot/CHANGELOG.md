@@ -22,6 +22,8 @@
   request cancellation while making authentication cancellation non-alarming.
 - Strengthen TypeScript checks for unused code, missing returns, and switch
   fallthrough without adding runtime infrastructure.
+- Clarify internal vocabulary with `SoftwareItem`, `DepotPreferences`, and
+  `DepotOperationError` while retaining domain-level software terminology.
 - Name commands consistently as Depot Install, Depot Install Local, Depot
   Remove, and Depot Update.
 

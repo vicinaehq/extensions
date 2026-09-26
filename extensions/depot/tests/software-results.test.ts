@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { SoftwarePackage } from "../src/types.ts";
+import type { SoftwareItem } from "../src/types.ts";
 import {
   rankSoftwareResults,
   softwareItemKey,
@@ -14,7 +14,7 @@ test("uses package source and Flatpak scope as stable software identity", () => 
     "Example",
     "User Flatpak",
   );
-  const systemFlatpak: SoftwarePackage = {
+  const systemFlatpak: SoftwareItem = {
     ...userFlatpak,
     flatpak: { remote: "flathub", scope: "system", branch: "stable" },
   };
@@ -25,14 +25,14 @@ test("uses package source and Flatpak scope as stable software identity", () => 
 });
 
 test("keeps APT and Flatpak results for the same application distinct", () => {
-  const apt: SoftwarePackage = {
+  const apt: SoftwareItem = {
     id: "vlc",
     name: "VLC",
     description: "Media player",
     source: "apt",
     installed: false,
   };
-  const flatpak: SoftwarePackage = {
+  const flatpak: SoftwareItem = {
     id: "org.videolan.VLC",
     name: "VLC",
     description: "Media player",
@@ -198,7 +198,7 @@ test("alphabetical sorting does not mutate backend results", () => {
   assert.deepEqual(packages.map((pkg) => pkg.name), ["Spotify", "VLC"]);
 });
 
-function aptPackage(id: string, description: string): SoftwarePackage {
+function aptPackage(id: string, description: string): SoftwareItem {
   return {
     id,
     name: id,
@@ -212,7 +212,7 @@ function flatpakPackage(
   id: string,
   name: string,
   description: string,
-): SoftwarePackage {
+): SoftwareItem {
   return {
     id,
     name,
