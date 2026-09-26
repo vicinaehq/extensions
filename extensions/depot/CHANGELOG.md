@@ -6,6 +6,8 @@
   trusted system executable paths, and honor `XDG_DATA_HOME` for user data.
 - Document launcher focus settings so authentication keeps Depot visible while
   deliberate closes still return to Vicinae Home.
+- Return to local package search after a successful install or integration so
+  the next keyboard-driven action does not depend on Detail-view Backspace.
 - Enrich APT and Flatpak search results progressively with local AppStream names,
   descriptions, application identifiers, homepages, and cached icons.
 - Rank exact application names and IDs, desktop applications, and installed

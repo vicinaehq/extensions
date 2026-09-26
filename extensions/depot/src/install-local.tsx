@@ -31,7 +31,6 @@ import {
   localPackageActionLabel,
   localPackageIdentifier,
   localPackageSourceLabel,
-  type LocalInstallOutcome,
   type LocalPackage,
 } from "./local-packages/index.ts";
 import { reportOperationResult } from "./utils/operation-feedback";
@@ -217,7 +216,6 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
   const { flatpakScope = "user" } = getPreferenceValues<DepotPreferences>();
   const [pkg, setPackage] = useState<LocalPackage>();
   const [error, setError] = useState<string>();
-  const [outcome, setOutcome] = useState<LocalInstallOutcome>();
   const operating = useRef(false);
 
   useEffect(() => {
@@ -244,7 +242,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
   }, [filePath, flatpakScope]);
 
   const install = async () => {
-    if (!pkg || outcome || operating.current) return;
+    if (!pkg || operating.current) return;
     const confirmed = await confirmAlert(confirmationFor(pkg));
     if (!confirmed) return;
     operating.current = true;
@@ -259,7 +257,6 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
       const result = await installLocalPackage(pkg, {
         appImageSupportPath: environment.supportPath,
       });
-      setOutcome(result);
       reportOperationResult(toast, {
         status: "success",
         title: result.status === "already-installed"
@@ -269,6 +266,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
           : `${pkg.name} installed`,
         message: result.managedPath ?? localPackageSourceLabel(pkg),
       });
+      pop();
     } catch (installError) {
       if (isOperationCancelled(installError)) {
         await toast.hide();
@@ -292,25 +290,17 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
   const markdown = error
     ? `## Package could not be inspected\n\n${escapeMarkdown(error)}`
     : pkg
-    ? localPackageMarkdown(pkg, outcome)
+    ? localPackageMarkdown(pkg)
     : "Inspecting the selected file without installing it…";
 
   return (
     <Detail
       navigationTitle={title}
       markdown={markdown}
-      metadata={pkg ? <LocalPackageMetadata pkg={pkg} outcome={outcome} /> : undefined}
+      metadata={pkg ? <LocalPackageMetadata pkg={pkg} /> : undefined}
       actions={
         <ActionPanel>
-          {outcome && (
-            <Action
-              title="Back to Package Search"
-              icon={Icon.ArrowLeft}
-              shortcut={{ key: "backspace", modifiers: [] }}
-              onAction={pop}
-            />
-          )}
-          {pkg && !outcome && (
+          {pkg && (
             <Action
               title={localPackageActionLabel(pkg)}
               icon={pkg.kind === "appimage" ? Icon.AppWindow : Icon.Download}
@@ -318,15 +308,13 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
             />
           )}
           <Action.ShowInFinder
-            title={outcome?.managedPath
-              ? "Show Integrated AppImage"
-              : "Show Package File"}
-            path={outcome?.managedPath ?? filePath}
+            title="Show Package File"
+            path={filePath}
             select
           />
           <Action.CopyToClipboard
-            title={outcome?.managedPath ? "Copy Managed Path" : "Copy File Path"}
-            content={outcome?.managedPath ?? filePath}
+            title="Copy File Path"
+            content={filePath}
           />
           {pkg && localPackageIdentifier(pkg) && (
             <Action.CopyToClipboard
@@ -347,13 +335,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
   );
 }
 
-function LocalPackageMetadata({
-  pkg,
-  outcome,
-}: {
-  pkg: LocalPackage;
-  outcome?: LocalInstallOutcome;
-}) {
+function LocalPackageMetadata({ pkg }: { pkg: LocalPackage }) {
   const identifier = localPackageIdentifier(pkg);
   return (
     <Detail.Metadata>
@@ -412,11 +394,8 @@ function LocalPackageMetadata({
       <Detail.Metadata.Label title="Path" text={pkg.filePath} />
       <Detail.Metadata.Label
         title="Status"
-        text={localPackageStatus(pkg, outcome)}
+        text={pkg.installed ? "Installed" : "Not installed"}
       />
-      {outcome?.managedPath && (
-        <Detail.Metadata.Label title="Managed Location" text={outcome.managedPath} />
-      )}
       {pkg.homepage && (
         <Detail.Metadata.Link title="Homepage" text={pkg.homepage} target={pkg.homepage} />
       )}
@@ -424,19 +403,7 @@ function LocalPackageMetadata({
   );
 }
 
-function localPackageStatus(
-  pkg: LocalPackage,
-  outcome?: LocalInstallOutcome,
-): string {
-  if (outcome?.status === "integrated") return "Integrated";
-  if (outcome || pkg.installed) return "Installed";
-  return "Not installed";
-}
-
-function localPackageMarkdown(
-  pkg: LocalPackage,
-  outcome?: LocalInstallOutcome,
-): string {
+function localPackageMarkdown(pkg: LocalPackage): string {
   const paragraphs = [
     `## ${escapeMarkdown(pkg.name)}`,
     escapeMarkdown(pkg.description),
@@ -452,13 +419,6 @@ function localPackageMarkdown(
       `Depot will copy this file to \`${escapeMarkdown(join(homedir(), "Applications"))}\`, make the managed copy executable, and create a user desktop entry. It will not launch the application automatically.`,
     );
     if (pkg.icon) paragraphs.push("An embedded PNG icon was found and will be integrated.");
-  }
-  if (outcome) {
-    paragraphs.push(outcome.status === "already-installed"
-      ? "✓ This software was already installed."
-      : outcome.status === "integrated"
-      ? "✓ AppImage integration is complete."
-      : "✓ Installation is complete.");
   }
   return paragraphs.join("\n\n");
 }
