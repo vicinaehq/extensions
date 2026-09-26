@@ -23,6 +23,7 @@ export async function inspectDebPackage(
   filePath: string,
   fileName: string,
   fileSize: number,
+  contentHash: string,
   signal?: AbortSignal,
 ): Promise<LocalDebPackage> {
   await requireDebianExecutable(
@@ -63,6 +64,7 @@ export async function inspectDebPackage(
     filePath,
     fileName,
     fileSize,
+    contentHash,
     packageId: fields.packageId,
     name: fields.packageId,
     description: fields.description,

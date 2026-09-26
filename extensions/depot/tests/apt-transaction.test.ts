@@ -68,10 +68,32 @@ test("allows only the requested package in a removal simulation", () => {
   assert.deepEqual(
     findUnexpectedAptDaemonRemovals(
       request,
-      [[], [], ["example=1.0"], []],
+      [[], [], ["example:amd64=1.0"], []],
       [[], [], ["dependent=2.0"], [], [], [], []],
     ),
     ["dependent"],
+  );
+});
+
+test("keeps architecture-qualified removals distinct", () => {
+  assert.deepEqual(
+    findUnexpectedAptDaemonRemovals(
+      { kind: "remove-packages", packageIds: ["example:amd64"] },
+      [[], [], ["example:i386=1.0"], []],
+      [[], [], [], [], [], [], []],
+    ),
+    ["example:i386"],
+  );
+  assert.deepEqual(
+    findUnexpectedAptDaemonRemovals(
+      {
+        kind: "remove-packages",
+        packageIds: ["example:amd64", "example:i386"],
+      },
+      [[], [], ["example=1.0"], []],
+      [[], [], [], [], [], [], []],
+    ),
+    ["example"],
   );
 });
 

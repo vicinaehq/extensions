@@ -21,5 +21,5 @@ export function operationErrorMessage(error: unknown, fallback: string): string 
 
 export function isOperationCancelled(error: unknown): boolean {
   return error instanceof DepotOperationError &&
-    (error.kind === "cancelled" || error.kind === "authentication");
+    error.kind === "cancelled";
 }

@@ -1,5 +1,14 @@
-import { open, lstat, readFile } from "node:fs/promises";
-import { basename, extname, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import {
+  lstat,
+  mkdtemp,
+  open,
+  readFile,
+  rmdir,
+  unlink,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, extname, join, resolve } from "node:path";
 import type { FlatpakScope, SoftwareOperationOptions } from "../types";
 import { inspectAppImage, integrateAppImage } from "./appimage.ts";
 import { inspectDebPackage, installDebPackage } from "./deb.ts";
@@ -48,13 +57,20 @@ export async function inspectLocalPackage(
   }
 
   const fileName = basename(filePath);
+  const contentHash = await hashFile(filePath, options.signal);
   const header = await readHeader(filePath, 128);
   options.signal?.throwIfAborted();
 
+  let pkg: LocalPackage;
   if (isDebianArchiveHeader(header)) {
-    return inspectDebPackage(filePath, fileName, stat.size, options.signal);
-  }
-  if (
+    pkg = await inspectDebPackage(
+      filePath,
+      fileName,
+      stat.size,
+      contentHash,
+      options.signal,
+    );
+  } else if (
     header[0] === 0x7f &&
     header[1] === 0x45 &&
     header[2] === 0x4c &&
@@ -62,72 +78,89 @@ export async function inspectLocalPackage(
     header[8] === 0x41 &&
     header[9] === 0x49
   ) {
-    return inspectAppImage(filePath, fileName, stat.size, options.signal);
-  }
+    pkg = await inspectAppImage(
+      filePath,
+      fileName,
+      stat.size,
+      contentHash,
+      options.signal,
+    );
+  } else {
+    const extension = extname(fileName).toLowerCase();
+    let flatpakReference = false;
+    if (stat.size <= 1024 * 1024) {
+      const content = await readFile(filePath, "utf8");
+      options.signal?.throwIfAborted();
+      flatpakReference = looksLikeFlatpakRef(content);
+    }
 
-  const extension = extname(fileName).toLowerCase();
-  if (stat.size <= 1024 * 1024) {
-    const content = await readFile(filePath, "utf8");
-    options.signal?.throwIfAborted();
-    if (looksLikeFlatpakRef(content)) {
-      return inspectFlatpakRef(
+    if (flatpakReference) {
+      pkg = await inspectFlatpakRef(
         filePath,
         fileName,
         stat.size,
+        contentHash,
         options.flatpakScope,
         options.signal,
+      );
+    } else if (extension === ".flatpak") {
+      pkg = await inspectFlatpakBundle(
+        filePath,
+        fileName,
+        stat.size,
+        contentHash,
+        options.flatpakScope,
+        options.signal,
+      );
+    } else {
+      const expectedType = new Map<string, string>([
+        [".deb", "Debian package"],
+        [".flatpakref", "Flatpak reference"],
+        [".appimage", "AppImage"],
+      ]).get(extension);
+      throw new LocalPackageError(
+        extension === ".flatpak" || expectedType ? "invalid" : "unsupported",
+        expectedType
+          ? `This file is not a valid ${expectedType}`
+          : "Supported local formats are .deb, .flatpak, .flatpakref, and AppImage",
       );
     }
   }
 
-  if (extension === ".flatpak") {
-    return inspectFlatpakBundle(
-      filePath,
-      fileName,
-      stat.size,
-      options.flatpakScope,
-      options.signal,
-    );
-  }
-
-  const expectedType = new Map<string, string>([
-    [".deb", "Debian package"],
-    [".flatpakref", "Flatpak reference"],
-    [".appimage", "AppImage"],
-  ]).get(extension);
-  throw new LocalPackageError(
-    extension === ".flatpak" || expectedType ? "invalid" : "unsupported",
-    expectedType
-      ? `This file is not a valid ${expectedType}`
-      : "Supported local formats are .deb, .flatpak, .flatpakref, and AppImage",
-  );
+  await assertSameFile(filePath, stat);
+  return pkg;
 }
 
 export async function installLocalPackage(
   pkg: LocalPackage,
   options: LocalPackageInstallOptions,
 ): Promise<LocalInstallOutcome> {
-  await assertSelectedFileUnchanged(pkg);
-  switch (pkg.kind) {
-    case "deb":
-      return installDebPackage(pkg, options);
-    case "flatpak-bundle":
-    case "flatpakref":
-      options.onStatus?.({
-        message: "Installing with Flatpak",
-        cancellable: false,
-      });
-      return installFlatpakFile(pkg);
-    case "appimage":
-      options.onStatus?.({
-        message: "Integrating AppImage",
-        cancellable: false,
-      });
-      return integrateAppImage(pkg, {
-        supportPath: options.appImageSupportPath,
-        applicationsDirectory: options.applicationsDirectory,
-        desktopEntriesDirectory: options.desktopEntriesDirectory,
-      });
+  const staged = await stageReviewedPackage(pkg, options.signal);
+  const stagedPackage: LocalPackage = { ...pkg, filePath: staged.filePath };
+  try {
+    switch (stagedPackage.kind) {
+      case "deb":
+        return installDebPackage(stagedPackage, options);
+      case "flatpak-bundle":
+      case "flatpakref":
+        options.onStatus?.({
+          message: "Installing with Flatpak",
+          cancellable: false,
+        });
+        return installFlatpakFile(stagedPackage);
+      case "appimage":
+        options.onStatus?.({
+          message: "Integrating AppImage",
+          cancellable: false,
+        });
+        return integrateAppImage(stagedPackage, {
+          supportPath: options.appImageSupportPath,
+          applicationsDirectory: options.applicationsDirectory,
+          desktopEntriesDirectory: options.desktopEntriesDirectory,
+        });
+    }
+  } finally {
+    await removeStagedPackage(staged.directory, staged.filePath);
   }
 }
 
@@ -179,21 +212,118 @@ async function readHeader(filePath: string, length: number): Promise<Buffer> {
   }
 }
 
-async function assertSelectedFileUnchanged(pkg: LocalPackage): Promise<void> {
-  let stat;
+async function assertSameFile(
+  filePath: string,
+  original: Awaited<ReturnType<typeof lstat>>,
+): Promise<void> {
+  let current;
   try {
-    stat = await lstat(pkg.filePath);
+    current = await lstat(filePath);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       throw new LocalPackageError("invalid", "The selected file no longer exists");
     }
     throw error;
   }
-  if (!stat.isFile() || stat.isSymbolicLink() || stat.size !== pkg.fileSize) {
+  if (
+    !current.isFile() ||
+    current.isSymbolicLink() ||
+    current.dev !== original.dev ||
+    current.ino !== original.ino ||
+    current.size !== original.size ||
+    current.mtimeMs !== original.mtimeMs ||
+    current.ctimeMs !== original.ctimeMs
+  ) {
     throw new LocalPackageError(
       "invalid",
-      "The selected file changed after it was inspected; inspect it again before installing",
+      "The selected file changed while it was inspected; inspect it again before installing",
     );
+  }
+}
+
+async function stageReviewedPackage(
+  pkg: LocalPackage,
+  signal?: AbortSignal,
+): Promise<{ directory: string; filePath: string }> {
+  const directory = await mkdtemp(join(tmpdir(), "depot-local-install-"));
+  const filePath = join(directory, pkg.fileName);
+  try {
+    signal?.throwIfAborted();
+    const contentHash = await copyAndHashFile(pkg.filePath, filePath, signal);
+    const stat = await lstat(filePath);
+    if (!stat.isFile() || stat.isSymbolicLink() || contentHash !== pkg.contentHash) {
+      throw new LocalPackageError(
+        "invalid",
+        "The selected file changed after it was inspected; inspect it again before installing",
+      );
+    }
+    return { directory, filePath };
+  } catch (error) {
+    await removeStagedPackage(directory, filePath);
+    throw error;
+  }
+}
+
+async function copyAndHashFile(
+  sourcePath: string,
+  destinationPath: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const source = await open(sourcePath, "r");
+  let destination: Awaited<ReturnType<typeof open>> | undefined;
+  const hash = createHash("sha256");
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  let readPosition = 0;
+  try {
+    destination = await open(destinationPath, "wx", 0o400);
+    while (true) {
+      signal?.throwIfAborted();
+      const { bytesRead } = await source.read(
+        buffer,
+        0,
+        buffer.length,
+        readPosition,
+      );
+      if (bytesRead === 0) break;
+      hash.update(buffer.subarray(0, bytesRead));
+      let written = 0;
+      while (written < bytesRead) {
+        const result = await destination.write(
+          buffer,
+          written,
+          bytesRead - written,
+        );
+        written += result.bytesWritten;
+      }
+      readPosition += bytesRead;
+    }
+    return hash.digest("hex");
+  } finally {
+    await Promise.all([source.close(), destination?.close()]);
+  }
+}
+
+async function removeStagedPackage(directory: string, filePath: string): Promise<void> {
+  await unlink(filePath).catch(() => undefined);
+  await rmdir(directory).catch(() => undefined);
+}
+
+async function hashFile(filePath: string, signal?: AbortSignal): Promise<string> {
+  const handle = await open(filePath, "r");
+  const hash = createHash("sha256");
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  let position = 0;
+  try {
+    while (true) {
+      signal?.throwIfAborted();
+      const { bytesRead } = await handle.read(buffer, 0, buffer.length, position);
+      if (bytesRead === 0) break;
+      hash.update(buffer.subarray(0, bytesRead));
+      position += bytesRead;
+    }
+    return hash.digest("hex");
+  } finally {
+    await handle.close();
   }
 }
 

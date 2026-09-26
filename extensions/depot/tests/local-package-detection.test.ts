@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { appendFile, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -43,7 +43,7 @@ test("detects a Flatpak reference by content with a nonstandard filename", async
   }
 });
 
-test("rejects symbolic links and files changed after review", async () => {
+test("rejects symbolic links and same-size files changed after review", async () => {
   const directory = await mkdtemp(join(tmpdir(), "depot-file-safety-test-"));
   try {
     const filePath = join(directory, "portable-app");
@@ -56,7 +56,7 @@ test("rejects symbolic links and files changed after review", async () => {
     );
 
     const pkg = await inspectLocalPackage(filePath, { flatpakScope: "user" });
-    await appendFile(filePath, "changed");
+    await writeFile(filePath, Buffer.alloc(pkg.fileSize, 0));
     await assert.rejects(
       installLocalPackage(pkg, {
         appImageSupportPath: join(directory, "support"),

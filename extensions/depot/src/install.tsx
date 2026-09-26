@@ -64,6 +64,11 @@ export default function InstallCommand() {
   );
   const isLoading = aptSearch.isLoading || flatpakSearch.isLoading;
   const normalizedQuery = searchText.trim();
+  const searchNotice = [
+    aptSearch.error,
+    flatpakSearch.error,
+    flatpakSearch.warning,
+  ].filter((value): value is string => Boolean(value)).join(" ") || undefined;
 
   const install = async (pkg: SoftwareItem) => {
     const installKey = softwareItemKey(pkg);
@@ -133,57 +138,61 @@ export default function InstallCommand() {
       onSearchTextChange={setSearchText}
       actions={<ActionPanel><RecentActionsAction /></ActionPanel>}
     >
-      {results.map((pkg) => (
-        <List.Item
-          key={softwareItemKey(pkg)}
-          id={softwareItemKey(pkg)}
-          title={pkg.name}
-          subtitle={pkg.description}
-          icon={pkg.icon
-            ? { source: pkg.icon, fallback: Icon.AppWindow }
-            : Icon.AppWindow}
-          keywords={[pkg.id, pkg.appstream?.componentId ?? ""]}
-          accessories={installAccessories(pkg)}
-          actions={
-            <ActionPanel>
-              {!pkg.installed && (
-                <Action
-                  title="Install"
-                  icon={Icon.Download}
-                  onAction={() => install(pkg)}
-                />
-              )}
-              {operation.isCancellable(softwareItemKey(pkg)) && (
-                <CancelInstallAction
-                  onCancel={() => operation.cancel(softwareItemKey(pkg))}
-                />
-              )}
-              <ShowSoftwareDetailsAction
-                pkg={pkg}
-                primaryActions={!pkg.installed
-                  ? (<>
+      {results.length > 0 && (
+        <List.Section title="Search Results" subtitle={searchNotice}>
+          {results.map((pkg) => (
+            <List.Item
+              key={softwareItemKey(pkg)}
+              id={softwareItemKey(pkg)}
+              title={pkg.name}
+              subtitle={pkg.description}
+              icon={pkg.icon
+                ? { source: pkg.icon, fallback: Icon.AppWindow }
+                : Icon.AppWindow}
+              keywords={[pkg.id, pkg.appstream?.componentId ?? ""]}
+              accessories={installAccessories(pkg)}
+              actions={
+                <ActionPanel>
+                  {!pkg.installed && (
                     <Action
                       title="Install"
                       icon={Icon.Download}
                       onAction={() => install(pkg)}
                     />
-                    {operation.isCancellable(softwareItemKey(pkg)) && (
-                      <CancelInstallAction
-                        onCancel={() => operation.cancel(softwareItemKey(pkg))}
-                      />
-                    )}
-                  </>)
-                  : undefined}
-              />
-              <Action.CopyToClipboard
-                title="Copy Package ID"
-                content={pkg.id}
-              />
-              <RecentActionsAction />
-            </ActionPanel>
-          }
-        />
-      ))}
+                  )}
+                  {operation.isCancellable(softwareItemKey(pkg)) && (
+                    <CancelInstallAction
+                      onCancel={() => operation.cancel(softwareItemKey(pkg))}
+                    />
+                  )}
+                  <ShowSoftwareDetailsAction
+                    pkg={pkg}
+                    primaryActions={!pkg.installed
+                      ? (<>
+                        <Action
+                          title="Install"
+                          icon={Icon.Download}
+                          onAction={() => install(pkg)}
+                        />
+                        {operation.isCancellable(softwareItemKey(pkg)) && (
+                          <CancelInstallAction
+                            onCancel={() => operation.cancel(softwareItemKey(pkg))}
+                          />
+                        )}
+                      </>)
+                      : undefined}
+                  />
+                  <Action.CopyToClipboard
+                    title="Copy Package ID"
+                    content={pkg.id}
+                  />
+                  <RecentActionsAction />
+                </ActionPanel>
+              }
+            />
+          ))}
+        </List.Section>
+      )}
 
       <SearchEmptyView
         query={normalizedQuery}

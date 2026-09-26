@@ -271,7 +271,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
         appImageSupportPath: environment.supportPath,
         ...operationOptions,
       });
-      if (result.status === "installed") {
+      if (result.status === "installed" || result.status === "integrated") {
         await recordRecentAction({
           kind: pkg.kind === "appimage" ? "integrated" : "installed",
           name: pkg.name,

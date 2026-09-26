@@ -12,6 +12,7 @@ interface LocalPackageBase {
   filePath: string;
   fileName: string;
   fileSize: number;
+  contentHash: string;
   name: string;
   description: string;
   version?: string;

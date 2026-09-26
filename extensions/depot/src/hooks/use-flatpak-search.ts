@@ -12,6 +12,7 @@ export interface FlatpakSearchState {
   results: SoftwareItem[];
   isLoading: boolean;
   error: string | undefined;
+  warning: string | undefined;
   markInstalled(id: string): void;
 }
 
@@ -26,12 +27,14 @@ export function useFlatpakSearch(
   const [results, setResults] = useState<SoftwareItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
+  const [warning, setWarning] = useState<string>();
 
   useEffect(() => {
     if (!enabled) {
       latestRequest.current.cancel();
       setResults([]);
       setError(undefined);
+      setWarning(undefined);
       setIsLoading(false);
       return;
     }
@@ -40,6 +43,7 @@ export function useFlatpakSearch(
       latestRequest.current.cancel();
       setResults([]);
       setError(undefined);
+      setWarning(undefined);
       setIsLoading(normalizedQuery.length >= 2);
       return;
     }
@@ -48,6 +52,7 @@ export function useFlatpakSearch(
       latestRequest.current.cancel();
       setResults([]);
       setError(undefined);
+      setWarning(undefined);
       setIsLoading(false);
       return;
     }
@@ -55,10 +60,13 @@ export function useFlatpakSearch(
     const request = latestRequest.current.start();
     setIsLoading(true);
     setError(undefined);
+    setWarning(undefined);
 
-    backend.search(debouncedQuery, request.signal)
-      .then((packages) => {
-        if (request.isCurrent()) setResults(packages);
+    backend.searchWithStatus(debouncedQuery, request.signal)
+      .then((response) => {
+        if (!request.isCurrent()) return;
+        setResults(response.items);
+        setWarning(response.warning);
       })
       .catch((searchError: unknown) => {
         if (!request.isCurrent() || isProcessAborted(searchError)) return;
@@ -77,6 +85,7 @@ export function useFlatpakSearch(
     results,
     isLoading,
     error,
+    warning,
     markInstalled: (id: string) => {
       setResults((packages) =>
         packages.map((pkg) => pkg.id === id ? { ...pkg, installed: true } : pkg),

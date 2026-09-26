@@ -55,6 +55,7 @@ export async function inspectAppImage(
   filePath: string,
   fileName: string,
   fileSize: number,
+  contentHash: string,
   signal?: AbortSignal,
 ): Promise<LocalAppImage> {
   const header = await readAndValidateAppImageHeader(filePath);
@@ -79,6 +80,7 @@ export async function inspectAppImage(
     filePath,
     fileName,
     fileSize,
+    contentHash,
     appImageType: header.type,
     name: desktop?.name ?? packageNameFromFile(filePath),
     description: desktop?.description ?? "Portable AppImage application",

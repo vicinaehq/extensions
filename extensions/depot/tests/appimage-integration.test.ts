@@ -134,6 +134,7 @@ async function fixturePackage(
     filePath: source,
     fileName: source.split("/").at(-1)!,
     fileSize: stat.size,
+    contentHash: createHash("sha256").update(await readFile(source)).digest("hex"),
     name,
     description: "Test AppImage",
     architecture: "x86_64",

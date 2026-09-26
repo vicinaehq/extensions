@@ -24,7 +24,7 @@ test("recognizes user-cancelled Depot operations", () => {
   );
 
   assert.equal(isOperationCancelled(cancelled), true);
-  assert.equal(isOperationCancelled(authentication), true);
+  assert.equal(isOperationCancelled(authentication), false);
   assert.equal(isOperationCancelled(failed), false);
   assert.equal(isOperationCancelled(new Error("cancelled")), false);
 });

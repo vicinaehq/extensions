@@ -24,6 +24,7 @@ export async function inspectFlatpakRef(
   filePath: string,
   fileName: string,
   fileSize: number,
+  contentHash: string,
   scope: FlatpakScope,
   signal?: AbortSignal,
 ): Promise<LocalFlatpakRef> {
@@ -43,6 +44,7 @@ export async function inspectFlatpakRef(
     filePath,
     fileName,
     fileSize,
+    contentHash,
     appId: reference.appId,
     name: reference.name,
     description: "Application reference for a Flatpak repository",
@@ -59,6 +61,7 @@ export async function inspectFlatpakBundle(
   filePath: string,
   fileName: string,
   fileSize: number,
+  contentHash: string,
   scope: FlatpakScope,
   signal?: AbortSignal,
 ): Promise<LocalFlatpakBundle> {
@@ -144,6 +147,7 @@ export async function inspectFlatpakBundle(
       filePath,
       fileName,
       fileSize,
+      contentHash,
       appId: parsed.appId,
       name: parsed.appId,
       description: "Local Flatpak application bundle",
@@ -190,10 +194,17 @@ export async function installFlatpakFile(
   } catch (error) {
     if (error instanceof ProcessExecutionError) {
       const details = summarizeProcessOutput(error.result.stderr);
-      if (/cancel(?:led|ed)|not authorized|not allowed/i.test(details ?? "")) {
+      if (/cancel(?:led|ed)/i.test(details ?? "")) {
         throw new LocalPackageError(
           "cancelled",
-          "Installation or authentication was cancelled",
+          "Installation was cancelled",
+          details,
+        );
+      }
+      if (/not authorized|not allowed|permission denied|authentication.*deni/i.test(details ?? "")) {
+        throw new LocalPackageError(
+          "authentication",
+          "Authentication was denied",
           details,
         );
       }

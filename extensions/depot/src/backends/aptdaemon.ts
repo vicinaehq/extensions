@@ -362,13 +362,16 @@ async function preauthorize(
       },
     );
   } catch (error) {
+    if (error instanceof ProcessExecutionError && error.result.exitCode === 3) {
+      throw new AptDaemonError("cancelled", "Authentication was cancelled");
+    }
     if (
       error instanceof ProcessExecutionError &&
-      (error.result.exitCode === 1 || error.result.exitCode === 3)
+      (error.result.exitCode === 1 || error.result.exitCode === 2)
     ) {
       throw new AptDaemonError(
         "authentication",
-        "Authentication was cancelled or denied",
+        "Authentication was denied",
       );
     }
     if (signal.aborted) {
@@ -429,10 +432,10 @@ export function findUnexpectedAptDaemonRemovals(
   if (!requestedRemovals || !dependencyRemovals) return undefined;
 
   const allowed = request.kind === "remove-packages"
-    ? new Set(request.packageIds.map(packageNameWithoutVersion))
-    : new Set<string>();
+    ? request.packageIds.map(packageIdentityWithoutVersion)
+    : [];
   return [...new Set([...requestedRemovals, ...dependencyRemovals])]
-    .filter((id) => !allowed.has(id));
+    .filter((id) => !isAllowedRemoval(id, allowed));
 }
 
 function removalIds(groups: unknown): string[] | undefined {
@@ -443,11 +446,21 @@ function removalIds(groups: unknown): string[] | undefined {
   if (![...removals, ...purges].every((value) => typeof value === "string")) {
     return undefined;
   }
-  return [...removals, ...purges].map(packageNameWithoutVersion);
+  return [...removals, ...purges].map(packageIdentityWithoutVersion);
 }
 
-function packageNameWithoutVersion(value: string): string {
-  return (value.split("=", 1)[0] ?? value).replace(/:[a-z0-9][a-z0-9-]*$/, "");
+function packageIdentityWithoutVersion(value: string): string {
+  return value.split("=", 1)[0] ?? value;
+}
+
+function isAllowedRemoval(id: string, allowed: readonly string[]): boolean {
+  if (allowed.includes(id)) return true;
+  if (id.includes(":")) return false;
+
+  const matchingTargets = allowed.filter(
+    (target) => target.split(":", 1)[0] === id,
+  );
+  return matchingTargets.length === 1;
 }
 
 function parseErrorDetails(value: unknown): AptDaemonErrorDetails {

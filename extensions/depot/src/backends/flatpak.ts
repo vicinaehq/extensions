@@ -4,7 +4,7 @@ import type {
   SoftwareOperationOptions,
   SoftwareItem,
   SoftwareUpdate,
-} from "../types";
+} from "../types.ts";
 import { DepotOperationError } from "../errors.ts";
 import { LINUX_EXECUTABLES } from "../linux.ts";
 import {
@@ -13,7 +13,7 @@ import {
   requireExecutable,
   runProcess,
   summarizeProcessOutput,
-} from "../utils/process";
+} from "../utils/process.ts";
 import {
   isValidFlatpakAppId,
   isValidFlatpakRemoteName,
@@ -28,7 +28,7 @@ import {
   type FlatpakRemote,
   type FlatpakSearchRecord,
   sortFlatpakScopes,
-} from "./flatpak-parsing";
+} from "./flatpak-parsing.ts";
 
 const SEARCH_LIMIT = 40;
 const SEARCH_CANDIDATE_LIMIT = 400;
@@ -41,8 +41,14 @@ export type FlatpakErrorKind =
   | "unavailable"
   | "not-found"
   | "cancelled"
+  | "authentication"
   | "network"
   | "failed";
+
+export interface FlatpakSearchResponse {
+  items: SoftwareItem[];
+  warning?: string;
+}
 
 export class FlatpakOperationError extends DepotOperationError<FlatpakErrorKind> {
   constructor(
@@ -72,10 +78,17 @@ export class FlatpakBackend implements PackageBackend {
   }
 
   async search(query: string, signal?: AbortSignal): Promise<SoftwareItem[]> {
+    return (await this.searchWithStatus(query, signal)).items;
+  }
+
+  async searchWithStatus(
+    query: string,
+    signal?: AbortSignal,
+  ): Promise<FlatpakSearchResponse> {
     await this.requireExecutable();
 
     const normalizedQuery = query.trim().slice(0, 100);
-    if (normalizedQuery.length < 2) return [];
+    if (normalizedQuery.length < 2) return { items: [] };
 
     const [remotes, installed] = await Promise.all([
       this.listRemotes(signal),
@@ -90,40 +103,45 @@ export class FlatpakBackend implements PackageBackend {
       );
     }
 
-    const records = this.getCachedSearch(normalizedQuery)
-      ?? await this.searchScopes(normalizedQuery, availableScopes, signal);
+    const cached = this.getCachedSearch(normalizedQuery);
+    const search = cached
+      ? { records: cached }
+      : await this.searchScopes(normalizedQuery, availableScopes, signal);
 
     const installedIds = new Set(installed.map((app) => app.id));
-    return rankFlatpakSearchResults(
-      records,
-      normalizedQuery,
-      this.preferredScope,
-      SEARCH_LIMIT,
-    ).flatMap((record) => {
-      const remote = selectFlatpakRemote(record.remotes);
-      if (!remote) return [];
+    return {
+      items: rankFlatpakSearchResults(
+        search.records,
+        normalizedQuery,
+        this.preferredScope,
+        SEARCH_LIMIT,
+      ).flatMap((record) => {
+        const remote = selectFlatpakRemote(record.remotes);
+        if (!remote) return [];
 
-      return [{
-        id: record.id,
-        name: record.name,
-        description: record.description,
-        source: this.source,
-        installed: installedIds.has(record.id),
-        version: record.version,
-        flatpak: {
-          remote,
-          scope: record.scope,
-          branch: record.branch,
-        },
-      } satisfies SoftwareItem];
-    });
+        return [{
+          id: record.id,
+          name: record.name,
+          description: record.description,
+          source: this.source,
+          installed: installedIds.has(record.id),
+          version: record.version,
+          flatpak: {
+            remote,
+            scope: record.scope,
+            branch: record.branch,
+          },
+        } satisfies SoftwareItem];
+      }),
+      warning: search.warning,
+    };
   }
 
   private async searchScopes(
     query: string,
     scopes: readonly FlatpakScope[],
     signal?: AbortSignal,
-  ): Promise<FlatpakSearchRecord[]> {
+  ): Promise<{ records: FlatpakSearchRecord[]; warning?: string }> {
     const searches = await Promise.allSettled(
       scopes.map(async (scope) => {
         const result = await runProcess(
@@ -163,16 +181,26 @@ export class FlatpakBackend implements PackageBackend {
     }
 
     const records = successful.flatMap((result) => result.value);
-    this.searchCache.set(query.toLowerCase(), {
-      createdAt: Date.now(),
-      records,
-    });
-    while (this.searchCache.size > SEARCH_CACHE_LIMIT) {
-      const oldestKey = this.searchCache.keys().next().value;
-      if (oldestKey === undefined) break;
-      this.searchCache.delete(oldestKey);
+    const failedScopes = searches.flatMap((result, index) =>
+      result.status === "rejected" ? [scopes[index]!] : []
+    );
+    if (failedScopes.length === 0) {
+      this.searchCache.set(query.toLowerCase(), {
+        createdAt: Date.now(),
+        records,
+      });
+      while (this.searchCache.size > SEARCH_CACHE_LIMIT) {
+        const oldestKey = this.searchCache.keys().next().value;
+        if (oldestKey === undefined) break;
+        this.searchCache.delete(oldestKey);
+      }
     }
-    return records;
+    return {
+      records,
+      warning: failedScopes.length > 0
+        ? `Flatpak ${failedScopes.join(" and ")} search failed; showing partial results`
+        : undefined,
+    };
   }
 
   private getCachedSearch(query: string): FlatpakSearchRecord[] | undefined {
@@ -251,10 +279,17 @@ export class FlatpakBackend implements PackageBackend {
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
         const details = summarizeProcessOutput(error.result.stderr);
-        if (/cancel(?:led|ed)|not authorized|not allowed/i.test(details ?? "")) {
+        if (/cancel(?:led|ed)/i.test(details ?? "")) {
           throw new FlatpakOperationError(
             "cancelled",
-            "Installation or authentication was cancelled",
+            "Installation was cancelled",
+            details,
+          );
+        }
+        if (/not authorized|not allowed|permission denied|authentication.*deni/i.test(details ?? "")) {
+          throw new FlatpakOperationError(
+            "authentication",
+            "Authentication was denied",
             details,
           );
         }
@@ -371,10 +406,17 @@ export class FlatpakBackend implements PackageBackend {
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
         const details = summarizeProcessOutput(error.result.stderr);
-        if (/cancel(?:led|ed)|not authorized|not allowed/i.test(details ?? "")) {
+        if (/cancel(?:led|ed)/i.test(details ?? "")) {
           throw new FlatpakOperationError(
             "cancelled",
-            "Removal or authentication was cancelled",
+            "Removal was cancelled",
+            details,
+          );
+        }
+        if (/not authorized|not allowed|permission denied|authentication.*deni/i.test(details ?? "")) {
+          throw new FlatpakOperationError(
+            "authentication",
+            "Authentication was denied",
             details,
           );
         }
@@ -615,10 +657,17 @@ export class FlatpakBackend implements PackageBackend {
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
         const details = summarizeProcessOutput(error.result.stderr);
-        if (/cancel(?:led|ed)|not authorized|not allowed/i.test(details ?? "")) {
+        if (/cancel(?:led|ed)/i.test(details ?? "")) {
           throw new FlatpakOperationError(
             "cancelled",
-            "Update or authentication was cancelled",
+            "Update was cancelled",
+            details,
+          );
+        }
+        if (/not authorized|not allowed|permission denied|authentication.*deni/i.test(details ?? "")) {
+          throw new FlatpakOperationError(
+            "authentication",
+            "Authentication was denied",
             details,
           );
         }

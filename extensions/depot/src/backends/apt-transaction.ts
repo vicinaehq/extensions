@@ -123,7 +123,7 @@ function throwAptDaemonError(
   const message = error.kind === "cancelled"
     ? options.cancelledMessage
     : error.kind === "authentication"
-    ? "Authentication was cancelled or denied"
+    ? "Authentication was denied"
     : error.kind === "busy"
     ? "Another package-management operation is currently running"
     : error.kind === "unsafe"
@@ -154,7 +154,7 @@ function throwTransactionError(
   ) {
     throw new AptTransactionError(
       "authentication",
-      "Authentication was cancelled or denied",
+      "Authentication was denied",
       details,
     );
   }
