@@ -13,7 +13,7 @@
   "commands": [
     {
       "name": "install",
-      "title": "Install",
+      "title": "Depot Install",
       "subtitle": "APT · Flatpak",
       "description": "Find and install software from configured APT repositories and Flatpak remotes",
       "keywords": ["install software", "add software", "package", "apt", "flatpak"],
@@ -21,7 +21,7 @@
     },
     {
       "name": "install-local",
-      "title": "Install Local Package",
+      "title": "Depot Install Local",
       "subtitle": "DEB · Flatpak · AppImage",
       "description": "Inspect and install a local Debian package, Flatpak file, or AppImage",
       "keywords": ["local package", "deb", "flatpakref", "appimage", "integrate"],
@@ -29,7 +29,7 @@
     },
     {
       "name": "remove",
-      "title": "Remove",
+      "title": "Depot Remove",
       "subtitle": "APT · Flatpak",
       "description": "Find and conservatively remove installed applications",
       "keywords": ["remove software", "uninstall", "delete application", "package", "apt", "flatpak"],
@@ -37,7 +37,7 @@
     },
     {
       "name": "update",
-      "title": "Update",
+      "title": "Depot Update",
       "subtitle": "APT · Flatpak",
       "description": "Review and install available software updates",
       "keywords": ["update software", "upgrade", "package updates", "apt", "flatpak"],

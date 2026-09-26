@@ -3,17 +3,17 @@
 Search, install, integrate, remove, and update Linux software without leaving
 Vicinae.
 
-**Depot: Install** → type `vlc` → choose APT or Flatpak → press Enter.
+**Depot Install** → type `vlc` → choose APT or Flatpak → press Enter.
 
 ![Search APT and Flatpak together](assets/install.png)
 
 ## Commands
 
-- **Install** searches configured APT repositories and Flatpak remotes together.
-- **Install Local Package** inspects and installs a selected `.deb`, `.flatpak`,
+- **Depot Install** searches configured APT repositories and Flatpak remotes together.
+- **Depot Install Local** inspects and installs a selected `.deb`, `.flatpak`,
   `.flatpakref`, or AppImage file.
-- **Remove** lists installed desktop applications and confirms every removal.
-- **Update** shows available updates and supports individual or Update All
+- **Depot Remove** lists installed desktop applications and confirms every removal.
+- **Depot Update** shows available updates and supports individual or Update All
   actions.
 
 APT and Flatpak choices remain separate and clearly labeled. Results stay
@@ -49,7 +49,7 @@ The current release candidate is validated on Ubuntu 26.04 amd64.
 
 ## Local packages
 
-`Install Local Package` accepts one file and determines its format without a
+`Depot Install Local` accepts one file and determines its format without a
 manual format picker. A filename extension is never enough to establish that a
 file is valid: Debian archives are checked by `dpkg-deb`, Flatpak files are
 checked by Flatpak, and AppImages must contain the expected ELF/AppImage and

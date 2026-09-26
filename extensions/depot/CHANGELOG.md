@@ -8,7 +8,7 @@
   results ahead of weaker package-description matches.
 - Add transparent `vscode` and `obs` search aliases without hiding alternative
   package sources.
-- Add an **Install Local Package** command with automatic, content-backed
+- Add a **Depot Install Local** command with automatic, content-backed
   detection and review for `.deb`, `.flatpak`, `.flatpakref`, and AppImage files.
 - Install local Debian archives through APT so dependencies are resolved, and
   respect the configured Flatpak installation scope for local Flatpak files.
@@ -16,6 +16,10 @@
   copy to `~/Applications`, create a desktop entry, preserve a safe embedded PNG
   icon when available, avoid overwrites, record managed files, and clean up
   failed integrations.
+- Keep local-file selection stable by navigating to package review through a
+  native `Action.Push` after selection instead of pushing during form submit.
+- Name commands consistently as Depot Install, Depot Install Local, Depot
+  Remove, and Depot Update.
 
 ## 1.0.0 - 2026-09-25
 

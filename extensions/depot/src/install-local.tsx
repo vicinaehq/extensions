@@ -10,7 +10,6 @@ import {
   environment,
   getPreferenceValues,
   showToast,
-  useNavigation,
 } from "@vicinae/api";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -30,36 +29,22 @@ import {
 import { isProcessAborted } from "./utils/process";
 import { escapeMarkdown } from "./utils/package-details";
 
-interface FilePickerValues extends Form.Values {
-  packageFile: string[];
-}
-
 export default function InstallLocalPackageCommand() {
-  const { push } = useNavigation();
-  const [error, setError] = useState<string>();
-
-  const submit = (values: Form.Values) => {
-    const paths = (values as FilePickerValues).packageFile;
-    const filePath = paths?.[0];
-    if (!filePath) {
-      setError("Select a package file");
-      return;
-    }
-    push(<LocalPackageReview filePath={filePath} />);
-  };
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const filePath = selectedFiles[0];
 
   return (
     <Form
-      navigationTitle="Install Local Package"
-      actions={
+      navigationTitle="Depot Install Local"
+      actions={filePath ? (
         <ActionPanel>
-          <Action.SubmitForm
+          <Action.Push
             title="Inspect Package"
             icon={Icon.MagnifyingGlass}
-            onSubmit={submit}
+            target={<LocalPackageReview filePath={filePath} />}
           />
         </ActionPanel>
-      }
+      ) : undefined}
     >
       <Form.Description
         title="Supported Formats"
@@ -68,14 +53,23 @@ export default function InstallLocalPackageCommand() {
       <Form.FilePicker
         id="packageFile"
         title="Package File"
+        autoFocus
         allowMultipleSelection={false}
         canChooseDirectories={false}
         canChooseFiles
-        error={error}
-        onChange={() => setError(undefined)}
+        value={selectedFiles}
+        onChange={(paths) => setSelectedFiles(normalizeFileSelection(paths))}
       />
     </Form>
   );
+}
+
+function normalizeFileSelection(value: unknown): string[] {
+  if (typeof value === "string") return value.trim() ? [value] : [];
+  if (!Array.isArray(value)) return [];
+  return value.filter((path): path is string =>
+    typeof path === "string" && path.trim().length > 0
+  ).slice(0, 1);
 }
 
 function LocalPackageReview({ filePath }: { filePath: string }) {
@@ -104,7 +98,7 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
             ? inspectionError.message
             : "The selected package could not be inspected");
         }
-      })
+      });
     return () => controller.abort();
   }, [filePath, flatpakScope]);
 
