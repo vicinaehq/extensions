@@ -8,6 +8,14 @@
   results ahead of weaker package-description matches.
 - Add transparent `vscode` and `obs` search aliases without hiding alternative
   package sources.
+- Add an **Install Local Package** command with automatic, content-backed
+  detection and review for `.deb`, `.flatpak`, `.flatpakref`, and AppImage files.
+- Install local Debian archives through APT so dependencies are resolved, and
+  respect the configured Flatpak installation scope for local Flatpak files.
+- Integrate AppImages at user level without executing them during inspection:
+  copy to `~/Applications`, create a desktop entry, preserve a safe embedded PNG
+  icon when available, avoid overwrites, record managed files, and clean up
+  failed integrations.
 
 ## 1.0.0 - 2026-09-25
 

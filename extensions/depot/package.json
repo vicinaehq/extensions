@@ -20,6 +20,14 @@
       "mode": "view"
     },
     {
+      "name": "install-local",
+      "title": "Install Local Package",
+      "subtitle": "DEB · Flatpak · AppImage",
+      "description": "Inspect and install a local Debian package, Flatpak file, or AppImage",
+      "keywords": ["local package", "deb", "flatpakref", "appimage", "integrate"],
+      "mode": "view"
+    },
+    {
       "name": "remove",
       "title": "Remove",
       "subtitle": "APT · Flatpak",
