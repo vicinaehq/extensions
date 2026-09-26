@@ -11,6 +11,7 @@ import {
   environment,
   getPreferenceValues,
   showToast,
+  useNavigation,
 } from "@vicinae/api";
 import { lstat } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -212,6 +213,7 @@ function emptyViewDescription(query: string, error?: string): string {
 }
 
 function LocalPackageReview({ filePath }: { filePath: string }) {
+  const { pop } = useNavigation();
   const { flatpakScope = "user" } = getPreferenceValues<DepotPreferences>();
   const [pkg, setPackage] = useState<LocalPackage>();
   const [error, setError] = useState<string>();
@@ -300,6 +302,14 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
       metadata={pkg ? <LocalPackageMetadata pkg={pkg} outcome={outcome} /> : undefined}
       actions={
         <ActionPanel>
+          {outcome && (
+            <Action
+              title="Back to Package Search"
+              icon={Icon.ArrowLeft}
+              shortcut={{ key: "backspace", modifiers: [] }}
+              onAction={pop}
+            />
+          )}
           {pkg && !outcome && (
             <Action
               title={localPackageActionLabel(pkg)}
