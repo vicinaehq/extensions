@@ -18,6 +18,10 @@
   failed integrations.
 - Make local-file selection fully keyboard-first with a focused, on-demand
   search over Vicinae's file index, avoiding the focus-losing system picker.
+- Simplify shared operation errors, software identity, process diagnostics, and
+  request cancellation while making authentication cancellation non-alarming.
+- Strengthen TypeScript checks for unused code, missing returns, and switch
+  fallthrough without adding runtime infrastructure.
 - Name commands consistently as Depot Install, Depot Install Local, Depot
   Remove, and Depot Update.
 

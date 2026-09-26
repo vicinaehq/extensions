@@ -1,4 +1,5 @@
 import type { FlatpakScope } from "../types";
+import { SoftwareOperationError } from "../errors.ts";
 
 export type LocalPackageKind =
   | "deb"
@@ -90,18 +91,12 @@ export type LocalPackageErrorKind =
   | "busy"
   | "failed";
 
-export class LocalPackageError extends Error {
-  readonly kind: LocalPackageErrorKind;
-  readonly technicalDetails?: string;
-
+export class LocalPackageError extends SoftwareOperationError<LocalPackageErrorKind> {
   constructor(
     kind: LocalPackageErrorKind,
     message: string,
     technicalDetails?: string,
   ) {
-    super(message);
-    this.name = "LocalPackageError";
-    this.kind = kind;
-    this.technicalDetails = technicalDetails;
+    super("LocalPackageError", kind, message, technicalDetails);
   }
 }

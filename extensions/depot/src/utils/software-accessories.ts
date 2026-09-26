@@ -7,7 +7,7 @@ export function installAccessories(
   return [
     ...(pkg.source === "flatpak" ? [{ text: pkg.id }] : []),
     ...(pkg.installed ? [{ text: "Installed" }] : []),
-    { tag: sourceLabel(pkg, "remote") },
+    { tag: softwareSourceLabel(pkg, "remote") },
   ];
 }
 
@@ -16,7 +16,7 @@ export function removeAccessories(
 ): List.Item.Accessory[] {
   return [
     { text: pkg.id },
-    { tag: sourceLabel(pkg, "scope") },
+    { tag: softwareSourceLabel(pkg, "scope") },
   ];
 }
 
@@ -30,11 +30,11 @@ export function updateAccessories(
   return [
     { text: version },
     ...(update.downloadSize ? [{ text: update.downloadSize }] : []),
-    { tag: sourceLabel(update, "scope") },
+    { tag: softwareSourceLabel(update, "scope") },
   ];
 }
 
-export function sourceLabel(
+export function softwareSourceLabel(
   pkg: SoftwarePackage,
   detail: "remote" | "scope",
 ): string {

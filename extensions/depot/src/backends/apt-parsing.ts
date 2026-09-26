@@ -92,7 +92,7 @@ export function rankAptSearchResults(
   query: string,
   limit: number,
 ): AptSearchRecord[] {
-  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const normalizedQuery = query.trim().toLowerCase();
   const unique = new Map<string, AptSearchRecord>();
 
   for (const record of records) {
@@ -112,8 +112,8 @@ export function rankAptSearchResults(
 }
 
 function scoreAptRecord(record: AptSearchRecord, query: string): number {
-  const id = record.id.toLocaleLowerCase();
-  const description = record.description.toLocaleLowerCase();
+  const id = record.id.toLowerCase();
+  const description = record.description.toLowerCase();
   const tokens = query.split(/\s+/).filter(Boolean);
   const packageQuery = tokens.join("-");
 

@@ -58,6 +58,14 @@ export function isProcessAborted(error: unknown): boolean {
     (error instanceof Error && error.name === "AbortError");
 }
 
+export function summarizeProcessOutput(
+  output: string,
+  maxLines = 8,
+): string | undefined {
+  const summary = output.trim().split(/\r?\n/).slice(-maxLines).join("\n");
+  return summary || undefined;
+}
+
 export function runProcess(
   file: string,
   args: readonly string[],

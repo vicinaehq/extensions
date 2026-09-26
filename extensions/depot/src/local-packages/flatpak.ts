@@ -3,7 +3,11 @@ import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promise
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { FlatpakScope } from "../types";
-import { ProcessExecutionError, runProcess } from "../utils/process.ts";
+import {
+  ProcessExecutionError,
+  runProcess,
+  summarizeProcessOutput,
+} from "../utils/process.ts";
 import {
   LocalPackageError,
   type LocalFlatpakBundle,
@@ -92,7 +96,7 @@ export async function inspectFlatpakBundle(
         throw new LocalPackageError(
           "invalid",
           "This file is not a valid Flatpak bundle",
-          conciseDetails(error.result.stderr),
+          summarizeProcessOutput(error.result.stderr),
         );
       }
       throw error;
@@ -176,7 +180,7 @@ export async function installFlatpakFile(
     );
   } catch (error) {
     if (error instanceof ProcessExecutionError) {
-      const details = conciseDetails(error.result.stderr);
+      const details = summarizeProcessOutput(error.result.stderr);
       if (/cancel(?:led|ed)|not authorized|not allowed/i.test(details ?? "")) {
         throw new LocalPackageError(
           "cancelled",
@@ -242,8 +246,4 @@ async function requireFlatpak(): Promise<void> {
 
 function scopeFlag(scope: FlatpakScope): "--user" | "--system" {
   return scope === "user" ? "--user" : "--system";
-}
-
-function conciseDetails(value: string): string | undefined {
-  return value.trim().split(/\r?\n/).slice(-8).join("\n") || undefined;
 }

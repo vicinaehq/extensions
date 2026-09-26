@@ -4,9 +4,11 @@ import type {
   SoftwarePackage,
   SoftwareUpdate,
 } from "../types";
+import { SoftwareOperationError } from "../errors.ts";
 import {
   ProcessExecutionError,
   runProcess,
+  summarizeProcessOutput,
 } from "../utils/process";
 import {
   isValidFlatpakAppId,
@@ -41,19 +43,13 @@ export type FlatpakErrorKind =
   | "network"
   | "failed";
 
-export class FlatpakOperationError extends Error {
-  readonly kind: FlatpakErrorKind;
-  readonly technicalDetails?: string;
-
+export class FlatpakOperationError extends SoftwareOperationError<FlatpakErrorKind> {
   constructor(
     kind: FlatpakErrorKind,
     message: string,
     technicalDetails?: string,
   ) {
-    super(message);
-    this.name = "FlatpakOperationError";
-    this.kind = kind;
-    this.technicalDetails = technicalDetails;
+    super("FlatpakOperationError", kind, message, technicalDetails);
   }
 }
 
@@ -166,7 +162,7 @@ export class FlatpakBackend implements PackageBackend {
     }
 
     const records = successful.flatMap((result) => result.value);
-    this.searchCache.set(query.toLocaleLowerCase(), {
+    this.searchCache.set(query.toLowerCase(), {
       createdAt: Date.now(),
       records,
     });
@@ -179,7 +175,7 @@ export class FlatpakBackend implements PackageBackend {
   }
 
   private getCachedSearch(query: string): FlatpakSearchRecord[] | undefined {
-    const key = query.toLocaleLowerCase();
+    const key = query.toLowerCase();
     const cached = this.searchCache.get(key);
     if (!cached) return undefined;
     if (Date.now() - cached.createdAt > SEARCH_CACHE_TTL_MS) {
@@ -238,7 +234,7 @@ export class FlatpakBackend implements PackageBackend {
       );
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
-        const details = conciseDetails(error.result.stderr);
+        const details = summarizeProcessOutput(error.result.stderr);
         if (/cancel(?:led|ed)|not authorized|not allowed/i.test(details ?? "")) {
           throw new FlatpakOperationError(
             "cancelled",
@@ -343,7 +339,7 @@ export class FlatpakBackend implements PackageBackend {
       );
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
-        const details = conciseDetails(error.result.stderr);
+        const details = summarizeProcessOutput(error.result.stderr);
         if (/cancel(?:led|ed)|not authorized|not allowed/i.test(details ?? "")) {
           throw new FlatpakOperationError(
             "cancelled",
@@ -560,7 +556,7 @@ export class FlatpakBackend implements PackageBackend {
       });
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
-        const details = conciseDetails(error.result.stderr);
+        const details = summarizeProcessOutput(error.result.stderr);
         if (/cancel(?:led|ed)|not authorized|not allowed/i.test(details ?? "")) {
           throw new FlatpakOperationError(
             "cancelled",
@@ -604,15 +600,10 @@ function scopeFlag(scope: FlatpakScope): "--user" | "--system" {
   return scope === "user" ? "--user" : "--system";
 }
 
-function conciseDetails(stderr: string): string | undefined {
-  const details = stderr.trim().split(/\r?\n/).slice(-8).join("\n");
-  return details || undefined;
-}
-
 function flatpakUpdateError(error: unknown): FlatpakOperationError {
   if (error instanceof FlatpakOperationError) return error;
   if (error instanceof ProcessExecutionError) {
-    const details = conciseDetails(error.result.stderr);
+    const details = summarizeProcessOutput(error.result.stderr);
     if (/network|resolve|connection|download/i.test(details ?? "")) {
       return new FlatpakOperationError(
         "network",

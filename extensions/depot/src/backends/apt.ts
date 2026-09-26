@@ -6,9 +6,11 @@ import type {
   SoftwarePackage,
   SoftwareUpdate,
 } from "../types";
+import { SoftwareOperationError } from "../errors.ts";
 import {
   ProcessExecutionError,
   runProcess,
+  summarizeProcessOutput,
 } from "../utils/process";
 import {
   escapeAptSearchPattern,
@@ -54,14 +56,13 @@ export type AptErrorKind =
   | "unsafe"
   | "failed";
 
-export class AptOperationError extends Error {
+export class AptOperationError extends SoftwareOperationError<AptErrorKind> {
   constructor(
-    readonly kind: AptErrorKind,
+    kind: AptErrorKind,
     message: string,
-    readonly technicalDetails?: string,
+    technicalDetails?: string,
   ) {
-    super(message);
-    this.name = "AptOperationError";
+    super("AptOperationError", kind, message, technicalDetails);
   }
 }
 
@@ -181,7 +182,7 @@ export class AptBackend implements PackageBackend {
       );
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
-        const details = conciseDetails(error.result.stderr);
+        const details = summarizeProcessOutput(error.result.stderr);
         if (error.result.exitCode === 126) {
           throw new AptOperationError("cancelled", "Installation was cancelled", details);
         }
@@ -307,7 +308,7 @@ export class AptBackend implements PackageBackend {
       throw new AptOperationError(
         "failed",
         "APT could not prepare this removal",
-        conciseDetails(simulation.stderr || simulation.stdout),
+        summarizeProcessOutput(simulation.stderr || simulation.stdout),
       );
     }
 
@@ -327,7 +328,7 @@ export class AptBackend implements PackageBackend {
       );
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
-        const details = conciseDetails(error.result.stderr);
+        const details = summarizeProcessOutput(error.result.stderr);
         if (error.result.exitCode === 126) {
           throw new AptOperationError("cancelled", "Removal was cancelled", details);
         }
@@ -481,7 +482,7 @@ export class AptBackend implements PackageBackend {
       });
     } catch (error) {
       if (error instanceof ProcessExecutionError) {
-        const details = conciseDetails(error.result.stderr);
+        const details = summarizeProcessOutput(error.result.stderr);
         if (error.result.exitCode === 126) {
           throw new AptOperationError("cancelled", cancelledMessage, details);
         }
@@ -541,11 +542,6 @@ function assertPackageId(id: string): void {
   if (!isValidAptPackageId(id)) {
     throw new AptOperationError("not-found", "Invalid APT package ID");
   }
-}
-
-function conciseDetails(stderr: string): string | undefined {
-  const details = stderr.trim().split(/\r?\n/).slice(-8).join("\n");
-  return details || undefined;
 }
 
 export const aptBackend = new AptBackend();

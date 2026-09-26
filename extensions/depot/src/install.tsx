@@ -9,19 +9,23 @@ import {
   showToast,
 } from "@vicinae/api";
 import { useMemo, useRef, useState } from "react";
-import { AptOperationError, aptBackend } from "./backends/apt";
+import { aptBackend } from "./backends/apt";
 import { enrichSoftwarePackages } from "./backends/appstream-parsing";
-import {
-  FlatpakBackend,
-  FlatpakOperationError,
-} from "./backends/flatpak";
+import { FlatpakBackend } from "./backends/flatpak";
 import { ShowSoftwareDetailsAction } from "./components/software-details";
+import {
+  isOperationCancelled,
+  operationErrorMessage,
+} from "./errors.ts";
 import { useAppStreamSearch } from "./hooks/use-appstream-search";
 import { useAptSearch } from "./hooks/use-apt-search";
 import { useFlatpakSearch } from "./hooks/use-flatpak-search";
 import type { SoftwarePackage, SoftwarePreferences } from "./types";
 import { installAccessories } from "./utils/software-accessories";
-import { rankSoftwareResults } from "./utils/software-results";
+import {
+  rankSoftwareResults,
+  softwareItemKey,
+} from "./utils/software-results";
 
 export default function InstallCommand() {
   const [searchText, setSearchText] = useState("");
@@ -54,7 +58,7 @@ export default function InstallCommand() {
   const normalizedQuery = searchText.trim();
 
   const install = async (pkg: SoftwarePackage) => {
-    const installKey = `${pkg.source}:${pkg.id}`;
+    const installKey = softwareItemKey(pkg);
     if (installing.current.has(installKey)) return;
     installing.current.add(installKey);
 
@@ -80,12 +84,16 @@ export default function InstallCommand() {
         ? "APT installation completed"
         : "Flatpak installation completed";
     } catch (installError) {
+      if (isOperationCancelled(installError)) {
+        await toast.hide();
+        return;
+      }
       console.error(`Failed to install ${pkg.id}`, installError);
       toast.style = Toast.Style.Failure;
-      toast.title = installError instanceof AptOperationError ||
-          installError instanceof FlatpakOperationError
-        ? installError.message
-        : "Software installation failed";
+      toast.title = operationErrorMessage(
+        installError,
+        "Software installation failed",
+      );
       toast.message = pkg.id;
     } finally {
       installing.current.delete(installKey);
@@ -101,8 +109,8 @@ export default function InstallCommand() {
     >
       {results.map((pkg) => (
         <List.Item
-          key={`${pkg.source}:${pkg.id}`}
-          id={`${pkg.source}:${pkg.id}`}
+          key={softwareItemKey(pkg)}
+          id={softwareItemKey(pkg)}
           title={pkg.name}
           subtitle={pkg.description}
           icon={pkg.icon

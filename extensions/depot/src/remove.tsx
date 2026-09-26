@@ -11,19 +11,23 @@ import {
   showToast,
 } from "@vicinae/api";
 import { useMemo, useRef } from "react";
-import { AptOperationError, aptBackend } from "./backends/apt";
-import {
-  FlatpakBackend,
-  FlatpakOperationError,
-} from "./backends/flatpak";
+import { aptBackend } from "./backends/apt";
+import { FlatpakBackend } from "./backends/flatpak";
 import { ShowSoftwareDetailsAction } from "./components/software-details";
+import {
+  isOperationCancelled,
+  operationErrorMessage,
+} from "./errors.ts";
 import { useInstalledSoftware } from "./hooks/use-installed-software";
 import type { SoftwarePackage, SoftwarePreferences } from "./types";
 import {
   removeAccessories,
-  sourceLabel,
+  softwareSourceLabel,
 } from "./utils/software-accessories";
-import { sortSoftwareAlphabetically } from "./utils/software-results";
+import {
+  softwareItemKey,
+  sortSoftwareAlphabetically,
+} from "./utils/software-results";
 
 export default function RemoveCommand() {
   const {
@@ -47,7 +51,7 @@ export default function RemoveCommand() {
   ]);
 
   const remove = async (pkg: SoftwarePackage) => {
-    const source = sourceLabel(pkg, "scope");
+    const source = softwareSourceLabel(pkg, "scope");
     const confirmed = await confirmAlert({
       title: `Remove ${pkg.name}?`,
       message: `Source: ${source}\nID: ${pkg.id}`,
@@ -62,7 +66,7 @@ export default function RemoveCommand() {
     });
     if (!confirmed) return;
 
-    const key = `${pkg.source}:${pkg.flatpak?.scope ?? "system"}:${pkg.id}`;
+    const key = softwareItemKey(pkg);
     if (removing.current.has(key)) return;
     removing.current.add(key);
 
@@ -76,19 +80,20 @@ export default function RemoveCommand() {
       const outcome = pkg.source === "apt"
         ? await aptBackend.remove(pkg)
         : await flatpakBackend.remove(pkg);
-      installed.forget(pkg);
+      installed.removeFromList(pkg);
       toast.style = Toast.Style.Success;
       toast.title = outcome === "not-installed"
         ? `${pkg.name} is not installed`
         : `${pkg.name} removed`;
       toast.message = pkg.id;
     } catch (error) {
+      if (isOperationCancelled(error)) {
+        await toast.hide();
+        return;
+      }
       console.error(`Failed to remove ${pkg.id}`, error);
       toast.style = Toast.Style.Failure;
-      toast.title = error instanceof AptOperationError ||
-          error instanceof FlatpakOperationError
-        ? error.message
-        : "Software removal failed";
+      toast.title = operationErrorMessage(error, "Software removal failed");
       toast.message = pkg.id;
     } finally {
       removing.current.delete(key);
@@ -102,7 +107,7 @@ export default function RemoveCommand() {
     >
       {packages.map((pkg) => (
         <InstalledItem
-          key={`${pkg.source}:${pkg.flatpak?.scope ?? "system"}:${pkg.id}`}
+          key={softwareItemKey(pkg)}
           pkg={pkg}
           onRemove={() => remove(pkg)}
           onRefresh={installed.refresh}
@@ -110,40 +115,65 @@ export default function RemoveCommand() {
       ))}
 
       {packages.length === 0 && !installed.isLoading && (
-        <List.EmptyView
-          icon={installed.aptError || installed.flatpakError
-            ? Icon.XMarkCircle
-            : aptEnabled || flatpakEnabled
-              ? Icon.AppWindow
-              : Icon.Cog}
-          title={!aptEnabled && !flatpakEnabled
-            ? "No package sources enabled"
-            : installed.aptError || installed.flatpakError
-              ? "Installed applications could not be loaded"
-              : "No removable applications found"}
-          description={!aptEnabled && !flatpakEnabled
-            ? "Enable APT or Flatpak in the extension preferences"
-            : installed.aptError ?? installed.flatpakError ??
-              "Only conservative APT application candidates and Flatpak apps are shown"}
-          actions={
-            <ActionPanel>
-              {(aptEnabled || flatpakEnabled) && (
-                <Action
-                  title="Refresh"
-                  icon={Icon.ArrowClockwise}
-                  onAction={installed.refresh}
-                />
-              )}
-              <Action
-                title="Open Extension Preferences"
-                icon={Icon.Cog}
-                onAction={() => openExtensionPreferences()}
-              />
-            </ActionPanel>
-          }
+        <InstalledSoftwareEmptyView
+          aptEnabled={aptEnabled}
+          flatpakEnabled={flatpakEnabled}
+          error={installed.aptError ?? installed.flatpakError}
+          onRefresh={installed.refresh}
         />
       )}
     </List>
+  );
+}
+
+function InstalledSoftwareEmptyView({
+  aptEnabled,
+  flatpakEnabled,
+  error,
+  onRefresh,
+}: {
+  aptEnabled: boolean;
+  flatpakEnabled: boolean;
+  error?: string;
+  onRefresh(): void;
+}) {
+  const sourcesEnabled = aptEnabled || flatpakEnabled;
+  let icon = Icon.AppWindow;
+  let title = "No removable applications found";
+  let description = "Only conservative APT application candidates and Flatpak apps are shown";
+
+  if (!sourcesEnabled) {
+    icon = Icon.Cog;
+    title = "No package sources enabled";
+    description = "Enable APT or Flatpak in the extension preferences";
+  } else if (error) {
+    icon = Icon.XMarkCircle;
+    title = "Installed applications could not be loaded";
+    description = error;
+  }
+
+  return (
+    <List.EmptyView
+      icon={icon}
+      title={title}
+      description={description}
+      actions={
+        <ActionPanel>
+          {sourcesEnabled && (
+            <Action
+              title="Refresh"
+              icon={Icon.ArrowClockwise}
+              onAction={onRefresh}
+            />
+          )}
+          <Action
+            title="Open Extension Preferences"
+            icon={Icon.Cog}
+            onAction={() => openExtensionPreferences()}
+          />
+        </ActionPanel>
+      }
+    />
   );
 }
 
@@ -156,11 +186,11 @@ function InstalledItem({
   onRemove(): void;
   onRefresh(): void;
 }) {
-  const source = sourceLabel(pkg, "scope");
+  const source = softwareSourceLabel(pkg, "scope");
 
   return (
     <List.Item
-      id={`${pkg.source}:${pkg.flatpak?.scope ?? "system"}:${pkg.id}`}
+      id={softwareItemKey(pkg)}
       title={pkg.name}
       subtitle={pkg.description}
       keywords={[pkg.id, source, pkg.flatpak?.remote ?? ""]}

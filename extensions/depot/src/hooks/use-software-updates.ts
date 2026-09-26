@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { AptOperationError, aptBackend } from "../backends/apt";
-import {
-  FlatpakOperationError,
-  type FlatpakBackend,
-} from "../backends/flatpak";
+import { aptBackend } from "../backends/apt";
+import type { FlatpakBackend } from "../backends/flatpak";
+import { operationErrorMessage } from "../errors.ts";
 import type { SoftwareUpdate } from "../types";
 import { isProcessAborted } from "../utils/process";
+import { softwareItemKey } from "../utils/software-results";
 
 export interface SoftwareUpdatesState {
   aptUpdates: SoftwareUpdate[];
@@ -13,8 +12,8 @@ export interface SoftwareUpdatesState {
   isLoading: boolean;
   aptError?: string;
   flatpakError?: string;
-  forget(update: SoftwareUpdate): void;
-  reload(): void;
+  removeFromList(update: SoftwareUpdate): void;
+  refresh(): void;
 }
 
 export function useSoftwareUpdates(
@@ -44,9 +43,10 @@ export function useSoftwareUpdates(
           if (isProcessAborted(error)) return;
           console.error("Unable to list APT updates", error);
           setAptUpdates([]);
-          setAptError(error instanceof AptOperationError
-            ? error.message
-            : "APT updates could not be loaded");
+          setAptError(operationErrorMessage(
+            error,
+            "APT updates could not be loaded",
+          ));
         })
         .finally(() => {
           if (!controller.signal.aborted) setAptLoading(false);
@@ -62,9 +62,10 @@ export function useSoftwareUpdates(
           if (isProcessAborted(error)) return;
           console.error("Unable to list Flatpak updates", error);
           setFlatpakUpdates([]);
-          setFlatpakError(error instanceof FlatpakOperationError
-            ? error.message
-            : "Flatpak updates could not be loaded");
+          setFlatpakError(operationErrorMessage(
+            error,
+            "Flatpak updates could not be loaded",
+          ));
         })
         .finally(() => {
           if (!controller.signal.aborted) setFlatpakLoading(false);
@@ -82,15 +83,18 @@ export function useSoftwareUpdates(
     isLoading: aptLoading || flatpakLoading,
     aptError,
     flatpakError,
-    forget: (update: SoftwareUpdate) => {
+    removeFromList: (update: SoftwareUpdate) => {
+      const key = softwareItemKey(update);
       if (update.source === "apt") {
-        setAptUpdates((updates) => updates.filter((item) => item.id !== update.id));
+        setAptUpdates((updates) =>
+          updates.filter((item) => softwareItemKey(item) !== key)
+        );
         return;
       }
-      setFlatpakUpdates((updates) => updates.filter((item) =>
-        item.id !== update.id || item.flatpak?.scope !== update.flatpak?.scope
-      ));
+      setFlatpakUpdates((updates) =>
+        updates.filter((item) => softwareItemKey(item) !== key)
+      );
     },
-    reload: () => setGeneration((value) => value + 1),
+    refresh: () => setGeneration((value) => value + 1),
   };
 }

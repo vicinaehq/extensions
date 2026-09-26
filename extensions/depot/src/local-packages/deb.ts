@@ -1,6 +1,10 @@
 import { constants } from "node:fs";
 import { access } from "node:fs/promises";
-import { ProcessExecutionError, runProcess } from "../utils/process.ts";
+import {
+  ProcessExecutionError,
+  runProcess,
+  summarizeProcessOutput,
+} from "../utils/process.ts";
 import {
   LocalPackageError,
   type LocalDebPackage,
@@ -36,7 +40,7 @@ export async function inspectDebPackage(
       throw new LocalPackageError(
         "invalid",
         "This file is not a valid Debian package",
-        conciseDetails(error.result.stderr),
+        summarizeProcessOutput(error.result.stderr),
       );
     }
     throw error;
@@ -84,7 +88,7 @@ export async function installDebPackage(
     );
   } catch (error) {
     if (error instanceof ProcessExecutionError) {
-      const details = conciseDetails(error.result.stderr);
+      const details = summarizeProcessOutput(error.result.stderr);
       if (error.result.exitCode === 126) {
         throw new LocalPackageError("cancelled", "Installation was cancelled", details);
       }
@@ -149,8 +153,4 @@ async function requireExecutable(path: string, message: string): Promise<void> {
   } catch {
     throw new LocalPackageError("unavailable", message);
   }
-}
-
-function conciseDetails(value: string): string | undefined {
-  return value.trim().split(/\r?\n/).slice(-8).join("\n") || undefined;
 }

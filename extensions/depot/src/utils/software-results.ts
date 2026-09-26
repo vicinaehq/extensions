@@ -3,6 +3,12 @@ import { expandedSearchQueries } from "../backends/appstream-parsing.ts";
 
 const RESULT_LIMIT = 60;
 
+export function softwareItemKey(pkg: SoftwarePackage): string {
+  return pkg.source === "flatpak"
+    ? `flatpak:${pkg.flatpak?.scope ?? "unknown"}:${pkg.id}`
+    : `apt:${pkg.id}`;
+}
+
 export function rankSoftwareResults(
   query: string,
   ...groups: readonly SoftwarePackage[][]
@@ -62,7 +68,7 @@ function scoreSoftwarePackageForQuery(
   const nameTokens = words(name);
   const idTokens = words(id);
   const idSegments = pkg.id
-    .toLocaleLowerCase()
+    .toLowerCase()
     .split(/[.:/+_-]+/)
     .map(normalize)
     .filter(Boolean);
@@ -109,7 +115,7 @@ function scoreSoftwarePackageForQuery(
 }
 
 function noisePenalty(pkg: SoftwarePackage, queryTokens: readonly string[]): number {
-  const rawId = pkg.id.toLocaleLowerCase();
+  const rawId = pkg.id.toLowerCase();
   const idTokens = words(normalize(rawId));
   const nameAndDescription = normalize(`${pkg.name} ${pkg.description}`);
   let penalty = 0;
@@ -164,7 +170,7 @@ function normalize(value: string): string {
   return value
     .normalize("NFKD")
     .replace(/\p{M}/gu, "")
-    .toLocaleLowerCase()
+    .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim()
     .replace(/\s+/g, " ");

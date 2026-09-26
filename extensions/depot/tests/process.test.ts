@@ -4,6 +4,7 @@ import { LatestRequest } from "../src/utils/latest-request.ts";
 import {
   isProcessAborted,
   runProcess,
+  summarizeProcessOutput,
 } from "../src/utils/process.ts";
 
 test("passes arguments literally without shell interpretation", async () => {
@@ -41,4 +42,12 @@ test("marks replaced requests stale and aborts their signals", () => {
   latest.cancel();
   assert.equal(second.signal.aborted, true);
   assert.equal(second.isCurrent(), false);
+});
+
+test("summarizes the final non-empty process output lines", () => {
+  assert.equal(
+    summarizeProcessOutput("first\nsecond\nthird\n", 2),
+    "second\nthird",
+  );
+  assert.equal(summarizeProcessOutput("  \n"), undefined);
 });

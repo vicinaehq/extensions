@@ -442,9 +442,12 @@ export function parseSquashfsListing(output: string): SquashfsEntry[] {
       arrowIndex >= 0 ? pathAndTarget.slice(0, arrowIndex) : pathAndTarget,
     );
     if (!entryPath) continue;
+    let type: SquashfsEntry["type"] = "symlink";
+    if (mode === "-") type = "file";
+    if (mode === "d") type = "directory";
     entries.push({
       path: entryPath,
-      type: mode === "-" ? "file" : mode === "d" ? "directory" : "symlink",
+      type,
       target: arrowIndex >= 0
         ? pathAndTarget.slice(arrowIndex + 4).trim()
         : undefined,

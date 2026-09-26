@@ -35,8 +35,8 @@ export function parseDesktopEntry(content: string): DesktopEntry | undefined {
   return {
     name,
     description: fields.get("Comment")?.trim() || "Installed application",
-    hidden: fields.get("Hidden")?.toLocaleLowerCase() === "true",
-    noDisplay: fields.get("NoDisplay")?.toLocaleLowerCase() === "true",
+    hidden: fields.get("Hidden")?.toLowerCase() === "true",
+    noDisplay: fields.get("NoDisplay")?.toLowerCase() === "true",
   };
 }
 

@@ -1,8 +1,4 @@
-const PACKAGE_ID_PATTERN = /^[a-z0-9][a-z0-9+.-]*(?::[a-z0-9][a-z0-9-]*)?$/;
-
-function isValidAptPackageId(id: string): boolean {
-  return PACKAGE_ID_PATTERN.test(id);
-}
+import { isValidAptPackageId } from "./apt-parsing.ts";
 
 export interface AptInstalledMetadata {
   id: string;
@@ -44,7 +40,7 @@ export function parseDpkgInstalledMetadata(
     records.set(id, {
       id,
       installed: status?.startsWith("ii") ?? false,
-      essential: essential?.toLocaleLowerCase() === "yes",
+      essential: essential?.toLowerCase() === "yes",
       priority: priority?.trim() || undefined,
       section: section?.trim() || undefined,
     });

@@ -12,19 +12,26 @@ import {
   showToast,
 } from "@vicinae/api";
 import { useMemo, useRef } from "react";
-import { AptOperationError, aptBackend } from "./backends/apt";
+import { aptBackend } from "./backends/apt";
 import {
   FlatpakBackend,
   FlatpakOperationError,
 } from "./backends/flatpak";
 import { ShowSoftwareDetailsAction } from "./components/software-details";
+import {
+  isOperationCancelled,
+  operationErrorMessage,
+} from "./errors.ts";
 import { useSoftwareUpdates } from "./hooks/use-software-updates";
 import type { SoftwarePreferences, SoftwareUpdate } from "./types";
 import {
-  sourceLabel,
+  softwareSourceLabel,
   updateAccessories,
 } from "./utils/software-accessories";
-import { sortSoftwareAlphabetically } from "./utils/software-results";
+import {
+  softwareItemKey,
+  sortSoftwareAlphabetically,
+} from "./utils/software-results";
 import { OperationLock } from "./utils/operation-lock";
 import { updateSourceErrors } from "./utils/update-errors";
 
@@ -55,7 +62,7 @@ export default function UpdateCommand() {
   );
 
   const updateOne = async (update: SoftwareUpdate) => {
-    const key = updateKey(update);
+    const key = softwareItemKey(update);
     if (!operationLock.tryAcquire(key)) return;
 
     try {
@@ -70,12 +77,16 @@ export default function UpdateCommand() {
       try {
         if (update.source === "apt") await aptBackend.update(update);
         else await flatpakBackend.update(update);
-        updates.forget(update);
-        updates.reload();
+        updates.removeFromList(update);
+        updates.refresh();
         toast.style = Toast.Style.Success;
         toast.title = `${update.name} updated`;
         toast.message = update.availableVersion ?? update.id;
       } catch (error) {
+        if (isOperationCancelled(error)) {
+          await toast.hide();
+          return;
+        }
         console.error(`Failed to update ${update.id}`, error);
         toast.style = Toast.Style.Failure;
         toast.title = operationErrorMessage(error, "Software update failed");
@@ -109,6 +120,10 @@ export default function UpdateCommand() {
         try {
           await aptBackend.updateAll();
         } catch (error) {
+          if (isOperationCancelled(error)) {
+            await toast.hide();
+            return;
+          }
           console.error("APT update failed", error);
           failures.push(operationErrorMessage(error, "APT update failed"));
         }
@@ -117,12 +132,16 @@ export default function UpdateCommand() {
         try {
           await flatpakBackend.updateAll();
         } catch (error) {
+          if (isOperationCancelled(error)) {
+            await toast.hide();
+            return;
+          }
           console.error("Flatpak update failed", error);
           failures.push(operationErrorMessage(error, "Flatpak update failed"));
         }
       }
 
-      updates.reload();
+      updates.refresh();
       if (failures.length === 0) {
         toast.style = Toast.Style.Success;
         toast.title = "Software update completed";
@@ -153,6 +172,13 @@ export default function UpdateCommand() {
       if (aptEnabled) refreshes.push(aptBackend.refreshMetadata());
       if (flatpakEnabled) refreshes.push(flatpakBackend.refreshMetadata());
       const results = await Promise.allSettled(refreshes);
+      if (results.some((result) =>
+        result.status === "rejected" && isOperationCancelled(result.reason)
+      )) {
+        updates.refresh();
+        await toast.hide();
+        return;
+      }
       const failures = results.flatMap((result) => {
         if (result.status === "fulfilled") return [];
         if (
@@ -165,7 +191,7 @@ export default function UpdateCommand() {
         return [operationErrorMessage(result.reason, "Metadata refresh failed")];
       });
 
-      updates.reload();
+      updates.refresh();
       if (failures.length === 0) {
         toast.style = Toast.Style.Success;
         toast.title = "Software metadata refreshed";
@@ -217,7 +243,7 @@ export default function UpdateCommand() {
 
       {availableUpdates.map((update) => (
         <UpdateItem
-          key={updateKey(update)}
+          key={softwareItemKey(update)}
           update={update}
           onUpdate={() => updateOne(update)}
           sharedActions={sharedActions}
@@ -225,34 +251,59 @@ export default function UpdateCommand() {
       ))}
 
       {totalUpdates === 0 && !updates.isLoading && (
-        <List.EmptyView
-          icon={updates.aptError || updates.flatpakError
-            ? Icon.XMarkCircle
-            : aptEnabled || flatpakEnabled
-              ? Icon.CheckCircle
-              : Icon.Cog}
-          title={!aptEnabled && !flatpakEnabled
-            ? "No package sources enabled"
-            : updates.aptError || updates.flatpakError
-              ? "Updates could not be loaded"
-              : "Software is up to date"}
-          description={!aptEnabled && !flatpakEnabled
-            ? "Enable APT or Flatpak in the extension preferences"
-            : updates.aptError ?? updates.flatpakError ??
-              "Using currently cached package metadata"}
-          actions={
-            <ActionPanel>
-              {(aptEnabled || flatpakEnabled) && sharedActions}
-              <Action
-                title="Open Extension Preferences"
-                icon={Icon.Cog}
-                onAction={() => openExtensionPreferences()}
-              />
-            </ActionPanel>
-          }
+        <UpdatesEmptyView
+          aptEnabled={aptEnabled}
+          flatpakEnabled={flatpakEnabled}
+          error={updates.aptError ?? updates.flatpakError}
+          sharedActions={sharedActions}
         />
       )}
     </List>
+  );
+}
+
+function UpdatesEmptyView({
+  aptEnabled,
+  flatpakEnabled,
+  error,
+  sharedActions,
+}: {
+  aptEnabled: boolean;
+  flatpakEnabled: boolean;
+  error?: string;
+  sharedActions: React.ReactNode;
+}) {
+  const sourcesEnabled = aptEnabled || flatpakEnabled;
+  let icon = Icon.CheckCircle;
+  let title = "Software is up to date";
+  let description = "Using currently cached package metadata";
+
+  if (!sourcesEnabled) {
+    icon = Icon.Cog;
+    title = "No package sources enabled";
+    description = "Enable APT or Flatpak in the extension preferences";
+  } else if (error) {
+    icon = Icon.XMarkCircle;
+    title = "Updates could not be loaded";
+    description = error;
+  }
+
+  return (
+    <List.EmptyView
+      icon={icon}
+      title={title}
+      description={description}
+      actions={
+        <ActionPanel>
+          {sourcesEnabled && sharedActions}
+          <Action
+            title="Open Extension Preferences"
+            icon={Icon.Cog}
+            onAction={() => openExtensionPreferences()}
+          />
+        </ActionPanel>
+      }
+    />
   );
 }
 
@@ -265,11 +316,11 @@ function UpdateItem({
   onUpdate(): void;
   sharedActions: React.ReactNode;
 }) {
-  const source = sourceLabel(update, "scope");
+  const source = softwareSourceLabel(update, "scope");
 
   return (
     <List.Item
-      id={updateKey(update)}
+      id={softwareItemKey(update)}
       title={update.name}
       subtitle={update.description}
       keywords={[update.id, update.repository ?? "", source]}
@@ -302,14 +353,4 @@ function UpdateAction({ onUpdate }: { onUpdate(): void }) {
       onAction={onUpdate}
     />
   );
-}
-
-function updateKey(update: SoftwareUpdate): string {
-  return `${update.source}:${update.flatpak?.scope ?? "system"}:${update.id}`;
-}
-
-function operationErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof AptOperationError || error instanceof FlatpakOperationError
-    ? error.message
-    : fallback;
 }

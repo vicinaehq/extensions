@@ -84,7 +84,7 @@ export function parseFlatpakRef(content: string): ParsedFlatpakRef | undefined {
     !appId ||
     !isValidFlatpakAppId(appId) ||
     !remoteUrl ||
-    fields.get("IsRuntime")?.trim().toLocaleLowerCase() === "true"
+    fields.get("IsRuntime")?.trim().toLowerCase() === "true"
   ) {
     return undefined;
   }

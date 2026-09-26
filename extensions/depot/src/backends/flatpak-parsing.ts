@@ -182,7 +182,7 @@ export function parseFlatpakUpdatesOutput(
 }
 
 export function selectFlatpakRemote(remotes: readonly string[]): string | undefined {
-  return remotes.find((remote) => remote.toLocaleLowerCase() === "flathub")
+  return remotes.find((remote) => remote.toLowerCase() === "flathub")
     ?? remotes[0];
 }
 
@@ -215,7 +215,7 @@ export function rankFlatpakSearchResults(
   preferredScope: FlatpakScope,
   limit: number,
 ): FlatpakSearchRecord[] {
-  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const normalizedQuery = query.trim().toLowerCase();
   const unique = new Map<string, FlatpakSearchRecord>();
 
   for (const record of records) {
@@ -237,9 +237,9 @@ export function rankFlatpakSearchResults(
 }
 
 function scoreFlatpakRecord(record: FlatpakSearchRecord, query: string): number {
-  const name = record.name.toLocaleLowerCase();
-  const id = record.id.toLocaleLowerCase();
-  const description = record.description.toLocaleLowerCase();
+  const name = record.name.toLowerCase();
+  const id = record.id.toLowerCase();
+  const description = record.description.toLowerCase();
   const tokens = query.split(/\s+/).filter(Boolean);
 
   if (name === query) return 0;

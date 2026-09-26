@@ -3,8 +3,26 @@ import test from "node:test";
 import type { SoftwarePackage } from "../src/types.ts";
 import {
   rankSoftwareResults,
+  softwareItemKey,
   sortSoftwareAlphabetically,
 } from "../src/utils/software-results.ts";
+
+test("uses package source and Flatpak scope as stable software identity", () => {
+  const apt = aptPackage("org.example.App", "APT application");
+  const userFlatpak = flatpakPackage(
+    "org.example.App",
+    "Example",
+    "User Flatpak",
+  );
+  const systemFlatpak: SoftwarePackage = {
+    ...userFlatpak,
+    flatpak: { remote: "flathub", scope: "system", branch: "stable" },
+  };
+
+  assert.equal(softwareItemKey(apt), "apt:org.example.App");
+  assert.equal(softwareItemKey(userFlatpak), "flatpak:user:org.example.App");
+  assert.equal(softwareItemKey(systemFlatpak), "flatpak:system:org.example.App");
+});
 
 test("keeps APT and Flatpak results for the same application distinct", () => {
   const apt: SoftwarePackage = {

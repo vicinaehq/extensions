@@ -65,7 +65,7 @@ export async function inspectLocalPackage(
     return inspectAppImage(filePath, fileName, stat.size, options.signal);
   }
 
-  const extension = extname(fileName).toLocaleLowerCase();
+  const extension = extname(fileName).toLowerCase();
   if (stat.size <= 1024 * 1024) {
     const content = await readFile(filePath, "utf8");
     options.signal?.throwIfAborted();

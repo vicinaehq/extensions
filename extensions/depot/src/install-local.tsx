@@ -17,6 +17,10 @@ import { homedir } from "node:os";
 import { basename, dirname, extname, join } from "node:path";
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedValue } from "./hooks/use-debounced-value";
+import {
+  isOperationCancelled,
+  operationErrorMessage,
+} from "./errors.ts";
 import type { SoftwarePreferences } from "./types";
 import {
   LocalPackageError,
@@ -31,6 +35,7 @@ import {
 } from "./local-packages/index.ts";
 import { isProcessAborted } from "./utils/process";
 import { escapeMarkdown } from "./utils/package-details";
+import { LatestRequest } from "./utils/latest-request";
 
 const FILE_SEARCH_LIMIT = 80;
 const RESULT_LIMIT = 40;
@@ -46,11 +51,13 @@ export default function InstallLocalPackageCommand() {
   const [files, setFiles] = useState<LocalPackageFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState<string>();
+  const latestSearch = useRef(new LatestRequest());
 
   useEffect(() => {
     const query = debouncedSearchText.trim();
 
     if (query !== searchText.trim()) {
+      latestSearch.current.cancel();
       setFiles([]);
       setSearchError(undefined);
       setIsLoading(searchText.trim().length > 0);
@@ -58,19 +65,20 @@ export default function InstallLocalPackageCommand() {
     }
 
     if (!query) {
+      latestSearch.current.cancel();
       setFiles([]);
       setSearchError(undefined);
       setIsLoading(false);
       return;
     }
 
-    let active = true;
+    const request = latestSearch.current.start();
     const search = async () => {
       setIsLoading(true);
       setSearchError(undefined);
 
       const directFile = await resolveDirectPackageFile(query);
-      if (!active) return;
+      if (!request.isCurrent()) return;
 
       if (directFile) {
         setFiles([directFile]);
@@ -86,7 +94,7 @@ export default function InstallLocalPackageCommand() {
 
       try {
         const indexedFiles = await FileSearch.search(query, { limit: FILE_SEARCH_LIMIT });
-        if (!active) return;
+        if (!request.isCurrent()) return;
 
         const uniqueFiles = new Map<string, LocalPackageFile>();
         for (const file of indexedFiles) {
@@ -96,18 +104,16 @@ export default function InstallLocalPackageCommand() {
         }
         setFiles([...uniqueFiles.values()].slice(0, RESULT_LIMIT));
       } catch (error) {
-        if (!active) return;
+        if (!request.isCurrent()) return;
         setFiles([]);
         setSearchError(error instanceof Error ? error.message : "File search is unavailable");
       } finally {
-        if (active) setIsLoading(false);
+        if (request.isCurrent()) setIsLoading(false);
       }
     };
 
     void search();
-    return () => {
-      active = false;
-    };
+    return () => latestSearch.current.cancel();
   }, [debouncedSearchText, searchText]);
 
   return (
@@ -260,18 +266,16 @@ function LocalPackageReview({ filePath }: { filePath: string }) {
         : `${pkg.name} installed`;
       toast.message = result.managedPath ?? localPackageSourceLabel(pkg);
     } catch (installError) {
-      console.error("Local package installation failed", installError);
-      if (
-        installError instanceof LocalPackageError &&
-        (installError.kind === "cancelled" || installError.kind === "authentication")
-      ) {
+      if (isOperationCancelled(installError)) {
         await toast.hide();
         return;
       }
+      console.error("Local package installation failed", installError);
       toast.style = Toast.Style.Failure;
-      toast.title = installError instanceof LocalPackageError
-        ? installError.message
-        : "Local package installation failed";
+      toast.title = operationErrorMessage(
+        installError,
+        "Local package installation failed",
+      );
       toast.message = pkg.fileName;
     } finally {
       operating.current = false;
@@ -394,9 +398,7 @@ function LocalPackageMetadata({
       <Detail.Metadata.Label title="Path" text={pkg.filePath} />
       <Detail.Metadata.Label
         title="Status"
-        text={outcome
-          ? outcome.status === "integrated" ? "Integrated" : "Installed"
-          : pkg.installed ? "Installed" : "Not installed"}
+        text={localPackageStatus(pkg, outcome)}
       />
       {outcome?.managedPath && (
         <Detail.Metadata.Label title="Managed Location" text={outcome.managedPath} />
@@ -406,6 +408,15 @@ function LocalPackageMetadata({
       )}
     </Detail.Metadata>
   );
+}
+
+function localPackageStatus(
+  pkg: LocalPackage,
+  outcome?: LocalInstallOutcome,
+): string {
+  if (outcome?.status === "integrated") return "Integrated";
+  if (outcome || pkg.installed) return "Installed";
+  return "Not installed";
 }
 
 function localPackageMarkdown(

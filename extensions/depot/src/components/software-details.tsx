@@ -6,7 +6,8 @@ import {
 } from "@vicinae/api";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { AptOperationError, aptBackend } from "../backends/apt";
+import { aptBackend } from "../backends/apt";
+import { operationErrorMessage } from "../errors.ts";
 import { appStreamBackend } from "../backends/appstream";
 import { enrichSoftwarePackages } from "../backends/appstream-parsing";
 import type { SoftwarePackage, SoftwareUpdate } from "../types";
@@ -66,9 +67,10 @@ function SoftwareDetails({ pkg, primaryActions }: SoftwareDetailsProps) {
       .catch((detailsError: unknown) => {
         if (isProcessAborted(detailsError)) return;
         console.error(`Unable to load details for ${pkg.id}`, detailsError);
-        setError(detailsError instanceof AptOperationError
-          ? detailsError.message
-          : "Package details could not be loaded");
+        setError(operationErrorMessage(
+          detailsError,
+          "Package details could not be loaded",
+        ));
       })
       .finally(() => {
         if (!controller.signal.aborted) setIsLoading(false);
@@ -123,8 +125,8 @@ function SoftwareDetails({ pkg, primaryActions }: SoftwareDetailsProps) {
           />
           <Detail.Metadata.Label title="Package ID" text={details.id} />
           {details.appstream?.componentId &&
-            details.appstream.componentId.toLocaleLowerCase() !==
-              details.id.toLocaleLowerCase() && (
+            details.appstream.componentId.toLowerCase() !==
+              details.id.toLowerCase() && (
             <Detail.Metadata.Label
               title="Application ID"
               text={details.appstream.componentId}

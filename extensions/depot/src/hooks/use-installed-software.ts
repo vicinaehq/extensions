@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { AptOperationError, aptBackend } from "../backends/apt";
-import {
-  FlatpakOperationError,
-  type FlatpakBackend,
-} from "../backends/flatpak";
+import { aptBackend } from "../backends/apt";
+import type { FlatpakBackend } from "../backends/flatpak";
+import { operationErrorMessage } from "../errors.ts";
 import type { SoftwarePackage } from "../types";
 import { isProcessAborted } from "../utils/process";
+import { softwareItemKey } from "../utils/software-results";
 
 export interface InstalledSoftwareState {
   aptPackages: SoftwarePackage[];
@@ -13,7 +12,7 @@ export interface InstalledSoftwareState {
   isLoading: boolean;
   aptError?: string;
   flatpakError?: string;
-  forget(pkg: SoftwarePackage): void;
+  removeFromList(pkg: SoftwarePackage): void;
   refresh(): void;
 }
 
@@ -44,9 +43,10 @@ export function useInstalledSoftware(
           if (isProcessAborted(error)) return;
           console.error("Unable to list installed APT applications", error);
           setAptPackages([]);
-          setAptError(error instanceof AptOperationError
-            ? error.message
-            : "Installed APT applications could not be loaded");
+          setAptError(operationErrorMessage(
+            error,
+            "Installed APT applications could not be loaded",
+          ));
         })
         .finally(() => {
           if (!controller.signal.aborted) setAptLoading(false);
@@ -62,9 +62,10 @@ export function useInstalledSoftware(
           if (isProcessAborted(error)) return;
           console.error("Unable to list installed Flatpak applications", error);
           setFlatpakPackages([]);
-          setFlatpakError(error instanceof FlatpakOperationError
-            ? error.message
-            : "Installed Flatpak applications could not be loaded");
+          setFlatpakError(operationErrorMessage(
+            error,
+            "Installed Flatpak applications could not be loaded",
+          ));
         })
         .finally(() => {
           if (!controller.signal.aborted) setFlatpakLoading(false);
@@ -82,14 +83,17 @@ export function useInstalledSoftware(
     isLoading: aptLoading || flatpakLoading,
     aptError,
     flatpakError,
-    forget: (pkg: SoftwarePackage) => {
+    removeFromList: (pkg: SoftwarePackage) => {
+      const key = softwareItemKey(pkg);
       if (pkg.source === "apt") {
-        setAptPackages((packages) => packages.filter((item) => item.id !== pkg.id));
+        setAptPackages((packages) =>
+          packages.filter((item) => softwareItemKey(item) !== key)
+        );
         return;
       }
-      setFlatpakPackages((packages) => packages.filter((item) =>
-        item.id !== pkg.id || item.flatpak?.scope !== pkg.flatpak?.scope
-      ));
+      setFlatpakPackages((packages) =>
+        packages.filter((item) => softwareItemKey(item) !== key)
+      );
     },
     refresh: () => setGeneration((value) => value + 1),
   };

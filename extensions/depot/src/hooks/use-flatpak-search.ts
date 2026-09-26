@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  FlatpakOperationError,
-  type FlatpakBackend,
-} from "../backends/flatpak";
+import type { FlatpakBackend } from "../backends/flatpak";
+import { operationErrorMessage } from "../errors.ts";
 import type { SoftwarePackage } from "../types";
 import { LatestRequest } from "../utils/latest-request";
 import { isProcessAborted } from "../utils/process";
@@ -66,9 +64,7 @@ export function useFlatpakSearch(
         if (!request.isCurrent() || isProcessAborted(searchError)) return;
         console.error("Flatpak search failed", searchError);
         setResults([]);
-        setError(searchError instanceof FlatpakOperationError
-          ? searchError.message
-          : "Flatpak search failed");
+        setError(operationErrorMessage(searchError, "Flatpak search failed"));
       })
       .finally(() => {
         if (request.isCurrent()) setIsLoading(false);
