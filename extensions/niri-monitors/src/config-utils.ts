@@ -1,8 +1,9 @@
-import { dirname, join } from "path";
+import { basename, dirname, isAbsolute, join, resolve } from "path";
 import { homedir } from "os";
 import { OutputBlock, OutputConfigUpdate } from "./types";
 
-const MONITORS_FILENAME = "monitors.kdl";
+const OUTPUTS_FILENAME = "outputs.kdl";
+const LEGACY_MONITORS_FILENAME = "monitors.kdl";
 
 export function getNiriConfigPath(): string {
   const explicit = process.env.NIRI_CONFIG;
@@ -11,8 +12,99 @@ export function getNiriConfigPath(): string {
   return join(base, "niri", "config.kdl");
 }
 
-export function getMonitorsConfigPath(): string {
-  return join(dirname(getNiriConfigPath()), MONITORS_FILENAME);
+export function findActiveIncludePaths(config: string): string[] {
+  const regex =
+    /^[ \t]*include\s+(?:optional=\S+\s+)?["']([^"']+)["']/gm;
+  const includePaths: string[] = [];
+
+  for (const match of config.matchAll(regex)) {
+    const matchIndex = match.index;
+    const isNodeCommented = /\/-[\s\r\n]*$/.test(
+      config.slice(0, matchIndex),
+    );
+    if (!isNodeCommented && !isInsideBlockComment(config, matchIndex)) {
+      includePaths.push(match[1]);
+    }
+  }
+
+  return includePaths;
+}
+
+function getIncludeDirectory(includePath: string): string {
+  const globIndex = includePath.search(/[*?[]/);
+  if (globIndex === -1) return dirname(includePath);
+  return dirname(`${includePath.slice(0, globIndex)}placeholder`);
+}
+
+export function getOutputsIncludePath(config: string): string {
+  const includePaths = findActiveIncludePaths(config);
+  const existingOutputsInclude = includePaths.find(
+    (includePath) => basename(includePath) === OUTPUTS_FILENAME,
+  );
+  if (existingOutputsInclude) return existingOutputsInclude;
+
+  const legacyMonitorsInclude = includePaths.find(
+    (includePath) => basename(includePath) === LEGACY_MONITORS_FILENAME,
+  );
+  if (legacyMonitorsInclude) {
+    return join(dirname(legacyMonitorsInclude), OUTPUTS_FILENAME);
+  }
+
+  const nestedInclude = includePaths.find(
+    (includePath) => getIncludeDirectory(includePath) !== ".",
+  );
+  return nestedInclude
+    ? join(getIncludeDirectory(nestedInclude), OUTPUTS_FILENAME)
+    : OUTPUTS_FILENAME;
+}
+
+export function getOutputsConfigPath(config: string): string {
+  return resolveNiriIncludePath(getOutputsIncludePath(config));
+}
+
+export function resolveNiriIncludePath(includePath: string): string {
+  if (includePath.startsWith("~/")) {
+    return join(homedir(), includePath.slice(2));
+  }
+  if (isAbsolute(includePath)) return includePath;
+  return resolve(dirname(getNiriConfigPath()), includePath);
+}
+
+export function getLegacyMonitorsIncludePaths(config: string): string[] {
+  return findActiveIncludePaths(config).filter(
+    (includePath) => basename(includePath) === LEGACY_MONITORS_FILENAME,
+  );
+}
+
+export function removeActiveIncludes(
+  config: string,
+  includePaths: string[],
+): string {
+  if (includePaths.length === 0) return config;
+
+  const pathsToRemove = new Set(includePaths);
+  const regex =
+    /^[ \t]*include\s+(?:optional=\S+\s+)?["']([^"']+)["'][^\r\n]*(?:\r?\n|$)/gm;
+  const matches = Array.from(config.matchAll(regex));
+  let result = config;
+
+  for (let i = matches.length - 1; i >= 0; i--) {
+    const match = matches[i];
+    const matchIndex = match.index;
+    const isNodeCommented = /\/-[\s\r\n]*$/.test(
+      config.slice(0, matchIndex),
+    );
+    if (
+      pathsToRemove.has(match[1]) &&
+      !isNodeCommented &&
+      !isInsideBlockComment(config, matchIndex)
+    ) {
+      result =
+        result.slice(0, matchIndex) + result.slice(matchIndex + match[0].length);
+    }
+  }
+
+  return result;
 }
 
 export function escapeRegExp(value: string): string {
@@ -134,42 +226,46 @@ export function setBareLine(
   return body;
 }
 
-export function hasActiveMonitorsInclude(config: string): boolean {
+export function hasActiveOutputsInclude(
+  config: string,
+  outputsIncludePath = OUTPUTS_FILENAME,
+): boolean {
   const cleaned = stripKdlComments(config);
   const regex = new RegExp(
-    `^[ \\t]*include\\s+(?:optional=\\S+\\s+)?["']\\.?/?${escapeRegExp(MONITORS_FILENAME)}["']`,
+    `^[ \\t]*include\\s+(?:optional=\\S+\\s+)?["']${escapeRegExp(outputsIncludePath)}["']`,
     "m",
   );
   return regex.test(cleaned);
 }
 
-export function ensureActiveInclude(config: string): {
+export function ensureActiveInclude(
+  config: string,
+  outputsIncludePath = OUTPUTS_FILENAME,
+): {
   config: string;
   modified: boolean;
 } {
-  if (hasActiveMonitorsInclude(config)) {
-    return { config, modified: false };
-  }
+  let configWithoutInclude = removeActiveIncludes(config, [outputsIncludePath]);
 
   // Matches single-line `// include ...` OR node comment `/- include ...` (even across newlines `/- \n include ...`)
   const commentedRegex = new RegExp(
-    `(?:^[ \\t]*//[ \\t]*include\\s+(?:optional=\\S+\\s+)?["']\\.?/?${escapeRegExp(MONITORS_FILENAME)}["']|/-(?:[ \\t]*\\r?\\n[ \\t]*|[ \\t]+)include\\s+(?:optional=\\S+\\s+)?["']\\.?/?${escapeRegExp(MONITORS_FILENAME)}["'])`,
+    `(?:^[ \\t]*//[ \\t]*include\\s+(?:optional=\\S+\\s+)?["']${escapeRegExp(outputsIncludePath)}["']|/-(?:[ \\t]*\\r?\\n[ \\t]*|[ \\t]+)include\\s+(?:optional=\\S+\\s+)?["']${escapeRegExp(outputsIncludePath)}["'])`,
     "m",
   );
 
-  if (commentedRegex.test(config)) {
-    const newConfig = config.replace(
-      commentedRegex,
-      `include "${MONITORS_FILENAME}"`,
-    );
-    return { config: newConfig, modified: true };
+  if (!hasActiveOutputsInclude(config, outputsIncludePath)) {
+    configWithoutInclude = configWithoutInclude.replace(commentedRegex, "");
   }
 
-  // Prepend include at top
-  const includeLine = `include "${MONITORS_FILENAME}"\n`;
+  // Keep this import first so the extension-managed output configuration takes
+  // precedence over output blocks loaded from other files.
+  const includeLine = `include "${outputsIncludePath}"\n`;
+  const remainingConfig = configWithoutInclude.replace(/^(?:\r?\n)+/, "");
   const newConfig =
-    config.length > 0 ? `${includeLine}\n${config}` : includeLine;
-  return { config: newConfig, modified: true };
+    remainingConfig.length > 0
+      ? `${includeLine}\n${remainingConfig}`
+      : includeLine;
+  return { config: newConfig, modified: newConfig !== config };
 }
 
 export function formatNewOutputBlock(

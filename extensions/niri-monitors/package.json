@@ -3,6 +3,7 @@
   "name": "niri-monitors",
   "title": "Niri Monitors",
   "description": "Manage connected monitors, scales, rotation, power states for Niri Wayland compositor",
+  "version": "1.0.1",
   "categories": [],
   "license": "MIT",
   "author": "xwaleedahmad",

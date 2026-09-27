@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "fs/promises";
 import { dirname } from "path";
 import { handleError } from "./global-utils";
 import { OutputConfigUpdate } from "./types";
@@ -7,8 +7,12 @@ import {
   findActiveOutputBlocks,
   findSingleActiveOutputBlock,
   formatNewOutputBlock,
-  getMonitorsConfigPath,
+  getLegacyMonitorsIncludePaths,
+  getOutputsConfigPath,
+  getOutputsIncludePath,
   getNiriConfigPath,
+  removeActiveIncludes,
+  resolveNiriIncludePath,
   setBareLine,
   setValueLine,
 } from "./config-utils";
@@ -16,13 +20,27 @@ import {
 const HEADER_COMMENT =
   "// This file is generated and managed by the Vicinae Niri Monitors extension.\n\n";
 
+function mergeLegacyOutputs(
+  outputsConfig: string,
+  legacyConfig: string,
+): string {
+  if (outputsConfig.trim().length === 0) return legacyConfig;
+
+  let mergedConfig = outputsConfig;
+  for (const block of findActiveOutputBlocks(legacyConfig)) {
+    if (!findSingleActiveOutputBlock(mergedConfig, block.name)) {
+      mergedConfig = `${mergedConfig.trimEnd()}\n\n${block.fullBlock}\n`;
+    }
+  }
+  return mergedConfig;
+}
+
 export async function upsertOutputConfig(
   outputName: string,
   update: OutputConfigUpdate,
 ): Promise<boolean> {
   try {
     const configPath = getNiriConfigPath();
-    const monitorsPath = getMonitorsConfigPath();
 
     let mainConfig = "";
     try {
@@ -31,42 +49,71 @@ export async function upsertOutputConfig(
       mainConfig = "";
     }
 
-    let monitorsConfig = "";
+    const outputsIncludePath = getOutputsIncludePath(mainConfig);
+    const outputsPath = getOutputsConfigPath(mainConfig);
+    const legacyIncludePaths = getLegacyMonitorsIncludePaths(mainConfig);
+
+    let outputsConfig = "";
     try {
-      monitorsConfig = await readFile(monitorsPath, "utf-8");
+      outputsConfig = await readFile(outputsPath, "utf-8");
     } catch {
-      monitorsConfig = "";
+      outputsConfig = "";
     }
 
     let mainConfigModified = false;
+    const migratedLegacyPaths: string[] = [];
 
-    // 1. Ensure active include directive in main config
-    const includeResult = ensureActiveInclude(mainConfig);
+    // 1. Migrate files created under the extension's previous monitors.kdl name.
+    for (const legacyIncludePath of legacyIncludePaths) {
+      const legacyPath = resolveNiriIncludePath(legacyIncludePath);
+      if (legacyPath === outputsPath || migratedLegacyPaths.includes(legacyPath)) {
+        continue;
+      }
+
+      try {
+        const legacyConfig = await readFile(legacyPath, "utf-8");
+        outputsConfig = mergeLegacyOutputs(outputsConfig, legacyConfig);
+        migratedLegacyPaths.push(legacyPath);
+      } catch {
+        // Keep the old import when its file cannot be read.
+      }
+    }
+
+    if (migratedLegacyPaths.length > 0) {
+      const migratedIncludes = legacyIncludePaths.filter((includePath) =>
+        migratedLegacyPaths.includes(resolveNiriIncludePath(includePath)),
+      );
+      mainConfig = removeActiveIncludes(mainConfig, migratedIncludes);
+      mainConfigModified = true;
+    }
+
+    // 2. Ensure the active output include is at the top of the main config.
+    const includeResult = ensureActiveInclude(mainConfig, outputsIncludePath);
     if (includeResult.modified) {
       mainConfig = includeResult.config;
       mainConfigModified = true;
     }
 
-    // 2. Find and migrate all active output blocks from config.kdl
+    // 3. Find and migrate all active output blocks from config.kdl
     const activeMainBlocks = findActiveOutputBlocks(mainConfig);
     if (activeMainBlocks.length > 0) {
       for (const block of activeMainBlocks) {
-        const existingInMonitors = findSingleActiveOutputBlock(
-          monitorsConfig,
+        const existingInOutputs = findSingleActiveOutputBlock(
+          outputsConfig,
           block.name,
         );
 
-        if (existingInMonitors) {
-          // Replace monitors.kdl block with active definition from main config
-          monitorsConfig =
-            monitorsConfig.slice(0, existingInMonitors.blockStart) +
+        if (existingInOutputs) {
+          // Replace outputs.kdl block with active definition from main config
+          outputsConfig =
+            outputsConfig.slice(0, existingInOutputs.blockStart) +
             block.fullBlock +
-            monitorsConfig.slice(existingInMonitors.blockEnd);
+            outputsConfig.slice(existingInOutputs.blockEnd);
         } else {
-          // Append to monitors.kdl
-          monitorsConfig =
-            monitorsConfig.trimEnd().length > 0
-              ? `${monitorsConfig.trimEnd()}\n\n${block.fullBlock}\n`
+          // Append to outputs.kdl
+          outputsConfig =
+            outputsConfig.trimEnd().length > 0
+              ? `${outputsConfig.trimEnd()}\n\n${block.fullBlock}\n`
               : `${block.fullBlock}\n`;
         }
       }
@@ -81,10 +128,10 @@ export async function upsertOutputConfig(
       mainConfigModified = true;
     }
 
-    // 3. Upsert the target monitor in monitorsConfig
-    const targetBlock = findSingleActiveOutputBlock(monitorsConfig, outputName);
+    // 4. Upsert the target monitor in outputsConfig
+    const targetBlock = findSingleActiveOutputBlock(outputsConfig, outputName);
     if (targetBlock) {
-      let body = monitorsConfig.slice(
+      let body = outputsConfig.slice(
         targetBlock.bodyStart,
         targetBlock.bodyEnd,
       );
@@ -93,37 +140,41 @@ export async function upsertOutputConfig(
       body = setValueLine(body, "scale", `${update.scale}`);
       body = setValueLine(body, "transform", `"${update.transform}"`);
 
-      monitorsConfig =
-        monitorsConfig.slice(0, targetBlock.bodyStart) +
+      outputsConfig =
+        outputsConfig.slice(0, targetBlock.bodyStart) +
         body +
-        monitorsConfig.slice(targetBlock.bodyEnd);
+        outputsConfig.slice(targetBlock.bodyEnd);
     } else {
       const newBlock = formatNewOutputBlock(outputName, update);
-      monitorsConfig =
-        monitorsConfig.trimEnd().length > 0
-          ? `${monitorsConfig.trimEnd()}\n\n${newBlock}`
+      outputsConfig =
+        outputsConfig.trimEnd().length > 0
+          ? `${outputsConfig.trimEnd()}\n\n${newBlock}`
           : newBlock;
     }
 
-    // 4. Ensure header comment at top of monitors.kdl
+    // 5. Ensure header comment at top of outputs.kdl
     if (
-      !monitorsConfig
+      !outputsConfig
         .trimStart()
         .startsWith(
           "// This file is generated and managed by the Vicinae Niri Monitors extension.",
         )
     ) {
-      monitorsConfig = `${HEADER_COMMENT}${monitorsConfig.trimStart()}`;
+      outputsConfig = `${HEADER_COMMENT}${outputsConfig.trimStart()}`;
     }
 
-    // 5. Write files
+    // 6. Write the new file before switching imports and deleting legacy files.
+    await mkdir(dirname(outputsPath), { recursive: true });
+    await writeFile(outputsPath, outputsConfig, "utf-8");
+
     if (mainConfigModified) {
       await mkdir(dirname(configPath), { recursive: true });
       await writeFile(configPath, mainConfig, "utf-8");
     }
 
-    await mkdir(dirname(monitorsPath), { recursive: true });
-    await writeFile(monitorsPath, monitorsConfig, "utf-8");
+    for (const legacyPath of migratedLegacyPaths) {
+      await unlink(legacyPath);
+    }
 
     return true;
   } catch (error) {
