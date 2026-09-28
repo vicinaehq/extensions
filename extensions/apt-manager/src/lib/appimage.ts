@@ -1,9 +1,13 @@
 import {
 	chmodSync,
+	closeSync,
 	copyFileSync,
 	existsSync,
+	fstatSync,
 	mkdirSync,
 	mkdtempSync,
+	openSync,
+	readSync,
 	readdirSync,
 	readFileSync,
 	realpathSync,
@@ -46,6 +50,11 @@ const UNSQUASHFS_PATHS = [
 	"/bin/unsquashfs",
 ];
 
+/** Superblock magic ("hsqs" in little-endian) every SquashFS image starts with. */
+const SQUASHFS_MAGIC = Buffer.from("hsqs", "ascii");
+const SQUASHFS_SUPERBLOCK_SIZE = 96;
+const SQUASHFS_SCAN_CHUNK = 4 * 1024 * 1024;
+
 /**
  * Locate the `unsquashfs` binary from squashfs-tools, the established
  * non-executing tool used to extract AppImage contents. Returns null when it
@@ -53,6 +62,71 @@ const UNSQUASHFS_PATHS = [
  */
 function findUnSquashfs(): string | null {
 	return UNSQUASHFS_PATHS.find((path) => existsSync(path)) ?? null;
+}
+
+/**
+ * Validate a SquashFS superblock candidate at `at` inside `buf`, rejecting the
+ * `hsqs` byte sequences that occur in ordinary data. Checks the format version,
+ * the block size and that the declared image size fits in the remaining bytes.
+ */
+function isSquashfsSuperblock(buf: Buffer, available: number): boolean {
+	if (buf.readUInt16LE(28) !== 4) return false;
+	const blockSize = buf.readUInt32LE(12);
+	if (blockSize < 4096 || blockSize > 1_048_576) return false;
+	if ((blockSize & (blockSize - 1)) !== 0) return false;
+	const blockLog = buf.readUInt16LE(22);
+	if (blockLog < 12 || blockLog > 20) return false;
+	const bytesUsed = Number(buf.readBigUInt64LE(40));
+	return bytesUsed > 0 && bytesUsed <= available;
+}
+
+/**
+ * Find the byte offset of the SquashFS payload inside a type 2 AppImage. The
+ * filesystem is appended after the ELF runtime, so `unsquashfs` only finds it
+ * with an explicit `-o`. Returns null when no valid superblock is present (for
+ * example a type 1 AppImage, which is an ISO 9660 image instead).
+ */
+function findSquashfsOffset(appPath: string): number | null {
+	let fd: number;
+	try {
+		fd = openSync(appPath, "r");
+	} catch {
+		return null;
+	}
+	try {
+		const size = fstatSync(fd).size;
+		const chunk = Buffer.allocUnsafe(SQUASHFS_SCAN_CHUNK);
+		const superblock = Buffer.allocUnsafe(SQUASHFS_SUPERBLOCK_SIZE);
+		let base = 0;
+		while (base < size) {
+			const read = readSync(fd, chunk, 0, SQUASHFS_SCAN_CHUNK, base);
+			if (read < SQUASHFS_MAGIC.length) return null;
+			let at = 0;
+			while (at + SQUASHFS_MAGIC.length <= read) {
+				const found = chunk.indexOf(SQUASHFS_MAGIC, at);
+				if (found === -1) break;
+				const offset = base + found;
+				// The superblock is read straight from the file so that a
+				// candidate at the end of the chunk is still validated in full.
+				if (
+					readSync(fd, superblock, 0, SQUASHFS_SUPERBLOCK_SIZE, offset) ===
+						SQUASHFS_SUPERBLOCK_SIZE &&
+					isSquashfsSuperblock(superblock, size - offset)
+				) {
+					return offset;
+				}
+				at = found + 1;
+			}
+			// Overlap the next read so that magic bytes spanning two chunks are
+			// still seen in full.
+			base += read - (SQUASHFS_MAGIC.length - 1);
+		}
+		return null;
+	} catch {
+		return null;
+	} finally {
+		closeSync(fd);
+	}
 }
 
 function getApplicationsDir(): string {
@@ -253,15 +327,21 @@ function findMetaInfo(root: string): string | null {
 async function extractAppImageSidecar(appPath: string): Promise<boolean> {
 	const unsquashfs = findUnSquashfs();
 	if (!unsquashfs) return false;
+	const offset = findSquashfsOffset(appPath);
+	if (offset === null) return false;
 	const sidecar = getSidecarDir(appPath);
 	const fileName = basename(appPath);
 	const baseName = fileName.replace(/\.appimage$/i, "");
 	const tempDir = mkdtempSync(join(tmpdir(), "appimage-metadata-"));
 	try {
-		const result = await run(unsquashfs, ["-d", join(tempDir, "root"), appPath], {
-			timeout: EXTRACT_TIMEOUT,
-		});
-		if (!result.ok) return false;
+		const result = await run(
+			unsquashfs,
+			["-o", String(offset), "-d", join(tempDir, "root"), appPath],
+			{ timeout: EXTRACT_TIMEOUT },
+		);
+		// Exit code 2 means non-fatal errors (symlinks, xattrs) after a
+		// completed extraction, so only a real failure aborts here.
+		if (!result.ok && result.code !== 2) return false;
 		const root = join(tempDir, "root");
 		if (!existsSync(root)) return false;
 

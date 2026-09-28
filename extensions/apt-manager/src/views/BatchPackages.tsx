@@ -21,10 +21,19 @@ const VERB: Record<BatchActionKind, string> = {
   upgrade: "Upgrade",
 };
 
-function buildArgs(kind: BatchActionKind, names: string[]): string[] {
-  if (kind === "remove") return ["remove", "-y", ...names];
-  if (kind === "upgrade") return ["install", "--only-upgrade", "-y", ...names];
-  return ["install", "-y", ...names];
+function buildArgs(kind: BatchActionKind, specs: string[]): string[] {
+  if (kind === "remove") return ["remove", "-y", ...specs];
+  if (kind === "upgrade") return ["install", "--only-upgrade", "-y", ...specs];
+  return ["install", "-y", ...specs];
+}
+
+/**
+ * Identify a package by name and architecture. On multiarch systems apt lists
+ * the same name once per architecture, so the name alone is ambiguous; the
+ * qualified `name:arch` form is also what apt-get expects on the command line.
+ */
+function specOf(pkg: AptPackage): string {
+  return pkg.arch ? `${pkg.name}:${pkg.arch}` : pkg.name;
 }
 
 type Props = {
@@ -50,24 +59,26 @@ export function BatchPackages({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (q === "") return candidates;
-    return candidates.filter((pkg) => pkg.name.toLowerCase().includes(q));
+    return candidates.filter(
+      (pkg) =>
+        pkg.name.toLowerCase().includes(q) || pkg.arch.toLowerCase().includes(q),
+    );
   }, [candidates, query]);
 
-  const toggle = (name: string) => {
+  const toggle = (spec: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(name)) {
-        next.delete(name);
+      if (next.has(spec)) {
+        next.delete(spec);
       } else {
-        next.add(name);
+        next.add(spec);
       }
       return next;
     });
   };
-
   const run = async () => {
-    const names = [...selected];
-    if (names.length === 0) {
+    const specs = [...selected];
+    if (specs.length === 0) {
       await showToast({
         style: Toast.Style.Failure,
         title: "No packages selected",
@@ -76,7 +87,7 @@ export function BatchPackages({
       return;
     }
     if (kind === "remove") {
-      const simulation = await simulateAptRemove(names);
+      const simulation = await simulateAptRemove(specs);
       if (simulation.additional.length > 0) {
         await showToast({
           style: Toast.Style.Failure,
@@ -86,8 +97,8 @@ export function BatchPackages({
         return;
       }
     }
-    const args = buildArgs(kind, names);
-    const label = `${verb} ${names.length.toString()} package${names.length === 1 ? "" : "s"}`;
+    const args = buildArgs(kind, specs);
+    const label = `${verb} ${specs.length.toString()} package${specs.length === 1 ? "" : "s"}`;
     const confirmed = await askConfirm(
       label,
       `Run "apt-get ${args.join(" ")}"?`,
@@ -154,7 +165,7 @@ export function BatchPackages({
                 onAction={() =>
                   setSelected((prev) => {
                     const next = new Set(prev);
-                    for (const pkg of filtered) next.add(pkg.name);
+                    for (const pkg of filtered) next.add(specOf(pkg));
                     return next;
                   })
                 }
@@ -179,13 +190,14 @@ export function BatchPackages({
         />
       )}
       {filtered.map((pkg) => {
-        const isSelected = selected.has(pkg.name);
+        const spec = specOf(pkg);
+        const isSelected = selected.has(spec);
         return (
           <List.Item
-            key={pkg.name}
-            id={pkg.name}
+            key={spec}
+            id={spec}
             title={pkg.name}
-            subtitle={pkg.version}
+            subtitle={pkg.version + (pkg.arch ? ` (${pkg.arch})` : "")}
             keywords={[pkg.suite]}
             icon={
               isSelected
@@ -202,7 +214,7 @@ export function BatchPackages({
                 <Action
                   title={isSelected ? "Deselect" : "Select"}
                   icon={isSelected ? Icon.MinusCircle : Icon.Plus}
-                  onAction={() => toggle(pkg.name)}
+                  onAction={() => toggle(spec)}
                 />
               </ActionPanel>
             }

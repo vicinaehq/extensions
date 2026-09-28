@@ -438,21 +438,22 @@ export type AptRemoveSimulation = {
 };
 
 /**
- * Simulate `apt-get remove` for the given names without changing the system,
- * and report which packages would be removed. Additional removals are the
- * installed packages that depend on one of the requested ones and would be
- * torn down with it.
+ * Simulate `apt-get remove` for the given specifications without changing the
+ * system, and report which packages would be removed. Specifications may be
+ * architecture-qualified (`name:arch`); apt reports the removals by bare name.
+ * `additional` holds the installed packages that depend on one of the requested
+ * ones and would be torn down with it.
  */
 export async function simulateAptRemove(
-	names: string[],
+	specs: string[],
 ): Promise<AptRemoveSimulation> {
 	const empty: AptRemoveSimulation = { wouldRemove: [], additional: [] };
-	if (names.length === 0) return empty;
-	const result = await run("apt-get", ["--simulate", "remove", ...names], {
+	if (specs.length === 0) return empty;
+	const result = await run("apt-get", ["--simulate", "remove", ...specs], {
 		timeout: 60_000,
 	});
 	if (!result.ok) return empty;
-	const requested = new Set(names);
+	const requested = new Set(specs.map((spec) => spec.split(":")[0]));
 	const wouldRemove = parseRemovedBlock(result.stdout);
 	return {
 		wouldRemove,
