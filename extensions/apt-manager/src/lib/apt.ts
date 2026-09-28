@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { run } from "./exec";
 import {
 	type FlathubApp,
@@ -130,6 +131,61 @@ const LIST_ARGS: Record<PackageListKind, string[]> = {
 	all: [],
 	upgradable: ["--upgradable"],
 };
+
+const APT_ICON_ROOTS = [
+	"/usr/share/icons/hicolor/scalable/apps",
+	"/usr/share/icons/hicolor/256x256/apps",
+	"/usr/share/icons/hicolor/128x128/apps",
+	"/usr/share/icons/hicolor/64x64/apps",
+	"/usr/share/icons/hicolor/48x48/apps",
+	"/usr/share/pixmaps",
+];
+
+/**
+ * Common package-name suffixes whose icon lives under the base name, e.g. the
+ * `firefox-esr` package ships its icon as `firefox`.
+ */
+const APT_ICON_SUFFIXES = ["-esr", "-bin", "-lib", "-base", "-common", "-core"];
+
+const aptIconCache = new Map<string, string | null>();
+let hicolorChecked = false;
+let hicolorAvailable = false;
+
+/**
+ * Best-effort lookup of a Debian package's icon from the installed hicolor
+ * icon theme or `/usr/share/pixmaps`. Package names rarely match file names
+ * exactly, so misses return null and the caller falls back to a generic icon.
+ */
+export function findAptIcon(pkgName: string): string | null {
+	const cached = aptIconCache.get(pkgName);
+	if (cached !== undefined) return cached;
+	if (!hicolorChecked) {
+		hicolorAvailable = existsSync("/usr/share/icons/hicolor");
+		hicolorChecked = true;
+	}
+	let found: string | null = null;
+	if (hicolorAvailable) {
+		const names = [pkgName];
+		for (const suffix of APT_ICON_SUFFIXES) {
+			if (pkgName.length > suffix.length && pkgName.endsWith(suffix)) {
+				names.push(pkgName.slice(0, -suffix.length));
+			}
+		}
+		outer: for (const root of APT_ICON_ROOTS) {
+			for (const base of names) {
+				for (const ext of ["png", "svg"]) {
+					const candidate = join(root, `${base}.${ext}`);
+					if (existsSync(candidate)) {
+						found = candidate;
+						break outer;
+					}
+				}
+			}
+		}
+	}
+	aptIconCache.set(pkgName, found);
+	return found;
+}
 
 /**
  * Fetch a list of packages via `apt list`. Runs without elevated privileges
@@ -372,6 +428,50 @@ export async function runAptCleanup(): Promise<OperationResult> {
 	);
 	if (!autoremove.ok) return autoremove;
 	return runPrivilegedApGet(["autoclean"], "Clean package cache");
+}
+
+export type AptRemoveSimulation = {
+	/** Every package apt would remove in the simulated run. */
+	wouldRemove: string[];
+	/** Packages apt would remove beyond the ones explicitly requested. */
+	additional: string[];
+};
+
+/**
+ * Simulate `apt-get remove` for the given names without changing the system,
+ * and report which packages would be removed. Additional removals are the
+ * installed packages that depend on one of the requested ones and would be
+ * torn down with it.
+ */
+export async function simulateAptRemove(
+	names: string[],
+): Promise<AptRemoveSimulation> {
+	const empty: AptRemoveSimulation = { wouldRemove: [], additional: [] };
+	if (names.length === 0) return empty;
+	const result = await run("apt-get", ["--simulate", "remove", ...names], {
+		timeout: 60_000,
+	});
+	if (!result.ok) return empty;
+	const requested = new Set(names);
+	const wouldRemove = parseRemovedBlock(result.stdout);
+	return {
+		wouldRemove,
+		additional: wouldRemove.filter((name) => !requested.has(name)),
+	};
+}
+
+/**
+ * Extract the packages apt would remove from a `--simulate` run by reading the
+ * per-package action lines at the end of the output (`Remv`/`Purg`), which
+ * reliably identify the removed packages regardless of the header text.
+ */
+function parseRemovedBlock(stdout: string): string[] {
+	const names: string[] = [];
+	for (const line of stdout.split("\n")) {
+		const match = /^\s*(Remv|Purg)\s+(\S+)/.exec(line);
+		if (match) names.push(match[2]);
+	}
+	return names;
 }
 
 export function resultMarkdown(

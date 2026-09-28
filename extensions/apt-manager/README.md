@@ -9,6 +9,9 @@ Launched from the `apt` command:
 - **Installed packages** — list what's installed, remove/reinstall, show info.
 - **All packages** — browse the full apt cache (lazy-loaded), install on the fly.
 - **Upgradable packages** — see updates, upgrade individual packages.
+- **Batch operations** — in the All / Installed / Upgradable lists, pick
+  "Select multiple packages…" to choose several packages and install, remove,
+  or upgrade them in a single `apt-get` command.
 - **Update all** — `apt update` then `apt-get upgrade --with-new-pkgs`, with confirmation.
 - **Clean up system** — `apt-get autoremove --purge` then `apt-get autoclean`.
 - **Repositories** — list sources from `sources.list`/`sources.list.d` (legacy one-line

@@ -12,7 +12,7 @@ import {
 	flatpakInstallationFlag,
 	runFlatpakCommand,
 } from "../lib/flatpakRemotes";
-import { runPrivilegedApGet, runPrivilegedCommand } from "../lib/apt";
+import { runPrivilegedApGet, runPrivilegedCommand, simulateAptRemove } from "../lib/apt";
 import { removeAppImage } from "../lib/appimage";
 import type { FlatpakInstallation } from "../lib/flatpakRemotes";
 import { askConfirm } from "../lib/confirm";
@@ -82,6 +82,24 @@ export function PackageActions({
 			/>,
 		);
 		onRefresh();
+	};
+
+	const removeAptWithGuard = async (name: string) => {
+		const simulation = await simulateAptRemove([name]);
+		if (simulation.additional.length > 0) {
+			await showToast({
+				style: Toast.Style.Failure,
+				title: `Removal blocked for ${name}`,
+				message: `${simulation.additional.length} installed package(s) depend on it: ${simulation.additional.slice(0, 5).join(", ")}${simulation.additional.length > 5 ? ", …" : ""}`,
+			});
+			return;
+		}
+		await runPrivileged(
+			"apt-get",
+			["remove", "-y", name],
+			`Remove ${name}`,
+			`Remove ${name}? Its configuration files are kept.`,
+		);
 	};
 
 	const toggleDetail = (
@@ -195,14 +213,7 @@ export function PackageActions({
 					icon={Icon.Trash}
 					style={Action.Style.Destructive}
 					shortcut={Keyboard.Shortcut.Common.Remove}
-					onAction={() =>
-						runPrivileged(
-							"apt-get",
-							["remove", "-y", pkg.name],
-							`Remove ${pkg.name}`,
-							`Remove ${pkg.name}? Its configuration files are kept.`,
-						)
-					}
+					onAction={() => removeAptWithGuard(pkg.name)}
 				/>
 				<Action
 					title={`Reinstall ${pkg.name}`}
@@ -263,14 +274,7 @@ export function PackageActions({
 					icon={Icon.Trash}
 					style={Action.Style.Destructive}
 					shortcut={Keyboard.Shortcut.Common.Remove}
-					onAction={() =>
-						runPrivileged(
-							"apt-get",
-							["remove", "-y", pkg.name],
-							`Remove ${pkg.name}`,
-							`Remove ${pkg.name}? Its configuration files are kept.`,
-						)
-					}
+					onAction={() => removeAptWithGuard(pkg.name)}
 				/>
 			) : null}
 			{pkg.flags.upgradable ? (

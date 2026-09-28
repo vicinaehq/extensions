@@ -1,7 +1,8 @@
-import { Color, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Color, Icon, List } from "@vicinae/api";
 import { useEffect, useMemo, useState } from "react";
 import type { AptPackage, PackageListKind } from "../lib/apt";
-import { fetchPackageList, flathubAppFromListed } from "../lib/apt";
+import { fetchPackageList, findAptIcon, flathubAppFromListed } from "../lib/apt";
+import { BatchPackages, type BatchActionKind } from "../views/BatchPackages";
 import { PackageActions } from "./PackageActions";
 import { AptAppDetail, AppImageDetail, FlathubAppDetail } from "./PackageListItemDetail";
 
@@ -60,6 +61,11 @@ export function PackageView({ kind, title, emptyTitle }: Props) {
 	const isLoading = packages === null;
 	const hasMore = filtered.length > visible;
 
+	const batchKind: BatchActionKind =
+		kind === "installed" ? "remove" : kind === "upgradable" ? "upgrade" : "install";
+	const aptCandidates = filtered.slice(0, visible).filter((pkg) => pkg.manager === "apt");
+	const batchVerb = batchKind === "remove" ? "Remove" : batchKind === "upgrade" ? "Upgrade" : "Install";
+
 	const refresh = () => setReloadKey((value) => value + 1);
 
 	return (
@@ -89,7 +95,32 @@ export function PackageView({ kind, title, emptyTitle }: Props) {
 					description={query ? `No packages match "${query}".` : undefined}
 				/>
 			) : (
-				filtered.slice(0, visible).map((pkg) => {
+				<>
+					{aptCandidates.length > 0 && (
+						<List.Item
+							id="batch-select"
+							title={`Select multiple packages to ${batchVerb.toLowerCase()}…`}
+							subtitle={`Choose from the ${aptCandidates.length} package(s) shown`}
+							icon={Icon.CheckList}
+							keywords={["batch", "multi", "select multiple"]}
+							actions={
+								<ActionPanel>
+									<Action.Push
+										title="Select Packages"
+										target={
+											<BatchPackages
+												kind={batchKind}
+												candidates={aptCandidates}
+												navigationTitle={`Select packages to ${batchVerb.toLowerCase()}`}
+												onDone={refresh}
+											/>
+										}
+									/>
+								</ActionPanel>
+							}
+						/>
+					)}
+					{filtered.slice(0, visible).map((pkg) => {
 					const id = pkg.fileName ?? `${pkg.name}/${pkg.arch}`;
 					return (
 						<List.Item
@@ -104,7 +135,7 @@ export function PackageView({ kind, title, emptyTitle }: Props) {
 									? Icon.AppWindow
 									: pkg.manager === "appimage"
 										? Icon.Box
-										: undefined)
+										: findAptIcon(pkg.name) ?? Icon.Box)
 							}
 							accessories={accessoriesFor(kind, pkg)}
 							detail={
@@ -135,7 +166,8 @@ export function PackageView({ kind, title, emptyTitle }: Props) {
 							}
 						/>
 					);
-				})
+				})}
+				</>
 			)}
 		</List>
 	);
