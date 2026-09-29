@@ -72,12 +72,21 @@ function Command() {
           "https://api.github.com/repos/",
           "",
         );
+        const status =
+          pr.state === "open"
+            ? pr.draft
+              ? "Draft"
+              : "Open"
+            : pr.pull_request?.merged_at
+              ? "Merged"
+              : "Closed";
         return (
           <List.Item
             key={pr.id}
             title={pr.title}
             subtitle={`#${pr.number} in ${repoName}`}
-            icon="pr_icon.svg"
+            icon={{ source: `pr_${status.toLowerCase()}.svg` }}
+            accessories={[{ text: status }]}
             actions={
               <ActionPanel>
                 <Action.OpenInBrowser

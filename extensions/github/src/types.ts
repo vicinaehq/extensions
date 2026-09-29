@@ -11,7 +11,8 @@ export type GitHubPreferencesMinimal = {
   numberOfResults?: string;
 };
 
-export type FilterType = "my" | "assigned" | "mentioning";
+export type FilterType =
+  "my" | "assigned" | "mentioning" | "my-merged" | "my-closed";
 
 export type Repository =
   RestEndpointMethodTypes["repos"]["listForAuthenticatedUser"]["response"]["data"][number];
