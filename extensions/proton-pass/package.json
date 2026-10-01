@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "proton-pass",
+  "title": "Proton Pass",
+  "description": "Search Proton Pass items, generate passwords, and retrieve TOTP codes through pass-cli.",
+  "icon": "extension_icon.png",
+  "author": "Arduoi",
+  "categories": ["Security", "Productivity"],
+  "license": "MIT",
+  "platforms": ["Linux"],
+  "commands": [
+    {
+      "name": "browse-vault",
+      "title": "Browse Proton Pass Vault",
+      "subtitle": "pass-cli",
+      "description": "Search and copy Proton Pass credentials through the local pass-cli.",
+      "mode": "view"
+    },
+    {
+      "name": "generate-password",
+      "title": "Generate Proton Pass Password",
+      "subtitle": "pass-cli",
+      "description": "Generate a random password or passphrase through pass-cli.",
+      "mode": "view"
+    },
+    {
+      "name": "totp-codes",
+      "title": "Proton Pass TOTP Codes",
+      "subtitle": "pass-cli",
+      "description": "Retrieve TOTP codes for Proton Pass items through pass-cli.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "cliPath",
+      "type": "textfield",
+      "required": false,
+      "title": "pass-cli path",
+      "description": "Path to pass-cli, or leave as pass-cli to use PATH.",
+      "default": "pass-cli"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "format": "biome format --write src"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.23.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.18",
+    "typescript": "^5.9.2"
+  }
+}
