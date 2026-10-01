@@ -50,7 +50,7 @@ Models and available CLI thinking levels load from the provider. API thinking ch
 
 Open **Setup AI Commands** and choose **Enable Root Search** to give each command its own root-search entry. Then restart Vicinae. The setup runs inside the extension, with no terminal or source download. A **Restart Vicinae** action is available when its user service uses the configured launcher.
 
-Automatic setup currently supports a user-owned Vicinae shell launcher, as used on Omarchy. See [supported installations and recovery](docs/desktop-integration.md) for details.
+Automatic setup supports an existing user-owned Vicinae shell launcher or a packaged Vicinae running through its standard active `vicinae.service` (including current Omarchy package installs). See [supported installations and recovery](docs/desktop-integration.md) for details.
 
 Entries live in a private directory outside normal application menus. In root search, open **Actions → Edit AI Command** to edit one. Commands also work from the internal list without desktop setup.
 

@@ -112,7 +112,7 @@ export default function SetupAICommands() {
           ? "Root search is enabled\n\nFind your saved commands by name in Vicinae. New commands appear there automatically. Open Actions on a command to edit it."
           : setup?.status === "restart"
             ? `Restart Vicinae to finish\n\nYour saved commands are ready. ${restartable ? "Use Restart Vicinae below, then reopen the launcher." : "Quit and reopen Vicinae through your usual launcher, then open Setup AI Commands to verify."}`
-            : "Add your commands to root search\n\nEach saved AI command will appear as a separate result in Vicinae, with an Edit action.\n\nEnable Root Search updates your user-owned Vicinae launcher and its application launch setting. Original files are backed up. Commands stay in a private directory outside normal application menus.\n\nVicinae needs one restart afterward. No terminal or source download is required.";
+            : `Add your commands to root search\n\nEach saved AI command will appear as a separate result in Vicinae, with an Edit action.\n\nEnable Root Search ${setup?.mode === "service" ? "adds a user-service environment override for Vicinae and updates its application launch setting. The packaged executable and service command stay unchanged" : "updates your user-owned Vicinae launcher and its application launch setting"}. Original files are backed up. Commands stay in a private directory outside normal application menus.\n\nVicinae needs one restart afterward. No terminal or source download is required.`;
 
   return (
     <Detail

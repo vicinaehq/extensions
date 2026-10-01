@@ -5,6 +5,7 @@ npm run check
 npm run build -- --out dist
 node scripts/check-build.mjs dist
 node scripts/check-setup-ui.mjs dist
+node scripts/check-setup-ui.mjs dist --service
 npm run smoke
 ```
 
@@ -35,3 +36,5 @@ Claude SDK calls use its custom spawn hook. Codex and Grok generation, RPC model
 Setup tests use temporary home, configuration, and data directories. They cover first install, repeated setup, restart status, partial backup writes, interrupted setup and recovery, write failures and rollback, UWSM preservation, malformed settings, linked paths, changed backups, and service matching.
 
 The packaged UI check loads the actual built Setup command with a React test renderer. Vicinae UI and storage calls and service commands are substituted; file operations use real temporary directories. It clicks Enable Root Search, checks command entries, queues a simulated restart, and verifies enabled and error states. It does not restart the developer's running Vicinae.
+
+Packaged-service tests cover read-only detection, systemd environment escaping, preserved XDG paths, unchanged packaged commands, reload/write rollback, SIGKILL recovery, changed or linked drop-ins, unsupported services, and separate restart. The packaged UI check runs both launcher and service flows.

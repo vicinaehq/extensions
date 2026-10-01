@@ -3,7 +3,7 @@
   "name": "ai-commands",
   "title": "AI Commands",
   "description": "Translate and rewrite selected or copied text with Claude Code, Codex, Grok, OpenCode, or direct APIs. Preview the result and press Enter to replace the selection. Enable individual root-search entries with Setup AI Commands.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "MIT",
   "author": "vdmkotai",
   "icon": "icon.svg",

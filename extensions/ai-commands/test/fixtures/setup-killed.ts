@@ -2,6 +2,11 @@ import * as fs from "node:fs/promises";
 import { configureLauncher } from "../../src/core/launcher-setup";
 const options = JSON.parse(process.argv[2]!);
 const stage = process.argv[3];
+if (process.argv[4] === "service")
+  options.serviceRunner = async (args: string[]) =>
+    args.includes("show")
+      ? "ActiveState=active\nExecStart={ path=/usr/bin/vicinae ; argv[]=/usr/bin/vicinae server --replace ; }\n"
+      : "";
 let states = 0;
 function stop() {
   process.kill(process.pid, "SIGKILL");
@@ -26,6 +31,11 @@ void configureLauncher(options, {
   link: async (source, target) => {
     await fs.link(source, target);
     if (stage === "pending" && String(target).endsWith("/setup.json")) stop();
+    if (
+      stage === "service-drop-in" &&
+      String(target).endsWith("/90-ai-commands.conf")
+    )
+      stop();
     if (stage === "original" && String(target).endsWith("/vicinae-original"))
       stop();
     if (

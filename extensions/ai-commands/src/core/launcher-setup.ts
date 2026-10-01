@@ -3,6 +3,13 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 const execute = promisify(execFile);
 import * as fileSystem from "node:fs/promises";
+import {
+  packagedService,
+  serviceEnvironment,
+  serviceDropIn,
+  runSystemctl,
+} from "./launcher-service";
+import type { ServiceRunner } from "./launcher-restart";
 import { constants } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
@@ -20,6 +27,7 @@ export interface SetupOptions {
   launcher?: string;
   home?: string;
   env?: NodeJS.ProcessEnv;
+  serviceRunner?: ServiceRunner;
 }
 
 export type SetupFileSystem = Pick<
@@ -42,9 +50,7 @@ async function readPlan(options: SetupOptions, io: SetupFileSystem) {
       ? env.XDG_DATA_HOME
       : join(home, ".local/share");
   env.XDG_DATA_HOME = dataHome;
-  const launcher = resolve(
-    options.launcher ?? join(home, ".local/bin/vicinae"),
-  );
+  let launcher = resolve(options.launcher ?? join(home, ".local/bin/vicinae"));
   const dataRoot = privateLauncherDirectory(env);
   const runtime = join(dataHome, "vicinae-ai-commands", "launcher-bin");
   const original = join(runtime, "vicinae-original");
@@ -95,6 +101,45 @@ async function readPlan(options: SetupOptions, io: SetupFileSystem) {
     }
   }
 
+  const stored = await readOptional(statePath);
+  const state = stored ? JSON.parse(stored) : undefined;
+  const useService =
+    state?.mode === "service" ||
+    (!state &&
+      !options.launcher &&
+      (await readOptional(launcher)) === undefined);
+  let serviceExecutable: string | undefined;
+  let serviceDataDirs: string | undefined;
+  if (useService) {
+    serviceExecutable = await packagedService(options.serviceRunner);
+    serviceDataDirs =
+      state?.serviceDataDirs ?? serviceEnvironment(dataRoot, env.XDG_DATA_DIRS);
+    if (
+      typeof serviceDataDirs !== "string" ||
+      /[\r\n\0]/.test(serviceDataDirs) ||
+      serviceEnvironment(dataRoot, serviceDataDirs) !== serviceDataDirs ||
+      (state && state.serviceExecutable !== serviceExecutable)
+    )
+      throw new Error(
+        "The configured Vicinae service changed. Restore its setup before reconfiguring.",
+      );
+    launcher = join(
+      configHome && isAbsolute(configHome) ? configHome : join(home, ".config"),
+      "systemd/user/vicinae.service.d/90-ai-commands.conf",
+    );
+    if (!launcher.startsWith(home + "/"))
+      throw new Error(
+        "Service setup requires a user-owned configuration directory inside your home.",
+      );
+    if (!state && (await readOptional(launcher)) !== undefined)
+      throw new Error(
+        "An existing AI Commands service drop-in has no setup record. It has not been overwritten.",
+      );
+  }
+  const managedLauncher = useService
+    ? serviceDropIn(serviceDataDirs!)
+    : serverWrapper(original, dataRoot);
+
   for (const directory of [
     join(dataRoot, "applications"),
     dirname(launcher),
@@ -127,16 +172,16 @@ async function readPlan(options: SetupOptions, io: SetupFileSystem) {
       "Automatic setup requires a small user-owned shell launcher. Binaries and symlinks are not supported.",
     );
   const currentLauncher = await readOptional(launcher);
-  if (currentLauncher === undefined)
+  if (currentLauncher === undefined && !useService)
     throw new Error(
-      "No supported Vicinae launcher was found. Automatic setup currently needs a user-owned shell launcher, such as the Omarchy installation.",
+      "The selected user launcher was not found. Omit the custom launcher path to detect a supported packaged Vicinae user service.",
     );
-  const stat = await io.lstat(launcher);
+  const stat = launcherStat ?? { mode: 0o600, isFile: () => true };
   if (
     !stat.isFile() ||
     !launcher.startsWith(home + "/") ||
-    !/^#![^\n]*\b(?:ba|da|z)?sh\b/.test(currentLauncher) ||
-    currentLauncher.length > 16_384
+    (!useService && !/^#![^\n]*\b(?:ba|da|z)?sh\b/.test(currentLauncher!)) ||
+    (currentLauncher?.length ?? 0) > 16_384
   )
     throw new Error(
       "This installation needs a user-owned shell launcher. Packaged binaries, symlinks, and custom launch scripts are not supported by automatic setup.",
@@ -156,14 +201,15 @@ async function readPlan(options: SetupOptions, io: SetupFileSystem) {
   const settings = readSettings(currentSettings);
   const previousPrefix =
     settings.providers?.applications?.preferences?.launchPrefix;
-  const stored = await readOptional(statePath);
-  const state = stored ? JSON.parse(stored) : undefined;
   const prefixSetting = `"${app.replace(/[\\"`$]/g, "\\$&")}"`;
   let prefix: string[];
-  let originalLauncher = currentLauncher;
+  let originalLauncher = currentLauncher ?? "";
   let baseSettings = currentSettings;
   if (state) {
     if (
+      (state.mode !== undefined &&
+        state.mode !== "launcher" &&
+        state.mode !== "service") ||
       state.owner !== OWNER ||
       state.launcher !== launcher ||
       state.dataRoot !== dataRoot ||
@@ -177,7 +223,7 @@ async function readPlan(options: SetupOptions, io: SetupFileSystem) {
     const backup =
       (await readOptional(original)) ??
       (state.pending === true ? state.launcherContents : undefined);
-    if (typeof backup !== "string" || !backup)
+    if (typeof backup !== "string" || (!backup && !useService))
       throw new Error("The original launcher backup is missing.");
     if (
       createHash("sha256").update(backup).digest("hex") !== state.originalHash
@@ -213,8 +259,8 @@ async function readPlan(options: SetupOptions, io: SetupFileSystem) {
         prefixSetting,
       );
       if (
-        currentLauncher !== backup &&
-        currentLauncher !== serverWrapper(original, dataRoot)
+        currentLauncher !== (useService && !backup ? undefined : backup) &&
+        currentLauncher !== managedLauncher
       )
         throw new Error(
           "The launcher changed since setup was interrupted. Its changes have been preserved.",
@@ -228,7 +274,7 @@ async function readPlan(options: SetupOptions, io: SetupFileSystem) {
           "Settings changed since setup was interrupted. Their changes have been preserved.",
         );
     } else if (
-      currentLauncher !== serverWrapper(original, dataRoot) ||
+      currentLauncher !== managedLauncher ||
       previousPrefix !== prefixSetting
     ) {
       throw new Error(
@@ -237,11 +283,11 @@ async function readPlan(options: SetupOptions, io: SetupFileSystem) {
     }
     prefix = state.prefix;
   } else {
-    if (!supportedOriginalLauncher(currentLauncher))
+    if (!useService && !supportedOriginalLauncher(currentLauncher!))
       throw new Error(
         "Setup requires a two-line shell launcher that execs an absolute path or a $HOME path with quoted arguments. Custom wrapper logic is not relocated.",
       );
-    if (currentLauncher.includes(OWNER))
+    if (currentLauncher?.includes(OWNER))
       throw new Error(
         "Managed launcher has no setup record. Restore its setup record before continuing.",
       );
@@ -299,6 +345,10 @@ async function readPlan(options: SetupOptions, io: SetupFileSystem) {
 
   return {
     launcher,
+    managedLauncher,
+    useService,
+    serviceExecutable,
+    serviceDataDirs,
     dataRoot,
     runtime,
     original,
@@ -334,7 +384,9 @@ export async function inspectLauncherSetup(
             ? "enabled"
             : "restart"
           : "available",
-    launcher: plan.launcher,
+    launcher: plan.serviceExecutable ?? plan.launcher,
+    mode: plan.useService ? "service" : "launcher",
+    integrationPath: plan.launcher,
     settingsPath: plan.settingsPath,
     dataRoot: plan.dataRoot,
     backupDirectory: plan.runtime,
@@ -350,6 +402,10 @@ export async function configureLauncher(
     return inspectLauncherSetup(options, io);
   const {
     launcher,
+    managedLauncher,
+    useService,
+    serviceExecutable,
+    serviceDataDirs,
     dataRoot,
     runtime,
     original,
@@ -374,6 +430,7 @@ export async function configureLauncher(
   });
   await io.mkdir(runtime, { recursive: true, mode: 0o700 });
   await io.mkdir(dirname(settingsPath), { recursive: true });
+  await io.mkdir(dirname(launcher), { recursive: true });
   let originalCreated = false;
   let appChanged = false;
   let settingsChanged = false;
@@ -385,6 +442,9 @@ export async function configureLauncher(
       join(runtime, `settings-before-setup-${Date.now()}-${randomUUID()}.json`);
     const record = state ?? {
       owner: OWNER,
+      mode: useService ? "service" : "launcher",
+      serviceExecutable,
+      serviceDataDirs,
       launcher,
       dataRoot,
       prefix,
@@ -416,19 +476,32 @@ export async function configureLauncher(
     appChanged = true;
     if (
       (await readOptional(settingsPath)) !== existingSettings ||
-      (await io.readFile(launcher, "utf8")) !== currentLauncher
+      (await readOptional(launcher)) !== currentLauncher
     )
       throw new Error(
         "Launcher or settings changed while setup was running. Retry after completing those edits.",
+      );
+    if (
+      useService &&
+      (await packagedService(options.serviceRunner)) !== serviceExecutable
+    )
+      throw new Error(
+        "Vicinae service changed during setup. Retry after restoring the service.",
       );
     await atomicWrite(settingsPath, nextSettings, 0o600);
     settingsChanged = true;
     await atomicWrite(
       launcher,
-      serverWrapper(original, dataRoot),
+      managedLauncher,
       stat.mode & 0o777,
+      useService && currentLauncher === undefined,
     );
     launcherChanged = true;
+    if (useService)
+      await (options.serviceRunner ?? runSystemctl)([
+        "--user",
+        "daemon-reload",
+      ]);
     const { launcherContents, settingsContents, ...completedRecord } = record;
     await atomicWrite(
       statePath,
@@ -439,7 +512,13 @@ export async function configureLauncher(
     const failures: unknown[] = [];
     if (launcherChanged) {
       try {
-        await atomicWrite(launcher, currentLauncher, stat.mode & 0o777);
+        if (currentLauncher === undefined) await io.unlink(launcher);
+        else await atomicWrite(launcher, currentLauncher, stat.mode & 0o777);
+        if (useService)
+          await (options.serviceRunner ?? runSystemctl)([
+            "--user",
+            "daemon-reload",
+          ]);
       } catch (failure) {
         failures.push(failure);
       }

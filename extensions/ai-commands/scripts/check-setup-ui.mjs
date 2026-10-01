@@ -35,6 +35,8 @@ const command = {
 const saved = { "ai-command:v1:test-command": JSON.stringify(command) };
 const serviceCalls = [];
 let serviceMatches = true;
+const serviceMode = process.argv.includes("--service");
+const serviceExecutable = serviceMode ? "/usr/bin/vicinae" : launcher;
 let failAppWrite = false;
 const fakeExec = () => {
   throw new Error("Use async service calls");
@@ -46,7 +48,7 @@ fakeExec[promisify.custom] = async (executable, args) => {
   serviceCalls.push(args);
   return {
     stdout: args.includes("show")
-      ? `ActiveState=active\nExecStart={ path=${serviceMatches ? launcher : "/other/vicinae"} ; argv[]=${launcher} server --replace ; }\n`
+      ? `ActiveState=active\nExecStart={ path=${serviceMatches ? serviceExecutable : "/other/vicinae"} ; argv[]=${serviceExecutable} server --replace ; }\n`
       : "",
     stderr: "",
   };
@@ -141,15 +143,19 @@ async function close() {
 try {
   await fs.mkdir(join(home, ".local/bin"), { recursive: true });
   await fs.mkdir(join(home, "config/vicinae"), { recursive: true });
-  await fs.writeFile(launcher, original, { mode: 0o755 });
+  if (!serviceMode) await fs.writeFile(launcher, original, { mode: 0o755 });
   await fs.writeFile(settings, config);
   await open();
   assert.match(message(), /Add your commands/);
-  assert.equal(await fs.readFile(launcher, "utf8"), original);
+  if (serviceMode)
+    await assert.rejects(fs.access(launcher), { code: "ENOENT" });
+  else assert.equal(await fs.readFile(launcher, "utf8"), original);
   failAppWrite = true;
   await click("Enable Root Search");
   assert.match(message(), /Setup needs attention/);
-  assert.equal(await fs.readFile(launcher, "utf8"), original);
+  if (serviceMode)
+    await assert.rejects(fs.access(launcher), { code: "ENOENT" });
+  else assert.equal(await fs.readFile(launcher, "utf8"), original);
   await click("Check Again");
   assert.match(message(), /Setup was interrupted/);
   await click("Resume Setup");
@@ -194,17 +200,24 @@ try {
   await fs.unlink(conflictingEntry);
   serviceMatches = false;
   await open();
-  assert.match(message(), /Quit and reopen Vicinae/);
+  assert.match(
+    message(),
+    serviceMode ? /Setup needs attention/ : /Quit and reopen Vicinae/,
+  );
   assert.ok(!actions().some((item) => item.props.title === "Restart Vicinae"));
   await close();
-  await fs.writeFile(launcher, "#!/bin/sh\n# user changed this\n");
+  serviceMatches = true;
+  const changedPath = serviceMode
+    ? join(home, "config/systemd/user/vicinae.service.d/90-ai-commands.conf")
+    : launcher;
+  await fs.writeFile(changedPath, "#!/bin/sh\n# user changed this\n");
   await open();
   assert.match(message(), /Setup needs attention/);
   assert.ok(
     !actions().some((item) => item.props.title === "Enable Root Search"),
   );
   assert.equal(
-    await fs.readFile(launcher, "utf8"),
+    await fs.readFile(changedPath, "utf8"),
     "#!/bin/sh\n# user changed this\n",
   );
   console.log(

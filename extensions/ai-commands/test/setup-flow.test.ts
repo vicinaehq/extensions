@@ -24,6 +24,9 @@ async function fixture() {
   const original = '#!/bin/sh\nexec /usr/bin/vicinae "$@"\n';
   const config = '{ // preserve me\n "theme":{"name":"mine"},\n}\n';
   const options = {
+    serviceRunner: async () => {
+      throw new Error("No service in launcher fixture");
+    },
     home,
     env: {
       XDG_CONFIG_HOME: configHome,
