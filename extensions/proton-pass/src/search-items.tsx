@@ -78,7 +78,11 @@ function ItemDetailView({ item }: { item: PassItem }) {
           {detail.hasTotp && (
             <Detail.Metadata.Label
               title="TOTP"
-              text={currentTotp ? `${currentTotp} · ${remaining}s` : refreshing ? "Refreshing…" : "Unavailable"}
+              text={currentTotp
+                ? { value: `${currentTotp} · ${remaining}s`, color: totpTimerColor(remaining) }
+                : refreshing
+                  ? "Refreshing…"
+                  : "Unavailable"}
               icon={Icon.Clock}
             />
           )}
