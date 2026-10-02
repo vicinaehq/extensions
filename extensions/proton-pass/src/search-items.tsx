@@ -62,7 +62,7 @@ function ItemDetailView({ item }: { item: PassItem }) {
     lines.push(`\n**Custom fields:**\n${detail.customFields.map((field) => `- **${escapeMarkdown(field.name)}:** ${field.type === "hidden" ? mask(field.value) : escapeMarkdown(field.value)}`).join("\n")}`);
   }
   if (detail.hasTotp) {
-    lines.push(`\n**2FA:** ${currentTotp ?? "Refreshing…"} · ${remaining}s remaining`);
+    lines.push(`\n**2FA:** ${currentTotp ?? "Refreshing…"}\n**Expires in:** ${remaining}s`);
   }
 
   return (
@@ -76,15 +76,14 @@ function ItemDetailView({ item }: { item: PassItem }) {
           {detail.username && <Detail.Metadata.Label title="Username" text={detail.username} />}
           {detail.email && <Detail.Metadata.Label title="Email" text={detail.email} />}
           {detail.hasTotp && (
-            <Detail.Metadata.Label
-              title="TOTP"
-              text={currentTotp
-                ? { value: `${currentTotp} · ${remaining}s`, color: totpTimerColor(remaining) }
-                : refreshing
-                  ? "Refreshing…"
-                  : "Unavailable"}
-              icon={Icon.Clock}
-            />
+            <>
+              <Detail.Metadata.Label
+                title="TOTP"
+                text={currentTotp ? { value: currentTotp, color: totpTimerColor(remaining) } : refreshing ? "Refreshing…" : "Unavailable"}
+                icon={Icon.Clock}
+              />
+              <Detail.Metadata.Label title="Expires in" text={`${remaining}s`} />
+            </>
           )}
         </Detail.Metadata>
       }
