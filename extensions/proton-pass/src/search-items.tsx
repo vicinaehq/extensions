@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Action, ActionPanel, Clipboard, Detail, getPreferenceValues, Icon, List, showToast, Toast } from "@vicinae/api";
 import { clearCache, getCachedSnapshot, setCachedSnapshot } from "./cache";
 import { copyProtected } from "./clipboard";
@@ -39,6 +39,9 @@ async function copySecret(title: string, value: string, concealed = true, sensit
 function ItemDetailView({ item }: { item: PassItem }) {
   const [detail, setDetail] = useState<PassItemDetail>();
   const [error, setError] = useState<string>();
+  const totpItems = useMemo(() => (item.hasTotp ? [item] : []), [item]);
+  const { codes, remaining, refreshing, refresh } = useTotpCodes(totpItems);
+  const currentTotp = codes[totpItemKey(item)];
 
   useEffect(() => {
     void viewItem(item)
@@ -58,7 +61,9 @@ function ItemDetailView({ item }: { item: PassItem }) {
   if (detail.customFields?.length) {
     lines.push(`\n**Custom fields:**\n${detail.customFields.map((field) => `- **${escapeMarkdown(field.name)}:** ${field.type === "hidden" ? mask(field.value) : escapeMarkdown(field.value)}`).join("\n")}`);
   }
-  if (detail.hasTotp) lines.push("\n**2FA:** Enabled");
+  if (detail.hasTotp) {
+    lines.push(`\n**2FA:** ${currentTotp ?? "Refreshing…"} · ${remaining}s remaining`);
+  }
 
   return (
     <Detail
@@ -70,7 +75,13 @@ function ItemDetailView({ item }: { item: PassItem }) {
           <Detail.Metadata.Label title="Vault" text={detail.vaultName} />
           {detail.username && <Detail.Metadata.Label title="Username" text={detail.username} />}
           {detail.email && <Detail.Metadata.Label title="Email" text={detail.email} />}
-          {detail.hasTotp && <Detail.Metadata.Label title="TOTP" text="Enabled" icon={Icon.Clock} />}
+          {detail.hasTotp && (
+            <Detail.Metadata.Label
+              title="TOTP"
+              text={currentTotp ? `${currentTotp} · ${remaining}s` : refreshing ? "Refreshing…" : "Unavailable"}
+              icon={Icon.Clock}
+            />
+          )}
         </Detail.Metadata>
       }
       actions={
@@ -79,6 +90,7 @@ function ItemDetailView({ item }: { item: PassItem }) {
           {detail.email && <Action title="Copy Email" icon={Icon.Envelope} onAction={() => void copySecret("Email", detail.email!)} />}
           {detail.password && <Action title="Copy Password" icon={Icon.Key} onAction={() => void copySecret("Password", detail.password!, true, true)} />}
           {detail.hasTotp && <Action title="Copy TOTP Code" icon={Icon.Clock} onAction={() => void getTotp(item).then((code) => copySecret("TOTP code", code, true, true))} />}
+          {detail.hasTotp && <Action title="Refresh TOTP Code" icon={Icon.ArrowClockwise} onAction={() => void refresh()} />}
           {detail.note && <Action title="Copy Note" icon={Icon.BlankDocument} onAction={() => void copySecret("Note", detail.note!, false)} />}
           {detail.urls?.map((url, index) => <Action.OpenInBrowser key={url} title={`Open URL ${index + 1}`} url={url} icon={Icon.Link} />)}
           {detail.customFields?.map((field) => (
