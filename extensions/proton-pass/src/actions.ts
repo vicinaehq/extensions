@@ -16,9 +16,6 @@ export const SHORTCUTS: Record<string, Keyboard.Shortcut> = {
 	copyPassword: { modifiers: ["ctrl", "shift"], key: "c" },
 	copyUsername: { modifiers: ["ctrl", "shift"], key: "u" },
 	copyTotp: { modifiers: ["ctrl", "shift"], key: "t" },
-	pastePassword: { modifiers: ["ctrl", "shift"], key: "p" },
-	pasteUsername: { modifiers: ["ctrl", "shift"], key: "n" },
-	pasteTotp: { modifiers: ["ctrl", "shift"], key: "y" },
 	openInBrowser: { modifiers: ["ctrl", "shift"], key: "o" },
 };
 
@@ -54,17 +51,6 @@ export async function copySecret(
 	await showToast({ style: Toast.Style.Success, title: `${title} copied` });
 }
 
-/**
- * Paste a value straight into the active window. Uses the imperative
- * `Clipboard.paste`, so it still works when the value was fetched on demand
- * (unlike the synchronous `Action.Paste` component, which needs its content up
- * front). Whether the paste is actually injected depends on the environment;
- * Vicinae falls back to a plain clipboard copy when it cannot paste.
- */
-export async function pasteValue(value: string): Promise<void> {
-	await Clipboard.paste(value);
-}
-
 /** Get the primary URL for an item (first entry), if any. */
 export function primaryUrl(urls?: string[]): string | undefined {
 	return urls && urls.length > 0 ? urls[0] : undefined;
@@ -75,9 +61,6 @@ export type ActionId =
 	| "copy-username"
 	| "copy-password"
 	| "copy-totp"
-	| "paste-username"
-	| "paste-password"
-	| "paste-totp"
 	| "open-browser";
 
 type OrderPreferences = {
@@ -90,9 +73,6 @@ const KNOWN_ACTIONS: ActionId[] = [
 	"copy-username",
 	"copy-password",
 	"copy-totp",
-	"paste-username",
-	"paste-password",
-	"paste-totp",
 	"open-browser",
 ];
 

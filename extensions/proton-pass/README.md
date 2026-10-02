@@ -15,9 +15,8 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 - Generate configurable passphrases: 3–10 words, capitalisation, numbers and separators.
 - Score generated passwords with the real `pass-cli password score` (Strong/Good/Weak/Vulnerable) and list the specific weaknesses it finds.
 - Check the strength of any password with the dedicated **Check Password Strength** command.
-- Keyboard shortcuts for the common actions: copy password (Ctrl+Alt+C), copy username (Ctrl+Shift+C), copy TOTP (Ctrl+Alt+Shift+C), open in browser (Alt+Return), with matching paste shortcuts.
-- Paste usernames and passwords straight into the focused field, not just the clipboard.
-- Choose your primary and secondary actions for Search items, so Enter does what you want (view, copy, paste or open).
+- Keyboard shortcuts for the common actions: copy password (Ctrl+Shift+C), copy username (Ctrl+Shift+U), copy TOTP (Ctrl+Shift+T), open in browser (Ctrl+Shift+O).
+- Choose your primary and secondary actions for Search items, so Enter does what you want (view, copy or open).
 - Optionally close the launcher with a brief HUD after copying a value.
 - Display live TOTP codes with a 30-second countdown and automatic refresh.
 - Cache vault and item metadata for fast startup while never caching passwords or TOTP values.
@@ -54,7 +53,7 @@ Set the extension's `pass-cli path` preference to the absolute path when Vicinae
 
 ## Commands
 
-- **Search Proton Pass Items** — searches every vault, filters by vault, opens item details and exposes copy/paste/open actions with keyboard shortcuts. The primary and secondary actions are configurable in preferences.
+- **Search Proton Pass Items** — searches every vault, filters by vault, opens item details and exposes copy/open actions with keyboard shortcuts. The primary and secondary actions are configurable in preferences.
 - **List Proton Pass Vaults** — opens a vault, then searches its items, sharing the same detail view and actions as Search.
 - **Get Proton Pass TOTP Code** — lists every item; select one and choose **Copy TOTP Code**.
 - **Generate Proton Pass Password** — visible controls for length, character classes, word count and separators, with a real `pass-cli` strength score and weakness list. Enter generates a new password.

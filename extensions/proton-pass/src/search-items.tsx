@@ -14,7 +14,6 @@ import {
 	type ActionId,
 	copySecret as copyShared,
 	orderedActionIds,
-	pasteValue,
 	primaryUrl,
 	SHORTCUTS,
 } from "./actions";
@@ -234,22 +233,6 @@ export function ItemDetailView({ item }: { item: PassItem }) {
 							}
 						/>
 					)}
-					{(detail.username || detail.email) && (
-						<Action.Paste
-							title="Paste Username"
-							icon={Icon.Person}
-							shortcut={SHORTCUTS.pasteUsername}
-							content={detail.username ?? detail.email ?? ""}
-						/>
-					)}
-					{detail.password && (
-						<Action.Paste
-							title="Paste Password"
-							icon={Icon.Key}
-							shortcut={SHORTCUTS.pastePassword}
-							content={detail.password}
-						/>
-					)}
 					{detail.hasTotp && (
 						<Action
 							title="Refresh TOTP Code"
@@ -319,8 +302,6 @@ function ItemActions({ item }: { item: PassItem }) {
 	const available: ActionId[] = ["view-details"];
 	if (hasIdentity) available.push("copy-username");
 	available.push("copy-password", "copy-totp");
-	if (hasIdentity) available.push("paste-username");
-	available.push("paste-password", "paste-totp");
 	if (url) available.push("open-browser");
 
 	const render: Record<ActionId, React.ReactNode> = {
@@ -373,43 +354,6 @@ function ItemActions({ item }: { item: PassItem }) {
 					void safely(async () =>
 						copySecret("TOTP code", await getTotp(item), true, true),
 					)
-				}
-			/>
-		),
-		"paste-username": (
-			<Action
-				key="paste-username"
-				title="Paste Username"
-				icon={Icon.Person}
-				shortcut={SHORTCUTS.pasteUsername}
-				onAction={() =>
-					void safely(() => pasteValue(item.username ?? item.email ?? ""))
-				}
-			/>
-		),
-		"paste-password": (
-			<Action
-				key="paste-password"
-				title="Paste Password"
-				icon={Icon.Key}
-				shortcut={SHORTCUTS.pastePassword}
-				onAction={() =>
-					void safely(async () => {
-						const detail = await viewItem(item);
-						if (!detail.password) throw new Error("This item has no password.");
-						await pasteValue(detail.password);
-					})
-				}
-			/>
-		),
-		"paste-totp": (
-			<Action
-				key="paste-totp"
-				title="Paste TOTP Code"
-				icon={Icon.Clock}
-				shortcut={SHORTCUTS.pasteTotp}
-				onAction={() =>
-					void safely(async () => pasteValue(await getTotp(item)))
 				}
 			/>
 		),
