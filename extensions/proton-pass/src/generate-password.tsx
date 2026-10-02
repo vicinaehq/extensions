@@ -214,6 +214,7 @@ export default function Command() {
 					<Action
 						title="Generate New Password"
 						icon={Icon.Shuffle}
+						shortcut={{ key: "return", modifiers: [] }}
 						onAction={() => void safely(() => generate(settings))}
 					/>
 				</ActionPanel>
