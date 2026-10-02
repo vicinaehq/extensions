@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { Action, ActionPanel, Clipboard, Detail, getPreferenceValues, Icon, List, showToast, Toast } from "@vicinae/api";
 import { clearCache, getCachedSnapshot, setCachedSnapshot } from "./cache";
 import { copyProtected } from "./clipboard";
@@ -154,6 +154,27 @@ function ItemActions({ item }: { item: PassItem }) {
   );
 }
 
+const VaultFilter = memo(function VaultFilter({
+  vaults,
+  onChange,
+}: {
+  vaults: Vault[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <List.Dropdown
+      id="proton-pass-vault-filter"
+      tooltip="Filter by vault"
+      storeValue={true}
+      defaultValue="all"
+      onChange={onChange}
+    >
+      <List.Dropdown.Item title="All Vaults" value="all" icon={Icon.Globe01} />
+      {vaults.map((vault) => <List.Dropdown.Item key={vault.shareId} title={vault.name} value={vault.shareId} icon={Icon.Folder} />)}
+    </List.Dropdown>
+  );
+});
+
 export default function Command() {
   const [items, setItems] = useState<PassItem[]>([]);
   const [vaults, setVaults] = useState<Vault[]>([]);
@@ -162,6 +183,7 @@ export default function Command() {
   const [loading, setLoading] = useState(true);
   const backgroundRefresh = getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
   const { codes, remaining } = useTotpCodes(items);
+  const vaultFilter = useMemo(() => <VaultFilter vaults={vaults} onChange={setSelectedVault} />, [vaults]);
 
   useEffect(() => {
     let active = true;
@@ -203,12 +225,7 @@ export default function Command() {
     <List
       isLoading={loading}
       searchBarPlaceholder="Search Proton Pass items..."
-      searchBarAccessory={
-        <List.Dropdown tooltip="Filter by vault" value={selectedVault} onChange={setSelectedVault}>
-          <List.Dropdown.Item title="All Vaults" value="all" icon={Icon.Globe01} />
-          {vaults.map((vault) => <List.Dropdown.Item key={vault.shareId} title={vault.name} value={vault.shareId} icon={Icon.Folder} />)}
-        </List.Dropdown>
-      }
+      searchBarAccessory={vaultFilter}
     >
       {error ? (
         <List.EmptyView icon={Icon.Warning} title="Unable to load Proton Pass" description={`${error} Check that pass-cli is installed and authenticated.`} />
