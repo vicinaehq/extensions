@@ -189,7 +189,13 @@ export async function listVaultsAndItems(): Promise<{ vaults: Vault[]; items: Pa
   async function worker(): Promise<void> {
     while (next < vaults.length) {
       const index = next++;
-      lists[index] = await listItems(vaults[index]);
+      try {
+        lists[index] = await listItems(vaults[index]);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`Failed to list Proton Pass vault '${vaults[index].name}': ${message}`);
+        lists[index] = [];
+      }
     }
   }
   await Promise.all(Array.from({ length: Math.min(8, vaults.length) }, () => worker()));
