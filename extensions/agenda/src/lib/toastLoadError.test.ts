@@ -53,7 +53,9 @@ describe("shouldToastLoadError", () => {
 
   it("toasts on the first failure and returns the new key", () => {
     const r = shouldToastLoadError(null, fail(err()));
-    expect(r).toEqual({ key: "/tmp/calendars.json|parse", shouldToast: true });
+    expect(r.key).toBe("/tmp/calendars.json|parse");
+    expect(r.shouldToast).toBe(true);
+    if (r.shouldToast) expect(r.error.message).toBe("boom");
   });
 
   it("does not toast on a repeated identical failure but keeps the same key", () => {
@@ -70,7 +72,8 @@ describe("shouldToastLoadError", () => {
     // After the recovery step above, prev is null. The re-emerging error
     // must produce a fresh toast.
     const r = shouldToastLoadError(null, fail(err()));
-    expect(r).toEqual({ key: "/tmp/calendars.json|parse", shouldToast: true });
+    expect(r.key).toBe("/tmp/calendars.json|parse");
+    expect(r.shouldToast).toBe(true);
   });
 
   it("does not toast a different reason when the key still matches", () => {
@@ -80,6 +83,7 @@ describe("shouldToastLoadError", () => {
       "/tmp/calendars.json|parse",
       fail(err({ reason: "shape" })),
     );
-    expect(r).toEqual({ key: "/tmp/calendars.json|shape", shouldToast: true });
+    expect(r.key).toBe("/tmp/calendars.json|shape");
+    expect(r.shouldToast).toBe(true);
   });
 });

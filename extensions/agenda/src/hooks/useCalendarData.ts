@@ -176,7 +176,7 @@ export function useCalendarData(refreshInterval: number) {
     const initial = shouldToastLoadError(lastToastedErrorKey.current, loadResult);
     if (initial.key !== lastToastedErrorKey.current) {
       lastToastedErrorKey.current = initial.key;
-      if (initial.shouldToast) toastLoadError(loadResult.error);
+      if (initial.shouldToast) toastLoadError(initial.error);
     }
 
     fetchCalendarData();
@@ -191,7 +191,7 @@ export function useCalendarData(refreshInterval: number) {
       const decision = shouldToastLoadError(lastToastedErrorKey.current, current);
       if (decision.key !== lastToastedErrorKey.current) {
         lastToastedErrorKey.current = decision.key;
-        if (decision.shouldToast) toastLoadError(current.error);
+        if (decision.shouldToast) toastLoadError(decision.error);
       }
       if (current.ok && calendarsChanged(current.calendars, calendars)) {
         setCalendars(current.calendars);

@@ -30,10 +30,17 @@ export const nextLoadErrorKey = (
 // a toast should fire. The hook MUST assign `key` to its ref even when null,
 // otherwise a successful read won't re-arm and a later identical error is
 // silently swallowed.
+export type ToastDecision =
+  | { key: null; shouldToast: false }
+  | { key: string; shouldToast: false }
+  | { key: string; shouldToast: true; error: CalendarsLoadError };
+
 export const shouldToastLoadError = (
   prev: string | null,
   result: LoadCalendarsResult,
-): { key: string | null; shouldToast: boolean } => {
-  const key = nextLoadErrorKey(prev, result);
-  return { key, shouldToast: key !== null && key !== prev };
+): ToastDecision => {
+  if (result.ok) return { key: null, shouldToast: false };
+  const key = `${result.error.filePath}|${result.error.reason}`;
+  if (prev === key) return { key, shouldToast: false };
+  return { key, shouldToast: true, error: result.error };
 };
