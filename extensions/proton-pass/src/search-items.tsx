@@ -70,7 +70,7 @@ async function copySecret(
 	await showToast({ style: Toast.Style.Success, title: `${title} copied` });
 }
 
-function ItemDetailView({ item }: { item: PassItem }) {
+export function ItemDetailView({ item }: { item: PassItem }) {
 	const [detail, setDetail] = useState<PassItemDetail>();
 	const [error, setError] = useState<string>();
 	const totpItems = useMemo(() => (item.hasTotp ? [item] : []), [item]);

@@ -26,6 +26,7 @@ import {
 	type Vault,
 	viewItem,
 } from "./pass-cli";
+import { ItemDetailView } from "./search-items";
 import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 
 type Preferences = {
@@ -130,6 +131,11 @@ function VaultItems({ vault }: { vault: Vault }) {
 						}
 						actions={
 							<ActionPanel>
+								<Action.Push
+									title="View Details"
+									icon={Icon.Eye}
+									target={<ItemDetailView item={item} />}
+								/>
 								{item.username || item.email ? (
 									<Action
 										title={item.username ? "Copy Username" : "Copy Email"}
