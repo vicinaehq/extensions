@@ -7,7 +7,7 @@ import {
   Toast,
   useNavigation,
 } from "@vicinae/api";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import CalendarForm from "./components/CalendarForm";
 import EditCalendar from "./edit-calendar";
 import {
@@ -19,13 +19,13 @@ import { toastLoadError } from "./lib/toastLoadError";
 
 export default function ManageCalendars() {
   const { push } = useNavigation();
+  const [loadResult, setLoadResult] = useState(() => getCalendars());
+  const calendars = loadResult.ok ? loadResult.calendars : [];
+  const loadError = loadResult.ok ? null : loadResult.error;
 
-  // Re-read on every render. The mtime cache in getCalendars makes this
-  // essentially free when the file hasn't changed, and it means the list
-  // stays in sync after the form pops back with new/edited entries.
-  const r = getCalendars();
-  const calendars = r.ok ? r.calendars : [];
-  const loadError = r.ok ? null : r.error;
+  // Forms call this after writing the file so the list reflects the change
+  // without waiting for an external re-render.
+  const refresh = () => setLoadResult(getCalendars());
 
   const lastToastedErrorKey = useRef<string | null>(null);
   useEffect(() => {
@@ -51,6 +51,7 @@ export default function ManageCalendars() {
       (cal) => cal.url !== urlToRemove,
     );
     setCalendars(updatedCalendars);
+    setLoadResult({ ok: true, calendars: updatedCalendars });
 
     await showToast({
       title: "Calendar Removed",
@@ -68,7 +69,7 @@ export default function ManageCalendars() {
             <Action
               title="Add Calendar"
               icon={Icon.Plus}
-              onAction={() => push(<CalendarForm />)}
+              onAction={() => push(<CalendarForm onSubmit={refresh} />)}
             />
           </ActionPanel>
         }
@@ -109,12 +110,19 @@ export default function ManageCalendars() {
                   <Action
                     title="Edit Calendar"
                     icon={Icon.Pencil}
-                    onAction={() => push(<EditCalendar calendar={calendar} />)}
+                    onAction={() =>
+                      push(
+                        <EditCalendar
+                          calendar={calendar}
+                          onSubmit={refresh}
+                        />,
+                      )
+                    }
                   />
                   <Action
                     title="Add Calendar"
                     icon={Icon.Plus}
-                    onAction={() => push(<CalendarForm />)}
+                    onAction={() => push(<CalendarForm onSubmit={refresh} />)}
                   />
                 </ActionPanel.Section>
                 <ActionPanel.Section>
