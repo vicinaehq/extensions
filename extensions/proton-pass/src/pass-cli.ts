@@ -11,6 +11,8 @@ interface Preferences {
 export type Vault = {
   shareId: string;
   name: string;
+  itemCount?: number;
+  role?: string;
 };
 
 export type PassItem = {
@@ -18,6 +20,7 @@ export type PassItem = {
   itemId: string;
   title: string;
   vaultName: string;
+  type: string;
   username?: string;
   email?: string;
   urls?: string[];
@@ -27,6 +30,7 @@ export type PassItem = {
 export type PassItemDetail = PassItem & {
   password?: string;
   note?: string;
+  customFields?: Array<{ name: string; value: string; type: "text" | "hidden" }>;
 };
 
 function cliPath(): string {
@@ -80,6 +84,26 @@ function loginData(raw: Record<string, unknown>): Record<string, unknown> | unde
   return undefined;
 }
 
+function typedData(raw: Record<string, unknown>): { type: string; data?: Record<string, unknown> } {
+  const outer = record(raw.content) ? raw.content : raw;
+  const inner = record(outer.content) ? outer.content : outer;
+  const types: Array<[string, string]> = [
+    ["Login", "login"],
+    ["Note", "note"],
+    ["CreditCard", "credit_card"],
+    ["credit_card", "credit_card"],
+    ["Identity", "identity"],
+    ["Alias", "alias"],
+    ["SshKey", "ssh_key"],
+    ["ssh_key", "ssh_key"],
+    ["Wifi", "wifi"],
+  ];
+  for (const [key, type] of types) {
+    if (record(inner[key])) return { type, data: inner[key] };
+  }
+  return { type: "note" };
+}
+
 function parseJson(output: string, action: string): unknown {
   try {
     return JSON.parse(output) as unknown;
@@ -100,7 +124,17 @@ export async function listVaults(): Promise<Vault[]> {
     if (!record(raw)) return [];
     const shareId = text(raw.share_id ?? raw.shareId ?? raw.id);
     const name = text(raw.name);
-    return shareId && name ? [{ shareId, name }] : [];
+    const itemCountRaw = raw.item_count ?? raw.itemCount ?? raw.items_count ?? raw.itemsCount;
+    const itemCount = itemCountRaw === undefined ? undefined : Number(itemCountRaw);
+    const role = text(raw.role)?.toLowerCase();
+    return shareId && name
+      ? [{
+          shareId,
+          name,
+          itemCount: itemCount !== undefined && Number.isFinite(itemCount) ? itemCount : undefined,
+          role,
+        }]
+      : [];
   });
 }
 
@@ -108,6 +142,7 @@ function itemFrom(raw: unknown, vault: Vault): PassItem | undefined {
   if (!record(raw)) return undefined;
   const outer = record(raw.content) ? raw.content : raw;
   const login = loginData(raw);
+  const type = typedData(raw).type;
   const itemId = text(raw.id ?? raw.item_id ?? raw.itemId);
   const title = text(outer.title ?? raw.title ?? raw.name);
   if (!itemId || !title) return undefined;
@@ -120,6 +155,7 @@ function itemFrom(raw: unknown, vault: Vault): PassItem | undefined {
     itemId,
     title,
     vaultName: vault.name,
+    type,
     username: login ? text(login.username) : text(raw.username),
     email: login ? text(login.email) : text(raw.email),
     urls,
@@ -129,13 +165,36 @@ function itemFrom(raw: unknown, vault: Vault): PassItem | undefined {
 
 export async function listItems(vault: Vault): Promise<PassItem[]> {
   const data = parseJson(
-    await run(["item", "list", `--share-id=${vault.shareId}`, "--output", "json"], `list items in ${vault.name}`),
+    await run(
+      ["item", "list", `--share-id=${vault.shareId}`, "--output", "json", "--show-secrets"],
+      `list items in ${vault.name}`,
+    ),
     "item list",
   );
   return arrayFrom(data, "items")
     .filter((raw) => !(record(raw) && text(raw.state)?.toLowerCase() === "trashed"))
     .map((raw) => itemFrom(raw, vault))
     .filter((item): item is PassItem => Boolean(item));
+}
+
+export async function listAllItems(): Promise<PassItem[]> {
+  const vaults = await listVaults();
+  const lists = await Promise.all(vaults.map((vault) => listItems(vault)));
+  return lists.flat().sort((a, b) => a.title.localeCompare(b.title));
+}
+
+export async function checkAuth(): Promise<boolean> {
+  try {
+    await run(["info"], "check authentication");
+    return true;
+  } catch (error) {
+    if (error instanceof Error && /authenticated|logged in|session/i.test(error.message)) return false;
+    throw error;
+  }
+}
+
+export async function login(): Promise<string> {
+  return run(["login"], "login to Proton Pass", 10 * 60_000);
 }
 
 function unwrap(data: unknown): unknown {
@@ -158,12 +217,26 @@ export async function viewItem(item: PassItem): Promise<PassItemDetail> {
   if (!record(raw)) return item;
   const outer = record(raw.content) ? raw.content : raw;
   const login = loginData(raw);
+  const type = typedData(raw).type;
+  const typed = typedData(raw).data;
+  const customFieldsRaw = outer.extra_fields ?? outer.extraFields ?? raw.extra_fields ?? raw.extraFields;
+  const customFields = Array.isArray(customFieldsRaw)
+    ? customFieldsRaw.flatMap((field) => {
+        if (!record(field)) return [];
+        const name = text(field.name ?? field.key);
+        const value = text(field.value);
+        if (!name || !value) return [];
+        return [{ name, value, type: text(field.type)?.toLowerCase() === "text" ? "text" as const : "hidden" as const }];
+      })
+    : undefined;
   return {
     ...item,
+    type,
     username: login ? text(login.username) ?? item.username : item.username,
     email: login ? text(login.email) ?? item.email : item.email,
-    password: login ? text(login.password) : text(raw.password),
+    password: login ? text(login.password) : text(typed?.password ?? raw.password),
     note: text(outer.note ?? raw.note),
+    customFields: customFields?.length ? customFields : undefined,
   };
 }
 
@@ -177,7 +250,13 @@ export async function getTotp(item: PassItem): Promise<string> {
   );
   if (record(data)) {
     const values = record(data.totps) ? data.totps : data;
-    for (const value of Object.values(values)) {
+    const preferredKeys = ["totp", "code", "primary"];
+    for (const key of preferredKeys) {
+      const code = text(values[key]);
+      if (code) return code;
+    }
+    for (const [key, value] of Object.entries(values).sort(([a], [b]) => a.localeCompare(b))) {
+      if (/recovery|backup/i.test(key)) continue;
       const code = text(value);
       if (code) return code;
     }

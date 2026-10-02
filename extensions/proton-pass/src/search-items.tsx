@@ -1,22 +1,8 @@
 import { useEffect, useState } from "react";
-import {
-  Action,
-  ActionPanel,
-  Clipboard,
-  Icon,
-  List,
-  showToast,
-  Toast,
-} from "@vicinae/api";
-import { getTotp, listItems, listVaults, PassItem, viewItem } from "./pass-cli";
+import { Action, ActionPanel, Clipboard, Icon, List, showToast, Toast } from "@vicinae/api";
+import { getTotp, listAllItems, PassItem, viewItem } from "./pass-cli";
 
-async function loadAllItems(): Promise<PassItem[]> {
-  const vaults = await listVaults();
-  const lists = await Promise.all(vaults.map((vault) => listItems(vault)));
-  return lists.flat().sort((a, b) => a.title.localeCompare(b.title));
-}
-
-async function copySecret(title: string, value: string): Promise<void> {
+async function copyValue(title: string, value: string): Promise<void> {
   await Clipboard.copy(value, { concealed: true });
   await showToast({ style: Toast.Style.Success, title: `${title} copied` });
 }
@@ -36,47 +22,36 @@ function ItemActions({ item }: { item: PassItem }) {
 
   return (
     <ActionPanel>
+      {item.username && (
+        <Action title="Copy Username" icon={Icon.Person} onAction={() => void safely(() => copyValue("Username", item.username!))} />
+      )}
+      {item.email && (
+        <Action title="Copy Email" icon={Icon.Envelope} onAction={() => void safely(() => copyValue("Email", item.email!))} />
+      )}
       <Action
-        title="Copy Username"
+        title="Copy Username or Email"
         icon={Icon.Person}
-        onAction={() => safely(async () => {
-          if (item.username) {
-            await copySecret("Username", item.username);
-            return;
-          }
-          if (item.email) {
-            await copySecret("Email", item.email);
-            return;
-          }
+        onAction={() => void safely(async () => {
           const detail = await viewItem(item);
           const value = detail.username ?? detail.email;
           if (!value) throw new Error("This item has no username or email.");
-          await copySecret("Username or email", value);
+          await copyValue("Username or email", value);
         })}
       />
-      {item.email && (
-        <Action
-          title="Copy Email"
-          icon={Icon.Envelope}
-          onAction={() => safely(() => copySecret("Email", item.email!))}
-        />
-      )}
       <Action
         title="Copy Password"
         icon={Icon.Key}
-        onAction={() => safely(async () => {
+        onAction={() => void safely(async () => {
           const detail = await viewItem(item);
           if (!detail.password) throw new Error("This item has no password.");
-          await copySecret("Password", detail.password);
+          await copyValue("Password", detail.password);
         })}
       />
-      {item.hasTotp && (
-        <Action
-          title="Copy TOTP Code"
-          icon={Icon.Clock}
-          onAction={() => safely(async () => copySecret("TOTP code", await getTotp(item)))}
-        />
-      )}
+      <Action
+        title="Copy TOTP Code"
+        icon={Icon.Clock}
+        onAction={() => void safely(async () => copyValue("TOTP code", await getTotp(item)))}
+      />
     </ActionPanel>
   );
 }
@@ -87,7 +62,7 @@ export default function Command() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    void loadAllItems()
+    void listAllItems()
       .then(setItems)
       .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)))
       .finally(() => setLoading(false));
@@ -99,7 +74,7 @@ export default function Command() {
         <List.EmptyView
           icon={Icon.Warning}
           title="Unable to load Proton Pass"
-          description={`${error} Check that pass-cli is installed, authenticated, and configured in Vicinae preferences.`}
+          description={`${error} Check that pass-cli is installed and authenticated.`}
         />
       ) : items.length === 0 && !loading ? (
         <List.EmptyView icon={Icon.Key} title="No Proton Pass items found" />
@@ -109,9 +84,9 @@ export default function Command() {
             key={`${item.shareId}:${item.itemId}`}
             title={item.title}
             subtitle={item.username ?? item.email ?? item.vaultName}
-            keywords={[item.title, item.username ?? "", item.email ?? "", item.vaultName]}
+            keywords={[item.title, item.username ?? "", item.email ?? "", item.vaultName, item.type]}
             icon={item.hasTotp ? Icon.Lock : Icon.Key}
-            accessories={[{ text: item.vaultName }]}
+            accessories={[{ text: item.vaultName }, ...(item.hasTotp ? [{ icon: Icon.Clock, tooltip: "Has TOTP" }] : [])]}
             actions={<ItemActions item={item} />}
           />
         ))
