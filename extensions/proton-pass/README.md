@@ -6,14 +6,15 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 
 ## Features
 
-- Search all items across all Proton Pass vaults, with an inline vault filter.
+- Search all items across all Proton Pass vaults, with an inline vault filter. Search matches titles, usernames, emails, vault names, types and URLs.
 - Browse vaults and their items.
+- Colour-coded vaults: vaults and their items are tinted with a stable colour derived from the vault name (Proton's own vault colours are not exposed by `pass-cli`).
 - Open an on-demand item details view with masked secrets, URLs, notes and custom fields.
 - Copy usernames, emails, passwords and TOTP codes on demand.
 - Select any listed item in the TOTP command; the extension then asks `pass-cli` for that item's code, rather than requiring the user to know share or item IDs.
 - Generate configurable random passwords: 8–128 characters, numbers, uppercase letters and symbols.
 - Generate configurable passphrases: 3–10 words, capitalisation, numbers and separators.
-- Score generated passwords with the real `pass-cli password score` (Strong/Good/Weak/Vulnerable) and list the specific weaknesses it finds.
+- Score generated passwords with the real `pass-cli password score` (Strong/Good/Weak/Vulnerable) and list the specific weaknesses it finds, with a colour-coded strength indicator.
 - Check the strength of any password with the dedicated **Check Password Strength** command.
 - Keyboard shortcuts for the common actions: copy password (Ctrl+Shift+C), copy username (Ctrl+Shift+U), copy TOTP (Ctrl+Shift+T), open in browser (Ctrl+Shift+O).
 - Choose your primary and secondary actions for Search items, so Enter does what you want (view, copy or open).

@@ -8,7 +8,12 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { copySecret as copyShared, primaryUrl, SHORTCUTS } from "./actions";
+import {
+	copySecret as copyShared,
+	primaryUrl,
+	SHORTCUTS,
+	vaultColor,
+} from "./actions";
 import {
 	clearCache,
 	currentCacheEpoch,
@@ -112,7 +117,17 @@ function VaultItems({ vault }: { vault: Vault }) {
 						key={`${item.shareId}:${item.itemId}`}
 						title={item.title}
 						subtitle={item.username ?? item.email ?? item.type}
-						icon={item.hasTotp ? Icon.Lock : Icon.Key}
+						keywords={[
+							item.title,
+							item.username ?? "",
+							item.email ?? "",
+							item.type,
+							...(item.urls ?? []),
+						]}
+						icon={{
+							source: item.hasTotp ? Icon.Lock : Icon.Key,
+							tintColor: vaultColor(vault.name),
+						}}
 						accessories={
 							item.hasTotp
 								? [
@@ -310,9 +325,16 @@ export default function Command() {
 						accessories={
 							vault.itemCount === undefined
 								? []
-								: [{ text: `${vault.itemCount} items` }]
+								: [
+										{
+											tag: {
+												value: `${vault.itemCount} items`,
+												color: vaultColor(vault.name),
+											},
+										},
+									]
 						}
-						icon={Icon.Folder}
+						icon={{ source: Icon.Folder, tintColor: vaultColor(vault.name) }}
 						actions={
 							<ActionPanel>
 								<Action.Push

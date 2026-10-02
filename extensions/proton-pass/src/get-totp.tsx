@@ -8,7 +8,7 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useEffect, useMemo, useState } from "react";
-import { copySecret, SHORTCUTS } from "./actions";
+import { copySecret, SHORTCUTS, vaultColor } from "./actions";
 import {
 	clearCache,
 	currentCacheEpoch,
@@ -130,8 +130,12 @@ export default function Command() {
 								item.username ?? "",
 								item.email ?? "",
 								item.vaultName,
+								...(item.urls ?? []),
 							]}
-							icon={Icon.Clock}
+							icon={{
+								source: Icon.Clock,
+								tintColor: vaultColor(item.vaultName),
+							}}
 							accessories={[
 								{
 									tag: {

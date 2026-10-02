@@ -16,6 +16,7 @@ import {
 	orderedActionIds,
 	primaryUrl,
 	SHORTCUTS,
+	vaultColor,
 } from "./actions";
 import {
 	clearCache,
@@ -414,7 +415,7 @@ const VaultFilter = memo(function VaultFilter({
 					key={vault.shareId}
 					title={vault.name}
 					value={vault.shareId}
-					icon={Icon.Folder}
+					icon={{ source: Icon.Folder, tintColor: vaultColor(vault.name) }}
 				/>
 			))}
 		</List.Dropdown>
@@ -435,10 +436,16 @@ function ItemRows({ items }: { items: PassItem[] }) {
 						item.email ?? "",
 						item.vaultName,
 						item.type,
+						...(item.urls ?? []),
 					]}
-					icon={itemIcon(item)}
+					icon={{
+						source: itemIcon(item),
+						tintColor: vaultColor(item.vaultName),
+					}}
 					accessories={[
-						{ text: item.vaultName },
+						{
+							tag: { value: item.vaultName, color: vaultColor(item.vaultName) },
+						},
 						...(item.hasTotp
 							? [{ icon: Icon.Clock, tooltip: "Has TOTP" }]
 							: []),

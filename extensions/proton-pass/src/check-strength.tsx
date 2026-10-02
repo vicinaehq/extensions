@@ -11,7 +11,17 @@ import { type PasswordScore, penaltyLabel, scorePassword } from "./pass-cli";
 
 function summary(score: PasswordScore): string {
 	const pct = Math.round(score.numericScore);
-	return `${score.label} — ${pct}%`;
+	const glyph =
+		score.label === "Strong"
+			? "🟢"
+			: score.label === "Good"
+				? "🔵"
+				: score.label === "Weak"
+					? "🟠"
+					: score.label === "Vulnerable"
+						? "🔴"
+						: "⚪";
+	return `${glyph} ${score.label} — ${pct}%`;
 }
 
 export default function Command() {

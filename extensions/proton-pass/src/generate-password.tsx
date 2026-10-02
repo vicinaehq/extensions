@@ -107,6 +107,21 @@ function optionsFor(settings: GeneratorSettings): PasswordOptions {
 			};
 }
 
+function strengthGlyph(label: PasswordScore["label"]): string {
+	switch (label) {
+		case "Strong":
+			return "🟢";
+		case "Good":
+			return "🔵";
+		case "Weak":
+			return "🟠";
+		case "Vulnerable":
+			return "🔴";
+		default:
+			return "⚪";
+	}
+}
+
 function strengthSummary(
 	score: PasswordScore | undefined,
 	loading: boolean,
@@ -114,7 +129,7 @@ function strengthSummary(
 	if (loading) return "Scoring…";
 	if (!score) return "Waiting for pass-cli…";
 	const pct = Math.round(score.numericScore);
-	const base = `${score.label} (${pct}%)`;
+	const base = `${strengthGlyph(score.label)} ${score.label} (${pct}%)`;
 	if (score.penalties.length === 0) return base;
 	return `${base} — ${score.penalties.map(penaltyLabel).join(", ")}`;
 }

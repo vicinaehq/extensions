@@ -1,5 +1,6 @@
 import {
 	Clipboard,
+	Color,
 	closeMainWindow,
 	getPreferenceValues,
 	type Keyboard,
@@ -54,6 +55,27 @@ export async function copySecret(
 /** Get the primary URL for an item (first entry), if any. */
 export function primaryUrl(urls?: string[]): string | undefined {
 	return urls && urls.length > 0 ? urls[0] : undefined;
+}
+
+// Distinct, legible colours for vault tinting. Proton's own vault colours are
+// not exposed by pass-cli, so we derive a stable colour from the vault name —
+// deterministic, so a vault keeps the same colour across machines and sessions.
+const VAULT_COLORS: Color[] = [
+	Color.Blue,
+	Color.Green,
+	Color.Magenta,
+	Color.Orange,
+	Color.Purple,
+	Color.Red,
+	Color.Yellow,
+];
+
+export function vaultColor(name: string): Color {
+	let hash = 0;
+	for (let i = 0; i < name.length; i++) {
+		hash = (hash * 31 + name.charCodeAt(i)) | 0;
+	}
+	return VAULT_COLORS[Math.abs(hash) % VAULT_COLORS.length];
 }
 
 export type ActionId =
