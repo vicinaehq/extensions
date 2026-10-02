@@ -29,11 +29,29 @@ export interface CalendarsLoadError {
 }
 
 let lastLoadError: CalendarsLoadError | null = null;
+// Dedup key for "same file, same failure mode already toasted". Re-armed on a
+// successful read so a future distinct error toasts again.
+let lastReportedKey: string | null = null;
 
 export const consumeLastLoadError = (): CalendarsLoadError | null => {
   const err = lastLoadError;
   lastLoadError = null;
   return err;
+};
+
+export const __resetLoadErrorStateForTests = (): void => {
+  lastLoadError = null;
+  lastReportedKey = null;
+};
+
+const reportLoadError = (err: CalendarsLoadError) => {
+  const key = `${err.filePath}|${err.reason}`;
+  if (lastReportedKey === key) {
+    lastLoadError = null;
+    return;
+  }
+  lastReportedKey = key;
+  lastLoadError = err;
 };
 
 // One-shot import from the old LRU Cache store, used before the JSON file existed.
@@ -73,13 +91,16 @@ export const getCalendars = (): Calendar[] => {
   if (existsSync(filePath)) {
     try {
       const data = JSON.parse(readFileSync(filePath, "utf-8")) as CalendarsFile;
-      if (data && Array.isArray(data.calendars)) return data.calendars;
-      lastLoadError = {
+      if (data && Array.isArray(data.calendars)) {
+        lastReportedKey = null;
+        return data.calendars;
+      }
+      reportLoadError({
         filePath,
         reason: "shape",
         message: "expected { version, calendars[] }",
         backupPath: null,
-      };
+      });
       console.error(`Unexpected calendars.json shape at ${filePath}`);
     } catch (error) {
       // Preserve the bad file for manual recovery instead of silently overwriting it.
@@ -95,12 +116,12 @@ export const getCalendars = (): Calendar[] => {
       } catch {
         // best-effort; fall through to empty state
       }
-      lastLoadError = {
+      reportLoadError({
         filePath,
         reason: "parse",
         message: error instanceof Error ? error.message : String(error),
         backupPath,
-      };
+      });
     }
     return [];
   }

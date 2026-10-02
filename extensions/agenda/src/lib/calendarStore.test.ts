@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync } from "node:fs";
 import { environment, Cache } from "@vicinae/api";
-import { getCalendars, setCalendars } from "./calendar";
+import { getCalendars, setCalendars, consumeLastLoadError, __resetLoadErrorStateForTests } from "./calendar";
 
 const dir = environment.supportPath;
 const file = `${dir}/calendars.json`;
@@ -21,7 +21,10 @@ const clean = () => {
 };
 
 describe("calendars store", () => {
-  beforeEach(clean);
+  beforeEach(() => {
+    clean();
+    __resetLoadErrorStateForTests();
+  });
   afterEach(clean);
 
   it("returns [] when no file exists and no legacy cache data", () => {
@@ -61,5 +64,30 @@ describe("calendars store", () => {
     );
     expect(leftovers.length).toBe(1);
     // clean() will sweep the corrupt file out too, so nothing leaks between runs.
+  });
+
+  it("reports a corrupt file once, then suppresses repeated identical failures", () => {
+    writeFileSync(file, "{ not valid json");
+    expect(getCalendars()).toEqual([]);
+    const first = consumeLastLoadError();
+    expect(first?.reason).toBe("parse");
+
+    // Same file, same parse failure on the next read should not re-report.
+    expect(getCalendars()).toEqual([]);
+    expect(consumeLastLoadError()).toBeNull();
+
+    // A successful read re-arms the reporter.
+    setCalendars(sample as any);
+    expect(getCalendars()).toEqual(sample);
+    expect(consumeLastLoadError()).toBeNull();
+  });
+
+  it("reports a new shape error after a successful read clears the previous dedup key", () => {
+    setCalendars(sample as any);
+    expect(consumeLastLoadError()).toBeNull();
+
+    writeFileSync(file, JSON.stringify({ version: 1, calendars: "not-an-array" }));
+    expect(getCalendars()).toEqual([]);
+    expect(consumeLastLoadError()?.reason).toBe("shape");
   });
 });
