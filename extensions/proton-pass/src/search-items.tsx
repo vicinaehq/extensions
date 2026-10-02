@@ -176,7 +176,6 @@ const VaultFilter = memo(function VaultFilter({
 });
 
 function ItemRows({ items }: { items: PassItem[] }) {
-  const { codes, remaining } = useTotpCodes(items);
   return (
     <>
       {items.map((item) => (
@@ -186,15 +185,7 @@ function ItemRows({ items }: { items: PassItem[] }) {
           subtitle={item.username ?? item.email ?? item.vaultName}
           keywords={[item.title, item.username ?? "", item.email ?? "", item.vaultName, item.type]}
           icon={itemIcon(item)}
-          accessories={[
-            { text: item.vaultName },
-            ...(item.hasTotp
-              ? [
-                  { tag: { value: codes[totpItemKey(item)] ?? "---", color: totpTimerColor(remaining) } },
-                  { text: `${remaining}s`, icon: Icon.Clock },
-                ]
-              : []),
-          ]}
+          accessories={[{ text: item.vaultName }, ...(item.hasTotp ? [{ icon: Icon.Clock, tooltip: "Has TOTP" }] : [])]}
           actions={<ItemActions item={item} />}
         />
       ))}
