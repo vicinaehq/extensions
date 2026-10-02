@@ -4,6 +4,7 @@ import {
   mkdirSync,
   readFileSync,
   renameSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
@@ -28,30 +29,18 @@ export interface CalendarsLoadError {
   backupPath: string | null;
 }
 
-let lastLoadError: CalendarsLoadError | null = null;
-// Dedup key for "same file, same failure mode already toasted". Re-armed on a
-// successful read so a future distinct error toasts again.
-let lastReportedKey: string | null = null;
+export type LoadCalendarsResult =
+  | { ok: true; calendars: Calendar[] }
+  | { ok: false; error: CalendarsLoadError };
 
-export const consumeLastLoadError = (): CalendarsLoadError | null => {
-  const err = lastLoadError;
-  lastLoadError = null;
-  return err;
-};
+// mtime+size cache for getCalendars. Invalidated when the file changes on
+// disk and explicitly inside writeCalendars.
+let lastReadKey: string | null = null;
+let lastReadResult: LoadCalendarsResult | null = null;
 
-export const __resetLoadErrorStateForTests = (): void => {
-  lastLoadError = null;
-  lastReportedKey = null;
-};
-
-const reportLoadError = (err: CalendarsLoadError) => {
-  const key = `${err.filePath}|${err.reason}`;
-  if (lastReportedKey === key) {
-    lastLoadError = null;
-    return;
-  }
-  lastReportedKey = key;
-  lastLoadError = err;
+export const __resetCalendarCacheForTests = (): void => {
+  lastReadKey = null;
+  lastReadResult = null;
 };
 
 // One-shot import from the old LRU Cache store, used before the JSON file existed.
@@ -83,25 +72,38 @@ const writeCalendars = (calendars: Calendar[]) => {
   const tmp = `${filePath}.tmp`;
   writeFileSync(tmp, json);
   renameSync(tmp, filePath);
+
+  lastReadKey = null;
+  lastReadResult = null;
 };
 
-export const getCalendars = (): Calendar[] => {
+export const getCalendars = (): LoadCalendarsResult => {
   const filePath = calendarsFilePath();
 
   if (existsSync(filePath)) {
+    const stat = statSync(filePath);
+    const key = `${filePath}|${stat.mtimeMs}|${stat.size}`;
+    if (lastReadKey === key && lastReadResult) {
+      return lastReadResult;
+    }
+
+    let result: LoadCalendarsResult;
     try {
       const data = JSON.parse(readFileSync(filePath, "utf-8")) as CalendarsFile;
       if (data && Array.isArray(data.calendars)) {
-        lastReportedKey = null;
-        return data.calendars;
+        result = { ok: true, calendars: data.calendars };
+      } else {
+        console.error(`Unexpected calendars.json shape at ${filePath}`);
+        result = {
+          ok: false,
+          error: {
+            filePath,
+            reason: "shape",
+            message: "expected { version, calendars[] }",
+            backupPath: null,
+          },
+        };
       }
-      reportLoadError({
-        filePath,
-        reason: "shape",
-        message: "expected { version, calendars[] }",
-        backupPath: null,
-      });
-      console.error(`Unexpected calendars.json shape at ${filePath}`);
     } catch (error) {
       // Preserve the bad file for manual recovery instead of silently overwriting it.
       const backup = `${filePath}.corrupt-${Date.now()}`;
@@ -114,22 +116,30 @@ export const getCalendars = (): Calendar[] => {
         renameSync(filePath, backup);
         backupPath = backup;
       } catch {
-        // best-effort; fall through to empty state
+        // best-effort; fall through to error result
       }
-      reportLoadError({
-        filePath,
-        reason: "parse",
-        message: error instanceof Error ? error.message : String(error),
-        backupPath,
-      });
+      result = {
+        ok: false,
+        error: {
+          filePath,
+          reason: "parse",
+          message: error instanceof Error ? error.message : String(error),
+          backupPath,
+        },
+      };
     }
-    return [];
+    lastReadKey = key;
+    lastReadResult = result;
+    return result;
   }
 
   // First run after upgrade: import from the legacy Cache store once, then persist to file.
   const migrated = migrateFromCache();
   if (migrated.length > 0) writeCalendars(migrated);
-  return migrated;
+  const result: LoadCalendarsResult = { ok: true, calendars: migrated };
+  lastReadKey = `${filePath}|missing`;
+  lastReadResult = result;
+  return result;
 };
 
 export const setCalendars = (calendars: Calendar[]) => {

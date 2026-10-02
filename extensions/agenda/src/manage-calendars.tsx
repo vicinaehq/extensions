@@ -7,32 +7,28 @@ import {
   Toast,
   useNavigation,
 } from "@vicinae/api";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import CalendarForm from "./components/CalendarForm";
 import EditCalendar from "./edit-calendar";
 import {
   getCalendars,
   setCalendars,
   getCalendarName,
-  consumeLastLoadError,
 } from "./lib/calendar";
+import { toastLoadError } from "./lib/toastLoadError";
 
 export default function ManageCalendars() {
   const { push } = useNavigation();
-  const calendars = getCalendars();
+  const [{ calendars, loadError }] = useState(() => {
+    const r = getCalendars();
+    return r.ok
+      ? { calendars: r.calendars, loadError: null }
+      : { calendars: [], loadError: r.error };
+  });
 
   useEffect(() => {
-    const err = consumeLastLoadError();
-    if (!err) return;
-    const detail = err.backupPath
-      ? `Moved to ${err.backupPath}. Reason: ${err.message}`
-      : `Reason: ${err.message}`;
-    showToast({
-      style: Toast.Style.Failure,
-      title: "Couldn't read calendars.json",
-      message: `${err.filePath}. ${detail}`,
-    });
-  }, []);
+    if (loadError) toastLoadError(loadError);
+  }, [loadError]);
 
   const removeCalendar = async (urlToRemove: string) => {
     const updatedCalendars = calendars.filter((cal) => cal.url !== urlToRemove);

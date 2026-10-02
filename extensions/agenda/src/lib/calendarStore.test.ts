@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync } from "node:fs";
 import { environment, Cache } from "@vicinae/api";
-import { getCalendars, setCalendars, consumeLastLoadError, __resetLoadErrorStateForTests } from "./calendar";
+import { getCalendars, setCalendars, __resetCalendarCacheForTests } from "./calendar";
 
 const dir = environment.supportPath;
 const file = `${dir}/calendars.json`;
@@ -14,26 +14,45 @@ const sample = [
 const clean = () => {
   if (!existsSync(dir)) return;
   for (const name of readdirSync(dir)) {
-    if (name === "calendars.json" || name.startsWith("calendars.json.corrupt-")) {
+    if (
+      name === "calendars.json" ||
+      name === "calendars.json.tmp" ||
+      name.startsWith("calendars.json.corrupt-")
+    ) {
       unlinkSync(`${dir}/${name}`);
     }
   }
 };
 
+const expectOk = (r: ReturnType<typeof getCalendars>): typeof sample => {
+  expect(r.ok).toBe(true);
+  if (!r.ok) throw new Error("expected ok: true");
+  return r.calendars;
+};
+
+const expectErr = (
+  r: ReturnType<typeof getCalendars>,
+  reason: "parse" | "shape",
+): void => {
+  expect(r.ok).toBe(false);
+  if (r.ok) throw new Error("expected ok: false");
+  expect(r.error.reason).toBe(reason);
+};
+
 describe("calendars store", () => {
   beforeEach(() => {
     clean();
-    __resetLoadErrorStateForTests();
+    __resetCalendarCacheForTests();
   });
   afterEach(clean);
 
-  it("returns [] when no file exists and no legacy cache data", () => {
-    expect(getCalendars()).toEqual([]);
+  it("returns ok with [] when no file exists and no legacy cache data", () => {
+    expect(expectOk(getCalendars())).toEqual([]);
   });
 
   it("round-trips calendars through the JSON file with a version field", () => {
     setCalendars(sample as any);
-    expect(getCalendars()).toEqual(sample);
+    expect(expectOk(getCalendars())).toEqual(sample);
 
     const onDisk = JSON.parse(readFileSync(file, "utf-8"));
     expect(onDisk.version).toBe(1);
@@ -45,20 +64,20 @@ describe("calendars store", () => {
       .spyOn(Cache.prototype, "get")
       .mockReturnValue(JSON.stringify(sample));
 
-    expect(getCalendars()).toEqual(sample);
+    expect(expectOk(getCalendars())).toEqual(sample);
     expect(existsSync(file)).toBe(true);
 
-    // Subsequent reads come from the file, independent of the legacy cache.
+    // Subsequent reads come from the file (or the mtime cache), independent of the legacy cache.
     getSpy.mockReturnValue(undefined);
-    expect(getCalendars()).toEqual(sample);
+    expect(expectOk(getCalendars())).toEqual(sample);
     getSpy.mockRestore();
   });
 
-  it("moves a corrupt calendars.json aside and returns [] instead of overwriting silently", () => {
+  it("moves a corrupt calendars.json aside and returns ok: false with reason 'parse'", () => {
     setCalendars(sample as any);
     writeFileSync(file, "{ not valid json");
 
-    expect(getCalendars()).toEqual([]);
+    expectErr(getCalendars(), "parse");
     const leftovers = readdirSync(dir).filter((f) =>
       f.startsWith("calendars.json.corrupt-"),
     );
@@ -66,28 +85,21 @@ describe("calendars store", () => {
     // clean() will sweep the corrupt file out too, so nothing leaks between runs.
   });
 
-  it("reports a corrupt file once, then suppresses repeated identical failures", () => {
-    writeFileSync(file, "{ not valid json");
-    expect(getCalendars()).toEqual([]);
-    const first = consumeLastLoadError();
-    expect(first?.reason).toBe("parse");
-
-    // Same file, same parse failure on the next read should not re-report.
-    expect(getCalendars()).toEqual([]);
-    expect(consumeLastLoadError()).toBeNull();
-
-    // A successful read re-arms the reporter.
-    setCalendars(sample as any);
-    expect(getCalendars()).toEqual(sample);
-    expect(consumeLastLoadError()).toBeNull();
+  it("returns ok: false with reason 'shape' when calendars is not an array", () => {
+    writeFileSync(file, JSON.stringify({ version: 1, calendars: "not-an-array" }));
+    const r = getCalendars();
+    expectErr(r, "shape");
+    if (!r.ok) expect(r.error.backupPath).toBeNull();
   });
 
-  it("reports a new shape error after a successful read clears the previous dedup key", () => {
+  it("invalidates the read cache when setCalendars writes a new file", () => {
     setCalendars(sample as any);
-    expect(consumeLastLoadError()).toBeNull();
+    expect(expectOk(getCalendars())).toEqual(sample);
 
-    writeFileSync(file, JSON.stringify({ version: 1, calendars: "not-an-array" }));
-    expect(getCalendars()).toEqual([]);
-    expect(consumeLastLoadError()?.reason).toBe("shape");
+    const updated = [
+      { url: "https://example.com/c.ics", name: "C", color: "green" },
+    ];
+    setCalendars(updated as any);
+    expect(expectOk(getCalendars())).toEqual(updated);
   });
 });

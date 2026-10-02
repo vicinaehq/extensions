@@ -5,7 +5,8 @@ import type { CalendarResponse, VEvent } from "node-ical";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Calendar } from "../lib/types";
-import { getCalendars, consumeLastLoadError } from "../lib/calendar";
+import { getCalendars } from "../lib/calendar";
+import type { LoadCalendarsResult } from "../lib/calendar";
 import { saveToCache, loadFromCache } from "../lib/cache";
 import {
   sortEvents,
@@ -17,6 +18,7 @@ import {
 } from "../lib/eventProcessing";
 import { CACHE_KEY } from "../lib/constants";
 import { isLocalPath, expandPath } from "../lib/localPath";
+import { toastLoadError, nextLoadErrorKey } from "../lib/toastLoadError";
 
 async function fetchICSData(url: string): Promise<CalendarResponse> {
   if (isLocalPath(url)) {
@@ -46,7 +48,10 @@ async function fetchICSData(url: string): Promise<CalendarResponse> {
 }
 
 export function useCalendarData(refreshInterval: number) {
-  const [calendars, setCalendars] = useState<Calendar[]>(() => getCalendars());
+  const [loadResult] = useState<LoadCalendarsResult>(() => getCalendars());
+  const [calendars, setCalendars] = useState<Calendar[]>(
+    loadResult.ok ? loadResult.calendars : [],
+  );
   const [eventsByDate, setEventsByDate] = useState<Record<string, VEvent[]>>(
     {},
   );
@@ -55,6 +60,7 @@ export function useCalendarData(refreshInterval: number) {
   const [refetchTrigger, setRefetchTrigger] = useState<number>(0);
 
   const eventCalendarsRef = useRef(new Map<string, string>());
+  const lastToastedErrorKey = useRef<string | null>(null);
 
   const fetchCalendarData = async (forceRefresh = false) => {
     if (calendars.length === 0) {
@@ -165,16 +171,12 @@ export function useCalendarData(refreshInterval: number) {
   };
 
   useEffect(() => {
-    const loadErr = consumeLastLoadError();
-    if (loadErr) {
-      const detail = loadErr.backupPath
-        ? `Moved to ${loadErr.backupPath}. Reason: ${loadErr.message}`
-        : `Reason: ${loadErr.message}`;
-      showToast({
-        style: Toast.Style.Failure,
-        title: "Couldn't read calendars.json",
-        message: `${loadErr.filePath}. ${detail}`,
-      });
+    // Surface any initial load error, then let the poll below continue to
+    // monitor the file. `loadResult` is stable for the lifetime of the hook.
+    const initialKey = nextLoadErrorKey(lastToastedErrorKey.current, loadResult);
+    if (initialKey !== null && initialKey !== lastToastedErrorKey.current) {
+      lastToastedErrorKey.current = initialKey;
+      if (!loadResult.ok) toastLoadError(loadResult.error);
     }
 
     fetchCalendarData();
@@ -185,22 +187,18 @@ export function useCalendarData(refreshInterval: number) {
     );
 
     const cacheCheckInterval = setInterval(() => {
-      const currentCalendars = getCalendars();
-      const err = consumeLastLoadError();
-      if (err) {
-        const detail = err.backupPath
-          ? `Moved to ${err.backupPath}. Reason: ${err.message}`
-          : `Reason: ${err.message}`;
-        showToast({
-          style: Toast.Style.Failure,
-          title: "Couldn't read calendars.json",
-          message: `${err.filePath}. ${detail}`,
-        });
+      const current = getCalendars();
+      const key = nextLoadErrorKey(lastToastedErrorKey.current, current);
+      if (key !== null && key !== lastToastedErrorKey.current) {
+        lastToastedErrorKey.current = key;
+        if (!current.ok) toastLoadError(current.error);
       }
-      if (calendarsChanged(currentCalendars, calendars)) {
-        setCalendars(currentCalendars);
+      if (current.ok && calendarsChanged(current.calendars, calendars)) {
+        setCalendars(current.calendars);
         LocalStorage.removeItem(CACHE_KEY);
         setRefetchTrigger((prev) => prev + 1);
+      } else if (!current.ok) {
+        setCalendars([]);
       }
     }, 2000);
 
@@ -208,7 +206,7 @@ export function useCalendarData(refreshInterval: number) {
       clearInterval(interval);
       clearInterval(cacheCheckInterval);
     };
-  }, [refreshInterval, refetchTrigger]);
+  }, [refreshInterval, refetchTrigger, loadResult]);
 
   return {
     calendars,

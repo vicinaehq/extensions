@@ -32,7 +32,8 @@ export default function CalendarForm({
       return;
     }
 
-    const existingCalendars = getCalendars();
+    const existing = getCalendars();
+    const existingCalendars = existing.ok ? existing.calendars : [];
 
     const calendarData = {
       url: url!,
