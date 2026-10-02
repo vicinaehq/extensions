@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { rmSync, readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync } from "node:fs";
 import { environment, Cache } from "@vicinae/api";
 import { getCalendars, setCalendars } from "./calendar";
 
@@ -11,7 +11,14 @@ const sample = [
   { url: "https://example.com/b.ics", name: "B", color: "red" },
 ];
 
-const clean = () => rmSync(dir, { recursive: true, force: true });
+const clean = () => {
+  if (!existsSync(dir)) return;
+  for (const name of readdirSync(dir)) {
+    if (name === "calendars.json" || name.startsWith("calendars.json.corrupt-")) {
+      unlinkSync(`${dir}/${name}`);
+    }
+  }
+};
 
 describe("calendars store", () => {
   beforeEach(clean);
@@ -53,5 +60,6 @@ describe("calendars store", () => {
       f.startsWith("calendars.json.corrupt-"),
     );
     expect(leftovers.length).toBe(1);
+    // clean() will sweep the corrupt file out too, so nothing leaks between runs.
   });
 });

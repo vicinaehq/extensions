@@ -5,7 +5,7 @@ import type { CalendarResponse, VEvent } from "node-ical";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Calendar } from "../lib/types";
-import { getCalendars } from "../lib/calendar";
+import { getCalendars, consumeLastLoadError } from "../lib/calendar";
 import { saveToCache, loadFromCache } from "../lib/cache";
 import {
   sortEvents,
@@ -165,6 +165,18 @@ export function useCalendarData(refreshInterval: number) {
   };
 
   useEffect(() => {
+    const loadErr = consumeLastLoadError();
+    if (loadErr) {
+      const detail = loadErr.backupPath
+        ? `Moved to ${loadErr.backupPath}. Reason: ${loadErr.message}`
+        : `Reason: ${loadErr.message}`;
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Couldn't read calendars.json",
+        message: `${loadErr.filePath}. ${detail}`,
+      });
+    }
+
     fetchCalendarData();
 
     const interval = setInterval(
@@ -174,6 +186,17 @@ export function useCalendarData(refreshInterval: number) {
 
     const cacheCheckInterval = setInterval(() => {
       const currentCalendars = getCalendars();
+      const err = consumeLastLoadError();
+      if (err) {
+        const detail = err.backupPath
+          ? `Moved to ${err.backupPath}. Reason: ${err.message}`
+          : `Reason: ${err.message}`;
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Couldn't read calendars.json",
+          message: `${err.filePath}. ${detail}`,
+        });
+      }
       if (calendarsChanged(currentCalendars, calendars)) {
         setCalendars(currentCalendars);
         LocalStorage.removeItem(CACHE_KEY);

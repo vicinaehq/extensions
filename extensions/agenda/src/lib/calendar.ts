@@ -21,6 +21,21 @@ interface CalendarsFile {
 
 const calendarsFilePath = () => join(environment.supportPath, CALENDARS_FILE);
 
+export interface CalendarsLoadError {
+  filePath: string;
+  reason: "parse" | "shape";
+  message: string;
+  backupPath: string | null;
+}
+
+let lastLoadError: CalendarsLoadError | null = null;
+
+export const consumeLastLoadError = (): CalendarsLoadError | null => {
+  const err = lastLoadError;
+  lastLoadError = null;
+  return err;
+};
+
 // One-shot import from the old LRU Cache store, used before the JSON file existed.
 const migrateFromCache = (): Calendar[] => {
   try {
@@ -59,6 +74,12 @@ export const getCalendars = (): Calendar[] => {
     try {
       const data = JSON.parse(readFileSync(filePath, "utf-8")) as CalendarsFile;
       if (data && Array.isArray(data.calendars)) return data.calendars;
+      lastLoadError = {
+        filePath,
+        reason: "shape",
+        message: "expected { version, calendars[] }",
+        backupPath: null,
+      };
       console.error(`Unexpected calendars.json shape at ${filePath}`);
     } catch (error) {
       // Preserve the bad file for manual recovery instead of silently overwriting it.
@@ -67,11 +88,19 @@ export const getCalendars = (): Calendar[] => {
         `Failed to parse ${filePath}, moving to ${backup}:`,
         error,
       );
+      let backupPath: string | null = null;
       try {
         renameSync(filePath, backup);
+        backupPath = backup;
       } catch {
         // best-effort; fall through to empty state
       }
+      lastLoadError = {
+        filePath,
+        reason: "parse",
+        message: error instanceof Error ? error.message : String(error),
+        backupPath,
+      };
     }
     return [];
   }
