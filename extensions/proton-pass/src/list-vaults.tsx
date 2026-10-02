@@ -8,7 +8,12 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { copySecret as copyShared, primaryUrl, SHORTCUTS } from "./actions";
+import {
+	copySecret as copyShared,
+	pasteValue,
+	primaryUrl,
+	SHORTCUTS,
+} from "./actions";
 import {
 	clearCache,
 	currentCacheEpoch,
@@ -233,13 +238,38 @@ function VaultItems({ vault }: { vault: Vault }) {
 									}
 								/>
 								{(item.username || item.email) && (
-									<Action.Paste
+									<Action
 										title="Paste Username"
 										icon={Icon.Person}
 										shortcut={SHORTCUTS.pasteUsername}
-										content={item.username ?? item.email ?? ""}
+										onAction={() =>
+											void safely(() =>
+												pasteValue(item.username ?? item.email ?? ""),
+											)
+										}
 									/>
 								)}
+								<Action
+									title="Paste Password"
+									icon={Icon.Key}
+									shortcut={SHORTCUTS.pastePassword}
+									onAction={() =>
+										void safely(async () => {
+											const detail = await viewItem(item);
+											if (!detail.password)
+												throw new Error("This item has no password.");
+											await pasteValue(detail.password);
+										})
+									}
+								/>
+								<Action
+									title="Paste TOTP Code"
+									icon={Icon.Clock}
+									shortcut={SHORTCUTS.pasteTotp}
+									onAction={() =>
+										void safely(async () => pasteValue(await getTotp(item)))
+									}
+								/>
 								{primaryUrl(item.urls) && (
 									<Action.OpenInBrowser
 										title="Open in Browser"

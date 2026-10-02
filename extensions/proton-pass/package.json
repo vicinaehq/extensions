@@ -89,6 +89,8 @@
         { "title": "Copy Password", "value": "copy-password" },
         { "title": "Copy TOTP Code", "value": "copy-totp" },
         { "title": "Paste Username", "value": "paste-username" },
+        { "title": "Paste Password", "value": "paste-password" },
+        { "title": "Paste TOTP Code", "value": "paste-totp" },
         { "title": "Open in Browser", "value": "open-browser" }
       ]
     },
@@ -105,6 +107,8 @@
         { "title": "Copy Password", "value": "copy-password" },
         { "title": "Copy TOTP Code", "value": "copy-totp" },
         { "title": "Paste Username", "value": "paste-username" },
+        { "title": "Paste Password", "value": "paste-password" },
+        { "title": "Paste TOTP Code", "value": "paste-totp" },
         { "title": "Open in Browser", "value": "open-browser" }
       ]
     },

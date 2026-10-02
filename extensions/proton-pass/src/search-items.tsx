@@ -14,6 +14,7 @@ import {
 	type ActionId,
 	copySecret as copyShared,
 	orderedActionIds,
+	pasteValue,
 	primaryUrl,
 	SHORTCUTS,
 } from "./actions";
@@ -313,11 +314,13 @@ function ItemActions({ item }: { item: PassItem }) {
 	const hasIdentity = Boolean(item.username || item.email);
 	const url = primaryUrl(item.urls);
 
-	// Which configurable actions this item actually supports.
+	// Which configurable actions this item supports. Password and TOTP are
+	// always offered on hover; their secrets are fetched on demand when invoked.
 	const available: ActionId[] = ["view-details"];
 	if (hasIdentity) available.push("copy-username");
 	available.push("copy-password", "copy-totp");
 	if (hasIdentity) available.push("paste-username");
+	available.push("paste-password", "paste-totp");
 	if (url) available.push("open-browser");
 
 	const render: Record<ActionId, React.ReactNode> = {
@@ -374,12 +377,40 @@ function ItemActions({ item }: { item: PassItem }) {
 			/>
 		),
 		"paste-username": (
-			<Action.Paste
+			<Action
 				key="paste-username"
 				title="Paste Username"
 				icon={Icon.Person}
 				shortcut={SHORTCUTS.pasteUsername}
-				content={item.username ?? item.email ?? ""}
+				onAction={() =>
+					void safely(() => pasteValue(item.username ?? item.email ?? ""))
+				}
+			/>
+		),
+		"paste-password": (
+			<Action
+				key="paste-password"
+				title="Paste Password"
+				icon={Icon.Key}
+				shortcut={SHORTCUTS.pastePassword}
+				onAction={() =>
+					void safely(async () => {
+						const detail = await viewItem(item);
+						if (!detail.password) throw new Error("This item has no password.");
+						await pasteValue(detail.password);
+					})
+				}
+			/>
+		),
+		"paste-totp": (
+			<Action
+				key="paste-totp"
+				title="Paste TOTP Code"
+				icon={Icon.Clock}
+				shortcut={SHORTCUTS.pasteTotp}
+				onAction={() =>
+					void safely(async () => pasteValue(await getTotp(item)))
+				}
 			/>
 		),
 		"open-browser": url ? (

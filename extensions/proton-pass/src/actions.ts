@@ -9,15 +9,17 @@ import {
 } from "@vicinae/api";
 import { copyProtected } from "./clipboard";
 
-// Keyboard shortcuts using native Linux modifiers.
+// Keyboard shortcuts using native Linux modifiers. ctrl+shift+<letter> avoids
+// the reserved ctrl+alt combinations that desktop environments intercept, and
+// each binding uses a distinct letter so none collide with one another.
 export const SHORTCUTS: Record<string, Keyboard.Shortcut> = {
-	copyPassword: { modifiers: ["ctrl", "alt"], key: "c" },
-	copyUsername: { modifiers: ["ctrl", "shift"], key: "c" },
-	copyTotp: { modifiers: ["ctrl", "alt", "shift"], key: "c" },
-	pastePassword: { modifiers: ["ctrl", "alt"], key: "v" },
-	pasteUsername: { modifiers: ["ctrl", "shift"], key: "v" },
-	pasteTotp: { modifiers: ["ctrl", "alt", "shift"], key: "v" },
-	openInBrowser: { modifiers: ["alt"], key: "return" },
+	copyPassword: { modifiers: ["ctrl", "shift"], key: "c" },
+	copyUsername: { modifiers: ["ctrl", "shift"], key: "u" },
+	copyTotp: { modifiers: ["ctrl", "shift"], key: "t" },
+	pastePassword: { modifiers: ["ctrl", "shift"], key: "p" },
+	pasteUsername: { modifiers: ["ctrl", "shift"], key: "n" },
+	pasteTotp: { modifiers: ["ctrl", "shift"], key: "y" },
+	openInBrowser: { modifiers: ["ctrl", "shift"], key: "o" },
 };
 
 type CopyPreferences = {
@@ -52,6 +54,16 @@ export async function copySecret(
 	await showToast({ style: Toast.Style.Success, title: `${title} copied` });
 }
 
+/**
+ * Paste a value straight into the active window. Uses the imperative
+ * `Clipboard.paste`, so it works after an asynchronous fetch (e.g. a password
+ * read on demand) — unlike the synchronous `Action.Paste` component. Pasting
+ * always closes the launcher so focus returns to the target field.
+ */
+export async function pasteValue(value: string): Promise<void> {
+	await Clipboard.paste(value);
+}
+
 /** Get the primary URL for an item (first entry), if any. */
 export function primaryUrl(urls?: string[]): string | undefined {
 	return urls && urls.length > 0 ? urls[0] : undefined;
@@ -63,6 +75,8 @@ export type ActionId =
 	| "copy-password"
 	| "copy-totp"
 	| "paste-username"
+	| "paste-password"
+	| "paste-totp"
 	| "open-browser";
 
 type OrderPreferences = {
@@ -76,6 +90,8 @@ const KNOWN_ACTIONS: ActionId[] = [
 	"copy-password",
 	"copy-totp",
 	"paste-username",
+	"paste-password",
+	"paste-totp",
 	"open-browser",
 ];
 
