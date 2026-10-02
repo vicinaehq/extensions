@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { nextLoadErrorKey } from "./toastLoadError";
+import { nextLoadErrorKey, shouldToastLoadError } from "./toastLoadError";
 import type { CalendarsLoadError, LoadCalendarsResult } from "./calendar";
 
 const ok: LoadCalendarsResult = { ok: true, calendars: [] };
@@ -44,5 +44,42 @@ describe("nextLoadErrorKey", () => {
         fail(err({ filePath: "/var/cal.json" })),
       ),
     ).toBe("/var/cal.json|parse");
+  });
+});
+
+describe("shouldToastLoadError", () => {
+  // Regression: a hook that only assigns the ref when `key !== null` never
+  // re-arms on success and silently swallows a re-emerging identical error.
+
+  it("toasts on the first failure and returns the new key", () => {
+    const r = shouldToastLoadError(null, fail(err()));
+    expect(r).toEqual({ key: "/tmp/calendars.json|parse", shouldToast: true });
+  });
+
+  it("does not toast on a repeated identical failure but keeps the same key", () => {
+    const r = shouldToastLoadError("/tmp/calendars.json|parse", fail(err()));
+    expect(r).toEqual({ key: "/tmp/calendars.json|parse", shouldToast: false });
+  });
+
+  it("re-arms on a successful read (returns null, no toast)", () => {
+    const r = shouldToastLoadError("/tmp/calendars.json|parse", ok);
+    expect(r).toEqual({ key: null, shouldToast: false });
+  });
+
+  it("toasts again when the same error reappears after recovery", () => {
+    // After the recovery step above, prev is null. The re-emerging error
+    // must produce a fresh toast.
+    const r = shouldToastLoadError(null, fail(err()));
+    expect(r).toEqual({ key: "/tmp/calendars.json|parse", shouldToast: true });
+  });
+
+  it("does not toast a different reason when the key still matches", () => {
+    // nextLoadErrorKey returns a different key for a different reason, so
+    // shouldToastLoadError must surface that as a new toast.
+    const r = shouldToastLoadError(
+      "/tmp/calendars.json|parse",
+      fail(err({ reason: "shape" })),
+    );
+    expect(r).toEqual({ key: "/tmp/calendars.json|shape", shouldToast: true });
   });
 });

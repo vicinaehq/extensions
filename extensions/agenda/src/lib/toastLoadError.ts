@@ -25,3 +25,15 @@ export const nextLoadErrorKey = (
   const key = `${result.error.filePath}|${result.error.reason}`;
   return prev === key ? prev : key;
 };
+
+// Combined decision for hook consumers: returns the next dedup key and whether
+// a toast should fire. The hook MUST assign `key` to its ref even when null,
+// otherwise a successful read won't re-arm and a later identical error is
+// silently swallowed.
+export const shouldToastLoadError = (
+  prev: string | null,
+  result: LoadCalendarsResult,
+): { key: string | null; shouldToast: boolean } => {
+  const key = nextLoadErrorKey(prev, result);
+  return { key, shouldToast: key !== null && key !== prev };
+};

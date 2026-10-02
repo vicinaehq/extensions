@@ -10,6 +10,7 @@ import {
 } from "@vicinae/api";
 import { Calendar } from "../lib/types";
 import { getCalendars, setCalendars, getCalendarName } from "../lib/calendar";
+import { toastLoadError } from "../lib/toastLoadError";
 import { FormValues, colorOptions } from "../lib/forms";
 import { validateCalendarForm } from "../lib/validation";
 
@@ -33,7 +34,13 @@ export default function CalendarForm({
     }
 
     const existing = getCalendars();
-    const existingCalendars = existing.ok ? existing.calendars : [];
+    if (!existing.ok) {
+      // Don't submit against an empty list — that would overwrite the
+      // (potentially recoverable) on-disk configuration.
+      toastLoadError(existing.error);
+      return;
+    }
+    const existingCalendars = existing.calendars;
 
     const calendarData = {
       url: url!,

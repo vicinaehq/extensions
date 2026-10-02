@@ -18,7 +18,7 @@ import {
 } from "../lib/eventProcessing";
 import { CACHE_KEY } from "../lib/constants";
 import { isLocalPath, expandPath } from "../lib/localPath";
-import { toastLoadError, nextLoadErrorKey } from "../lib/toastLoadError";
+import { toastLoadError, shouldToastLoadError } from "../lib/toastLoadError";
 
 async function fetchICSData(url: string): Promise<CalendarResponse> {
   if (isLocalPath(url)) {
@@ -173,10 +173,10 @@ export function useCalendarData(refreshInterval: number) {
   useEffect(() => {
     // Surface any initial load error, then let the poll below continue to
     // monitor the file. `loadResult` is stable for the lifetime of the hook.
-    const initialKey = nextLoadErrorKey(lastToastedErrorKey.current, loadResult);
-    if (initialKey !== null && initialKey !== lastToastedErrorKey.current) {
-      lastToastedErrorKey.current = initialKey;
-      if (!loadResult.ok) toastLoadError(loadResult.error);
+    const initial = shouldToastLoadError(lastToastedErrorKey.current, loadResult);
+    if (initial.key !== lastToastedErrorKey.current) {
+      lastToastedErrorKey.current = initial.key;
+      if (initial.shouldToast) toastLoadError(loadResult.error);
     }
 
     fetchCalendarData();
@@ -188,10 +188,10 @@ export function useCalendarData(refreshInterval: number) {
 
     const cacheCheckInterval = setInterval(() => {
       const current = getCalendars();
-      const key = nextLoadErrorKey(lastToastedErrorKey.current, current);
-      if (key !== null && key !== lastToastedErrorKey.current) {
-        lastToastedErrorKey.current = key;
-        if (!current.ok) toastLoadError(current.error);
+      const decision = shouldToastLoadError(lastToastedErrorKey.current, current);
+      if (decision.key !== lastToastedErrorKey.current) {
+        lastToastedErrorKey.current = decision.key;
+        if (decision.shouldToast) toastLoadError(current.error);
       }
       if (current.ok && calendarsChanged(current.calendars, calendars)) {
         setCalendars(current.calendars);

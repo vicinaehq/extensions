@@ -7,7 +7,7 @@ import {
   Toast,
   useNavigation,
 } from "@vicinae/api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import CalendarForm from "./components/CalendarForm";
 import EditCalendar from "./edit-calendar";
 import {
@@ -19,19 +19,37 @@ import { toastLoadError } from "./lib/toastLoadError";
 
 export default function ManageCalendars() {
   const { push } = useNavigation();
-  const [{ calendars, loadError }] = useState(() => {
-    const r = getCalendars();
-    return r.ok
-      ? { calendars: r.calendars, loadError: null }
-      : { calendars: [], loadError: r.error };
-  });
 
+  // Re-read on every render. The mtime cache in getCalendars makes this
+  // essentially free when the file hasn't changed, and it means the list
+  // stays in sync after the form pops back with new/edited entries.
+  const r = getCalendars();
+  const calendars = r.ok ? r.calendars : [];
+  const loadError = r.ok ? null : r.error;
+
+  const lastToastedErrorKey = useRef<string | null>(null);
   useEffect(() => {
-    if (loadError) toastLoadError(loadError);
+    if (!loadError) {
+      lastToastedErrorKey.current = null;
+      return;
+    }
+    const key = `${loadError.filePath}|${loadError.reason}`;
+    if (lastToastedErrorKey.current === key) return;
+    lastToastedErrorKey.current = key;
+    toastLoadError(loadError);
   }, [loadError]);
 
   const removeCalendar = async (urlToRemove: string) => {
-    const updatedCalendars = calendars.filter((cal) => cal.url !== urlToRemove);
+    // Re-read the file at mutation time so we never filter against a stale
+    // snapshot (which could overwrite calendars added since this view mounted).
+    const current = getCalendars();
+    if (!current.ok) {
+      toastLoadError(current.error);
+      return;
+    }
+    const updatedCalendars = current.calendars.filter(
+      (cal) => cal.url !== urlToRemove,
+    );
     setCalendars(updatedCalendars);
 
     await showToast({
@@ -56,8 +74,20 @@ export default function ManageCalendars() {
         }
       >
         <List.EmptyView
-          title="No calendars configured"
-          description="Add your first calendar to get started"
+          title={
+            loadError
+              ? "Couldn't read calendars.json"
+              : "No calendars configured"
+          }
+          description={
+            loadError
+              ? `Reason: ${loadError.message}${
+                  loadError.backupPath
+                    ? `. Backup at ${loadError.backupPath}`
+                    : ""
+                }`
+              : "Add your first calendar to get started"
+          }
           icon={Icon.Calendar}
         />
       </List>
