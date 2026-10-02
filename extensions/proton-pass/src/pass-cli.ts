@@ -68,6 +68,18 @@ function text(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
+function loginData(raw: Record<string, unknown>): Record<string, unknown> | undefined {
+  const candidates: unknown[] = [
+    raw,
+    raw.content,
+    record(raw.content) ? raw.content.content : undefined,
+  ];
+  for (const candidate of candidates) {
+    if (record(candidate) && record(candidate.Login)) return candidate.Login;
+  }
+  return undefined;
+}
+
 function parseJson(output: string, action: string): unknown {
   try {
     return JSON.parse(output) as unknown;
@@ -95,15 +107,14 @@ export async function listVaults(): Promise<Vault[]> {
 function itemFrom(raw: unknown, vault: Vault): PassItem | undefined {
   if (!record(raw)) return undefined;
   const outer = record(raw.content) ? raw.content : raw;
-  const nested = record(outer.content) ? outer.content : undefined;
-  const login = nested && record(nested.Login) ? nested.Login : undefined;
+  const login = loginData(raw);
   const itemId = text(raw.id ?? raw.item_id ?? raw.itemId);
   const title = text(outer.title ?? raw.title ?? raw.name);
   if (!itemId || !title) return undefined;
   const urls = login && Array.isArray(login.urls)
     ? login.urls.map((entry) => (record(entry) ? text(entry.url ?? entry.href) : text(entry))).filter((v): v is string => Boolean(v))
     : undefined;
-  const totp = login && text(login.totp_uri ?? login.totpUri);
+  const totp = text(login?.totp_uri ?? login?.totpUri ?? outer.totp_uri ?? outer.totpUri ?? raw.totp_uri ?? raw.totpUri);
   return {
     shareId: vault.shareId,
     itemId,
@@ -146,10 +157,11 @@ export async function viewItem(item: PassItem): Promise<PassItemDetail> {
   const raw = unwrap(data);
   if (!record(raw)) return item;
   const outer = record(raw.content) ? raw.content : raw;
-  const nested = record(outer.content) ? outer.content : undefined;
-  const login = nested && record(nested.Login) ? nested.Login : undefined;
+  const login = loginData(raw);
   return {
     ...item,
+    username: login ? text(login.username) ?? item.username : item.username,
+    email: login ? text(login.email) ?? item.email : item.email,
     password: login ? text(login.password) : text(raw.password),
     note: text(outer.note ?? raw.note),
   };
