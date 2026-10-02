@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
-import { Action, ActionPanel, Clipboard, Detail, Icon, List, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, Clipboard, Detail, getPreferenceValues, Icon, List, showToast, Toast } from "@vicinae/api";
+import { clearCache, getCachedSnapshot, setCachedSnapshot } from "./cache";
+import { copyProtected } from "./clipboard";
 import { getTotp, listVaultsAndItems, PassItem, PassItemDetail, viewItem, Vault } from "./pass-cli";
+
+type Preferences = {
+  enableBackgroundRefresh?: boolean;
+};
 
 function itemIcon(item: PassItem): Icon {
   if (item.hasTotp) return Icon.Lock;
@@ -23,8 +29,9 @@ function mask(value: string): string {
   return "•".repeat(Math.min(Math.max(value.length, 8), 24));
 }
 
-async function copySecret(title: string, value: string, concealed = true): Promise<void> {
-  await Clipboard.copy(value, { concealed });
+async function copySecret(title: string, value: string, concealed = true, sensitive = false): Promise<void> {
+  if (sensitive) await copyProtected(value);
+  else await Clipboard.copy(value, { concealed });
   await showToast({ style: Toast.Style.Success, title: `${title} copied` });
 }
 
@@ -69,8 +76,8 @@ function ItemDetailView({ item }: { item: PassItem }) {
         <ActionPanel>
           {detail.username && <Action title="Copy Username" icon={Icon.Person} onAction={() => void copySecret("Username", detail.username!)} />}
           {detail.email && <Action title="Copy Email" icon={Icon.Envelope} onAction={() => void copySecret("Email", detail.email!)} />}
-          {detail.password && <Action title="Copy Password" icon={Icon.Key} onAction={() => void copySecret("Password", detail.password!)} />}
-          {detail.hasTotp && <Action title="Copy TOTP Code" icon={Icon.Clock} onAction={() => void getTotp(item).then((code) => copySecret("TOTP code", code))} />}
+          {detail.password && <Action title="Copy Password" icon={Icon.Key} onAction={() => void copySecret("Password", detail.password!, true, true)} />}
+          {detail.hasTotp && <Action title="Copy TOTP Code" icon={Icon.Clock} onAction={() => void getTotp(item).then((code) => copySecret("TOTP code", code, true, true))} />}
           {detail.note && <Action title="Copy Note" icon={Icon.BlankDocument} onAction={() => void copySecret("Note", detail.note!, false)} />}
           {detail.urls?.map((url, index) => <Action.OpenInBrowser key={url} title={`Open URL ${index + 1}`} url={url} icon={Icon.Link} />)}
           {detail.customFields?.map((field) => (
@@ -78,7 +85,7 @@ function ItemDetailView({ item }: { item: PassItem }) {
               key={field.name}
               title={`Copy ${field.name}`}
               icon={Icon.CopyClipboard}
-              onAction={() => void copySecret(field.name, field.value, field.type === "hidden")}
+              onAction={() => void copySecret(field.name, field.value, field.type === "hidden", field.type === "hidden")}
             />
           ))}
         </ActionPanel>
@@ -123,10 +130,10 @@ function ItemActions({ item }: { item: PassItem }) {
         onAction={() => void safely(async () => {
           const detail = await viewItem(item);
           if (!detail.password) throw new Error("This item has no password.");
-          await copySecret("Password", detail.password);
+          await copySecret("Password", detail.password, true, true);
         })}
       />
-      <Action title="Copy TOTP Code" icon={Icon.Clock} onAction={() => void safely(async () => copySecret("TOTP code", await getTotp(item)))} />
+      <Action title="Copy TOTP Code" icon={Icon.Clock} onAction={() => void safely(async () => copySecret("TOTP code", await getTotp(item), true, true))} />
     </ActionPanel>
   );
 }
@@ -137,16 +144,41 @@ export default function Command() {
   const [selectedVault, setSelectedVault] = useState("all");
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
+  const backgroundRefresh = getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
 
   useEffect(() => {
-    void listVaultsAndItems()
-      .then(({ vaults: loadedVaults, items: loadedItems }) => {
-        setVaults(loadedVaults);
-        setItems(loadedItems);
-      })
-      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)))
-      .finally(() => setLoading(false));
-  }, []);
+    let active = true;
+    async function loadItems(): Promise<void> {
+      const cached = await getCachedSnapshot();
+      if (cached && active) {
+        setVaults(cached.data.vaults);
+        setItems(cached.data.items);
+        if (!cached.isStale || !backgroundRefresh) {
+          setLoading(false);
+          return;
+        }
+      }
+
+      try {
+        const fresh = await listVaultsAndItems();
+        await setCachedSnapshot(fresh);
+        if (active) {
+          setVaults(fresh.vaults);
+          setItems(fresh.items);
+        }
+      } catch (reason: unknown) {
+        const message = reason instanceof Error ? reason.message : String(reason);
+        if (!cached && active) setError(message);
+        if (/authenticated|logged in|session/i.test(message)) await clearCache();
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    void loadItems();
+    return () => {
+      active = false;
+    };
+  }, [backgroundRefresh]);
 
   const visibleItems = selectedVault === "all" ? items : items.filter((item) => item.shareId === selectedVault);
 

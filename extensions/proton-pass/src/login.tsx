@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Action, ActionPanel, Icon, List, showToast, Toast } from "@vicinae/api";
+import { clearCache } from "./cache";
 import { checkAuth, login } from "./pass-cli";
 
 type AuthState = "loading" | "authenticated" | "not-authenticated";
@@ -28,6 +29,7 @@ export default function Command() {
     setError(undefined);
     try {
       await login();
+      await clearCache();
       await refresh();
       await showToast({ style: Toast.Style.Success, title: "Proton Pass login completed" });
     } catch (reason: unknown) {

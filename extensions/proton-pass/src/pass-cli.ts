@@ -1,6 +1,11 @@
 import { getPreferenceValues, open } from "@vicinae/api";
 import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
+import { extractTotpCode, passwordArgs } from "./cli-contract";
+import type { PasswordOptions } from "./cli-contract";
+
+export { extractTotpCode, passwordArgs } from "./cli-contract";
+export type { PasswordOptions } from "./cli-contract";
 
 const execFileAsync = promisify(execFile);
 
@@ -179,7 +184,15 @@ export async function listItems(vault: Vault): Promise<PassItem[]> {
 
 export async function listVaultsAndItems(): Promise<{ vaults: Vault[]; items: PassItem[] }> {
   const vaults = await listVaults();
-  const lists = await Promise.all(vaults.map((vault) => listItems(vault)));
+  const lists = new Array<PassItem[]>(vaults.length);
+  let next = 0;
+  async function worker(): Promise<void> {
+    while (next < vaults.length) {
+      const index = next++;
+      lists[index] = await listItems(vaults[index]);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(8, vaults.length) }, () => worker()));
   return { vaults, items: lists.flat().sort((a, b) => a.title.localeCompare(b.title)) };
 }
 
@@ -304,48 +317,11 @@ export async function getTotp(item: PassItem): Promise<string> {
     ),
     "item TOTP",
   );
-  if (record(data)) {
-    const values = record(data.totps) ? data.totps : data;
-    const preferredKeys = ["totp", "code", "primary"];
-    for (const key of preferredKeys) {
-      const code = text(values[key]);
-      if (code) return code;
-    }
-    for (const [key, value] of Object.entries(values).sort(([a], [b]) => a.localeCompare(b))) {
-      if (/recovery|backup/i.test(key)) continue;
-      const code = text(value);
-      if (code) return code;
-    }
-  }
+  const code = extractTotpCode(data);
+  if (code) return code;
   throw new Error(`No TOTP code is available for ${item.title}.`);
 }
 
-export type PasswordOptions = {
-  type: "random" | "passphrase";
-  length?: number;
-  words?: number;
-  includeNumbers?: boolean;
-  includeUppercase?: boolean;
-  includeSymbols?: boolean;
-  separator?: string;
-  capitalize?: boolean;
-};
-
 export async function generatePassword(options: PasswordOptions): Promise<string> {
-  const args = options.type === "random"
-    ? [
-        "password", "generate", "random",
-        ...(options.length === undefined ? [] : ["--length", String(options.length)]),
-        "--numbers", String(options.includeNumbers ?? true),
-        "--uppercase", String(options.includeUppercase ?? true),
-        "--symbols", String(options.includeSymbols ?? true),
-      ]
-    : [
-        "password", "generate", "passphrase",
-        ...(options.words === undefined ? [] : ["--count", String(options.words)]),
-        "--separator", options.separator ?? "hyphens",
-        "--capitalise", String(options.capitalize ?? true),
-        "--numbers", String(options.includeNumbers ?? true),
-      ];
-  return run(args, "generate a password");
+  return run(passwordArgs(options), "generate a password");
 }

@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
-import { Action, ActionPanel, Clipboard, Icon, List, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, Clipboard, getPreferenceValues, Icon, List, showToast, Toast } from "@vicinae/api";
+import { clearCache, getCachedVaultItems, getCachedVaults, setCachedVaultItems, setCachedVaults } from "./cache";
+import { copyProtected } from "./clipboard";
 import { listItems, listVaults, PassItem, Vault, viewItem, getTotp } from "./pass-cli";
 
-async function copyValue(title: string, value: string): Promise<void> {
-  await Clipboard.copy(value, { concealed: true });
+type Preferences = {
+  enableBackgroundRefresh?: boolean;
+};
+
+async function copyValue(title: string, value: string, sensitive = false): Promise<void> {
+  if (sensitive) await copyProtected(value);
+  else await Clipboard.copy(value, { concealed: true });
   await showToast({ style: Toast.Style.Success, title: `${title} copied` });
 }
 
@@ -11,13 +18,36 @@ function VaultItems({ vault }: { vault: Vault }) {
   const [items, setItems] = useState<PassItem[]>([]);
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
+  const backgroundRefresh = getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
 
   useEffect(() => {
-    void listItems(vault)
-      .then(setItems)
-      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)))
-      .finally(() => setLoading(false));
-  }, [vault]);
+    let active = true;
+    async function loadItems(): Promise<void> {
+      const cached = await getCachedVaultItems(vault.shareId);
+      if (cached && active) {
+        setItems(cached.data);
+        if (!cached.isStale || !backgroundRefresh) {
+          setLoading(false);
+          return;
+        }
+      }
+      try {
+        const fresh = await listItems(vault);
+        await setCachedVaultItems(vault.shareId, fresh);
+        if (active) setItems(fresh);
+      } catch (reason: unknown) {
+        const message = reason instanceof Error ? reason.message : String(reason);
+        if (!cached && active) setError(message);
+        if (/authenticated|logged in|session/i.test(message)) await clearCache();
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    void loadItems();
+    return () => {
+      active = false;
+    };
+  }, [backgroundRefresh, vault]);
 
   return (
     <List isLoading={loading} navigationTitle={vault.name} searchBarPlaceholder="Search items...">
@@ -59,14 +89,14 @@ function VaultItems({ vault }: { vault: Vault }) {
                   try {
                     const detail = await viewItem(item);
                     if (!detail.password) throw new Error("This item has no password.");
-                    await copyValue("Password", detail.password);
+                    await copyValue("Password", detail.password, true);
                   } catch (reason: unknown) {
                     await showToast({ style: Toast.Style.Failure, title: "Unable to copy password", message: reason instanceof Error ? reason.message : String(reason) });
                   }
                 })()} />
                 <Action title="Copy TOTP Code" icon={Icon.Clock} onAction={() => void (async () => {
                   try {
-                    await copyValue("TOTP code", await getTotp(item));
+                    await copyValue("TOTP code", await getTotp(item), true);
                   } catch (reason: unknown) {
                     await showToast({ style: Toast.Style.Failure, title: "Unable to copy TOTP code", message: reason instanceof Error ? reason.message : String(reason) });
                   }
@@ -84,13 +114,36 @@ export default function Command() {
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
+  const backgroundRefresh = getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
 
   useEffect(() => {
-    void listVaults()
-      .then(setVaults)
-      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)))
-      .finally(() => setLoading(false));
-  }, []);
+    let active = true;
+    async function loadVaults(): Promise<void> {
+      const cached = await getCachedVaults();
+      if (cached && active) {
+        setVaults(cached.data);
+        if (!cached.isStale || !backgroundRefresh) {
+          setLoading(false);
+          return;
+        }
+      }
+      try {
+        const fresh = await listVaults();
+        await setCachedVaults(fresh);
+        if (active) setVaults(fresh);
+      } catch (reason: unknown) {
+        const message = reason instanceof Error ? reason.message : String(reason);
+        if (!cached && active) setError(message);
+        if (/authenticated|logged in|session/i.test(message)) await clearCache();
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    void loadVaults();
+    return () => {
+      active = false;
+    };
+  }, [backgroundRefresh]);
 
   return (
     <List isLoading={loading} searchBarPlaceholder="Search Proton Pass vaults...">

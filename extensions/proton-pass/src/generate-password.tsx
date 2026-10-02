@@ -1,5 +1,6 @@
-import { Action, ActionPanel, Clipboard, Form, getPreferenceValues, Icon, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, Form, getPreferenceValues, Icon, showToast, Toast } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { copyProtected } from "./clipboard";
 import { generatePassword, PasswordOptions } from "./pass-cli";
 
 type PasswordType = "random" | "passphrase";
@@ -132,7 +133,7 @@ export default function Command() {
 
   async function copy(): Promise<void> {
     if (!password) return;
-    await Clipboard.copy(password, { concealed: true });
+    await copyProtected(password);
     await showToast({ style: Toast.Style.Success, title: "Password copied" });
   }
 

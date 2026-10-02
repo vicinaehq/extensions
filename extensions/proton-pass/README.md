@@ -14,6 +14,9 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 - Generate configurable random passwords: 8–128 characters, numbers, uppercase letters and symbols.
 - Generate configurable passphrases: 3–10 words, capitalisation, numbers and separators.
 - Show a local password-strength estimate and copy-and-generate-next action.
+- Display live TOTP codes with a 30-second countdown and automatic refresh.
+- Cache vault and item metadata for fast startup while never caching passwords or TOTP values.
+- Optionally clear copied passwords and TOTP codes after a safe, configurable timeout.
 - Check or start the local Proton Pass CLI login session; browser login URLs are opened automatically when pass-cli emits one.
 - Use the official Proton Pass diamond icon for the extension and every command.
 - Configure the `pass-cli` path and default password generator settings.
@@ -51,6 +54,12 @@ Set the extension's `pass-cli path` preference to the absolute path when Vicinae
 - **Get Proton Pass TOTP Code** — lists every item; select one and choose **Copy TOTP Code**.
 - **Generate Proton Pass Password** — visible controls for length, character classes, word count and separators.
 - **Login to Proton Pass** — checks the CLI session and starts browser login when required.
+
+Run the deterministic CLI contract tests with:
+
+```bash
+npm test
+```
 
 The extension deliberately does not cache passwords or TOTP values. Item listing requests `--show-secrets` only so Proton Pass can return username, email and TOTP metadata; the extension retains only non-secret item metadata. Passwords and TOTP values are fetched on demand and copied with concealed clipboard handling.
 

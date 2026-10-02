@@ -78,12 +78,60 @@
         { "title": "Random", "value": "random" },
         { "title": "Passphrase", "value": "passphrase" }
       ]
+    },
+    {
+      "name": "enableBackgroundRefresh",
+      "type": "checkbox",
+      "required": false,
+      "title": "Background metadata refresh",
+      "label": "Refresh cached vault and item metadata in the background",
+      "description": "Show cached metadata immediately while refreshing stale entries.",
+      "default": true
+    },
+    {
+      "name": "cacheExpiration",
+      "type": "dropdown",
+      "required": false,
+      "title": "Metadata cache expiration",
+      "description": "How long vault and item metadata remains fresh.",
+      "default": "5",
+      "data": [
+        { "title": "5 minutes", "value": "5" },
+        { "title": "1 hour", "value": "60" },
+        { "title": "5 hours", "value": "300" },
+        { "title": "1 day", "value": "1440" },
+        { "title": "7 days", "value": "10080" }
+      ]
+    },
+    {
+      "name": "copyPasswordTransient",
+      "type": "checkbox",
+      "required": false,
+      "title": "Transient password and TOTP clipboard",
+      "label": "Clear copied passwords and TOTP codes automatically",
+      "description": "Only clears the clipboard if it still contains the copied secret.",
+      "default": true
+    },
+    {
+      "name": "clipboardClearSeconds",
+      "type": "dropdown",
+      "required": false,
+      "title": "Secret clipboard timeout",
+      "description": "How long copied passwords and TOTP codes remain in the clipboard.",
+      "default": "30",
+      "data": [
+        { "title": "15 seconds", "value": "15" },
+        { "title": "30 seconds", "value": "30" },
+        { "title": "60 seconds", "value": "60" },
+        { "title": "5 minutes", "value": "300" }
+      ]
     }
   ],
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",
     "lint": "vici lint",
+    "test": "node -e \"require('node:fs').rmSync('.test-build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test .test-build/pass-cli.test.js",
     "format": "biome format --write src"
   },
   "dependencies": {
