@@ -422,6 +422,44 @@ const VaultFilter = memo(function VaultFilter({
 	);
 });
 
+// Item types as exposed by the item list, with friendly labels and icons.
+const ITEM_TYPES: Array<{ value: string; title: string; icon: Icon }> = [
+	{ value: "login", title: "Logins", icon: Icon.Key },
+	{ value: "note", title: "Notes", icon: Icon.BlankDocument },
+	{ value: "credit_card", title: "Credit Cards", icon: Icon.CreditCard },
+	{ value: "identity", title: "Identities", icon: Icon.PersonCircle },
+	{ value: "alias", title: "Aliases", icon: Icon.Link },
+	{ value: "ssh_key", title: "SSH Keys", icon: Icon.Key },
+	{ value: "wifi", title: "Wi-Fi", icon: Icon.Wifi },
+	{ value: "custom", title: "Custom", icon: Icon.BlankDocument },
+];
+
+const TypeFilter = memo(function TypeFilter({
+	onChange,
+}: {
+	onChange: (value: string) => void;
+}) {
+	return (
+		<List.Dropdown
+			id="proton-pass-type-filter"
+			tooltip="Filter by type"
+			storeValue={true}
+			defaultValue="all"
+			onChange={onChange}
+		>
+			<List.Dropdown.Item title="All Types" value="all" icon={Icon.Globe01} />
+			{ITEM_TYPES.map((type) => (
+				<List.Dropdown.Item
+					key={type.value}
+					title={type.title}
+					value={type.value}
+					icon={type.icon}
+				/>
+			))}
+		</List.Dropdown>
+	);
+});
+
 function ItemRows({ items }: { items: PassItem[] }) {
 	return (
 		<>
@@ -461,12 +499,18 @@ export default function Command() {
 	const [items, setItems] = useState<PassItem[]>([]);
 	const [vaults, setVaults] = useState<Vault[]>([]);
 	const [selectedVault, setSelectedVault] = useState("all");
+	const [selectedType, setSelectedType] = useState("all");
 	const [error, setError] = useState<string>();
 	const [loading, setLoading] = useState(true);
 	const backgroundRefresh =
 		getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
-	const vaultFilter = useMemo(
-		() => <VaultFilter vaults={vaults} onChange={setSelectedVault} />,
+	const filterAccessory = useMemo(
+		() => (
+			<>
+				<VaultFilter vaults={vaults} onChange={setSelectedVault} />
+				<TypeFilter onChange={setSelectedType} />
+			</>
+		),
 		[vaults],
 	);
 
@@ -525,16 +569,17 @@ export default function Command() {
 		};
 	}, [backgroundRefresh]);
 
-	const visibleItems =
-		selectedVault === "all"
-			? items
-			: items.filter((item) => item.shareId === selectedVault);
+	const visibleItems = items.filter(
+		(item) =>
+			(selectedVault === "all" || item.shareId === selectedVault) &&
+			(selectedType === "all" || item.type === selectedType),
+	);
 
 	return (
 		<List
 			isLoading={loading}
 			searchBarPlaceholder="Search Proton Pass items..."
-			searchBarAccessory={vaultFilter}
+			searchBarAccessory={filterAccessory}
 		>
 			{error ? (
 				<List.EmptyView
