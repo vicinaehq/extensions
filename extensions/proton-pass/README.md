@@ -6,13 +6,16 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 
 ## Features
 
-- Search all items across all Proton Pass vaults.
+- Search all items across all Proton Pass vaults, with an inline vault filter.
 - Browse vaults and their items.
+- Open an on-demand item details view with masked secrets, URLs, notes and custom fields.
 - Copy usernames, emails, passwords and TOTP codes on demand.
 - Select any listed item in the TOTP command; the extension then asks `pass-cli` for that item's code, rather than requiring the user to know share or item IDs.
 - Generate configurable random passwords: 8–128 characters, numbers, uppercase letters and symbols.
 - Generate configurable passphrases: 3–10 words, capitalisation, numbers and separators.
-- Check or start the local Proton Pass CLI login session.
+- Show a local password-strength estimate and copy-and-generate-next action.
+- Check or start the local Proton Pass CLI login session; browser login URLs are opened automatically when pass-cli emits one.
+- Use the official Proton Pass diamond icon for the extension and every command.
 - Configure the `pass-cli` path and default password generator settings.
 
 ## Requirements
@@ -43,11 +46,13 @@ Set the extension's `pass-cli path` preference to the absolute path when Vicinae
 
 ## Commands
 
-- **Search Proton Pass Items** — searches every vault and exposes copy actions.
+- **Search Proton Pass Items** — searches every vault, filters by vault, opens item details and exposes copy/open actions.
 - **List Proton Pass Vaults** — opens a vault, then searches its items.
 - **Browse Proton Pass Vault** — compact all-item browser.
 - **Proton Pass TOTP Codes** — lists every item; select one and choose **Copy TOTP Code**.
-- **Generate Proton Pass Password** — use the action panel to change length, character classes, word count and separators.
-- **Login to Proton Pass** — checks the CLI session and starts `pass-cli login` when required.
+- **Generate Proton Pass Password** — visible controls for length, character classes, word count and separators.
+- **Login to Proton Pass** — checks the CLI session and starts browser login when required.
 
 The extension deliberately does not cache passwords or TOTP values. Item listing requests `--show-secrets` only so Proton Pass can return username, email and TOTP metadata; the extension retains only non-secret item metadata. Passwords and TOTP values are fetched on demand and copied with concealed clipboard handling.
+
+The square icon is derived from Proton's official Proton Pass logo mark; `extension_icon.svg` is kept alongside the raster asset as the source artwork.

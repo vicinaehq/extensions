@@ -79,6 +79,22 @@ function optionsFor(settings: GeneratorSettings): PasswordOptions {
       };
 }
 
+function strength(password: string): string {
+  if (!password) return "Waiting for pass-cli…";
+  let score = 0;
+  if (password.length >= 12) score += 1;
+  if (password.length >= 20) score += 1;
+  if (/[a-z]/.test(password)) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^a-zA-Z0-9]/.test(password)) score += 1;
+  if (/(.)\1{2,}/.test(password)) score -= 1;
+  if (score >= 6) return "Excellent";
+  if (score >= 4) return "Strong";
+  if (score >= 2) return "Fair";
+  return "Weak";
+}
+
 export default function Command() {
   const initial = useRef(defaultSettings()).current;
   const [settings, setSettings] = useState(initial);
@@ -120,6 +136,11 @@ export default function Command() {
     await showToast({ style: Toast.Style.Success, title: "Password copied" });
   }
 
+  async function copyAndGenerate(): Promise<void> {
+    await copy();
+    await generate(settings);
+  }
+
   function updateLength(value: string): void {
     const parsed = Number.parseInt(value, 10);
     if (Number.isFinite(parsed)) updateSettings((current) => ({ ...current, length: clamp(parsed, 8, 128) }));
@@ -137,11 +158,13 @@ export default function Command() {
       actions={
         <ActionPanel>
           <Action title="Copy Password" icon={Icon.CopyClipboard} onAction={() => void copy()} />
+          <Action title="Copy and Generate Next" icon={Icon.ArrowClockwise} onAction={() => void copyAndGenerate()} />
           <Action title="Generate New Password" icon={Icon.Shuffle} onAction={() => void generate(settings)} />
         </ActionPanel>
       }
     >
       <Form.Description title="Generated password" text={password || "Generating password…"} />
+      <Form.Description title="Strength" text={strength(password)} />
       <Form.Description title="Current settings" text={settingsSummary(settings)} />
       {error && <Form.Description title="Error" text={error} />}
 

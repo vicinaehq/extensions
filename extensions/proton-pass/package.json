@@ -14,6 +14,7 @@
       "title": "Browse Proton Pass Vault",
       "subtitle": "pass-cli",
       "description": "Search and copy Proton Pass credentials through the local pass-cli.",
+      "icon": "extension_icon.png",
       "mode": "view"
     },
     {
@@ -21,6 +22,7 @@
       "title": "Search Proton Pass Items",
       "subtitle": "pass-cli",
       "description": "Search all Proton Pass items across vaults and copy credentials.",
+      "icon": "extension_icon.png",
       "mode": "view"
     },
     {
@@ -28,6 +30,7 @@
       "title": "List Proton Pass Vaults",
       "subtitle": "pass-cli",
       "description": "View vaults and browse their items.",
+      "icon": "extension_icon.png",
       "mode": "view"
     },
     {
@@ -35,6 +38,7 @@
       "title": "Generate Proton Pass Password",
       "subtitle": "pass-cli",
       "description": "Generate a configurable random password or passphrase through pass-cli.",
+      "icon": "extension_icon.png",
       "mode": "view"
     },
     {
@@ -42,6 +46,7 @@
       "title": "Proton Pass TOTP Codes",
       "subtitle": "pass-cli",
       "description": "List all items, choose one, and copy its current TOTP code.",
+      "icon": "extension_icon.png",
       "mode": "view"
     },
     {
@@ -49,6 +54,7 @@
       "title": "Login to Proton Pass",
       "subtitle": "pass-cli",
       "description": "Check or start the local Proton Pass CLI session.",
+      "icon": "extension_icon.png",
       "mode": "view"
     }
   ],

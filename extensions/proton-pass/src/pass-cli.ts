@@ -1,5 +1,5 @@
-import { getPreferenceValues } from "@vicinae/api";
-import { execFile } from "node:child_process";
+import { getPreferenceValues, open } from "@vicinae/api";
+import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
@@ -177,10 +177,14 @@ export async function listItems(vault: Vault): Promise<PassItem[]> {
     .filter((item): item is PassItem => Boolean(item));
 }
 
-export async function listAllItems(): Promise<PassItem[]> {
+export async function listVaultsAndItems(): Promise<{ vaults: Vault[]; items: PassItem[] }> {
   const vaults = await listVaults();
   const lists = await Promise.all(vaults.map((vault) => listItems(vault)));
-  return lists.flat().sort((a, b) => a.title.localeCompare(b.title));
+  return { vaults, items: lists.flat().sort((a, b) => a.title.localeCompare(b.title)) };
+}
+
+export async function listAllItems(): Promise<PassItem[]> {
+  return (await listVaultsAndItems()).items;
 }
 
 export async function checkAuth(): Promise<boolean> {
@@ -194,7 +198,59 @@ export async function checkAuth(): Promise<boolean> {
 }
 
 export async function login(): Promise<string> {
-  return run(["login"], "login to Proton Pass", 10 * 60_000);
+  return new Promise((resolve, reject) => {
+    const child = spawn(cliPath(), ["login"], {
+      env: reason("login to Proton Pass"),
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let output = "";
+    let opened = false;
+    let settled = false;
+    const timer = setTimeout(() => {
+      child.kill();
+      finish(new Error("Proton Pass login timed out. Complete browser authentication and try again."));
+    }, 10 * 60_000);
+
+    function finish(error?: Error): void {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (error) reject(error);
+      else resolve(output);
+    }
+
+    function scanForLoginUrl(): void {
+      if (opened) return;
+      for (const candidate of output.match(/https?:\/\/\S+/g) ?? []) {
+        try {
+          const url = new URL(candidate.replace(/[),.;]+$/, ""));
+          if (url.protocol !== "https:" || url.host !== "account.proton.me") continue;
+          opened = true;
+          void open(url.toString()).catch(() => {
+            child.kill();
+            finish(new Error("Could not open the Proton Pass login URL."));
+          });
+          return;
+        } catch {
+          // Continue scanning output until pass-cli prints a complete URL.
+        }
+      }
+    }
+
+    child.stdout.on("data", (chunk: Buffer) => {
+      output += chunk.toString("utf8");
+      scanForLoginUrl();
+    });
+    child.stderr.on("data", (chunk: Buffer) => {
+      output += chunk.toString("utf8");
+      scanForLoginUrl();
+    });
+    child.on("error", (error) => finish(error instanceof Error ? error : new Error("pass-cli login failed.")));
+    child.on("close", (code) => {
+      if (code === 0) finish();
+      else finish(new Error(output.trim() || `pass-cli login exited with code ${code ?? "unknown"}.`));
+    });
+  });
 }
 
 function unwrap(data: unknown): unknown {

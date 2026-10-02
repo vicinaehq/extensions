@@ -34,16 +34,27 @@ function VaultItems({ vault }: { vault: Vault }) {
             icon={item.hasTotp ? Icon.Lock : Icon.Key}
             actions={
               <ActionPanel>
-                <Action title="Copy Username or Email" icon={Icon.Person} onAction={() => void (async () => {
-                  try {
-                    const detail = await viewItem(item);
-                    const value = detail.username ?? detail.email;
-                    if (!value) throw new Error("This item has no username or email.");
-                    await copyValue("Username or email", value);
-                  } catch (reason: unknown) {
-                    await showToast({ style: Toast.Style.Failure, title: "Unable to copy username", message: reason instanceof Error ? reason.message : String(reason) });
-                  }
-                })()} />
+                {(item.username || item.email) ? (
+                  <Action
+                    title={item.username ? "Copy Username" : "Copy Email"}
+                    icon={item.username ? Icon.Person : Icon.Envelope}
+                    onAction={() => void copyValue(item.username ? "Username" : "Email", item.username ?? item.email ?? "")}
+                  />
+                ) : (
+                  <Action title="Find Username or Email" icon={Icon.Person} onAction={() => void (async () => {
+                    try {
+                      const detail = await viewItem(item);
+                      const value = detail.username ?? detail.email;
+                      if (!value) throw new Error("This item has no username or email.");
+                      await copyValue(detail.username ? "Username" : "Email", value);
+                    } catch (reason: unknown) {
+                      await showToast({ style: Toast.Style.Failure, title: "Unable to copy username or email", message: reason instanceof Error ? reason.message : String(reason) });
+                    }
+                  })()} />
+                )}
+                {item.username && item.email && (
+                  <Action title="Copy Email" icon={Icon.Envelope} onAction={() => void copyValue("Email", item.email!)} />
+                )}
                 <Action title="Copy Password" icon={Icon.Key} onAction={() => void (async () => {
                   try {
                     const detail = await viewItem(item);
