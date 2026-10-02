@@ -175,6 +175,33 @@ const VaultFilter = memo(function VaultFilter({
   );
 });
 
+function ItemRows({ items }: { items: PassItem[] }) {
+  const { codes, remaining } = useTotpCodes(items);
+  return (
+    <>
+      {items.map((item) => (
+        <List.Item
+          key={`${item.shareId}:${item.itemId}`}
+          title={item.title}
+          subtitle={item.username ?? item.email ?? item.vaultName}
+          keywords={[item.title, item.username ?? "", item.email ?? "", item.vaultName, item.type]}
+          icon={itemIcon(item)}
+          accessories={[
+            { text: item.vaultName },
+            ...(item.hasTotp
+              ? [
+                  { tag: { value: codes[totpItemKey(item)] ?? "---", color: totpTimerColor(remaining) } },
+                  { text: `${remaining}s`, icon: Icon.Clock },
+                ]
+              : []),
+          ]}
+          actions={<ItemActions item={item} />}
+        />
+      ))}
+    </>
+  );
+}
+
 export default function Command() {
   const [items, setItems] = useState<PassItem[]>([]);
   const [vaults, setVaults] = useState<Vault[]>([]);
@@ -182,7 +209,6 @@ export default function Command() {
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
   const backgroundRefresh = getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
-  const { codes, remaining } = useTotpCodes(items);
   const vaultFilter = useMemo(() => <VaultFilter vaults={vaults} onChange={setSelectedVault} />, [vaults]);
 
   useEffect(() => {
@@ -232,25 +258,7 @@ export default function Command() {
       ) : visibleItems.length === 0 && !loading ? (
         <List.EmptyView icon={Icon.Key} title="No Proton Pass items found" />
       ) : (
-        visibleItems.map((item) => (
-          <List.Item
-            key={`${item.shareId}:${item.itemId}`}
-            title={item.title}
-            subtitle={item.username ?? item.email ?? item.vaultName}
-            keywords={[item.title, item.username ?? "", item.email ?? "", item.vaultName, item.type]}
-            icon={itemIcon(item)}
-            accessories={[
-              { text: item.vaultName },
-              ...(item.hasTotp
-                ? [
-                    { tag: { value: codes[totpItemKey(item)] ?? "---", color: totpTimerColor(remaining) } },
-                    { text: `${remaining}s`, icon: Icon.Clock },
-                  ]
-                : []),
-            ]}
-            actions={<ItemActions item={item} />}
-          />
-        ))
+        <ItemRows items={visibleItems} />
       )}
     </List>
   );
