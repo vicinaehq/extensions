@@ -71,7 +71,7 @@ export default function Command() {
           icon={Icon.Key}
           actions={
             <ActionPanel>
-              <Action title="Copy Password" icon={Icon.Clipboard} onAction={copy} />
+              <Action title="Copy Password" icon={Icon.CopyClipboard} onAction={copy} />
               <Action
                 title="Generate New Password"
                 icon={Icon.Shuffle}

@@ -51,7 +51,7 @@ export default function Command() {
             title={item.title}
             subtitle={item.vaultName}
             icon={Icon.Clock}
-            actions={<ActionPanel><Action title="Copy TOTP Code" icon={Icon.Clipboard} onAction={() => void copy(item)} /></ActionPanel>}
+            actions={<ActionPanel><Action title="Copy TOTP Code" icon={Icon.CopyClipboard} onAction={() => void copy(item)} /></ActionPanel>}
           />
         ))
       )}
