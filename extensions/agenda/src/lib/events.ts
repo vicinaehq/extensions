@@ -1,12 +1,9 @@
 export const isAllDayEvent = (start: Date, end: Date): boolean => {
+  const isMidnight = (date: Date): boolean =>
+    date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0;
+
   return (
-    start.getHours() === 0 &&
-    start.getMinutes() === 0 &&
-    start.getSeconds() === 0 &&
-    end.getHours() === 0 &&
-    end.getMinutes() === 0 &&
-    end.getSeconds() === 0 &&
-    end.getTime() - start.getTime() === 24 * 60 * 60 * 1000
+    isMidnight(start) && isMidnight(end) && end.getTime() > start.getTime()
   );
 };
 

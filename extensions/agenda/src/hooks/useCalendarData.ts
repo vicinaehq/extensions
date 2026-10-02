@@ -17,7 +17,12 @@ import {
 } from "../lib/eventProcessing";
 import { CACHE_KEY } from "../lib/constants";
 import { isLocalPath, expandPath } from "../lib/localPath";
-import { isMacOS, isMacOSCalendarUrl, macosCalendarUrl } from "../lib/macosUrl";
+import {
+  isMacOS,
+  isMacOSCalendarUrl,
+  macosCalendarIdentifier,
+  macosCalendarUrl,
+} from "../lib/macosUrl";
 import {
   fetchMacOSEvents,
   hasMacOSAccess,
@@ -166,7 +171,13 @@ export function useCalendarData(refreshInterval: number) {
           const rangeEnd = new Date();
           rangeEnd.setMonth(rangeEnd.getMonth() + 1);
 
-          const snapshot = await fetchMacOSEvents(rangeStart, rangeEnd);
+          const snapshot = await fetchMacOSEvents(
+            rangeStart,
+            rangeEnd,
+            macosCalendars.map((calendar) =>
+              macosCalendarIdentifier(calendar.url),
+            ),
+          );
 
           if (!hasMacOSAccess(snapshot.status)) {
             showToast({

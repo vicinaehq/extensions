@@ -64,7 +64,11 @@ export interface MacOSBridgeResult {
  * including iCloud, Google and Exchange accounts, with recurrence already
  * expanded for the requested range.
  */
-function buildScript(params: { from?: number; to?: number }): string {
+function buildScript(params: {
+  from?: number;
+  to?: number;
+  calendarIds?: string[];
+}): string {
   return `
 ObjC.import("Foundation");
 ObjC.import("EventKit");
@@ -119,24 +123,39 @@ function run() {
     return JSON.stringify(result);
   }
 
+  var wantedIds = params.calendarIds || [];
+  var selectedCalendars = $.NSMutableArray.array;
   var calendars = store.calendarsForEntityType(0);
   for (var c = 0; c < calendars.count; c++) {
     var calendar = calendars.objectAtIndex(c);
+    var identifier = unwrap(calendar.calendarIdentifier);
     result.calendars.push({
-      id: unwrap(calendar.calendarIdentifier),
+      id: identifier,
       title: unwrap(calendar.title),
       source: calendar.source ? unwrap(calendar.source.title) : null,
       allowed: Boolean(calendar.allowsContentModifications)
     });
+    if (wantedIds.indexOf(identifier) !== -1) {
+      selectedCalendars.addObject(calendar);
+    }
   }
 
-  if (params.from !== undefined && params.to !== undefined) {
+  // Only query the calendars the user selected. EventKit treats an empty
+  // calendars array as "all calendars", so gate on an actual match instead of
+  // on wantedIds being non-empty, otherwise an unmatched selection would read
+  // every event despite the consent copy.
+  var matchedCalendars = Number(selectedCalendars.count);
+  if (
+    params.from !== undefined &&
+    params.to !== undefined &&
+    matchedCalendars > 0
+  ) {
     var start = $.NSDate.dateWithTimeIntervalSince1970(params.from / 1000);
     var end = $.NSDate.dateWithTimeIntervalSince1970(params.to / 1000);
     var predicate = store.predicateForEventsWithStartDateEndDateCalendars(
       start,
       end,
-      $()
+      selectedCalendars
     );
     var events = store.eventsMatchingPredicate(predicate);
     for (var i = 0; i < events.count; i++) {
@@ -155,6 +174,7 @@ function run() {
 async function runBridge(params: {
   from?: number;
   to?: number;
+  calendarIds?: string[];
 }): Promise<MacOSBridgeResult> {
   if (!isMacOS()) {
     throw new Error("macOS Calendar is only available on macOS");
@@ -181,12 +201,17 @@ export function listMacOSCalendars(): Promise<MacOSBridgeResult> {
   return runBridge({});
 }
 
-/** Read events in the given range from all local calendars. */
+/** Read events in the given range from the selected local calendars. */
 export function fetchMacOSEvents(
   from: Date,
   to: Date,
+  calendarIds: string[],
 ): Promise<MacOSBridgeResult> {
-  return runBridge({ from: from.getTime(), to: to.getTime() });
+  return runBridge({
+    from: from.getTime(),
+    to: to.getTime(),
+    calendarIds,
+  });
 }
 
 export function hasMacOSAccess(status: number): boolean {
@@ -197,23 +222,32 @@ export function hasMacOSAccess(status: number): boolean {
 }
 
 /**
- * EventKit reports all-day events with an exclusive end date. Normalize the
- * bounds to local midnight so the shared all-day detection keeps working.
+ * EventKit reports all-day events with an exclusive end date. Snap both bounds
+ * to local midnight and keep the original span, so multi-day events are not
+ * truncated to a single day.
  */
-export function normalizeAllDayBounds(ms: number): { start: Date; end: Date } {
-  const date = new Date(ms);
-  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const end = new Date(
-    start.getFullYear(),
-    start.getMonth(),
-    start.getDate() + 1,
-  );
+export function normalizeAllDayBounds(
+  startMs: number,
+  endMs: number,
+): { start: Date; end: Date } {
+  const toLocalMidnight = (ms: number): Date => {
+    const date = new Date(ms);
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  };
+
+  const start = toLocalMidnight(startMs);
+  const rawEnd = toLocalMidnight(endMs);
+  const end =
+    rawEnd.getTime() > start.getTime()
+      ? rawEnd
+      : new Date(start.getTime() + 24 * 60 * 60 * 1000);
+
   return { start, end };
 }
 
 export function toAgendaEvent(raw: MacOSRawEvent, fallbackUid: string): VEvent {
   const bounds = raw.allDay
-    ? normalizeAllDayBounds(raw.start)
+    ? normalizeAllDayBounds(raw.start, raw.end)
     : { start: new Date(raw.start), end: new Date(raw.end) };
 
   return {

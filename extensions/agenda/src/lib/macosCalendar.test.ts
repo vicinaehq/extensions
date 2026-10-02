@@ -39,6 +39,7 @@ describe("macosCalendar", () => {
     it("snaps to local midnight with an exclusive next-day end", () => {
       const { start, end } = normalizeAllDayBounds(
         new Date(2026, 9, 1, 13, 45).getTime(),
+        new Date(2026, 9, 2).getTime(),
       );
 
       expect(start.getHours()).toBe(0);
@@ -46,6 +47,26 @@ describe("macosCalendar", () => {
       expect(start.getDate()).toBe(1);
       expect(end.getDate()).toBe(2);
       expect(end.getHours()).toBe(0);
+    });
+
+    it("preserves the full span of a multi-day event", () => {
+      const { start, end } = normalizeAllDayBounds(
+        new Date(2026, 9, 1, 13, 45).getTime(),
+        new Date(2026, 9, 4, 11, 30).getTime(),
+      );
+
+      expect(start.getDate()).toBe(1);
+      expect(end.getDate()).toBe(4);
+      expect(end.getHours()).toBe(0);
+    });
+
+    it("falls back to a single day when the end is not after the start", () => {
+      const { start, end } = normalizeAllDayBounds(
+        new Date(2026, 9, 1).getTime(),
+        new Date(2026, 9, 1).getTime(),
+      );
+
+      expect(end.getTime() - start.getTime()).toBe(24 * 60 * 60 * 1000);
     });
   });
 
@@ -83,6 +104,24 @@ describe("macosCalendar", () => {
         "fallback",
       );
 
+      expect(isAllDayEvent(new Date(event.start), new Date(event.end))).toBe(
+        true,
+      );
+    });
+
+    it("keeps the full span of multi-day all-day events", () => {
+      const event = toAgendaEvent(
+        rawEvent({
+          allDay: true,
+          start: new Date(2026, 9, 1, 0, 0).getTime(),
+          end: new Date(2026, 9, 4, 0, 0).getTime(),
+          title: "Conference",
+        }),
+        "fallback",
+      );
+
+      expect(new Date(event.start).getDate()).toBe(1);
+      expect(new Date(event.end).getDate()).toBe(4);
       expect(isAllDayEvent(new Date(event.start), new Date(event.end))).toBe(
         true,
       );

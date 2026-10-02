@@ -317,6 +317,22 @@ describe("eventProcessing", () => {
       });
     });
 
+    describe("given an event that started before but ends after reference date", () => {
+      const event = {
+        uid: "1",
+        summary: "In progress",
+        start: new Date(2024, 5, 30, 10, 0),
+        end: new Date(2024, 6, 2, 10, 0),
+      };
+      const referenceDate = new Date(2024, 6, 1);
+
+      describe("when checking", () => {
+        it("then returns true (ongoing)", () => {
+          expect(isFutureEvent(event, referenceDate)).toBe(true);
+        });
+      });
+    });
+
     describe("given an event starting exactly at reference date", () => {
       const referenceDate = new Date(2024, 6, 15, 10, 0);
       const event = {

@@ -103,14 +103,16 @@ export function calendarsChanged(a: Calendar[], b: Calendar[]): boolean {
 }
 
 /**
- * Check if an event is in the future (starts after the reference date).
+ * Check if an event is still upcoming, i.e. it has not ended yet. Ongoing
+ * events (started in the past, ending in the future) count, so multi-day and
+ * all-day events do not disappear mid-span.
  */
 export function isFutureEvent(
   event: EventLike,
   referenceDate: Date = new Date(),
 ): boolean {
-  const startDate = new Date(event.start as Date);
-  return startDate >= referenceDate;
+  const endDate = new Date(event.end as Date);
+  return endDate >= referenceDate;
 }
 
 /**

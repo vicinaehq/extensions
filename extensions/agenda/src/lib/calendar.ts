@@ -2,7 +2,7 @@ import { Cache } from "@vicinae/api";
 import { Calendar } from "./types";
 import { isLocalPath, expandPath } from "./localPath";
 import { MACOS_ENABLED_KEY } from "./constants";
-import { isMacOSCalendarUrl } from "./macosUrl";
+import { isMacOS, isMacOSCalendarUrl } from "./macosUrl";
 
 const cache = new Cache();
 
@@ -17,10 +17,12 @@ export const setCalendars = (calendars: Calendar[]) => {
 
 /**
  * Whether the user opted in to reading the local macOS Calendar. Off by
- * default, because it requires a macOS privacy permission.
+ * default, because it requires a macOS privacy permission. Always false on
+ * platforms without EventKit, so a stale flag from another machine cannot
+ * surface the feature on Linux.
  */
 export const isMacOSEnabled = (): boolean =>
-  cache.get(MACOS_ENABLED_KEY) === "true";
+  isMacOS() && cache.get(MACOS_ENABLED_KEY) === "true";
 
 export const setMacOSEnabled = (enabled: boolean): void => {
   cache.set(MACOS_ENABLED_KEY, enabled ? "true" : "false");
