@@ -28,16 +28,18 @@ function ItemActions({ item }: { item: PassItem }) {
       {item.email && (
         <Action title="Copy Email" icon={Icon.Envelope} onAction={() => void safely(() => copyValue("Email", item.email!))} />
       )}
-      <Action
-        title="Copy Username or Email"
-        icon={Icon.Person}
-        onAction={() => void safely(async () => {
-          const detail = await viewItem(item);
-          const value = detail.username ?? detail.email;
-          if (!value) throw new Error("This item has no username or email.");
-          await copyValue("Username or email", value);
-        })}
-      />
+      {!item.username && !item.email && (
+        <Action
+          title="Find Username or Email"
+          icon={Icon.Person}
+          onAction={() => void safely(async () => {
+            const detail = await viewItem(item);
+            const value = detail.username ?? detail.email;
+            if (!value) throw new Error("This item has no username or email.");
+            await copyValue(detail.username ? "Username" : "Email", value);
+          })}
+        />
+      )}
       <Action
         title="Copy Password"
         icon={Icon.Key}

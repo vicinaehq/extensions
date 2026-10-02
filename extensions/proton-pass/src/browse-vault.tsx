@@ -36,25 +36,25 @@ function ItemActions({ item }: { item: PassItem }) {
 
   return (
     <ActionPanel>
-      <Action
-        title="Copy Username"
-        icon={Icon.Person}
-        onAction={() => safely(async () => {
-          if (item.username) {
-            await copySecret("Username", item.username);
-            return;
-          }
-          if (item.email) {
-            await copySecret("Email", item.email);
-            return;
-          }
-          const detail = await viewItem(item);
-          const value = detail.username ?? detail.email;
-          if (!value) throw new Error("This item has no username or email.");
-          await copySecret("Username or email", value);
-        })}
-      />
-      {item.email && (
+      {(item.username || item.email) ? (
+        <Action
+          title={item.username ? "Copy Username" : "Copy Email"}
+          icon={item.username ? Icon.Person : Icon.Envelope}
+          onAction={() => safely(() => copySecret(item.username ? "Username" : "Email", item.username ?? item.email ?? ""))}
+        />
+      ) : (
+        <Action
+          title="Find Username or Email"
+          icon={Icon.Person}
+          onAction={() => safely(async () => {
+            const detail = await viewItem(item);
+            const value = detail.username ?? detail.email;
+            if (!value) throw new Error("This item has no username or email.");
+            await copySecret(detail.username ? "Username" : "Email", value);
+          })}
+        />
+      )}
+      {item.username && item.email && (
         <Action
           title="Copy Email"
           icon={Icon.Envelope}

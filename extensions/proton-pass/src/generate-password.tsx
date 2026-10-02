@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Clipboard, getPreferenceValues, Icon, List, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, Clipboard, Form, getPreferenceValues, Icon, showToast, Toast } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { generatePassword, PasswordOptions } from "./pass-cli";
 
@@ -54,7 +54,7 @@ function separatorLabel(separator: Separator): string {
   return separator.replace(/-/g, " ");
 }
 
-function summary(settings: GeneratorSettings): string {
+function settingsSummary(settings: GeneratorSettings): string {
   if (settings.type === "random") {
     return `${settings.length} characters · ${settings.includeUppercase ? "A-Z" : "no uppercase"} · ${settings.includeNumbers ? "0-9" : "no numbers"} · ${settings.includeSymbols ? "symbols" : "no symbols"}`;
   }
@@ -85,18 +85,22 @@ export default function Command() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
+  const generationId = useRef(0);
 
   const generate = useCallback(async (next: GeneratorSettings) => {
+    const currentGeneration = ++generationId.current;
     setLoading(true);
     setError(undefined);
     try {
       const value = await generatePassword(optionsFor(next));
-      setPassword(value);
+      if (currentGeneration === generationId.current) setPassword(value);
     } catch (reason: unknown) {
-      setPassword("");
-      setError(reason instanceof Error ? reason.message : String(reason));
+      if (currentGeneration === generationId.current) {
+        setPassword("");
+        setError(reason instanceof Error ? reason.message : String(reason));
+      }
     } finally {
-      setLoading(false);
+      if (currentGeneration === generationId.current) setLoading(false);
     }
   }, []);
 
@@ -104,13 +108,10 @@ export default function Command() {
     void generate(initial);
   }, [generate, initial]);
 
-  function update(next: GeneratorSettings): void {
+  function updateSettings(change: (current: GeneratorSettings) => GeneratorSettings): void {
+    const next = change(settings);
     setSettings(next);
     void generate(next);
-  }
-
-  function updateSettings(change: (current: GeneratorSettings) => GeneratorSettings): void {
-    update(change(settings));
   }
 
   async function copy(): Promise<void> {
@@ -119,101 +120,103 @@ export default function Command() {
     await showToast({ style: Toast.Style.Success, title: "Password copied" });
   }
 
-  async function copyAndGenerate(): Promise<void> {
-    await copy();
-    await generate(settings);
+  function updateLength(value: string): void {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isFinite(parsed)) updateSettings((current) => ({ ...current, length: clamp(parsed, 8, 128) }));
   }
 
-  const actions = (
-    <ActionPanel>
-      <Action title="Copy Password" icon={Icon.CopyClipboard} onAction={() => void copy()} />
-      <Action title="Copy and Generate Next" icon={Icon.ArrowClockwise} onAction={() => void copyAndGenerate()} />
-      <Action title="Generate New Password" icon={Icon.Shuffle} onAction={() => void generate(settings)} />
-      <Action
-        title={settings.type === "random" ? "Switch to Passphrase" : "Switch to Random Password"}
-        icon={Icon.Switch}
-        onAction={() => updateSettings((current) => ({ ...current, type: current.type === "random" ? "passphrase" : "random" }))}
-      />
-      {settings.type === "random" ? (
-        <ActionPanel.Section title="Random Password Settings">
-          <Action
-            title={`Increase Length (${settings.length})`}
-            icon={Icon.Plus}
-            onAction={() => updateSettings((current) => ({ ...current, length: clamp(current.length + 1, 8, 128) }))}
-          />
-          <Action
-            title={`Decrease Length (${settings.length})`}
-            icon={Icon.Minus}
-            onAction={() => updateSettings((current) => ({ ...current, length: clamp(current.length - 1, 8, 128) }))}
-          />
-          <Action
-            title={settings.includeNumbers ? "Disable Numbers" : "Enable Numbers"}
-            icon={Icon.Hashtag}
-            onAction={() => updateSettings((current) => ({ ...current, includeNumbers: !current.includeNumbers }))}
-          />
-          <Action
-            title={settings.includeUppercase ? "Disable Uppercase Letters" : "Enable Uppercase Letters"}
-            icon={Icon.Text}
-            onAction={() => updateSettings((current) => ({ ...current, includeUppercase: !current.includeUppercase }))}
-          />
-          <Action
-            title={settings.includeSymbols ? "Disable Symbols" : "Enable Symbols"}
-            icon={Icon.Key}
-            onAction={() => updateSettings((current) => ({ ...current, includeSymbols: !current.includeSymbols }))}
-          />
-        </ActionPanel.Section>
-      ) : (
-        <ActionPanel.Section title="Passphrase Settings">
-          <Action
-            title={`Increase Word Count (${settings.words})`}
-            icon={Icon.Plus}
-            onAction={() => updateSettings((current) => ({ ...current, words: clamp(current.words + 1, 3, 10) }))}
-          />
-          <Action
-            title={`Decrease Word Count (${settings.words})`}
-            icon={Icon.Minus}
-            onAction={() => updateSettings((current) => ({ ...current, words: clamp(current.words - 1, 3, 10) }))}
-          />
-          <Action
-            title={settings.capitalize ? "Use Lowercase Words" : "Capitalise Words"}
-            icon={Icon.Text}
-            onAction={() => updateSettings((current) => ({ ...current, capitalize: !current.capitalize }))}
-          />
-          <Action
-            title={settings.includeNumbers ? "Disable Numbers" : "Enable Numbers"}
-            icon={Icon.Hashtag}
-            onAction={() => updateSettings((current) => ({ ...current, includeNumbers: !current.includeNumbers }))}
-          />
-          <Action
-            title={`Change Separator (${separatorLabel(settings.separator)})`}
-            icon={Icon.Switch}
-            onAction={() => {
-              const index = separators.indexOf(settings.separator);
-              updateSettings((current) => ({ ...current, separator: separators[(index + 1) % separators.length] }));
-            }}
-          />
-        </ActionPanel.Section>
-      )}
-    </ActionPanel>
-  );
+  function updateWords(value: string): void {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isFinite(parsed)) updateSettings((current) => ({ ...current, words: clamp(parsed, 3, 10) }));
+  }
 
   return (
-    <List isLoading={loading} searchBarPlaceholder="Generate a secure password">
-      {error ? (
-        <List.EmptyView
-          icon={Icon.Warning}
-          title="Password generation failed"
-          description={`${error} Try again or check the pass-cli version.`}
-          actions={<ActionPanel><Action title="Retry" icon={Icon.ArrowClockwise} onAction={() => void generate(settings)} /></ActionPanel>}
-        />
+    <Form
+      navigationTitle="Generate Proton Pass Password"
+      isLoading={loading}
+      actions={
+        <ActionPanel>
+          <Action title="Copy Password" icon={Icon.CopyClipboard} onAction={() => void copy()} />
+          <Action title="Generate New Password" icon={Icon.Shuffle} onAction={() => void generate(settings)} />
+        </ActionPanel>
+      }
+    >
+      <Form.Description title="Generated password" text={password || "Generating password…"} />
+      <Form.Description title="Current settings" text={settingsSummary(settings)} />
+      {error && <Form.Description title="Error" text={error} />}
+
+      <Form.Separator />
+      <Form.Dropdown
+        id="type"
+        title="Password type"
+        value={settings.type}
+        onChange={(value) => updateSettings((current) => ({ ...current, type: value as PasswordType }))}
+      >
+        <Form.Dropdown.Item title="Random password" value="random" />
+        <Form.Dropdown.Item title="Passphrase" value="passphrase" />
+      </Form.Dropdown>
+
+      {settings.type === "random" ? (
+        <>
+          <Form.TextField
+            id="length"
+            title="Character count"
+            defaultValue={String(settings.length)}
+            info="8–128 characters; applied when you leave the field"
+            onBlur={(event) => updateLength(String(event.target.value ?? settings.length))}
+          />
+          <Form.Checkbox
+            id="uppercase"
+            label="Include uppercase letters"
+            value={settings.includeUppercase}
+            onChange={(value) => updateSettings((current) => ({ ...current, includeUppercase: value }))}
+          />
+          <Form.Checkbox
+            id="numbers"
+            label="Include numbers"
+            value={settings.includeNumbers}
+            onChange={(value) => updateSettings((current) => ({ ...current, includeNumbers: value }))}
+          />
+          <Form.Checkbox
+            id="symbols"
+            label="Include symbols"
+            value={settings.includeSymbols}
+            onChange={(value) => updateSettings((current) => ({ ...current, includeSymbols: value }))}
+          />
+        </>
       ) : (
-        <List.Item
-          title={password || "Generating password…"}
-          subtitle={summary(settings)}
-          icon={Icon.Key}
-          actions={actions}
-        />
+        <>
+          <Form.TextField
+            id="words"
+            title="Word count"
+            defaultValue={String(settings.words)}
+            info="3–10 words; applied when you leave the field"
+            onBlur={(event) => updateWords(String(event.target.value ?? settings.words))}
+          />
+          <Form.Dropdown
+            id="separator"
+            title="Separator"
+            value={settings.separator}
+            onChange={(value) => updateSettings((current) => ({ ...current, separator: value as Separator }))}
+          >
+            {separators.map((separator) => (
+              <Form.Dropdown.Item key={separator} title={separatorLabel(separator)} value={separator} />
+            ))}
+          </Form.Dropdown>
+          <Form.Checkbox
+            id="capitalize"
+            label="Capitalise words"
+            value={settings.capitalize}
+            onChange={(value) => updateSettings((current) => ({ ...current, capitalize: value }))}
+          />
+          <Form.Checkbox
+            id="passphraseNumbers"
+            label="Include numbers"
+            value={settings.includeNumbers}
+            onChange={(value) => updateSettings((current) => ({ ...current, includeNumbers: value }))}
+          />
+        </>
       )}
-    </List>
+    </Form>
   );
 }
