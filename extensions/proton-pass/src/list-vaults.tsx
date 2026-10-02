@@ -3,6 +3,7 @@ import { Action, ActionPanel, Clipboard, getPreferenceValues, Icon, List, showTo
 import { clearCache, getCachedVaultItems, getCachedVaults, setCachedVaultItems, setCachedVaults } from "./cache";
 import { copyProtected } from "./clipboard";
 import { listItems, listVaults, PassItem, Vault, viewItem, getTotp } from "./pass-cli";
+import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 
 type Preferences = {
   enableBackgroundRefresh?: boolean;
@@ -19,6 +20,7 @@ function VaultItems({ vault }: { vault: Vault }) {
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
   const backgroundRefresh = getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
+  const { codes, remaining } = useTotpCodes(items);
 
   useEffect(() => {
     let active = true;
@@ -62,6 +64,12 @@ function VaultItems({ vault }: { vault: Vault }) {
             title={item.title}
             subtitle={item.username ?? item.email ?? item.type}
             icon={item.hasTotp ? Icon.Lock : Icon.Key}
+            accessories={item.hasTotp
+              ? [
+                  { tag: { value: codes[totpItemKey(item)] ?? "---", color: totpTimerColor(remaining) } },
+                  { text: `${remaining}s`, icon: Icon.Clock },
+                ]
+              : []}
             actions={
               <ActionPanel>
                 {(item.username || item.email) ? (

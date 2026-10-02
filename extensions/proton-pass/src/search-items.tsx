@@ -3,6 +3,7 @@ import { Action, ActionPanel, Clipboard, Detail, getPreferenceValues, Icon, List
 import { clearCache, getCachedSnapshot, setCachedSnapshot } from "./cache";
 import { copyProtected } from "./clipboard";
 import { getTotp, listVaultsAndItems, PassItem, PassItemDetail, viewItem, Vault } from "./pass-cli";
+import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 
 type Preferences = {
   enableBackgroundRefresh?: boolean;
@@ -145,6 +146,7 @@ export default function Command() {
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(true);
   const backgroundRefresh = getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
+  const { codes, remaining } = useTotpCodes(items);
 
   useEffect(() => {
     let active = true;
@@ -205,7 +207,15 @@ export default function Command() {
             subtitle={item.username ?? item.email ?? item.vaultName}
             keywords={[item.title, item.username ?? "", item.email ?? "", item.vaultName, item.type]}
             icon={itemIcon(item)}
-            accessories={[{ text: item.vaultName }, ...(item.hasTotp ? [{ icon: Icon.Clock, tooltip: "Has TOTP" }] : [])]}
+            accessories={[
+              { text: item.vaultName },
+              ...(item.hasTotp
+                ? [
+                    { tag: { value: codes[totpItemKey(item)] ?? "---", color: totpTimerColor(remaining) } },
+                    { text: `${remaining}s`, icon: Icon.Clock },
+                  ]
+                : []),
+            ]}
             actions={<ItemActions item={item} />}
           />
         ))
