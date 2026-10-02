@@ -1,7 +1,6 @@
 import {
 	Action,
 	ActionPanel,
-	Clipboard,
 	Detail,
 	getPreferenceValues,
 	Icon,
@@ -9,14 +8,21 @@ import {
 	showToast,
 	Toast,
 } from "@vicinae/api";
+import type React from "react";
 import { memo, useEffect, useMemo, useState } from "react";
+import {
+	type ActionId,
+	copySecret as copyShared,
+	orderedActionIds,
+	primaryUrl,
+	SHORTCUTS,
+} from "./actions";
 import {
 	clearCache,
 	currentCacheEpoch,
 	getCachedSnapshot,
 	setCachedSnapshot,
 } from "./cache";
-import { copyProtected } from "./clipboard";
 import {
 	getTotp,
 	listVaultsAndItems,
@@ -65,9 +71,7 @@ async function copySecret(
 	concealed = true,
 	sensitive = false,
 ): Promise<void> {
-	if (sensitive) await copyProtected(value);
-	else await Clipboard.copy(value, { concealed });
-	await showToast({ style: Toast.Style.Success, title: `${title} copied` });
+	await copyShared(title, value, { concealed, sensitive });
 }
 
 export function ItemDetailView({ item }: { item: PassItem }) {
@@ -190,6 +194,7 @@ export function ItemDetailView({ item }: { item: PassItem }) {
 						<Action
 							title="Copy Username"
 							icon={Icon.Person}
+							shortcut={SHORTCUTS.copyUsername}
 							onAction={() =>
 								void safely(() => copySecret("Username", detail.username ?? ""))
 							}
@@ -208,6 +213,7 @@ export function ItemDetailView({ item }: { item: PassItem }) {
 						<Action
 							title="Copy Password"
 							icon={Icon.Key}
+							shortcut={SHORTCUTS.copyPassword}
 							onAction={() =>
 								void safely(() =>
 									copySecret("Password", detail.password ?? "", true, true),
@@ -219,11 +225,28 @@ export function ItemDetailView({ item }: { item: PassItem }) {
 						<Action
 							title="Copy TOTP Code"
 							icon={Icon.Clock}
+							shortcut={SHORTCUTS.copyTotp}
 							onAction={() =>
 								void safely(async () =>
 									copySecret("TOTP code", await getTotp(item), true, true),
 								)
 							}
+						/>
+					)}
+					{(detail.username || detail.email) && (
+						<Action.Paste
+							title="Paste Username"
+							icon={Icon.Person}
+							shortcut={SHORTCUTS.pasteUsername}
+							content={detail.username ?? detail.email ?? ""}
+						/>
+					)}
+					{detail.password && (
+						<Action.Paste
+							title="Paste Password"
+							icon={Icon.Key}
+							shortcut={SHORTCUTS.pastePassword}
+							content={detail.password}
 						/>
 					)}
 					{detail.hasTotp && (
@@ -248,6 +271,7 @@ export function ItemDetailView({ item }: { item: PassItem }) {
 							title={`Open URL ${index + 1}`}
 							url={url}
 							icon={Icon.Link}
+							shortcut={index === 0 ? SHORTCUTS.openInBrowser : undefined}
 						/>
 					))}
 					{detail.customFields?.map((field) => (
@@ -286,49 +310,47 @@ function ItemActions({ item }: { item: PassItem }) {
 		}
 	}
 
-	return (
-		<ActionPanel>
+	const hasIdentity = Boolean(item.username || item.email);
+	const url = primaryUrl(item.urls);
+
+	// Which configurable actions this item actually supports.
+	const available: ActionId[] = ["view-details"];
+	if (hasIdentity) available.push("copy-username");
+	available.push("copy-password", "copy-totp");
+	if (hasIdentity) available.push("paste-username");
+	if (url) available.push("open-browser");
+
+	const render: Record<ActionId, React.ReactNode> = {
+		"view-details": (
 			<Action.Push
+				key="view-details"
 				title="View Details"
 				icon={Icon.Eye}
 				target={<ItemDetailView item={item} />}
 			/>
-			{item.username && (
-				<Action
-					title="Copy Username"
-					icon={Icon.Person}
-					onAction={() =>
-						void safely(() => copySecret("Username", item.username ?? ""))
-					}
-				/>
-			)}
-			{item.email && (
-				<Action
-					title="Copy Email"
-					icon={Icon.Envelope}
-					onAction={() =>
-						void safely(() => copySecret("Email", item.email ?? ""))
-					}
-				/>
-			)}
-			{!item.username && !item.email && (
-				<Action
-					title="Find Username or Email"
-					icon={Icon.Person}
-					onAction={() =>
-						void safely(async () => {
-							const detail = await viewItem(item);
-							const value = detail.username ?? detail.email;
-							if (!value)
-								throw new Error("This item has no username or email.");
-							await copySecret(detail.username ? "Username" : "Email", value);
-						})
-					}
-				/>
-			)}
+		),
+		"copy-username": (
 			<Action
+				key="copy-username"
+				title={item.username ? "Copy Username" : "Copy Email"}
+				icon={item.username ? Icon.Person : Icon.Envelope}
+				shortcut={SHORTCUTS.copyUsername}
+				onAction={() =>
+					void safely(() =>
+						copySecret(
+							item.username ? "Username" : "Email",
+							item.username ?? item.email ?? "",
+						),
+					)
+				}
+			/>
+		),
+		"copy-password": (
+			<Action
+				key="copy-password"
 				title="Copy Password"
 				icon={Icon.Key}
+				shortcut={SHORTCUTS.copyPassword}
 				onAction={() =>
 					void safely(async () => {
 						const detail = await viewItem(item);
@@ -337,15 +359,61 @@ function ItemActions({ item }: { item: PassItem }) {
 					})
 				}
 			/>
+		),
+		"copy-totp": (
 			<Action
+				key="copy-totp"
 				title="Copy TOTP Code"
 				icon={Icon.Clock}
+				shortcut={SHORTCUTS.copyTotp}
 				onAction={() =>
 					void safely(async () =>
 						copySecret("TOTP code", await getTotp(item), true, true),
 					)
 				}
 			/>
+		),
+		"paste-username": (
+			<Action.Paste
+				key="paste-username"
+				title="Paste Username"
+				icon={Icon.Person}
+				shortcut={SHORTCUTS.pasteUsername}
+				content={item.username ?? item.email ?? ""}
+			/>
+		),
+		"open-browser": url ? (
+			<Action.OpenInBrowser
+				key="open-browser"
+				title="Open in Browser"
+				icon={Icon.Link}
+				shortcut={SHORTCUTS.openInBrowser}
+				url={url}
+			/>
+		) : null,
+	};
+
+	const ordered = orderedActionIds(available);
+	const findFallback = !hasIdentity ? (
+		<Action
+			key="find-identity"
+			title="Find Username or Email"
+			icon={Icon.Person}
+			onAction={() =>
+				void safely(async () => {
+					const detail = await viewItem(item);
+					const value = detail.username ?? detail.email;
+					if (!value) throw new Error("This item has no username or email.");
+					await copySecret(detail.username ? "Username" : "Email", value);
+				})
+			}
+		/>
+	) : null;
+
+	return (
+		<ActionPanel>
+			{ordered.map((id) => render[id])}
+			{findFallback}
 		</ActionPanel>
 	);
 }

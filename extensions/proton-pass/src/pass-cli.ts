@@ -1,11 +1,22 @@
 import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { getPreferenceValues, open } from "@vicinae/api";
-import type { PasswordOptions } from "./cli-contract";
-import { extractTotpCode, passwordArgs } from "./cli-contract";
+import type { PasswordOptions, PasswordScore } from "./cli-contract";
+import {
+	extractTotpCode,
+	parseScore,
+	passwordArgs,
+	scoreArgs,
+} from "./cli-contract";
 
-export type { PasswordOptions } from "./cli-contract";
-export { extractTotpCode, passwordArgs } from "./cli-contract";
+export type { PasswordOptions, PasswordScore } from "./cli-contract";
+export {
+	extractTotpCode,
+	parseScore,
+	passwordArgs,
+	penaltyLabel,
+	scoreArgs,
+} from "./cli-contract";
 
 const execFileAsync = promisify(execFile);
 let authCheck: Promise<void> | undefined;
@@ -633,4 +644,15 @@ export async function generatePassword(
 	options: PasswordOptions,
 ): Promise<string> {
 	return run(passwordArgs(options), "generate a password");
+}
+
+export async function scorePassword(
+	password: string,
+): Promise<PasswordScore | undefined> {
+	if (!password) return undefined;
+	const data = parseJson(
+		await run(scoreArgs(password), "score a password"),
+		"password score",
+	);
+	return parseScore(data);
 }

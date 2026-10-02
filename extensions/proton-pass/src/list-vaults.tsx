@@ -1,7 +1,6 @@
 import {
 	Action,
 	ActionPanel,
-	Clipboard,
 	getPreferenceValues,
 	Icon,
 	List,
@@ -9,6 +8,7 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
+import { copySecret as copyShared, primaryUrl, SHORTCUTS } from "./actions";
 import {
 	clearCache,
 	currentCacheEpoch,
@@ -17,7 +17,6 @@ import {
 	setCachedVaultItems,
 	setCachedVaults,
 } from "./cache";
-import { copyProtected } from "./clipboard";
 import {
 	getTotp,
 	listItems,
@@ -38,9 +37,7 @@ async function copyValue(
 	value: string,
 	sensitive = false,
 ): Promise<void> {
-	if (sensitive) await copyProtected(value);
-	else await Clipboard.copy(value, { concealed: true });
-	await showToast({ style: Toast.Style.Success, title: `${title} copied` });
+	await copyShared(title, value, { sensitive });
 }
 
 async function safely(action: () => Promise<void>): Promise<void> {
@@ -140,6 +137,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 									<Action
 										title={item.username ? "Copy Username" : "Copy Email"}
 										icon={item.username ? Icon.Person : Icon.Envelope}
+										shortcut={SHORTCUTS.copyUsername}
 										onAction={() =>
 											void safely(() =>
 												copyValue(
@@ -192,6 +190,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 								<Action
 									title="Copy Password"
 									icon={Icon.Key}
+									shortcut={SHORTCUTS.copyPassword}
 									onAction={() =>
 										void (async () => {
 											try {
@@ -215,6 +214,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 								<Action
 									title="Copy TOTP Code"
 									icon={Icon.Clock}
+									shortcut={SHORTCUTS.copyTotp}
 									onAction={() =>
 										void (async () => {
 											try {
@@ -232,6 +232,22 @@ function VaultItems({ vault }: { vault: Vault }) {
 										})()
 									}
 								/>
+								{(item.username || item.email) && (
+									<Action.Paste
+										title="Paste Username"
+										icon={Icon.Person}
+										shortcut={SHORTCUTS.pasteUsername}
+										content={item.username ?? item.email ?? ""}
+									/>
+								)}
+								{primaryUrl(item.urls) && (
+									<Action.OpenInBrowser
+										title="Open in Browser"
+										icon={Icon.Link}
+										shortcut={SHORTCUTS.openInBrowser}
+										url={primaryUrl(item.urls) ?? ""}
+									/>
+								)}
 							</ActionPanel>
 						}
 					/>

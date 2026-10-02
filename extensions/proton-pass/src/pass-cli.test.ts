@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { extractTotpCode, passwordArgs } from "./cli-contract";
+import {
+	extractTotpCode,
+	parseScore,
+	passwordArgs,
+	penaltyLabel,
+	scoreArgs,
+} from "./cli-contract";
 
 test("builds the exact random-password CLI contract", () => {
 	assert.deepEqual(
@@ -82,4 +88,57 @@ test("rejects TOTP URIs and non-code strings", () => {
 		extractTotpCode({ "TOTP 1": "123456", "TOTP 2": "654321" }),
 		undefined,
 	);
+});
+
+test("builds the exact password-score CLI contract", () => {
+	assert.deepEqual(scoreArgs("hunter2"), [
+		"password",
+		"score",
+		"hunter2",
+		"--output",
+		"json",
+	]);
+});
+
+test("parses the real pass-cli score JSON shape", () => {
+	assert.deepEqual(
+		parseScore({
+			numeric_score: 100,
+			password_score: "Strong",
+			penalties: [],
+		}),
+		{ numericScore: 100, label: "Strong", penalties: [] },
+	);
+	assert.deepEqual(
+		parseScore({
+			numeric_score: 2.25,
+			password_score: "Vulnerable",
+			penalties: ["NoNumbers", "Short"],
+		}),
+		{
+			numericScore: 2.25,
+			label: "Vulnerable",
+			penalties: ["NoNumbers", "Short"],
+		},
+	);
+});
+
+test("coerces malformed score output into safe defaults", () => {
+	assert.deepEqual(parseScore(null), undefined);
+	// Unknown label and non-numeric score fall back without throwing.
+	assert.deepEqual(parseScore({ password_score: "Mystery", penalties: 7 }), {
+		numericScore: 0,
+		label: "Unknown",
+		penalties: [],
+	});
+});
+
+test("maps known penalty keys to readable text", () => {
+	assert.equal(penaltyLabel("NoNumbers"), "No numbers");
+	assert.equal(
+		penaltyLabel("ContainsCommonPassword"),
+		"Contains a common password",
+	);
+	// Unknown keys are de-camel-cased rather than dropped.
+	assert.equal(penaltyLabel("SomethingNew"), "Something New");
 });

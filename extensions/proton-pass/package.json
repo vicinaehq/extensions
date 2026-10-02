@@ -42,6 +42,14 @@
       "mode": "view"
     },
     {
+      "name": "check-strength",
+      "title": "Check Password Strength",
+      "subtitle": "pass-cli",
+      "description": "Score a password with pass-cli and list its weaknesses.",
+      "icon": "extension_icon.png",
+      "mode": "view"
+    },
+    {
       "name": "login",
       "title": "Login to Proton Pass",
       "subtitle": "pass-cli",
@@ -58,6 +66,47 @@
       "title": "pass-cli path",
       "description": "Path to pass-cli, or leave as pass-cli to use PATH.",
       "default": "pass-cli"
+    },
+    {
+      "name": "closeAfterCopy",
+      "type": "checkbox",
+      "required": false,
+      "title": "Close after copy",
+      "label": "Close the Vicinae window after copying a value",
+      "description": "When enabled, copying shows a brief HUD and closes the launcher.",
+      "default": false
+    },
+    {
+      "name": "primaryAction",
+      "type": "dropdown",
+      "required": false,
+      "title": "Primary action",
+      "description": "Which action runs first (Enter) on an item in Search Proton Pass Items.",
+      "default": "view-details",
+      "data": [
+        { "title": "View Details", "value": "view-details" },
+        { "title": "Copy Username", "value": "copy-username" },
+        { "title": "Copy Password", "value": "copy-password" },
+        { "title": "Copy TOTP Code", "value": "copy-totp" },
+        { "title": "Paste Username", "value": "paste-username" },
+        { "title": "Open in Browser", "value": "open-browser" }
+      ]
+    },
+    {
+      "name": "secondaryAction",
+      "type": "dropdown",
+      "required": false,
+      "title": "Secondary action",
+      "description": "Which action is promoted to second place on an item in Search Proton Pass Items.",
+      "default": "copy-password",
+      "data": [
+        { "title": "View Details", "value": "view-details" },
+        { "title": "Copy Username", "value": "copy-username" },
+        { "title": "Copy Password", "value": "copy-password" },
+        { "title": "Copy TOTP Code", "value": "copy-totp" },
+        { "title": "Paste Username", "value": "paste-username" },
+        { "title": "Open in Browser", "value": "open-browser" }
+      ]
     },
     {
       "name": "defaultPasswordLength",

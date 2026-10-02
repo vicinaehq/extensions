@@ -8,13 +8,13 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useEffect, useMemo, useState } from "react";
+import { copySecret, SHORTCUTS } from "./actions";
 import {
 	clearCache,
 	currentCacheEpoch,
 	getCachedSnapshot,
 	setCachedSnapshot,
 } from "./cache";
-import { copyProtected } from "./clipboard";
 import { getTotp, listVaultsAndItems, type PassItem } from "./pass-cli";
 import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 
@@ -86,11 +86,7 @@ export default function Command() {
 	async function copy(item: PassItem): Promise<void> {
 		try {
 			const code = codes[totpItemKey(item)] ?? (await getTotp(item));
-			await copyProtected(code);
-			await showToast({
-				style: Toast.Style.Success,
-				title: `${item.title} TOTP copied`,
-			});
+			await copySecret(`${item.title} TOTP`, code, { sensitive: true });
 		} catch (reason: unknown) {
 			await showToast({
 				style: Toast.Style.Failure,
@@ -150,6 +146,7 @@ export default function Command() {
 									<Action
 										title="Copy TOTP Code"
 										icon={Icon.CopyClipboard}
+										shortcut={SHORTCUTS.copyTotp}
 										onAction={() => void copy(item)}
 									/>
 									<Action

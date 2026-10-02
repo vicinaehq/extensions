@@ -41,6 +41,56 @@ export function extractTotpCode(data: unknown): string | undefined {
 	return fallbackCodes.length === 1 ? fallbackCodes[0] : undefined;
 }
 
+export type PasswordScore = {
+	numericScore: number;
+	label: "Strong" | "Good" | "Weak" | "Vulnerable" | "Unknown";
+	penalties: string[];
+};
+
+const SCORE_LABELS = new Set(["Strong", "Good", "Weak", "Vulnerable"]);
+
+// Human-readable text for the penalty keys pass-cli actually emits.
+const PENALTY_LABELS: Record<string, string> = {
+	ContainsCommonPassword: "Contains a common password",
+	Consecutive: "Has consecutive characters",
+	Progressive: "Has a progressive/sequential pattern",
+	Short: "Too short",
+	TooShort: "Too short",
+	NoUppercase: "No uppercase letters",
+	NoLowercase: "No lowercase letters",
+	NoNumbers: "No numbers",
+	NoSymbols: "No symbols",
+	Repetitive: "Repetitive characters",
+	Sequential: "Sequential pattern detected",
+};
+
+export function penaltyLabel(penalty: string): string {
+	return PENALTY_LABELS[penalty] ?? penalty.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
+export function scoreArgs(password: string): string[] {
+	return ["password", "score", password, "--output", "json"];
+}
+
+export function parseScore(data: unknown): PasswordScore | undefined {
+	if (!record(data)) return undefined;
+	const numericRaw = data.numeric_score ?? data.numericScore;
+	const numericScore =
+		typeof numericRaw === "number" && Number.isFinite(numericRaw)
+			? numericRaw
+			: 0;
+	const rawLabel = text(data.password_score ?? data.passwordScore);
+	const label =
+		rawLabel && SCORE_LABELS.has(rawLabel)
+			? (rawLabel as PasswordScore["label"])
+			: "Unknown";
+	const penaltiesRaw = data.penalties;
+	const penalties = Array.isArray(penaltiesRaw)
+		? penaltiesRaw.filter((p): p is string => typeof p === "string")
+		: [];
+	return { numericScore, label, penalties };
+}
+
 export function passwordArgs(options: PasswordOptions): string[] {
 	return options.type === "random"
 		? [

@@ -8,8 +8,14 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { copyProtected } from "./clipboard";
-import { generatePassword, type PasswordOptions } from "./pass-cli";
+import { copySecret } from "./actions";
+import {
+	generatePassword,
+	type PasswordOptions,
+	type PasswordScore,
+	penaltyLabel,
+	scorePassword,
+} from "./pass-cli";
 
 type PasswordType = "random" | "passphrase";
 type Separator =
@@ -101,26 +107,24 @@ function optionsFor(settings: GeneratorSettings): PasswordOptions {
 			};
 }
 
-function strength(password: string): string {
-	if (!password) return "Waiting for pass-cli…";
-	let score = 0;
-	if (password.length >= 12) score += 1;
-	if (password.length >= 20) score += 1;
-	if (/[a-z]/.test(password)) score += 1;
-	if (/[A-Z]/.test(password)) score += 1;
-	if (/[0-9]/.test(password)) score += 1;
-	if (/[^a-zA-Z0-9]/.test(password)) score += 1;
-	if (/(.)\1{2,}/.test(password)) score -= 1;
-	if (score >= 6) return "Excellent";
-	if (score >= 4) return "Strong";
-	if (score >= 2) return "Fair";
-	return "Weak";
+function strengthSummary(
+	score: PasswordScore | undefined,
+	loading: boolean,
+): string {
+	if (loading) return "Scoring…";
+	if (!score) return "Waiting for pass-cli…";
+	const pct = Math.round(score.numericScore);
+	const base = `${score.label} (${pct}%)`;
+	if (score.penalties.length === 0) return base;
+	return `${base} — ${score.penalties.map(penaltyLabel).join(", ")}`;
 }
 
 export default function Command() {
 	const initial = useRef(defaultSettings()).current;
 	const [settings, setSettings] = useState(initial);
 	const [password, setPassword] = useState("");
+	const [score, setScore] = useState<PasswordScore>();
+	const [scoring, setScoring] = useState(false);
 	const [error, setError] = useState<string>();
 	const [loading, setLoading] = useState(true);
 	const generationId = useRef(0);
@@ -129,16 +133,28 @@ export default function Command() {
 		const currentGeneration = ++generationId.current;
 		setLoading(true);
 		setError(undefined);
+		setScore(undefined);
 		try {
 			const value = await generatePassword(optionsFor(next));
-			if (currentGeneration === generationId.current) setPassword(value);
+			if (currentGeneration !== generationId.current) return;
+			setPassword(value);
+			setLoading(false);
+			// Score the generated value with pass-cli; it is already in memory here.
+			setScoring(true);
+			try {
+				const result = await scorePassword(value);
+				if (currentGeneration === generationId.current) setScore(result);
+			} catch {
+				// Scoring is best-effort; a failure must not block generation.
+			} finally {
+				if (currentGeneration === generationId.current) setScoring(false);
+			}
 		} catch (reason: unknown) {
 			if (currentGeneration === generationId.current) {
 				setPassword("");
 				setError(reason instanceof Error ? reason.message : String(reason));
+				setLoading(false);
 			}
-		} finally {
-			if (currentGeneration === generationId.current) setLoading(false);
 		}
 	}, []);
 
@@ -156,8 +172,7 @@ export default function Command() {
 
 	async function copy(): Promise<void> {
 		if (!password) return;
-		await copyProtected(password);
-		await showToast({ style: Toast.Style.Success, title: "Password copied" });
+		await copySecret("Password", password, { sensitive: true });
 	}
 
 	async function copyAndGenerate(): Promise<void> {
@@ -224,7 +239,10 @@ export default function Command() {
 				title="Generated password"
 				text={password || "Generating password…"}
 			/>
-			<Form.Description title="Strength" text={strength(password)} />
+			<Form.Description
+				title="Strength"
+				text={strengthSummary(score, scoring)}
+			/>
 			<Form.Description
 				title="Current settings"
 				text={settingsSummary(settings)}
