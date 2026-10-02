@@ -56,9 +56,10 @@ export async function copySecret(
 
 /**
  * Paste a value straight into the active window. Uses the imperative
- * `Clipboard.paste`, so it works after an asynchronous fetch (e.g. a password
- * read on demand) — unlike the synchronous `Action.Paste` component. Pasting
- * always closes the launcher so focus returns to the target field.
+ * `Clipboard.paste`, so it still works when the value was fetched on demand
+ * (unlike the synchronous `Action.Paste` component, which needs its content up
+ * front). Whether the paste is actually injected depends on the environment;
+ * Vicinae falls back to a plain clipboard copy when it cannot paste.
  */
 export async function pasteValue(value: string): Promise<void> {
 	await Clipboard.paste(value);
