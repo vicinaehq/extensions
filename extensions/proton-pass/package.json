@@ -10,14 +10,6 @@
   "platforms": ["Linux"],
   "commands": [
     {
-      "name": "browse-vault",
-      "title": "Browse Proton Pass Vault",
-      "subtitle": "pass-cli",
-      "description": "Search and copy Proton Pass credentials through the local pass-cli.",
-      "icon": "extension_icon.png",
-      "mode": "view"
-    },
-    {
       "name": "search-items",
       "title": "Search Proton Pass Items",
       "subtitle": "pass-cli",
@@ -29,7 +21,7 @@
       "name": "list-vaults",
       "title": "List Proton Pass Vaults",
       "subtitle": "pass-cli",
-      "description": "View vaults and browse their items.",
+      "description": "View Proton Pass vaults and browse their items.",
       "icon": "extension_icon.png",
       "mode": "view"
     },
@@ -42,10 +34,10 @@
       "mode": "view"
     },
     {
-      "name": "totp-codes",
-      "title": "Proton Pass TOTP Codes",
+      "name": "get-totp",
+      "title": "Get Proton Pass TOTP Code",
       "subtitle": "pass-cli",
-      "description": "List all items, choose one, and copy its current TOTP code.",
+      "description": "List Proton Pass items, choose one, and copy its current TOTP code.",
       "icon": "extension_icon.png",
       "mode": "view"
     },
