@@ -65,8 +65,8 @@
       "required": false,
       "title": "Close after copy",
       "label": "Close the Vicinae window after copying a value",
-      "description": "When enabled, copying shows a brief HUD and closes the launcher.",
-      "default": false
+      "description": "When enabled, copying shows a brief HUD and closes the launcher so you return to your previous window. Enabled by default.",
+      "default": true
     },
     {
       "name": "vaultColors",

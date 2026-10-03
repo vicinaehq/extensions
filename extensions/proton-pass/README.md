@@ -17,7 +17,7 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 - Score generated passwords with the real `pass-cli password score` (Strong/Good/Weak/Vulnerable) and list the specific weaknesses it finds, with a colour-coded strength indicator.
 - Keyboard shortcuts for the common actions: copy password (Ctrl+Shift+C), copy username (Ctrl+Shift+U), copy TOTP (Ctrl+Shift+T), open in browser (Ctrl+Shift+O).
 - Choose your primary and secondary actions for Search items, so Enter does what you want (view, copy or open).
-- Optionally close the launcher with a brief HUD after copying a value.
+- Close the launcher with a brief HUD after copying a value (on by default, so you return to your previous window; can be turned off in preferences).
 - Display live TOTP codes with a 30-second countdown and automatic refresh.
 - Cache vault and item metadata for fast startup while never caching passwords or TOTP values.
 - Optionally clear copied passwords and TOTP codes after a safe, configurable timeout.
