@@ -234,6 +234,7 @@ export default function Command() {
 					<Action
 						title="Copy Password"
 						icon={Icon.CopyClipboard}
+						shortcut={{ key: "return", modifiers: [] }}
 						onAction={() => void safely(copy)}
 					/>
 					<Action
@@ -244,7 +245,7 @@ export default function Command() {
 					<Action
 						title="Generate New Password"
 						icon={Icon.Shuffle}
-						shortcut={{ key: "return", modifiers: [] }}
+						shortcut={{ key: "return", modifiers: ["ctrl"] }}
 						onAction={() => void safely(() => generate(settings))}
 					/>
 				</ActionPanel>
