@@ -326,6 +326,7 @@ export default function Command() {
 					<Action
 						title={`Increase Words (${settings.words})`}
 						icon={Icon.Plus}
+						shortcut={{ key: "=", modifiers: ["ctrl"] }}
 						onAction={() =>
 							updateSettings((current) => ({
 								...current,
@@ -336,6 +337,7 @@ export default function Command() {
 					<Action
 						title={`Decrease Words (${settings.words})`}
 						icon={Icon.Minus}
+						shortcut={{ key: "-", modifiers: ["ctrl"] }}
 						onAction={() =>
 							updateSettings((current) => ({
 								...current,
