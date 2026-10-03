@@ -376,6 +376,35 @@ export async function listVaults(): Promise<Vault[]> {
 	});
 }
 
+async function countItems(vault: Vault): Promise<number | undefined> {
+	// `vault list` carries no item count; list without secrets and count.
+	try {
+		return (await listItemsOutput(vault, false)).length;
+	} catch {
+		return undefined;
+	}
+}
+
+/**
+ * Vaults with a live item count. `vault list` has no count field, so this adds
+ * one `item list` per vault, run through a bounded worker pool.
+ */
+export async function listVaultsWithItemCounts(): Promise<Vault[]> {
+	const vaults = await listVaults();
+	let next = 0;
+	async function worker(): Promise<void> {
+		while (next < vaults.length) {
+			const vault = vaults[next++];
+			const count = await countItems(vault);
+			if (count !== undefined) vault.itemCount = count;
+		}
+	}
+	await Promise.all(
+		Array.from({ length: Math.min(6, vaults.length) }, () => worker()),
+	);
+	return vaults;
+}
+
 function itemFrom(raw: unknown, vault: Vault): PassItem | undefined {
 	if (!record(raw)) return undefined;
 	const outer = record(raw.content) ? raw.content : raw;

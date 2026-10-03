@@ -25,7 +25,7 @@ import {
 import {
 	getTotp,
 	listItems,
-	listVaults,
+	listVaultsWithItemCounts,
 	type PassItem,
 	type Vault,
 	viewItem,
@@ -248,7 +248,7 @@ export default function Command() {
 				}
 			}
 			try {
-				const fresh = await listVaults();
+				const fresh = await listVaultsWithItemCounts();
 				await setCachedVaults(fresh, epoch);
 				if (active) setVaults(fresh);
 			} catch (reason: unknown) {
@@ -285,11 +285,6 @@ export default function Command() {
 					<List.Item
 						key={vault.shareId}
 						title={vault.name}
-						subtitle={
-							vault.itemCount === undefined
-								? undefined
-								: `${vault.itemCount} items`
-						}
 						accessories={[
 							{
 								tag: {
@@ -299,6 +294,14 @@ export default function Command() {
 								icon: roleStyle(vault.role).icon,
 								tooltip: `Role: ${vault.role ?? "unknown"}`,
 							},
+							...(vault.itemCount === undefined
+								? []
+								: [
+										{
+											text: `${vault.itemCount} item${vault.itemCount === 1 ? "" : "s"}`,
+											icon: Icon.Key,
+										},
+									]),
 						]}
 						icon={{
 							source: Icon.Folder,
