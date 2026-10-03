@@ -296,6 +296,11 @@ export function ItemDetailView({
 								key={`copy-${field.title}`}
 								title={`Copy ${field.title}`}
 								icon={Icon.CopyClipboard}
+								shortcut={
+									field.title === "Expiry date"
+										? SHORTCUTS.copyExpiry
+										: undefined
+								}
 								onAction={() =>
 									void safely(() =>
 										copySecret(field.title, field.value, {

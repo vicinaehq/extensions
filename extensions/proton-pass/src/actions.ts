@@ -43,6 +43,7 @@ export const SHORTCUTS: Record<string, Keyboard.Shortcut> = {
 	copyUsername: { modifiers: ["ctrl", "shift"], key: "u" },
 	copyTotp: { modifiers: ["ctrl", "shift"], key: "t" },
 	openInBrowser: { modifiers: ["ctrl", "shift"], key: "o" },
+	copyExpiry: { modifiers: ["ctrl"], key: "d" },
 };
 
 type CopyPreferences = {
