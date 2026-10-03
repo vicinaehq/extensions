@@ -3,6 +3,7 @@ import {
 	Color,
 	closeMainWindow,
 	getPreferenceValues,
+	Icon,
 	type Keyboard,
 	showHUD,
 	showToast,
@@ -57,25 +58,23 @@ export function primaryUrl(urls?: string[]): string | undefined {
 	return urls && urls.length > 0 ? urls[0] : undefined;
 }
 
-// Distinct, legible colours for vault tinting. Proton's own vault colours are
-// not exposed by pass-cli, so we derive a stable colour from the vault name —
-// deterministic, so a vault keeps the same colour across machines and sessions.
-const VAULT_COLORS: Color[] = [
-	Color.Blue,
-	Color.Green,
-	Color.Magenta,
-	Color.Orange,
-	Color.Purple,
-	Color.Red,
-	Color.Yellow,
-];
+// Vault role indicator, matching the Raycast Proton Pass extension: the role
+// (owner/manager/editor/viewer) is the meaningful per-vault signal, shown as a
+// coloured, iconed tag. Proton's own vault colours are not exposed by pass-cli.
+const ROLE_STYLES: Record<string, { icon: Icon; color: Color }> = {
+	owner: { icon: Icon.PersonCircle, color: Color.Yellow },
+	manager: { icon: Icon.PersonCircle, color: Color.Blue },
+	editor: { icon: Icon.Pencil, color: Color.Green },
+	viewer: { icon: Icon.Eye, color: Color.SecondaryText },
+};
 
-export function vaultColor(name: string): Color {
-	let hash = 0;
-	for (let i = 0; i < name.length; i++) {
-		hash = (hash * 31 + name.charCodeAt(i)) | 0;
-	}
-	return VAULT_COLORS[Math.abs(hash) % VAULT_COLORS.length];
+export function roleStyle(role?: string): { icon: Icon; color: Color } {
+	return (
+		(role && ROLE_STYLES[role.toLowerCase()]) || {
+			icon: Icon.Eye,
+			color: Color.SecondaryText,
+		}
+	);
 }
 
 export type ActionId =

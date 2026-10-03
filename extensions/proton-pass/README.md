@@ -8,7 +8,7 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 
 - Search all items across all Proton Pass vaults, with an inline vault filter. Search matches titles, usernames, emails, vault names, types and URLs.
 - Browse vaults and their items.
-- Colour-coded vaults: vaults and their items are tinted with a stable colour derived from the vault name (Proton's own vault colours are not exposed by `pass-cli`).
+- Colour-coded vault roles: vaults show their role (owner/manager/editor/viewer) as a coloured, iconed tag, matching the Raycast extension. (Proton's own per-vault colours are not exposed by `pass-cli`.)
 - Open an on-demand item details view with masked secrets, URLs, notes and custom fields.
 - Copy usernames, emails, passwords and TOTP codes on demand.
 - Select any listed item in the TOTP command; the extension then asks `pass-cli` for that item's code, rather than requiring the user to know share or item IDs.

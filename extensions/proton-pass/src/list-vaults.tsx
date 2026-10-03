@@ -11,8 +11,8 @@ import { useEffect, useState } from "react";
 import {
 	copySecret as copyShared,
 	primaryUrl,
+	roleStyle,
 	SHORTCUTS,
-	vaultColor,
 } from "./actions";
 import {
 	clearCache,
@@ -124,10 +124,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 							item.type,
 							...(item.urls ?? []),
 						]}
-						icon={{
-							source: item.hasTotp ? Icon.Lock : Icon.Key,
-							tintColor: vaultColor(vault.name),
-						}}
+						icon={item.hasTotp ? Icon.Lock : Icon.Key}
 						accessories={
 							item.hasTotp
 								? [
@@ -321,20 +318,22 @@ export default function Command() {
 					<List.Item
 						key={vault.shareId}
 						title={vault.name}
-						subtitle={vault.role ?? "Proton Pass vault"}
-						accessories={
+						subtitle={
 							vault.itemCount === undefined
-								? []
-								: [
-										{
-											tag: {
-												value: `${vault.itemCount} items`,
-												color: vaultColor(vault.name),
-											},
-										},
-									]
+								? undefined
+								: `${vault.itemCount} items`
 						}
-						icon={{ source: Icon.Folder, tintColor: vaultColor(vault.name) }}
+						accessories={[
+							{
+								tag: {
+									value: vault.role ?? "vault",
+									color: roleStyle(vault.role).color,
+								},
+								icon: roleStyle(vault.role).icon,
+								tooltip: `Role: ${vault.role ?? "unknown"}`,
+							},
+						]}
+						icon={Icon.Folder}
 						actions={
 							<ActionPanel>
 								<Action.Push

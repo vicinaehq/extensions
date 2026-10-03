@@ -15,8 +15,8 @@ import {
 	copySecret as copyShared,
 	orderedActionIds,
 	primaryUrl,
+	roleStyle,
 	SHORTCUTS,
-	vaultColor,
 } from "./actions";
 import {
 	clearCache,
@@ -415,7 +415,10 @@ const VaultFilter = memo(function VaultFilter({
 					key={vault.shareId}
 					title={vault.name}
 					value={vault.shareId}
-					icon={{ source: Icon.Folder, tintColor: vaultColor(vault.name) }}
+					icon={{
+						source: roleStyle(vault.role).icon,
+						tintColor: roleStyle(vault.role).color,
+					}}
 				/>
 			))}
 		</List.Dropdown>
@@ -460,7 +463,8 @@ const TypeFilter = memo(function TypeFilter({
 	);
 });
 
-function ItemRows({ items }: { items: PassItem[] }) {
+function ItemRows({ items, vaults }: { items: PassItem[]; vaults: Vault[] }) {
+	const roleByShareId = new Map(vaults.map((v) => [v.shareId, v.role]));
 	return (
 		<>
 			{items.map((item) => (
@@ -476,13 +480,15 @@ function ItemRows({ items }: { items: PassItem[] }) {
 						item.type,
 						...(item.urls ?? []),
 					]}
-					icon={{
-						source: itemIcon(item),
-						tintColor: vaultColor(item.vaultName),
-					}}
+					icon={itemIcon(item)}
 					accessories={[
 						{
-							tag: { value: item.vaultName, color: vaultColor(item.vaultName) },
+							tag: {
+								value: item.vaultName,
+								color: roleStyle(roleByShareId.get(item.shareId)).color,
+							},
+							icon: roleStyle(roleByShareId.get(item.shareId)).icon,
+							tooltip: `Role: ${roleByShareId.get(item.shareId) ?? "unknown"}`,
 						},
 						...(item.hasTotp
 							? [{ icon: Icon.Clock, tooltip: "Has TOTP" }]
@@ -590,7 +596,7 @@ export default function Command() {
 			) : visibleItems.length === 0 && !loading ? (
 				<List.EmptyView icon={Icon.Key} title="No Proton Pass items found" />
 			) : (
-				<ItemRows items={visibleItems} />
+				<ItemRows items={visibleItems} vaults={vaults} />
 			)}
 		</List>
 	);
