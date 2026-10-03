@@ -161,11 +161,6 @@ export default function Command() {
 										icon: roleStyle(role).icon,
 										tooltip: `Vault: ${item.vaultName} (${role ?? "unknown"})`,
 									},
-									// Width-bearing spacer: a text accessory's width is its
-									// text width, and each accessory sits in a fixed 6px
-									// row, so a run of non-breaking spaces opens a gap
-									// between the vault name and the code.
-									{ text: "\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0" },
 									{
 										tag: {
 											value: codes[totpItemKey(item)] ?? "---",
