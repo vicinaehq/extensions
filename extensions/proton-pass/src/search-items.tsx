@@ -518,7 +518,13 @@ function ItemRows({ items, vaults }: { items: PassItem[]; vaults: Vault[] }) {
 						item.type,
 						...(item.urls ?? []),
 					]}
-					icon={itemIcon(item)}
+					icon={{
+						source: itemIcon(item),
+						tintColor: vaultColor(
+							roleByShareId.get(item.shareId),
+							item.vaultName,
+						),
+					}}
 					accessories={[
 						{
 							tag: {
