@@ -152,7 +152,9 @@ export function ItemDetailView({
 	if (detail.password) lines.push(`**Password:** ${mask(detail.password)}`);
 	if (detail.urls?.length)
 		lines.push(
-			`\n**URLs:**\n${detail.urls.map((url) => `- ${escapeMarkdown(url)}`).join("\n")}`,
+			`\n**URLs:**\n${detail.urls
+				.map((url, index) => `${index + 1}. ${escapeMarkdown(url)}`)
+				.join("\n")}`,
 		);
 	if (detail.note) lines.push(`\n**Note:**\n${escapeMarkdown(detail.note)}`);
 	if (detail.fields?.length) {
