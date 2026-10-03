@@ -263,6 +263,7 @@ export default function Command() {
 					<Action
 						title={`Increase Length (${settings.length})`}
 						icon={Icon.Plus}
+						shortcut={{ key: "=", modifiers: ["ctrl"] }}
 						onAction={() =>
 							updateSettings((current) => ({
 								...current,
@@ -273,6 +274,7 @@ export default function Command() {
 					<Action
 						title={`Decrease Length (${settings.length})`}
 						icon={Icon.Minus}
+						shortcut={{ key: "-", modifiers: ["ctrl"] }}
 						onAction={() =>
 							updateSettings((current) => ({
 								...current,
