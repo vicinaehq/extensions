@@ -71,9 +71,22 @@ export function useVaultSnapshot(): VaultSnapshot {
 				}
 			} catch (reason: unknown) {
 				const message = errorMessage(reason);
-				if (!cached && active) setError(message);
 				if (/authenticated|logged in|session/i.test(message))
 					await clearCache();
+				if (active) {
+					// With a cached snapshot we keep showing it, but the user must
+					// know the live refresh failed rather than silently trusting
+					// stale data.
+					if (cached) {
+						await showToast({
+							style: Toast.Style.Failure,
+							title: "Could not refresh Proton Pass data",
+							message,
+						});
+					} else {
+						setError(message);
+					}
+				}
 			} finally {
 				if (active) setLoading(false);
 			}

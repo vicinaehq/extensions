@@ -199,7 +199,7 @@ test("extracts credit-card fields from a typed content block", () => {
 	assert.deepEqual(fields, [
 		{ title: "Cardholder", value: "Cristian Radoi", hidden: false },
 		{ title: "Card type", value: "Visa", hidden: false },
-		{ title: "Card number", value: "4111111111111111", hidden: false },
+		{ title: "Card number", value: "4111111111111111", hidden: true },
 		{ title: "Security code", value: "123", hidden: true },
 		{ title: "Expiry date", value: "12/2027", hidden: false },
 		{ title: "PIN", value: "0000", hidden: true },

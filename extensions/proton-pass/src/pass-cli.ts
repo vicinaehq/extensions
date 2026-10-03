@@ -19,6 +19,8 @@ const execFileAsync = promisify(execFile);
 
 interface Preferences {
 	cliPath?: string;
+	keyProvider?: string;
+	linuxKeyring?: string;
 }
 
 export type Vault = {
@@ -69,10 +71,21 @@ function cliPath(): string {
 }
 
 function reason(action: string): Record<string, string> {
-	return {
+	const env: Record<string, string> = {
 		...process.env,
 		PROTON_PASS_AGENT_REASON: `Vicinae Proton Pass extension: ${action}`,
 	};
+	// Optional overrides for where pass-cli keeps its encryption key. The
+	// "default" sentinel means "inherit whatever the environment already has",
+	// so an unset preference never clobbers a working setup.
+	const prefs = getPreferenceValues<Preferences>();
+	if (prefs.keyProvider && prefs.keyProvider !== "default") {
+		env.PROTON_PASS_KEY_PROVIDER = prefs.keyProvider;
+	}
+	if (prefs.linuxKeyring && prefs.linuxKeyring !== "default") {
+		env.PROTON_PASS_LINUX_KEYRING = prefs.linuxKeyring;
+	}
+	return env;
 }
 
 // Recent successful auth checks are reused briefly so a burst of sequential
@@ -129,7 +142,10 @@ async function run(
  * gets a pointed message, anything else surfaces its stderr (or message).
  */
 function cliFailure(error: unknown, fallback: string): Error {
-	const err = error as NodeJS.ErrnoException & { stderr?: string };
+	const err = error as NodeJS.ErrnoException & {
+		stderr?: string;
+		stdout?: string;
+	};
 	if (err.code === "ENOENT") {
 		return new Error(
 			`pass-cli was not found at '${cliPath()}'. Set the pass-cli path in Vicinae preferences.`,
@@ -139,7 +155,20 @@ function cliFailure(error: unknown, fallback: string): Error {
 		typeof err.stderr === "string" && err.stderr.trim()
 			? err.stderr.trim()
 			: err.message;
-	return new Error(redactDiagnostic(detail || fallback));
+	const combined = `${detail} ${typeof err.stdout === "string" ? err.stdout : ""}`;
+	return new Error(cliMessage(combined, fallback));
+}
+
+/**
+ * Shared human-readable message for a failed pass-cli call. pass-cli buries its
+ * key-access failures behind "Error creating client features", so translate
+ * that into an actionable hint; otherwise redact and surface the detail.
+ */
+function cliMessage(detail: string, fallback: string): string {
+	if (/encryption key|creating client features|keyring/i.test(detail)) {
+		return "pass-cli could not reach its encryption key. Check the Key provider / Linux keyring settings for this extension, or run 'pass-cli logout --force' and log in again.";
+	}
+	return redactDiagnostic(detail.trim() || fallback);
 }
 
 function redactDiagnostic(value: string): string {
@@ -152,14 +181,15 @@ function redactDiagnostic(value: string): string {
 		.slice(0, 500);
 }
 
+// Keep only http(s) URLs, and strip any embedded credentials. Query strings
+// and fragments are preserved: login URLs legitimately depend on them (SSO
+// state, deep links), and dropping them would open the wrong destination.
 function safeUrl(value: string): string | undefined {
 	try {
 		const url = new URL(value);
 		if (url.protocol !== "http:" && url.protocol !== "https:") return undefined;
 		url.username = "";
 		url.password = "";
-		url.search = "";
-		url.hash = "";
 		return url.toString();
 	} catch {
 		return undefined;
@@ -357,8 +387,8 @@ export async function listVaults(): Promise<Vault[]> {
 		const itemCount =
 			itemCountRaw === undefined ? undefined : Number(itemCountRaw);
 		const role =
-			text(raw.role)?.toLowerCase() ??
-			(shareId ? roles.get(shareId) : undefined);
+			(shareId ? roles.get(shareId) : undefined) ??
+			text(raw.role)?.toLowerCase();
 		return shareId && name
 			? [
 					{
@@ -678,8 +708,10 @@ export async function login(): Promise<void> {
 			else
 				finish(
 					new Error(
-						redactDiagnostic(output.trim()) ||
+						cliMessage(
+							output,
 							`pass-cli login exited with code ${code ?? "unknown"}.`,
+						),
 					),
 				);
 		});

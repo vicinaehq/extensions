@@ -190,18 +190,20 @@ function VaultItems({ vault }: { vault: Vault }) {
 										})
 									}
 								/>
-								<Action
-									title="Copy TOTP Code"
-									icon={Icon.Clock}
-									shortcut={SHORTCUTS.copyTotp}
-									onAction={() =>
-										void guardAction("Unable to copy TOTP code", async () => {
-											await copySecret("TOTP code", await getTotp(item), {
-												sensitive: true,
-											});
-										})
-									}
-								/>
+								{item.hasTotp && (
+									<Action
+										title="Copy TOTP Code"
+										icon={Icon.Clock}
+										shortcut={SHORTCUTS.copyTotp}
+										onAction={() =>
+											void guardAction("Unable to copy TOTP code", async () => {
+												await copySecret("TOTP code", await getTotp(item), {
+													sensitive: true,
+												});
+											})
+										}
+									/>
+								)}
 								{primaryUrl(item.urls) && (
 									<Action.OpenInBrowser
 										title="Open in Browser"

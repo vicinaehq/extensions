@@ -171,6 +171,7 @@ export function passwordArgs(options: PasswordOptions): string[] {
 // (cardholder_name, card_type, number, verification_number, expiration_date,
 // pin) and IdentityItem protos, so secrets can be flagged and masked in the UI.
 const HIDDEN_FIELDS = new Set([
+	"number",
 	"verification_number",
 	"pin",
 	"private_key",

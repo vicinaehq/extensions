@@ -60,6 +60,33 @@
       "default": "pass-cli"
     },
     {
+      "name": "keyProvider",
+      "type": "dropdown",
+      "required": false,
+      "title": "Key provider",
+      "description": "Where pass-cli stores its encryption key (PROTON_PASS_KEY_PROVIDER). Leave on environment default unless you need to change it.",
+      "default": "default",
+      "data": [
+        { "title": "Environment default", "value": "default" },
+        { "title": "Filesystem", "value": "fs" },
+        { "title": "Keyring", "value": "keyring" },
+        { "title": "Environment variable", "value": "env" }
+      ]
+    },
+    {
+      "name": "linuxKeyring",
+      "type": "dropdown",
+      "required": false,
+      "title": "Linux keyring backend",
+      "description": "Linux only: which keyring pass-cli uses (PROTON_PASS_LINUX_KEYRING). Ignored on other platforms.",
+      "default": "default",
+      "data": [
+        { "title": "Environment default", "value": "default" },
+        { "title": "Kernel key retention", "value": "kernel" },
+        { "title": "D-Bus Secret Service (GNOME Keyring, KWallet)", "value": "dbus" }
+      ]
+    },
+    {
       "name": "closeAfterCopy",
       "type": "checkbox",
       "required": false,

@@ -306,11 +306,13 @@ function ItemActions({
 	const hasIdentity = Boolean(item.username || item.email);
 	const url = primaryUrl(item.urls);
 
-	// Which configurable actions this item supports. Password and TOTP are
-	// always offered on hover; their secrets are fetched on demand when invoked.
+	// Which configurable actions this item supports. Password is always offered
+	// (its secret is fetched on demand); TOTP only when the item actually has
+	// one, so selecting it as the primary action cannot make Enter fail.
 	const available: ActionId[] = ["view-details"];
 	if (hasIdentity) available.push("copy-username");
-	available.push("copy-password", "copy-totp");
+	available.push("copy-password");
+	if (item.hasTotp) available.push("copy-totp");
 	if (url) available.push("open-browser");
 
 	const render: Record<ActionId, React.ReactNode> = {
