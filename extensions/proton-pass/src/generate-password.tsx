@@ -1,14 +1,12 @@
 import {
 	Action,
 	ActionPanel,
-	Form,
 	getPreferenceValues,
 	Icon,
-	showToast,
-	Toast,
+	List,
 } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { copySecret } from "./actions";
+import { copySecret, guardAction } from "./actions";
 import { errorMessage } from "./cli-contract";
 import {
 	generatePassword,
@@ -44,6 +42,11 @@ type GeneratorSettings = {
 	capitalize: boolean;
 };
 
+const MIN_LENGTH = 8;
+const MAX_LENGTH = 128;
+const MIN_WORDS = 3;
+const MAX_WORDS = 10;
+
 const separators: Separator[] = [
 	"hyphens",
 	"spaces",
@@ -69,7 +72,9 @@ function defaultSettings(): GeneratorSettings {
 			preferences.defaultPasswordType === "passphrase"
 				? "passphrase"
 				: "random",
-		length: Number.isFinite(parsedLength) ? clamp(parsedLength, 8, 128) : 20,
+		length: Number.isFinite(parsedLength)
+			? clamp(parsedLength, MIN_LENGTH, MAX_LENGTH)
+			: 20,
 		words: 4,
 		includeNumbers: true,
 		includeUppercase: true,
@@ -81,6 +86,11 @@ function defaultSettings(): GeneratorSettings {
 
 function separatorLabel(separator: Separator): string {
 	return separator.replace(/-/g, " ");
+}
+
+function nextSeparator(separator: Separator): Separator {
+	const index = separators.indexOf(separator);
+	return separators[(index + 1) % separators.length];
 }
 
 function settingsSummary(settings: GeneratorSettings): string {
@@ -108,39 +118,41 @@ function optionsFor(settings: GeneratorSettings): PasswordOptions {
 			};
 }
 
-function strengthGlyph(label: PasswordScore["label"]): string {
+function strengthIcon(label: PasswordScore["label"] | undefined): Icon {
 	switch (label) {
 		case "Strong":
-			return "🟢";
+			return Icon.Shield01;
 		case "Good":
-			return "🔵";
+			return Icon.CheckCircle;
 		case "Weak":
-			return "🟠";
+			return Icon.Warning;
 		case "Vulnerable":
-			return "🔴";
+			return Icon.XMarkCircle;
 		default:
-			return "⚪";
+			return Icon.QuestionMarkCircle;
 	}
 }
 
 function strengthSummary(
 	score: PasswordScore | undefined,
-	loading: boolean,
+	scoring: boolean,
 ): string {
-	if (loading) return "Scoring…";
-	if (!score) return "Waiting for pass-cli…";
-	const pct = Math.round(score.numericScore);
-	const base = `${strengthGlyph(score.label)} ${score.label} (${pct}%)`;
-	if (score.penalties.length === 0) return base;
-	return `${base} — ${score.penalties.map(penaltyLabel).join(", ")}`;
+	if (scoring) return "Scoring…";
+	if (!score) return "Not scored";
+	return `${score.label} (${Math.round(score.numericScore)}%)`;
+}
+
+function mask(value: string): string {
+	return "•".repeat(Math.min(Math.max(value.length, 8), 24));
 }
 
 export default function Command() {
 	const initial = useRef(defaultSettings()).current;
-	const [settings, setSettings] = useState(initial);
+	const [settings, setSettings] = useState<GeneratorSettings>(initial);
 	const [password, setPassword] = useState("");
 	const [score, setScore] = useState<PasswordScore>();
 	const [scoring, setScoring] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState<string>();
 	const [loading, setLoading] = useState(true);
 	const generationId = useRef(0);
@@ -178,16 +190,19 @@ export default function Command() {
 		void generate(initial);
 	}, [generate, initial]);
 
-	function updateSettings(
-		change: (current: GeneratorSettings) => GeneratorSettings,
-	): void {
-		const next = change(settings);
-		setSettings(next);
-		void generate(next);
-	}
+	const updateSettings = useCallback(
+		(change: (current: GeneratorSettings) => GeneratorSettings): void => {
+			setSettings((current) => {
+				const next = change(current);
+				void generate(next);
+				return next;
+			});
+		},
+		[generate],
+	);
 
 	async function copy(): Promise<void> {
-		if (!password) return;
+		if (!password) throw new Error("No password has been generated yet.");
 		await copySecret("Password", password, { sensitive: true });
 	}
 
@@ -196,191 +211,260 @@ export default function Command() {
 		await generate(settings);
 	}
 
-	async function safely(action: () => Promise<void>): Promise<void> {
-		try {
-			await action();
-		} catch (reason: unknown) {
-			await showToast({
-				style: Toast.Style.Failure,
-				title: "Password action failed",
-				message: errorMessage(reason),
-			});
-		}
-	}
+	const safely = (action: () => Promise<void>): Promise<void> =>
+		guardAction("Password action failed", action);
 
-	function updateLength(value: string): void {
-		const parsed = Number.parseInt(value, 10);
-		if (Number.isFinite(parsed))
-			updateSettings((current) => ({
-				...current,
-				length: clamp(parsed, 8, 128),
-			}));
-	}
+	const penaltiesLabel =
+		score && score.penalties.length > 0
+			? score.penalties.map(penaltyLabel).join(", ")
+			: "No penalties";
 
-	function updateWords(value: string): void {
-		const parsed = Number.parseInt(value, 10);
-		if (Number.isFinite(parsed))
-			updateSettings((current) => ({
-				...current,
-				words: clamp(parsed, 3, 10),
-			}));
-	}
-
-	return (
-		<Form
-			navigationTitle="Generate Proton Pass Password"
-			isLoading={loading}
-			actions={
-				// Order matters: Vicinae's Form panel forces the FIRST action's
-				// shortcut to its submit key (Ctrl+Enter), overriding anything
-				// set here. So Generate New Password is listed first (it takes
-				// Ctrl+Enter), leaving Copy Password free to keep plain Enter.
-				<ActionPanel>
-					<Action
-						title="Generate New Password"
-						icon={Icon.Shuffle}
-						onAction={() => void safely(() => generate(settings))}
-					/>
-					<Action
-						title="Copy Password"
-						icon={Icon.CopyClipboard}
-						shortcut={{ key: "return", modifiers: [] }}
-						onAction={() => void safely(copy)}
-					/>
-					<Action
-						title="Copy and Generate Next"
-						icon={Icon.ArrowClockwise}
-						onAction={() => void safely(copyAndGenerate)}
-					/>
-				</ActionPanel>
-			}
-		>
-			<Form.Description
-				title="Generated password"
-				text={password || "Generating password…"}
+	// A List, not a Form: a Form swallows Enter for its own submit and traps
+	// focus in its fields, so the action shortcuts never fire. Here the first
+	// action (Copy Password) is the primary one and owns Enter.
+	const actionPanel = (
+		<ActionPanel>
+			<Action
+				title="Copy Password"
+				icon={Icon.CopyClipboard}
+				onAction={() => void safely(copy)}
 			/>
-			<Form.Description
-				title="Strength"
-				text={strengthSummary(score, scoring)}
+			<Action
+				title="Copy and Generate Next"
+				icon={Icon.ArrowClockwise}
+				onAction={() => void safely(copyAndGenerate)}
 			/>
-			<Form.Description
-				title="Current settings"
-				text={settingsSummary(settings)}
+			<Action
+				title="Generate New Password"
+				icon={Icon.Shuffle}
+				onAction={() => void safely(() => generate(settings))}
 			/>
-			{error && <Form.Description title="Error" text={error} />}
-
-			<Form.Separator />
-			<Form.Dropdown
-				id="type"
-				title="Password type"
-				value={settings.type}
-				onChange={(value) =>
+			<Action
+				title={showPassword ? "Hide Password" : "Show Password"}
+				icon={showPassword ? Icon.EyeDisabled : Icon.Eye}
+				onAction={() => setShowPassword((value) => !value)}
+			/>
+			<Action
+				title={
+					settings.type === "random"
+						? "Switch to Passphrase"
+						: "Switch to Random Password"
+				}
+				icon={Icon.Switch}
+				onAction={() =>
 					updateSettings((current) => ({
 						...current,
-						type: value as PasswordType,
+						type: current.type === "random" ? "passphrase" : "random",
 					}))
 				}
-			>
-				<Form.Dropdown.Item title="Random password" value="random" />
-				<Form.Dropdown.Item title="Passphrase" value="passphrase" />
-			</Form.Dropdown>
-
+			/>
 			{settings.type === "random" ? (
+				<ActionPanel.Section title="Random Password Settings">
+					<Action
+						title={`Increase Length (${settings.length})`}
+						icon={Icon.Plus}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								length: clamp(current.length + 1, MIN_LENGTH, MAX_LENGTH),
+							}))
+						}
+					/>
+					<Action
+						title={`Decrease Length (${settings.length})`}
+						icon={Icon.Minus}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								length: clamp(current.length - 1, MIN_LENGTH, MAX_LENGTH),
+							}))
+						}
+					/>
+					<Action
+						title={
+							settings.includeUppercase
+								? "Disable Uppercase Letters"
+								: "Enable Uppercase Letters"
+						}
+						icon={Icon.Text}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								includeUppercase: !current.includeUppercase,
+							}))
+						}
+					/>
+					<Action
+						title={
+							settings.includeNumbers ? "Disable Numbers" : "Enable Numbers"
+						}
+						icon={Icon.Hashtag}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								includeNumbers: !current.includeNumbers,
+							}))
+						}
+					/>
+					<Action
+						title={
+							settings.includeSymbols ? "Disable Symbols" : "Enable Symbols"
+						}
+						icon={Icon.Code}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								includeSymbols: !current.includeSymbols,
+							}))
+						}
+					/>
+				</ActionPanel.Section>
+			) : (
+				<ActionPanel.Section title="Passphrase Settings">
+					<Action
+						title={`Increase Words (${settings.words})`}
+						icon={Icon.Plus}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								words: clamp(current.words + 1, MIN_WORDS, MAX_WORDS),
+							}))
+						}
+					/>
+					<Action
+						title={`Decrease Words (${settings.words})`}
+						icon={Icon.Minus}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								words: clamp(current.words - 1, MIN_WORDS, MAX_WORDS),
+							}))
+						}
+					/>
+					<Action
+						title={
+							settings.capitalize
+								? "Disable Capitalisation"
+								: "Enable Capitalisation"
+						}
+						icon={Icon.TextCursor}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								capitalize: !current.capitalize,
+							}))
+						}
+					/>
+					<Action
+						title={
+							settings.includeNumbers ? "Disable Numbers" : "Enable Numbers"
+						}
+						icon={Icon.Hashtag}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								includeNumbers: !current.includeNumbers,
+							}))
+						}
+					/>
+					<Action
+						title={`Cycle Separator (${separatorLabel(settings.separator)})`}
+						icon={Icon.Minus}
+						onAction={() =>
+							updateSettings((current) => ({
+								...current,
+								separator: nextSeparator(current.separator),
+							}))
+						}
+					/>
+				</ActionPanel.Section>
+			)}
+			<ActionPanel.Section title="Defaults">
+				<Action
+					title="Reset Generator Settings"
+					icon={Icon.ArrowClockwise}
+					onAction={() => updateSettings(() => defaultSettings())}
+				/>
+			</ActionPanel.Section>
+		</ActionPanel>
+	);
+
+	return (
+		<List
+			isLoading={loading}
+			navigationTitle="Generate Proton Pass Password"
+			searchBarPlaceholder="Generate a password…"
+			searchBarAccessory={
+				<List.Dropdown
+					id="password-type"
+					tooltip="Password type"
+					value={settings.type}
+					onChange={(value) =>
+						updateSettings((current) => ({
+							...current,
+							type: value as PasswordType,
+						}))
+					}
+				>
+					<List.Dropdown.Item
+						title="Random Password"
+						value="random"
+						icon={Icon.Shuffle}
+					/>
+					<List.Dropdown.Item
+						title="Passphrase"
+						value="passphrase"
+						icon={Icon.Text}
+					/>
+				</List.Dropdown>
+			}
+		>
+			{error ? (
+				<List.EmptyView
+					icon={Icon.Warning}
+					title="Unable to generate a password"
+					description={error}
+					actions={actionPanel}
+				/>
+			) : password ? (
 				<>
-					<Form.TextField
-						id="length"
-						title="Character count"
-						defaultValue={String(settings.length)}
-						info="8–128 characters; applied when you leave the field"
-						onBlur={(event) =>
-							updateLength(String(event.target.value ?? settings.length))
-						}
+					<List.Item
+						icon={Icon.Key}
+						title="Generated Password"
+						subtitle={showPassword ? password : mask(password)}
+						accessories={[
+							{ text: settings.type === "random" ? "Random" : "Passphrase" },
+							{
+								icon: showPassword ? Icon.Eye : Icon.EyeDisabled,
+								tooltip: showPassword ? "Visible" : "Hidden",
+							},
+						]}
+						actions={actionPanel}
 					/>
-					<Form.Checkbox
-						id="uppercase"
-						label="Include uppercase letters"
-						value={settings.includeUppercase}
-						onChange={(value) =>
-							updateSettings((current) => ({
-								...current,
-								includeUppercase: value,
-							}))
-						}
+					<List.Item
+						icon={strengthIcon(score?.label)}
+						title="Password Strength"
+						subtitle={penaltiesLabel}
+						accessories={[{ text: strengthSummary(score, scoring) }]}
+						actions={actionPanel}
 					/>
-					<Form.Checkbox
-						id="numbers"
-						label="Include numbers"
-						value={settings.includeNumbers}
-						onChange={(value) =>
-							updateSettings((current) => ({
-								...current,
-								includeNumbers: value,
-							}))
-						}
-					/>
-					<Form.Checkbox
-						id="symbols"
-						label="Include symbols"
-						value={settings.includeSymbols}
-						onChange={(value) =>
-							updateSettings((current) => ({
-								...current,
-								includeSymbols: value,
-							}))
-						}
+					<List.Item
+						icon={Icon.Cog}
+						title="Generation Settings"
+						subtitle={settingsSummary(settings)}
+						actions={actionPanel}
 					/>
 				</>
 			) : (
-				<>
-					<Form.TextField
-						id="words"
-						title="Word count"
-						defaultValue={String(settings.words)}
-						info="3–10 words; applied when you leave the field"
-						onBlur={(event) =>
-							updateWords(String(event.target.value ?? settings.words))
-						}
+				!loading && (
+					<List.EmptyView
+						icon={Icon.Key}
+						title="No password generated"
+						description="Generate a new password using your selected settings."
+						actions={actionPanel}
 					/>
-					<Form.Dropdown
-						id="separator"
-						title="Separator"
-						value={settings.separator}
-						onChange={(value) =>
-							updateSettings((current) => ({
-								...current,
-								separator: value as Separator,
-							}))
-						}
-					>
-						{separators.map((separator) => (
-							<Form.Dropdown.Item
-								key={separator}
-								title={separatorLabel(separator)}
-								value={separator}
-							/>
-						))}
-					</Form.Dropdown>
-					<Form.Checkbox
-						id="capitalize"
-						label="Capitalise words"
-						value={settings.capitalize}
-						onChange={(value) =>
-							updateSettings((current) => ({ ...current, capitalize: value }))
-						}
-					/>
-					<Form.Checkbox
-						id="passphraseNumbers"
-						label="Include numbers"
-						value={settings.includeNumbers}
-						onChange={(value) =>
-							updateSettings((current) => ({
-								...current,
-								includeNumbers: value,
-							}))
-						}
-					/>
-				</>
+				)
 			)}
-		</Form>
+		</List>
 	);
 }

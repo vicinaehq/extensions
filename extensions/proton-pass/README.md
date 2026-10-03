@@ -56,7 +56,7 @@ Set the extension's `pass-cli path` preference to the absolute path when Vicinae
 - **Search Proton Pass Items** — searches every vault, filters by vault, opens item details and exposes copy/open actions with keyboard shortcuts. The primary and secondary actions are configurable in preferences.
 - **List Proton Pass Vaults** — opens a vault, then searches its items, sharing the same detail view and actions as Search.
 - **Get Proton Pass TOTP Code** — lists every item; select one and choose **Copy TOTP Code**.
-- **Generate Proton Pass Password** — visible controls for length, character classes, word count and separators, with a real `pass-cli` strength score and weakness list. Enter copies the password; Ctrl+Enter generates a new one.
+- **Generate Proton Pass Password** — a generated password item with a real `pass-cli` strength score and weakness list. Settings are actions (increase/decrease length or words, toggle character classes, cycle the separator, switch type), the type is a search-bar dropdown, and Enter copies the password while Ctrl+Enter generates a new one.
 - **Login to Proton Pass** — checks the CLI session and starts browser login when required.
 
 Run the deterministic CLI contract tests with:
