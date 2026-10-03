@@ -6,7 +6,7 @@ import {
 	List,
 } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { copySecret, guardAction } from "./actions";
+import { copySecret, safely } from "./actions";
 import { errorMessage } from "./cli-contract";
 import {
 	generatePassword,
@@ -210,9 +210,6 @@ export default function Command() {
 		await copy();
 		await generate(settings);
 	}
-
-	const safely = (action: () => Promise<void>): Promise<void> =>
-		guardAction("Password action failed", action);
 
 	const penaltiesLabel =
 		score && score.penalties.length > 0

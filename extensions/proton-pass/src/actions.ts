@@ -31,6 +31,10 @@ export async function guardAction(
 	}
 }
 
+/** guardAction with the extension's standard failure title. */
+export const safely = (action: () => Promise<void>): Promise<void> =>
+	guardAction("Proton Pass action failed", action);
+
 // Keyboard shortcuts using native Linux modifiers. ctrl+shift+<letter> avoids
 // the reserved ctrl+alt combinations that desktop environments intercept, and
 // each binding uses a distinct letter so none collide with one another.
@@ -106,13 +110,26 @@ type VaultColorPreferences = {
 	vaultColors?: string;
 };
 
+// Parse the override preference once and cache it: vaultColor() is called
+// twice per rendered item, so re-splitting the string on every call is waste.
+let parsedColorOverrides: {
+	source: string | undefined;
+	map: Record<string, string>;
+} = { source: undefined, map: {} };
+
+function colorOverrides(): Record<string, string> {
+	const source = getPreferenceValues<VaultColorPreferences>().vaultColors;
+	if (source !== parsedColorOverrides.source) {
+		parsedColorOverrides = { source, map: parseVaultColorPreference(source) };
+	}
+	return parsedColorOverrides.map;
+}
+
 export function vaultColor(
 	role: string | undefined,
 	name: string,
 ): Color | Color.Raw {
-	const override = parseVaultColorPreference(
-		getPreferenceValues<VaultColorPreferences>().vaultColors,
-	)[name.toLowerCase()];
+	const override = colorOverrides()[name.toLowerCase()];
 	if (override) return override;
 	return roleStyle(role).color;
 }

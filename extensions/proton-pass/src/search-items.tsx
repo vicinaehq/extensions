@@ -4,11 +4,11 @@ import { memo, useEffect, useMemo, useState } from "react";
 import {
 	type ActionId,
 	copySecret,
-	guardAction,
 	orderedActionIds,
 	primaryUrl,
 	roleStyle,
 	SHORTCUTS,
+	safely,
 	vaultColor,
 } from "./actions";
 import { errorMessage } from "./cli-contract";
@@ -81,8 +81,6 @@ export function ItemDetailView({
 	const totpItems = useMemo(() => (item.hasTotp ? [item] : []), [item]);
 	const { codes, remaining, refreshing, refresh } = useTotpCodes(totpItems);
 	const currentTotp = codes[totpItemKey(item)];
-	const safely = (action: () => Promise<void>): Promise<void> =>
-		guardAction("Proton Pass action failed", action);
 
 	useEffect(() => {
 		let active = true;
@@ -305,9 +303,6 @@ function ItemActions({
 	item: PassItem;
 	vaultRole?: string;
 }) {
-	const safely = (action: () => Promise<void>): Promise<void> =>
-		guardAction("Proton Pass action failed", action);
-
 	const hasIdentity = Boolean(item.username || item.email);
 	const url = primaryUrl(item.urls);
 

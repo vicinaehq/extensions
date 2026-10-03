@@ -12,6 +12,7 @@ import {
 	primaryUrl,
 	roleStyle,
 	SHORTCUTS,
+	safely,
 	vaultColor,
 } from "./actions";
 import {
@@ -37,9 +38,6 @@ import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 type Preferences = {
 	enableBackgroundRefresh?: boolean;
 };
-
-const safely = (action: () => Promise<void>): Promise<void> =>
-	guardAction("Proton Pass action failed", action);
 
 function VaultItems({ vault }: { vault: Vault }) {
 	const [items, setItems] = useState<PassItem[]>([]);
