@@ -155,3 +155,88 @@ export function passwordArgs(options: PasswordOptions): string[] {
 				String(options.includeNumbers ?? true),
 			];
 }
+
+// Type-specific item fields. Field names come from the pass-cli CreditCardItem
+// (cardholder_name, card_type, number, verification_number, expiration_date,
+// pin) and IdentityItem protos, so secrets can be flagged and masked in the UI.
+const HIDDEN_FIELDS = new Set([
+	"verification_number",
+	"pin",
+	"private_key",
+	"password",
+	"secret",
+	"security_code",
+]);
+
+const FIELD_LABELS: Record<string, string> = {
+	number: "Card number",
+	verification_number: "Security code",
+	expiration_date: "Expiry date",
+	cardholder_name: "Cardholder",
+	card_type: "Card type",
+	pin: "PIN",
+	security_code: "Security code",
+	ssid: "Network name",
+	private_key: "Private key",
+	public_key: "Public key",
+};
+
+export type TypedField = { title: string; value: string; hidden?: boolean };
+
+function labelForKey(key: string): string {
+	if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+	return key
+		.split("_")
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(" ");
+}
+
+/** Flatten a typed content block into labelled, display-ready fields. */
+export function typedFieldList(
+	data: Record<string, unknown> | undefined,
+): TypedField[] {
+	if (!data) return [];
+	const fields: TypedField[] = [];
+	for (const [key, raw] of Object.entries(data)) {
+		// `sections` and nested objects/arrays are handled elsewhere.
+		if (key === "sections") continue;
+		if (raw === null || typeof raw === "object") continue;
+		const value = typeof raw === "string" ? raw.trim() : String(raw);
+		if (!value) continue;
+		fields.push({
+			title: labelForKey(key),
+			value,
+			hidden: HIDDEN_FIELDS.has(key),
+		});
+	}
+	return fields;
+}
+
+/**
+ * Fields to show for an item type. Logins and notes surface their content via
+ * dedicated fields (username/password/note), so they return nothing here.
+ */
+export function typedFields(
+	type: string,
+	typed: Record<string, unknown> | undefined,
+	login: Record<string, unknown> | undefined,
+): TypedField[] | undefined {
+	switch (type) {
+		case "credit_card":
+		case "identity":
+		case "wifi":
+		case "ssh_key":
+		case "custom": {
+			const fields = typedFieldList(typed);
+			return fields.length ? fields : undefined;
+		}
+		case "note":
+			return undefined;
+		default:
+			if (login) return undefined;
+			{
+				const fields = typedFieldList(typed);
+				return fields.length ? fields : undefined;
+			}
+	}
+}

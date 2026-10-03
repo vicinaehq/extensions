@@ -67,6 +67,24 @@ function mask(value: string): string {
 	return "•".repeat(Math.min(Math.max(value.length, 8), 24));
 }
 
+// Heading for the type-specific field block in the detail markdown.
+function fieldGroupTitle(type: string): string {
+	switch (type) {
+		case "credit_card":
+			return "Card details";
+		case "identity":
+			return "Identity details";
+		case "wifi":
+			return "Network details";
+		case "ssh_key":
+			return "SSH key";
+		case "custom":
+			return "Fields";
+		default:
+			return "Details";
+	}
+}
+
 async function copySecret(
 	title: string,
 	value: string,
@@ -140,6 +158,16 @@ export function ItemDetailView({ item }: { item: PassItem }) {
 			`\n**URLs:**\n${detail.urls.map((url) => `- ${escapeMarkdown(url)}`).join("\n")}`,
 		);
 	if (detail.note) lines.push(`\n**Note:**\n${escapeMarkdown(detail.note)}`);
+	if (detail.fields?.length) {
+		lines.push(
+			`\n**${fieldGroupTitle(detail.type)}:**\n${detail.fields
+				.map(
+					(field) =>
+						`- **${escapeMarkdown(field.title)}:** ${field.hidden ? mask(field.value) : escapeMarkdown(field.value)}`,
+				)
+				.join("\n")}`,
+		);
+	}
 	if (detail.customFields?.length) {
 		lines.push(
 			`\n**Custom fields:**\n${detail.customFields.map((field) => `- **${escapeMarkdown(field.name)}:** ${field.type === "hidden" ? mask(field.value) : escapeMarkdown(field.value)}`).join("\n")}`,
@@ -169,6 +197,13 @@ export function ItemDetailView({ item }: { item: PassItem }) {
 					{detail.email && (
 						<Detail.Metadata.Label title="Email" text={detail.email} />
 					)}
+					{detail.fields?.map((field) => (
+						<Detail.Metadata.Label
+							key={field.title}
+							title={field.title}
+							text={field.hidden ? mask(field.value) : field.value}
+						/>
+					))}
 					{detail.hasTotp && (
 						<>
 							<Detail.Metadata.Label

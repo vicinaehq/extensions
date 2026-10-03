@@ -7,6 +7,8 @@ import {
 	passwordArgs,
 	penaltyLabel,
 	scoreArgs,
+	typedFieldList,
+	typedFields,
 } from "./cli-contract";
 
 test("builds the exact random-password CLI contract", () => {
@@ -164,4 +166,52 @@ test("ignores malformed vault colour entries", () => {
 	assert.deepEqual(parseVaultColorPreference("Good=red, Bad=nope"), {
 		good: "red",
 	});
+});
+
+test("extracts credit-card fields from a typed content block", () => {
+	// Mirrors the pass-cli CreditCardItem proto field names.
+	const fields = typedFields(
+		"credit_card",
+		{
+			cardholder_name: "Cristian Radoi",
+			card_type: "Visa",
+			number: "4111111111111111",
+			verification_number: "123",
+			expiration_date: "12/2027",
+			pin: "0000",
+			sections: [{ name: "ignored" }],
+		},
+		undefined,
+	);
+	assert.deepEqual(fields, [
+		{ title: "Cardholder", value: "Cristian Radoi", hidden: false },
+		{ title: "Card type", value: "Visa", hidden: false },
+		{ title: "Card number", value: "4111111111111111", hidden: false },
+		{ title: "Security code", value: "123", hidden: true },
+		{ title: "Expiry date", value: "12/2027", hidden: false },
+		{ title: "PIN", value: "0000", hidden: true },
+	]);
+});
+
+test("labels unknown typed fields by de-snake-casing", () => {
+	assert.deepEqual(typedFieldList({ foo_bar: "baz" }), [
+		{ title: "Foo Bar", value: "baz", hidden: false },
+	]);
+	// Empty, null and nested values are dropped.
+	assert.deepEqual(
+		typedFieldList({ a: "", b: null, nested: { x: 1 }, arr: [1] }),
+		[],
+	);
+});
+
+test("suppresses the field block for logins and notes", () => {
+	assert.equal(
+		typedFields("login", { password: "x" }, { username: "u" }),
+		undefined,
+	);
+	assert.equal(typedFields("note", { note: "text" }, undefined), undefined);
+	// A login with no Login block still falls through to generic fields.
+	assert.deepEqual(typedFields("login", { foo: "bar" }, undefined), [
+		{ title: "Foo", value: "bar", hidden: false },
+	]);
 });

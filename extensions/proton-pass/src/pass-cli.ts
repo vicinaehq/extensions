@@ -7,6 +7,7 @@ import {
 	parseScore,
 	passwordArgs,
 	scoreArgs,
+	typedFields,
 } from "./cli-contract";
 
 export type { PasswordOptions, PasswordScore } from "./cli-contract";
@@ -51,6 +52,12 @@ export type PassItemDetail = PassItem & {
 		name: string;
 		value: string;
 		type: "text" | "hidden";
+	}>;
+	/** Type-specific fields (e.g. credit-card number, expiry), in display order. */
+	fields?: Array<{
+		title: string;
+		value: string;
+		hidden?: boolean;
 	}>;
 };
 
@@ -660,6 +667,7 @@ export async function viewItem(item: PassItem): Promise<PassItemDetail> {
 			: text(typed?.password ?? raw.password),
 		note: text(outer.note ?? raw.note),
 		customFields: customFields?.length ? customFields : undefined,
+		fields: typedFields(type, typed, login),
 	};
 }
 
