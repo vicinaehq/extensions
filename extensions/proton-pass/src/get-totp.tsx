@@ -8,14 +8,19 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useEffect, useMemo, useState } from "react";
-import { copySecret, SHORTCUTS } from "./actions";
+import { copySecret, roleStyle, SHORTCUTS, vaultColor } from "./actions";
 import {
 	clearCache,
 	currentCacheEpoch,
 	getCachedSnapshot,
 	setCachedSnapshot,
 } from "./cache";
-import { getTotp, listVaultsAndItems, type PassItem } from "./pass-cli";
+import {
+	getTotp,
+	listVaultsAndItems,
+	type PassItem,
+	type Vault,
+} from "./pass-cli";
 import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 
 type Preferences = {
@@ -24,6 +29,7 @@ type Preferences = {
 
 export default function Command() {
 	const [items, setItems] = useState<PassItem[]>([]);
+	const [vaults, setVaults] = useState<Vault[]>([]);
 	const [error, setError] = useState<string>();
 	const [loading, setLoading] = useState(true);
 	const backgroundRefresh =
@@ -31,6 +37,10 @@ export default function Command() {
 	const totpItems = useMemo(
 		() => items.filter((item) => item.hasTotp),
 		[items],
+	);
+	const roleByShareId = useMemo(
+		() => new Map(vaults.map((vault) => [vault.shareId, vault.role])),
+		[vaults],
 	);
 	const { codes, remaining, refreshing, refresh } = useTotpCodes(totpItems);
 
@@ -40,6 +50,7 @@ export default function Command() {
 			const epoch = currentCacheEpoch();
 			const cached = await getCachedSnapshot();
 			if (cached && active) {
+				setVaults(cached.data.vaults);
 				setItems(cached.data.items);
 				if (!cached.isStale || !backgroundRefresh) {
 					setLoading(false);
@@ -50,6 +61,7 @@ export default function Command() {
 				const fresh = await listVaultsAndItems();
 				if (fresh.failedVaults.length > 0) {
 					if (active) {
+						setVaults(fresh.vaults);
 						setItems(fresh.items);
 						await showToast({
 							style: Toast.Style.Failure,
@@ -65,7 +77,10 @@ export default function Command() {
 						},
 						epoch,
 					);
-					if (active) setItems(fresh.items);
+					if (active) {
+						setVaults(fresh.vaults);
+						setItems(fresh.items);
+					}
 				}
 			} catch (reason: unknown) {
 				const message =
@@ -120,45 +135,58 @@ export default function Command() {
 						refreshing ? "Refreshing…" : `Codes refresh in ${remaining}s`
 					}
 				>
-					{totpItems.map((item) => (
-						<List.Item
-							key={totpItemKey(item)}
-							title={item.title}
-							subtitle={item.vaultName}
-							keywords={[
-								item.title,
-								item.username ?? "",
-								item.email ?? "",
-								item.vaultName,
-								...(item.urls ?? []),
-							]}
-							icon={Icon.Clock}
-							accessories={[
-								{
-									tag: {
-										value: codes[totpItemKey(item)] ?? "---",
-										color: totpTimerColor(remaining),
+					{totpItems.map((item) => {
+						const role = roleByShareId.get(item.shareId);
+						return (
+							<List.Item
+								key={totpItemKey(item)}
+								title={item.title}
+								keywords={[
+									item.title,
+									item.username ?? "",
+									item.email ?? "",
+									item.vaultName,
+									...(item.urls ?? []),
+								]}
+								icon={{
+									source: Icon.Clock,
+									tintColor: vaultColor(role, item.vaultName),
+								}}
+								accessories={[
+									{
+										tag: {
+											value: item.vaultName,
+											color: vaultColor(role, item.vaultName),
+										},
+										icon: roleStyle(role).icon,
+										tooltip: `Vault: ${item.vaultName} (${role ?? "unknown"})`,
 									},
-								},
-								{ text: `${remaining}s`, icon: Icon.Clock },
-							]}
-							actions={
-								<ActionPanel>
-									<Action
-										title="Copy TOTP Code"
-										icon={Icon.CopyClipboard}
-										shortcut={SHORTCUTS.copyTotp}
-										onAction={() => void copy(item)}
-									/>
-									<Action
-										title="Refresh Codes"
-										icon={Icon.ArrowClockwise}
-										onAction={() => void refresh()}
-									/>
-								</ActionPanel>
-							}
-						/>
-					))}
+									{
+										tag: {
+											value: codes[totpItemKey(item)] ?? "---",
+											color: totpTimerColor(remaining),
+										},
+									},
+									{ text: `${remaining}s`, icon: Icon.Clock },
+								]}
+								actions={
+									<ActionPanel>
+										<Action
+											title="Copy TOTP Code"
+											icon={Icon.CopyClipboard}
+											shortcut={SHORTCUTS.copyTotp}
+											onAction={() => void copy(item)}
+										/>
+										<Action
+											title="Refresh Codes"
+											icon={Icon.ArrowClockwise}
+											onAction={() => void refresh()}
+										/>
+									</ActionPanel>
+								}
+							/>
+						);
+					})}
 				</List.Section>
 			)}
 		</List>
