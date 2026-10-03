@@ -231,7 +231,16 @@ export default function Command() {
 			navigationTitle="Generate Proton Pass Password"
 			isLoading={loading}
 			actions={
+				// Order matters: Vicinae's Form panel forces the FIRST action's
+				// shortcut to its submit key (Ctrl+Enter), overriding anything
+				// set here. So Generate New Password is listed first (it takes
+				// Ctrl+Enter), leaving Copy Password free to keep plain Enter.
 				<ActionPanel>
+					<Action
+						title="Generate New Password"
+						icon={Icon.Shuffle}
+						onAction={() => void safely(() => generate(settings))}
+					/>
 					<Action
 						title="Copy Password"
 						icon={Icon.CopyClipboard}
@@ -242,12 +251,6 @@ export default function Command() {
 						title="Copy and Generate Next"
 						icon={Icon.ArrowClockwise}
 						onAction={() => void safely(copyAndGenerate)}
-					/>
-					<Action
-						title="Generate New Password"
-						icon={Icon.Shuffle}
-						shortcut={{ key: "return", modifiers: ["ctrl"] }}
-						onAction={() => void safely(() => generate(settings))}
 					/>
 				</ActionPanel>
 			}
