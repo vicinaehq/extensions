@@ -7,7 +7,7 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 ## Features
 
 - Search all items across all Proton Pass vaults, with an inline vault filter. Search matches titles, usernames, emails, vault names, types and URLs.
-- Browse vaults and their items.
+- Browse vaults and their items; each vault shows its role and live item count.
 - Colour-coded vaults: vaults are coloured by **role** by default (owner=yellow, manager=blue, editor=green, viewer=secondary, with role icons), matching the Raycast extension. Override individual vaults with the **Vault colours** preference, e.g. `Personal=green, Work=#1E90FF`. (Proton's own per-vault colours are not exposed by `pass-cli`.)
 - Open an on-demand item details view with masked secrets, URLs, notes and custom fields, plus type-specific fields (card number, expiry, security code for cards; identity, Wi-Fi and SSH-key fields), with secrets masked.
 - Copy usernames, emails, passwords and TOTP codes on demand.
@@ -56,7 +56,7 @@ Set the extension's `pass-cli path` preference to the absolute path when Vicinae
 - **Search Proton Pass Items** — searches every vault, filters by vault, opens item details and exposes copy/open actions with keyboard shortcuts. The primary and secondary actions are configurable in preferences.
 - **List Proton Pass Vaults** — opens a vault, then searches its items, sharing the same detail view and actions as Search.
 - **Get Proton Pass TOTP Code** — lists every item; select one and choose **Copy TOTP Code**.
-- **Generate Proton Pass Password** — visible controls for length, character classes, word count and separators, with a real `pass-cli` strength score and weakness list. Enter generates a new password.
+- **Generate Proton Pass Password** — visible controls for length, character classes, word count and separators, with a real `pass-cli` strength score and weakness list. Enter copies the password; Ctrl+Enter generates a new one.
 - **Login to Proton Pass** — checks the CLI session and starts browser login when required.
 
 Run the deterministic CLI contract tests with:
