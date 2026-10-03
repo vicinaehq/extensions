@@ -225,11 +225,39 @@ function arrayFrom(data: unknown, key: string): unknown[] {
 	throw new Error(`Unexpected ${key} output from pass-cli.`);
 }
 
+async function vaultRoles(): Promise<Map<string, string>> {
+	// `vault list` carries no role; `share list` reports the role per share.
+	try {
+		const data = parseJson(
+			await run(
+				["share", "list", "--only-vaults", "true", "--output", "json"],
+				"list vault roles",
+			),
+			"share list",
+		);
+		const roles = new Map<string, string>();
+		for (const raw of arrayFrom(data, "shares")) {
+			if (!record(raw)) continue;
+			const id = text(raw.id ?? raw.share_id ?? raw.shareId);
+			const role = text(
+				raw.share_role ?? raw.role ?? raw.shareRole,
+			)?.toLowerCase();
+			if (id && role) roles.set(id, role);
+		}
+		return roles;
+	} catch {
+		// Roles are a cosmetic nicety; never fail vault listing over them.
+		return new Map();
+	}
+}
+
 export async function listVaults(): Promise<Vault[]> {
-	const data = parseJson(
-		await run(["vault", "list", "--output", "json"], "list vaults"),
-		"vault list",
-	);
+	const [data, roles] = await Promise.all([
+		run(["vault", "list", "--output", "json"], "list vaults").then((out) =>
+			parseJson(out, "vault list"),
+		),
+		vaultRoles(),
+	]);
 	return arrayFrom(data, "vaults").flatMap((raw) => {
 		if (!record(raw)) return [];
 		const shareId = text(raw.share_id ?? raw.shareId ?? raw.id);
@@ -238,7 +266,9 @@ export async function listVaults(): Promise<Vault[]> {
 			raw.item_count ?? raw.itemCount ?? raw.items_count ?? raw.itemsCount;
 		const itemCount =
 			itemCountRaw === undefined ? undefined : Number(itemCountRaw);
-		const role = text(raw.role)?.toLowerCase();
+		const role =
+			text(raw.role)?.toLowerCase() ??
+			(shareId ? roles.get(shareId) : undefined);
 		return shareId && name
 			? [
 					{
