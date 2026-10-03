@@ -15,7 +15,6 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 - Generate configurable random passwords: 8–128 characters, numbers, uppercase letters and symbols.
 - Generate configurable passphrases: 3–10 words, capitalisation, numbers and separators.
 - Score generated passwords with the real `pass-cli password score` (Strong/Good/Weak/Vulnerable) and list the specific weaknesses it finds, with a colour-coded strength indicator.
-- Check the strength of any password with the dedicated **Check Password Strength** command.
 - Keyboard shortcuts for the common actions: copy password (Ctrl+Shift+C), copy username (Ctrl+Shift+U), copy TOTP (Ctrl+Shift+T), open in browser (Ctrl+Shift+O).
 - Choose your primary and secondary actions for Search items, so Enter does what you want (view, copy or open).
 - Optionally close the launcher with a brief HUD after copying a value.
@@ -58,7 +57,6 @@ Set the extension's `pass-cli path` preference to the absolute path when Vicinae
 - **List Proton Pass Vaults** — opens a vault, then searches its items, sharing the same detail view and actions as Search.
 - **Get Proton Pass TOTP Code** — lists every item; select one and choose **Copy TOTP Code**.
 - **Generate Proton Pass Password** — visible controls for length, character classes, word count and separators, with a real `pass-cli` strength score and weakness list. Enter generates a new password.
-- **Check Password Strength** — paste or type any password to see its `pass-cli` score and weaknesses. The password is passed to `pass-cli` as a command argument to compute the score.
 - **Login to Proton Pass** — checks the CLI session and starts browser login when required.
 
 Run the deterministic CLI contract tests with:

@@ -42,14 +42,6 @@
       "mode": "view"
     },
     {
-      "name": "check-strength",
-      "title": "Check Password Strength",
-      "subtitle": "pass-cli",
-      "description": "Score a password with pass-cli and list its weaknesses.",
-      "icon": "extension_icon.png",
-      "mode": "view"
-    },
-    {
       "name": "login",
       "title": "Login to Proton Pass",
       "subtitle": "pass-cli",
