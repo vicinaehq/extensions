@@ -6,7 +6,9 @@ import {
 	extractTotpCode,
 	parseScore,
 	passwordArgs,
+	record,
 	scoreArgs,
+	text,
 	typedFields,
 } from "./cli-contract";
 
@@ -25,6 +27,13 @@ export type Vault = {
 	itemCount?: number;
 	role?: string;
 };
+
+/** Index a vault list by share id so an item can be matched to its vault. */
+export function roleByShareId(
+	vaults: Vault[],
+): Map<string, string | undefined> {
+	return new Map(vaults.map((vault) => [vault.shareId, vault.role]));
+}
 
 export type PassItem = {
 	shareId: string;
@@ -87,19 +96,7 @@ async function verifyAuthentication(): Promise<void> {
 			});
 			authVerifiedAt = Date.now();
 		} catch (error) {
-			const err = error as NodeJS.ErrnoException & { stderr?: string };
-			if (err.code === "ENOENT") {
-				throw new Error(
-					`pass-cli was not found at '${cliPath()}'. Set the pass-cli path in Vicinae preferences.`,
-				);
-			}
-			const detail =
-				typeof err.stderr === "string" && err.stderr.trim()
-					? err.stderr.trim()
-					: err.message;
-			throw new Error(
-				redactDiagnostic(detail || "pass-cli authentication check failed"),
-			);
+			throw cliFailure(error, "pass-cli authentication check failed");
 		}
 	})().finally(() => {
 		authCheck = undefined;
@@ -123,29 +120,26 @@ async function run(
 		});
 		return result.stdout.trim();
 	} catch (error) {
-		const err = error as NodeJS.ErrnoException & {
-			stderr?: string;
-			stdout?: string;
-		};
-		const detail =
-			typeof err.stderr === "string" && err.stderr.trim()
-				? err.stderr.trim()
-				: err.message;
-		if (err.code === "ENOENT") {
-			throw new Error(
-				`pass-cli was not found at '${cliPath()}'. Set the pass-cli path in Vicinae preferences.`,
-			);
-		}
-		throw new Error(redactDiagnostic(detail || "pass-cli failed"));
+		throw cliFailure(error, "pass-cli failed");
 	}
 }
 
-function record(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null;
-}
-
-function text(value: unknown): string | undefined {
-	return typeof value === "string" && value.trim() ? value.trim() : undefined;
+/**
+ * Turn a failed pass-cli invocation into a redacted Error: a missing binary
+ * gets a pointed message, anything else surfaces its stderr (or message).
+ */
+function cliFailure(error: unknown, fallback: string): Error {
+	const err = error as NodeJS.ErrnoException & { stderr?: string };
+	if (err.code === "ENOENT") {
+		return new Error(
+			`pass-cli was not found at '${cliPath()}'. Set the pass-cli path in Vicinae preferences.`,
+		);
+	}
+	const detail =
+		typeof err.stderr === "string" && err.stderr.trim()
+			? err.stderr.trim()
+			: err.message;
+	return new Error(redactDiagnostic(detail || fallback));
 }
 
 function redactDiagnostic(value: string): string {
@@ -239,6 +233,11 @@ function parseJson(output: string, action: string): unknown {
 	} catch {
 		throw new Error(`pass-cli returned invalid JSON for ${action}.`);
 	}
+}
+
+/** True when a thrown value is an Error whose message matches `pattern`. */
+function isErrorMatching(error: unknown, pattern: RegExp): boolean {
+	return error instanceof Error && pattern.test(error.message);
 }
 
 function arrayFrom(data: unknown, key: string): unknown[] {
@@ -460,11 +459,9 @@ async function listItemsOutput(
 }
 
 function showSecretsUnavailable(error: unknown): boolean {
-	return (
-		error instanceof Error &&
-		/show.?secrets|agent session|unknown option|unrecognized option/i.test(
-			error.message,
-		)
+	return isErrorMatching(
+		error,
+		/show.?secrets|agent session|unknown option|unrecognized option/i,
 	);
 }
 
@@ -497,8 +494,7 @@ async function readOptionalField(
 		);
 	} catch (error) {
 		if (
-			error instanceof Error &&
-			/field does not exist|not a .* field|no .* field/i.test(error.message)
+			isErrorMatching(error, /field does not exist|not a .* field|no .* field/i)
 		)
 			return undefined;
 		throw error;
@@ -537,10 +533,7 @@ async function itemHasTotp(item: PassItem): Promise<boolean> {
 	try {
 		return containsTotpCode(await readTotpData(item));
 	} catch (error) {
-		if (
-			error instanceof Error &&
-			/no .*totp|totp.*not|field does not exist/i.test(error.message)
-		)
+		if (isErrorMatching(error, /no .*totp|totp.*not|field does not exist/i))
 			return false;
 		throw error;
 	}
@@ -611,10 +604,7 @@ export async function checkAuth(): Promise<boolean> {
 		await run(["info"], "check authentication");
 		return true;
 	} catch (error) {
-		if (
-			error instanceof Error &&
-			/authenticated|logged in|session/i.test(error.message)
-		)
+		if (isErrorMatching(error, /authenticated|logged in|session/i))
 			return false;
 		throw error;
 	}

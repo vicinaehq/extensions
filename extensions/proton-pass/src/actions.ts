@@ -9,7 +9,7 @@ import {
 	showToast,
 	Toast,
 } from "@vicinae/api";
-import { parseVaultColorPreference } from "./cli-contract";
+import { errorMessage, parseVaultColorPreference } from "./cli-contract";
 import { copyProtected } from "./clipboard";
 
 /**
@@ -26,7 +26,7 @@ export async function guardAction(
 		await showToast({
 			style: Toast.Style.Failure,
 			title,
-			message: reason instanceof Error ? reason.message : String(reason),
+			message: errorMessage(reason),
 		});
 	}
 }

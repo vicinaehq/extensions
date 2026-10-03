@@ -7,7 +7,7 @@ import {
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import {
-	copySecret as copyShared,
+	copySecret,
 	guardAction,
 	primaryUrl,
 	roleStyle,
@@ -22,6 +22,7 @@ import {
 	setCachedVaultItems,
 	setCachedVaults,
 } from "./cache";
+import { errorMessage } from "./cli-contract";
 import {
 	getTotp,
 	listItems,
@@ -36,14 +37,6 @@ import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 type Preferences = {
 	enableBackgroundRefresh?: boolean;
 };
-
-async function copyValue(
-	title: string,
-	value: string,
-	sensitive = false,
-): Promise<void> {
-	await copyShared(title, value, { sensitive });
-}
 
 const safely = (action: () => Promise<void>): Promise<void> =>
 	guardAction("Proton Pass action failed", action);
@@ -73,8 +66,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 				await setCachedVaultItems(vault.shareId, fresh, epoch);
 				if (active) setItems(fresh);
 			} catch (reason: unknown) {
-				const message =
-					reason instanceof Error ? reason.message : String(reason);
+				const message = errorMessage(reason);
 				if (!cached && active) setError(message);
 				if (/authenticated|logged in|session/i.test(message))
 					await clearCache();
@@ -146,7 +138,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 										shortcut={SHORTCUTS.copyUsername}
 										onAction={() =>
 											void safely(() =>
-												copyValue(
+												copySecret(
 													item.username ? "Username" : "Email",
 													item.username ?? item.email ?? "",
 												),
@@ -167,7 +159,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 														throw new Error(
 															"This item has no username or email.",
 														);
-													await copyValue(
+													await copySecret(
 														detail.username ? "Username" : "Email",
 														value,
 													);
@@ -181,7 +173,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 										title="Copy Email"
 										icon={Icon.Envelope}
 										onAction={() =>
-											void safely(() => copyValue("Email", item.email ?? ""))
+											void safely(() => copySecret("Email", item.email ?? ""))
 										}
 									/>
 								)}
@@ -194,7 +186,9 @@ function VaultItems({ vault }: { vault: Vault }) {
 											const detail = await viewItem(item);
 											if (!detail.password)
 												throw new Error("This item has no password.");
-											await copyValue("Password", detail.password, true);
+											await copySecret("Password", detail.password, {
+												sensitive: true,
+											});
 										})
 									}
 								/>
@@ -204,7 +198,9 @@ function VaultItems({ vault }: { vault: Vault }) {
 									shortcut={SHORTCUTS.copyTotp}
 									onAction={() =>
 										void guardAction("Unable to copy TOTP code", async () => {
-											await copyValue("TOTP code", await getTotp(item), true);
+											await copySecret("TOTP code", await getTotp(item), {
+												sensitive: true,
+											});
 										})
 									}
 								/>
@@ -252,8 +248,7 @@ export default function Command() {
 				await setCachedVaults(fresh, epoch);
 				if (active) setVaults(fresh);
 			} catch (reason: unknown) {
-				const message =
-					reason instanceof Error ? reason.message : String(reason);
+				const message = errorMessage(reason);
 				if (!cached && active) setError(message);
 				if (/authenticated|logged in|session/i.test(message))
 					await clearCache();
@@ -318,14 +313,14 @@ export default function Command() {
 									title="Copy Vault Name"
 									icon={Icon.CopyClipboard}
 									onAction={() =>
-										void safely(() => copyValue("Vault name", vault.name))
+										void safely(() => copySecret("Vault name", vault.name))
 									}
 								/>
 								<Action
 									title="Copy Share ID"
 									icon={Icon.CopyClipboard}
 									onAction={() =>
-										void safely(() => copyValue("Share ID", vault.shareId))
+										void safely(() => copySecret("Share ID", vault.shareId))
 									}
 								/>
 							</ActionPanel>

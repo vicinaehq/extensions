@@ -8,6 +8,7 @@ import {
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import { clearCache } from "./cache";
+import { errorMessage } from "./cli-contract";
 import { checkAuth, login } from "./pass-cli";
 
 type AuthState = "loading" | "authenticated" | "not-authenticated";
@@ -25,7 +26,7 @@ export default function Command() {
 			return authenticated;
 		} catch (reason: unknown) {
 			setState("not-authenticated");
-			setError(reason instanceof Error ? reason.message : String(reason));
+			setError(errorMessage(reason));
 			return false;
 		}
 	}
@@ -47,7 +48,7 @@ export default function Command() {
 				title: "Proton Pass login completed",
 			});
 		} catch (reason: unknown) {
-			const message = reason instanceof Error ? reason.message : String(reason);
+			const message = errorMessage(reason);
 			setError(message);
 			await showToast({
 				style: Toast.Style.Failure,

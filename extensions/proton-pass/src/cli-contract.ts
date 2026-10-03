@@ -9,12 +9,17 @@ export type PasswordOptions = {
 	capitalize?: boolean;
 };
 
-function record(value: unknown): value is Record<string, unknown> {
+export function record(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null;
 }
 
-function text(value: unknown): string | undefined {
+export function text(value: unknown): string | undefined {
 	return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+/** Human-readable message for any thrown/rejected value. */
+export function errorMessage(value: unknown): string {
+	return value instanceof Error ? value.message : String(value);
 }
 
 function totpCode(value: unknown): string | undefined {

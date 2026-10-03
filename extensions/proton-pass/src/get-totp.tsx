@@ -1,102 +1,26 @@
 import {
 	Action,
 	ActionPanel,
-	getPreferenceValues,
 	Icon,
 	List,
 	showToast,
 	Toast,
 } from "@vicinae/api";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { copySecret, roleStyle, SHORTCUTS, vaultColor } from "./actions";
-import {
-	clearCache,
-	currentCacheEpoch,
-	getCachedSnapshot,
-	setCachedSnapshot,
-} from "./cache";
-import {
-	getTotp,
-	listVaultsAndItems,
-	type PassItem,
-	type Vault,
-} from "./pass-cli";
+import { errorMessage } from "./cli-contract";
+import { getTotp, type PassItem, roleByShareId } from "./pass-cli";
+import { useVaultSnapshot } from "./snapshot";
 import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 
-type Preferences = {
-	enableBackgroundRefresh?: boolean;
-};
-
 export default function Command() {
-	const [items, setItems] = useState<PassItem[]>([]);
-	const [vaults, setVaults] = useState<Vault[]>([]);
-	const [error, setError] = useState<string>();
-	const [loading, setLoading] = useState(true);
-	const backgroundRefresh =
-		getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
+	const { vaults, items, loading, error } = useVaultSnapshot();
 	const totpItems = useMemo(
 		() => items.filter((item) => item.hasTotp),
 		[items],
 	);
-	const roleByShareId = useMemo(
-		() => new Map(vaults.map((vault) => [vault.shareId, vault.role])),
-		[vaults],
-	);
+	const roleMap = useMemo(() => roleByShareId(vaults), [vaults]);
 	const { codes, remaining, refreshing, refresh } = useTotpCodes(totpItems);
-
-	useEffect(() => {
-		let active = true;
-		async function loadItems(): Promise<void> {
-			const epoch = currentCacheEpoch();
-			const cached = await getCachedSnapshot();
-			if (cached && active) {
-				setVaults(cached.data.vaults);
-				setItems(cached.data.items);
-				if (!cached.isStale || !backgroundRefresh) {
-					setLoading(false);
-					return;
-				}
-			}
-			try {
-				const fresh = await listVaultsAndItems();
-				if (fresh.failedVaults.length > 0) {
-					if (active) {
-						setVaults(fresh.vaults);
-						setItems(fresh.items);
-						await showToast({
-							style: Toast.Style.Failure,
-							title: "Some Proton Pass vaults could not be loaded",
-							message: fresh.failedVaults.join(", "),
-						});
-					}
-				} else {
-					await setCachedSnapshot(
-						{
-							vaults: fresh.vaults,
-							items: fresh.items,
-						},
-						epoch,
-					);
-					if (active) {
-						setVaults(fresh.vaults);
-						setItems(fresh.items);
-					}
-				}
-			} catch (reason: unknown) {
-				const message =
-					reason instanceof Error ? reason.message : String(reason);
-				if (!cached && active) setError(message);
-				if (/authenticated|logged in|session/i.test(message))
-					await clearCache();
-			} finally {
-				if (active) setLoading(false);
-			}
-		}
-		void loadItems();
-		return () => {
-			active = false;
-		};
-	}, [backgroundRefresh]);
 
 	async function copy(item: PassItem): Promise<void> {
 		try {
@@ -106,7 +30,7 @@ export default function Command() {
 			await showToast({
 				style: Toast.Style.Failure,
 				title: "Unable to copy TOTP code",
-				message: reason instanceof Error ? reason.message : String(reason),
+				message: errorMessage(reason),
 			});
 		}
 	}
@@ -136,7 +60,7 @@ export default function Command() {
 					}
 				>
 					{totpItems.map((item) => {
-						const role = roleByShareId.get(item.shareId);
+						const role = roleMap.get(item.shareId);
 						return (
 							<List.Item
 								key={totpItemKey(item)}

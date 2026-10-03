@@ -9,6 +9,7 @@ import {
 } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { copySecret } from "./actions";
+import { errorMessage } from "./cli-contract";
 import {
 	generatePassword,
 	type PasswordOptions,
@@ -167,7 +168,7 @@ export default function Command() {
 		} catch (reason: unknown) {
 			if (currentGeneration === generationId.current) {
 				setPassword("");
-				setError(reason instanceof Error ? reason.message : String(reason));
+				setError(errorMessage(reason));
 				setLoading(false);
 			}
 		}
@@ -202,7 +203,7 @@ export default function Command() {
 			await showToast({
 				style: Toast.Style.Failure,
 				title: "Password action failed",
-				message: reason instanceof Error ? reason.message : String(reason),
+				message: errorMessage(reason),
 			});
 		}
 	}

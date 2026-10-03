@@ -1,18 +1,9 @@
-import {
-	Action,
-	ActionPanel,
-	Detail,
-	getPreferenceValues,
-	Icon,
-	List,
-	showToast,
-	Toast,
-} from "@vicinae/api";
+import { Action, ActionPanel, Detail, Icon, List } from "@vicinae/api";
 import type React from "react";
 import { memo, useEffect, useMemo, useState } from "react";
 import {
 	type ActionId,
-	copySecret as copyShared,
+	copySecret,
 	guardAction,
 	orderedActionIds,
 	primaryUrl,
@@ -20,25 +11,17 @@ import {
 	SHORTCUTS,
 	vaultColor,
 } from "./actions";
-import {
-	clearCache,
-	currentCacheEpoch,
-	getCachedSnapshot,
-	setCachedSnapshot,
-} from "./cache";
+import { errorMessage } from "./cli-contract";
 import {
 	getTotp,
-	listVaultsAndItems,
 	type PassItem,
 	type PassItemDetail,
+	roleByShareId,
 	type Vault,
 	viewItem,
 } from "./pass-cli";
+import { useVaultSnapshot } from "./snapshot";
 import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
-
-type Preferences = {
-	enableBackgroundRefresh?: boolean;
-};
 
 function itemIcon(item: PassItem): Icon {
 	if (item.hasTotp) return Icon.Lock;
@@ -86,15 +69,6 @@ function fieldGroupTitle(type: string): string {
 	}
 }
 
-async function copySecret(
-	title: string,
-	value: string,
-	concealed = true,
-	sensitive = false,
-): Promise<void> {
-	await copyShared(title, value, { concealed, sensitive });
-}
-
 export function ItemDetailView({
 	item,
 	vaultRole,
@@ -116,11 +90,7 @@ export function ItemDetailView({
 			.then((nextDetail) => {
 				if (active) setDetail(nextDetail);
 			})
-			.catch(
-				(reason: unknown) =>
-					active &&
-					setError(reason instanceof Error ? reason.message : String(reason)),
-			);
+			.catch((reason: unknown) => active && setError(errorMessage(reason)));
 		return () => {
 			active = false;
 		};
@@ -258,7 +228,9 @@ export function ItemDetailView({
 							shortcut={SHORTCUTS.copyPassword}
 							onAction={() =>
 								void safely(() =>
-									copySecret("Password", detail.password ?? "", true, true),
+									copySecret("Password", detail.password ?? "", {
+										sensitive: true,
+									}),
 								)
 							}
 						/>
@@ -270,7 +242,9 @@ export function ItemDetailView({
 							shortcut={SHORTCUTS.copyTotp}
 							onAction={() =>
 								void safely(async () =>
-									copySecret("TOTP code", await getTotp(item), true, true),
+									copySecret("TOTP code", await getTotp(item), {
+										sensitive: true,
+									}),
 								)
 							}
 						/>
@@ -287,7 +261,9 @@ export function ItemDetailView({
 							title="Copy Note"
 							icon={Icon.BlankDocument}
 							onAction={() =>
-								void safely(() => copySecret("Note", detail.note ?? "", true))
+								void safely(() =>
+									copySecret("Note", detail.note ?? "", { concealed: true }),
+								)
 							}
 						/>
 					)}
@@ -307,12 +283,10 @@ export function ItemDetailView({
 							icon={Icon.CopyClipboard}
 							onAction={() =>
 								void safely(() =>
-									copySecret(
-										field.name,
-										field.value,
-										true,
-										field.type === "hidden",
-									),
+									copySecret(field.name, field.value, {
+										concealed: true,
+										sensitive: field.type === "hidden",
+									}),
 								)
 							}
 						/>
@@ -378,7 +352,7 @@ function ItemActions({
 					void safely(async () => {
 						const detail = await viewItem(item);
 						if (!detail.password) throw new Error("This item has no password.");
-						await copySecret("Password", detail.password, true, true);
+						await copySecret("Password", detail.password, { sensitive: true });
 					})
 				}
 			/>
@@ -391,7 +365,7 @@ function ItemActions({
 				shortcut={SHORTCUTS.copyTotp}
 				onAction={() =>
 					void safely(async () =>
-						copySecret("TOTP code", await getTotp(item), true, true),
+						copySecret("TOTP code", await getTotp(item), { sensitive: true }),
 					)
 				}
 			/>
@@ -502,7 +476,7 @@ const TypeFilter = memo(function TypeFilter({
 });
 
 function ItemRows({ items, vaults }: { items: PassItem[]; vaults: Vault[] }) {
-	const roleByShareId = new Map(vaults.map((v) => [v.shareId, v.role]));
+	const roleMap = roleByShareId(vaults);
 	return (
 		<>
 			{items.map((item) => (
@@ -520,32 +494,23 @@ function ItemRows({ items, vaults }: { items: PassItem[]; vaults: Vault[] }) {
 					]}
 					icon={{
 						source: itemIcon(item),
-						tintColor: vaultColor(
-							roleByShareId.get(item.shareId),
-							item.vaultName,
-						),
+						tintColor: vaultColor(roleMap.get(item.shareId), item.vaultName),
 					}}
 					accessories={[
 						{
 							tag: {
 								value: item.vaultName,
-								color: vaultColor(
-									roleByShareId.get(item.shareId),
-									item.vaultName,
-								),
+								color: vaultColor(roleMap.get(item.shareId), item.vaultName),
 							},
-							icon: roleStyle(roleByShareId.get(item.shareId)).icon,
-							tooltip: `Role: ${roleByShareId.get(item.shareId) ?? "unknown"}`,
+							icon: roleStyle(roleMap.get(item.shareId)).icon,
+							tooltip: `Role: ${roleMap.get(item.shareId) ?? "unknown"}`,
 						},
 						...(item.hasTotp
 							? [{ icon: Icon.Clock, tooltip: "Has TOTP" }]
 							: []),
 					]}
 					actions={
-						<ItemActions
-							item={item}
-							vaultRole={roleByShareId.get(item.shareId)}
-						/>
+						<ItemActions item={item} vaultRole={roleMap.get(item.shareId)} />
 					}
 				/>
 			))}
@@ -554,14 +519,9 @@ function ItemRows({ items, vaults }: { items: PassItem[]; vaults: Vault[] }) {
 }
 
 export default function Command() {
-	const [items, setItems] = useState<PassItem[]>([]);
-	const [vaults, setVaults] = useState<Vault[]>([]);
+	const { vaults, items, loading, error } = useVaultSnapshot();
 	const [selectedVault, setSelectedVault] = useState("all");
 	const [selectedType, setSelectedType] = useState("all");
-	const [error, setError] = useState<string>();
-	const [loading, setLoading] = useState(true);
-	const backgroundRefresh =
-		getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
 	const filterAccessory = useMemo(
 		() => (
 			<>
@@ -571,61 +531,6 @@ export default function Command() {
 		),
 		[vaults],
 	);
-
-	useEffect(() => {
-		let active = true;
-		async function loadItems(): Promise<void> {
-			const epoch = currentCacheEpoch();
-			const cached = await getCachedSnapshot();
-			if (cached && active) {
-				setVaults(cached.data.vaults);
-				setItems(cached.data.items);
-				if (!cached.isStale || !backgroundRefresh) {
-					setLoading(false);
-					return;
-				}
-			}
-
-			try {
-				const fresh = await listVaultsAndItems();
-				if (fresh.failedVaults.length > 0) {
-					if (active) {
-						setVaults(fresh.vaults);
-						setItems(fresh.items);
-						await showToast({
-							style: Toast.Style.Failure,
-							title: "Some Proton Pass vaults could not be loaded",
-							message: fresh.failedVaults.join(", "),
-						});
-					}
-				} else {
-					await setCachedSnapshot(
-						{
-							vaults: fresh.vaults,
-							items: fresh.items,
-						},
-						epoch,
-					);
-					if (active) {
-						setVaults(fresh.vaults);
-						setItems(fresh.items);
-					}
-				}
-			} catch (reason: unknown) {
-				const message =
-					reason instanceof Error ? reason.message : String(reason);
-				if (!cached && active) setError(message);
-				if (/authenticated|logged in|session/i.test(message))
-					await clearCache();
-			} finally {
-				if (active) setLoading(false);
-			}
-		}
-		void loadItems();
-		return () => {
-			active = false;
-		};
-	}, [backgroundRefresh]);
 
 	const visibleItems = items.filter(
 		(item) =>
