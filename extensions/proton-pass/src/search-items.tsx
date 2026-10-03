@@ -260,6 +260,7 @@ export function ItemDetailView({
 						<Action
 							title="Copy Note"
 							icon={Icon.BlankDocument}
+							shortcut={{ modifiers: ["ctrl", "shift"], key: "n" }}
 							onAction={() =>
 								void safely(() =>
 									copySecret("Note", detail.note ?? "", { concealed: true }),

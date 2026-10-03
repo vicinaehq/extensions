@@ -237,11 +237,13 @@ export default function Command() {
 			<Action
 				title="Generate New Password"
 				icon={Icon.Shuffle}
+				shortcut={{ key: "r", modifiers: ["ctrl"] }}
 				onAction={() => void safely(() => generate(settings))}
 			/>
 			<Action
 				title={showPassword ? "Hide Password" : "Show Password"}
 				icon={showPassword ? Icon.EyeDisabled : Icon.Eye}
+				shortcut={{ key: "y", modifiers: ["ctrl"] }}
 				onAction={() => setShowPassword((value) => !value)}
 			/>
 			<Action
@@ -251,6 +253,7 @@ export default function Command() {
 						: "Switch to Random Password"
 				}
 				icon={Icon.Switch}
+				shortcut={{ key: "t", modifiers: ["ctrl"] }}
 				onAction={() =>
 					updateSettings((current) => ({
 						...current,
