@@ -193,7 +193,31 @@ const FIELD_LABELS: Record<string, string> = {
 	public_key: "Public key",
 };
 
-export type TypedField = { title: string; value: string; hidden?: boolean };
+export type TypedField = {
+	title: string;
+	value: string;
+	hidden?: boolean;
+	/** Whether the field is worth a "Copy …" action (mirrors Proton Pass). */
+	copy?: boolean;
+};
+
+// Typed fields that are useful to copy: card details, Wi-Fi credentials, SSH
+// keys and identity contact fields. Display-only fields (cardholder, card type)
+// are deliberately excluded.
+const COPYABLE_FIELDS = new Set([
+	"number",
+	"verification_number",
+	"expiration_date",
+	"pin",
+	"ssid",
+	"password",
+	"private_key",
+	"public_key",
+	"full_name",
+	"email",
+	"phone_number",
+	"username",
+]);
 
 function labelForKey(key: string): string {
 	if (FIELD_LABELS[key]) return FIELD_LABELS[key];
@@ -219,6 +243,7 @@ export function typedFieldList(
 			title: labelForKey(key),
 			value,
 			hidden: HIDDEN_FIELDS.has(key),
+			copy: COPYABLE_FIELDS.has(key),
 		});
 	}
 	return fields;

@@ -290,6 +290,23 @@ export function ItemDetailView({
 							}
 						/>
 					))}
+					{detail.fields?.map((field) =>
+						field.copy ? (
+							<Action
+								key={`copy-${field.title}`}
+								title={`Copy ${field.title}`}
+								icon={Icon.CopyClipboard}
+								onAction={() =>
+									void safely(() =>
+										copySecret(field.title, field.value, {
+											concealed: true,
+											sensitive: field.hidden,
+										}),
+									)
+								}
+							/>
+						) : null,
+					)}
 				</ActionPanel>
 			}
 		/>

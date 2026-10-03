@@ -62,6 +62,7 @@ export type PassItemDetail = PassItem & {
 		title: string;
 		value: string;
 		hidden?: boolean;
+		copy?: boolean;
 	}>;
 };
 

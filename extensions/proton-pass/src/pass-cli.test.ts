@@ -197,18 +197,41 @@ test("extracts credit-card fields from a typed content block", () => {
 		undefined,
 	);
 	assert.deepEqual(fields, [
-		{ title: "Cardholder", value: "Cristian Radoi", hidden: false },
-		{ title: "Card type", value: "Visa", hidden: false },
-		{ title: "Card number", value: "4111111111111111", hidden: true },
-		{ title: "Security code", value: "123", hidden: true },
-		{ title: "Expiry date", value: "12/2027", hidden: false },
-		{ title: "PIN", value: "0000", hidden: true },
+		{
+			title: "Cardholder",
+			value: "Cristian Radoi",
+			hidden: false,
+			copy: false,
+		},
+		{ title: "Card type", value: "Visa", hidden: false, copy: false },
+		{
+			title: "Card number",
+			value: "4111111111111111",
+			hidden: true,
+			copy: true,
+		},
+		{ title: "Security code", value: "123", hidden: true, copy: true },
+		{ title: "Expiry date", value: "12/2027", hidden: false, copy: true },
+		{ title: "PIN", value: "0000", hidden: true, copy: true },
+	]);
+});
+
+test("marks only useful typed fields as copyable", () => {
+	const wifi = typedFields(
+		"wifi",
+		{ ssid: "HomeNet", password: "hunter2", security: "WPA2" },
+		undefined,
+	);
+	assert.deepEqual(wifi, [
+		{ title: "Network name", value: "HomeNet", hidden: false, copy: true },
+		{ title: "Password", value: "hunter2", hidden: true, copy: true },
+		{ title: "Security", value: "WPA2", hidden: false, copy: false },
 	]);
 });
 
 test("labels unknown typed fields by de-snake-casing", () => {
 	assert.deepEqual(typedFieldList({ foo_bar: "baz" }), [
-		{ title: "Foo Bar", value: "baz", hidden: false },
+		{ title: "Foo Bar", value: "baz", hidden: false, copy: false },
 	]);
 	// Empty, null and nested values are dropped.
 	assert.deepEqual(
@@ -225,6 +248,6 @@ test("suppresses the field block for logins and notes", () => {
 	assert.equal(typedFields("note", { note: "text" }, undefined), undefined);
 	// A login with no Login block still falls through to generic fields.
 	assert.deepEqual(typedFields("login", { foo: "bar" }, undefined), [
-		{ title: "Foo", value: "bar", hidden: false },
+		{ title: "Foo", value: "bar", hidden: false, copy: false },
 	]);
 });
