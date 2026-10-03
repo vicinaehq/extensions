@@ -13,6 +13,7 @@ import { memo, useEffect, useMemo, useState } from "react";
 import {
 	type ActionId,
 	copySecret as copyShared,
+	guardAction,
 	orderedActionIds,
 	primaryUrl,
 	roleStyle,
@@ -106,18 +107,8 @@ export function ItemDetailView({
 	const totpItems = useMemo(() => (item.hasTotp ? [item] : []), [item]);
 	const { codes, remaining, refreshing, refresh } = useTotpCodes(totpItems);
 	const currentTotp = codes[totpItemKey(item)];
-
-	async function safely(action: () => Promise<void>): Promise<void> {
-		try {
-			await action();
-		} catch (reason: unknown) {
-			await showToast({
-				style: Toast.Style.Failure,
-				title: "Proton Pass action failed",
-				message: reason instanceof Error ? reason.message : String(reason),
-			});
-		}
-	}
+	const safely = (action: () => Promise<void>): Promise<void> =>
+		guardAction("Proton Pass action failed", action);
 
 	useEffect(() => {
 		let active = true;
@@ -337,17 +328,8 @@ function ItemActions({
 	item: PassItem;
 	vaultRole?: string;
 }) {
-	async function safely(action: () => Promise<void>): Promise<void> {
-		try {
-			await action();
-		} catch (reason: unknown) {
-			await showToast({
-				style: Toast.Style.Failure,
-				title: "Proton Pass action failed",
-				message: reason instanceof Error ? reason.message : String(reason),
-			});
-		}
-	}
+	const safely = (action: () => Promise<void>): Promise<void> =>
+		guardAction("Proton Pass action failed", action);
 
 	const hasIdentity = Boolean(item.username || item.email);
 	const url = primaryUrl(item.urls);

@@ -101,8 +101,6 @@ export const VAULT_COLOR_NAMES = [
 	"yellow",
 ] as const;
 
-export type VaultColorName = (typeof VAULT_COLOR_NAMES)[number];
-
 const HEX_COLOR = /^#[0-9a-f]{3,8}$/i;
 
 /**

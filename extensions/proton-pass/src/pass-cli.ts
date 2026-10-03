@@ -11,16 +11,9 @@ import {
 } from "./cli-contract";
 
 export type { PasswordOptions, PasswordScore } from "./cli-contract";
-export {
-	extractTotpCode,
-	parseScore,
-	passwordArgs,
-	penaltyLabel,
-	scoreArgs,
-} from "./cli-contract";
+export { extractTotpCode, penaltyLabel } from "./cli-contract";
 
 const execFileAsync = promisify(execFile);
-let authCheck: Promise<void> | undefined;
 
 interface Preferences {
 	cliPath?: string;
@@ -73,7 +66,16 @@ function reason(action: string): Record<string, string> {
 	};
 }
 
+// Recent successful auth checks are reused briefly so a burst of sequential
+// CLI calls (vault fetch, then per-vault member/item lists) does not pay the
+// ~0.5s `info` round-trip for each one. Concurrent callers share one in-flight
+// check; the TTL bounds staleness if the session is logged out underneath us.
+const AUTH_TTL_MS = 20_000;
+let authCheck: Promise<void> | undefined;
+let authVerifiedAt = 0;
+
 async function verifyAuthentication(): Promise<void> {
+	if (Date.now() - authVerifiedAt < AUTH_TTL_MS) return;
 	if (authCheck) return authCheck;
 	authCheck = (async () => {
 		try {
@@ -83,6 +85,7 @@ async function verifyAuthentication(): Promise<void> {
 				timeout: 10_000,
 				maxBuffer: 256 * 1024,
 			});
+			authVerifiedAt = Date.now();
 		} catch (error) {
 			const err = error as NodeJS.ErrnoException & { stderr?: string };
 			if (err.code === "ENOENT") {
@@ -167,6 +170,18 @@ function safeUrl(value: string): string | undefined {
 	} catch {
 		return undefined;
 	}
+}
+
+/** Sanitise the URL list from a login block, dropping any unsafe entry. */
+function sanitiseUrls(source: unknown): string[] | undefined {
+	if (!Array.isArray(source)) return undefined;
+	const urls = source
+		.map((entry) =>
+			record(entry) ? text(entry.url ?? entry.href) : text(entry),
+		)
+		.map((value) => (value ? safeUrl(value) : undefined))
+		.filter((value): value is string => Boolean(value));
+	return urls.length ? urls : undefined;
 }
 
 function loginData(
@@ -363,15 +378,7 @@ function itemFrom(raw: unknown, vault: Vault): PassItem | undefined {
 	const itemId = text(raw.id ?? raw.item_id ?? raw.itemId);
 	const title = text(outer.title ?? raw.title ?? raw.name);
 	if (!itemId || !title) return undefined;
-	const urls =
-		login && Array.isArray(login.urls)
-			? login.urls
-					.map((entry) =>
-						record(entry) ? text(entry.url ?? entry.href) : text(entry),
-					)
-					.map((value) => (value ? safeUrl(value) : undefined))
-					.filter((v): v is string => Boolean(v))
-			: undefined;
+	const urls = sanitiseUrls(login?.urls);
 	const totp = text(
 		login?.totp_uri ??
 			login?.totpUri ??
@@ -564,10 +571,6 @@ export async function listVaultsAndItems(): Promise<{
 	};
 }
 
-export async function listAllItems(): Promise<PassItem[]> {
-	return (await listVaultsAndItems()).items;
-}
-
 export async function checkAuth(): Promise<boolean> {
 	try {
 		await run(["info"], "check authentication");
@@ -687,15 +690,7 @@ export async function viewItem(item: PassItem): Promise<PassItemDetail> {
 	const login = loginData(raw);
 	const type = itemType(raw);
 	const typed = typedData(raw).data;
-	const urls =
-		login && Array.isArray(login.urls)
-			? login.urls
-					.map((entry) =>
-						record(entry) ? text(entry.url ?? entry.href) : text(entry),
-					)
-					.map((value) => (value ? safeUrl(value) : undefined))
-					.filter((v): v is string => Boolean(v))
-			: item.urls;
+	const urls = sanitiseUrls(login?.urls) ?? item.urls;
 	const customFieldsRaw =
 		outer.extra_fields ??
 		outer.extraFields ??

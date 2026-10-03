@@ -97,6 +97,9 @@ export function useTotpCodes(items: PassItem[]): {
 	}, []);
 
 	useEffect(() => {
+		// Only tick when there is at least one TOTP item; otherwise the interval
+		// is pure idle work (the list-vaults command passes every item).
+		if (items.length === 0) return;
 		const interval = setInterval(() => {
 			setRemaining(secondsRemaining());
 			const nextStep = currentStep();
@@ -106,7 +109,7 @@ export function useTotpCodes(items: PassItem[]): {
 			}
 		}, 1000);
 		return () => clearInterval(interval);
-	}, [refresh]);
+	}, [items.length, refresh]);
 
 	return { codes, remaining, refreshing, refresh };
 }

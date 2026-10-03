@@ -12,6 +12,25 @@ import {
 import { parseVaultColorPreference } from "./cli-contract";
 import { copyProtected } from "./clipboard";
 
+/**
+ * Run an action, surfacing any failure as a toast rather than an unhandled
+ * rejection. Shared by every command so error handling stays consistent.
+ */
+export async function guardAction(
+	title: string,
+	action: () => Promise<void>,
+): Promise<void> {
+	try {
+		await action();
+	} catch (reason: unknown) {
+		await showToast({
+			style: Toast.Style.Failure,
+			title,
+			message: reason instanceof Error ? reason.message : String(reason),
+		});
+	}
+}
+
 // Keyboard shortcuts using native Linux modifiers. ctrl+shift+<letter> avoids
 // the reserved ctrl+alt combinations that desktop environments intercept, and
 // each binding uses a distinct letter so none collide with one another.

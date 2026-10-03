@@ -4,12 +4,11 @@ import {
 	getPreferenceValues,
 	Icon,
 	List,
-	showToast,
-	Toast,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import {
 	copySecret as copyShared,
+	guardAction,
 	primaryUrl,
 	roleStyle,
 	SHORTCUTS,
@@ -46,17 +45,8 @@ async function copyValue(
 	await copyShared(title, value, { sensitive });
 }
 
-async function safely(action: () => Promise<void>): Promise<void> {
-	try {
-		await action();
-	} catch (reason: unknown) {
-		await showToast({
-			style: Toast.Style.Failure,
-			title: "Proton Pass action failed",
-			message: reason instanceof Error ? reason.message : String(reason),
-		});
-	}
-}
+const safely = (action: () => Promise<void>): Promise<void> =>
+	guardAction("Proton Pass action failed", action);
 
 function VaultItems({ vault }: { vault: Vault }) {
 	const [items, setItems] = useState<PassItem[]>([]);
@@ -168,8 +158,9 @@ function VaultItems({ vault }: { vault: Vault }) {
 										title="Find Username or Email"
 										icon={Icon.Person}
 										onAction={() =>
-											void (async () => {
-												try {
+											void guardAction(
+												"Unable to copy username or email",
+												async () => {
 													const detail = await viewItem(item);
 													const value = detail.username ?? detail.email;
 													if (!value)
@@ -180,17 +171,8 @@ function VaultItems({ vault }: { vault: Vault }) {
 														detail.username ? "Username" : "Email",
 														value,
 													);
-												} catch (reason: unknown) {
-													await showToast({
-														style: Toast.Style.Failure,
-														title: "Unable to copy username or email",
-														message:
-															reason instanceof Error
-																? reason.message
-																: String(reason),
-													});
-												}
-											})()
+												},
+											)
 										}
 									/>
 								)}
@@ -208,23 +190,12 @@ function VaultItems({ vault }: { vault: Vault }) {
 									icon={Icon.Key}
 									shortcut={SHORTCUTS.copyPassword}
 									onAction={() =>
-										void (async () => {
-											try {
-												const detail = await viewItem(item);
-												if (!detail.password)
-													throw new Error("This item has no password.");
-												await copyValue("Password", detail.password, true);
-											} catch (reason: unknown) {
-												await showToast({
-													style: Toast.Style.Failure,
-													title: "Unable to copy password",
-													message:
-														reason instanceof Error
-															? reason.message
-															: String(reason),
-												});
-											}
-										})()
+										void guardAction("Unable to copy password", async () => {
+											const detail = await viewItem(item);
+											if (!detail.password)
+												throw new Error("This item has no password.");
+											await copyValue("Password", detail.password, true);
+										})
 									}
 								/>
 								<Action
@@ -232,20 +203,9 @@ function VaultItems({ vault }: { vault: Vault }) {
 									icon={Icon.Clock}
 									shortcut={SHORTCUTS.copyTotp}
 									onAction={() =>
-										void (async () => {
-											try {
-												await copyValue("TOTP code", await getTotp(item), true);
-											} catch (reason: unknown) {
-												await showToast({
-													style: Toast.Style.Failure,
-													title: "Unable to copy TOTP code",
-													message:
-														reason instanceof Error
-															? reason.message
-															: String(reason),
-												});
-											}
-										})()
+										void guardAction("Unable to copy TOTP code", async () => {
+											await copyValue("TOTP code", await getTotp(item), true);
+										})
 									}
 								/>
 								{primaryUrl(item.urls) && (
