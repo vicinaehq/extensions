@@ -168,6 +168,17 @@ test("ignores malformed vault colour entries", () => {
 	});
 });
 
+test("accepts hex colours in the vault colour preference", () => {
+	assert.deepEqual(parseVaultColorPreference("Work=#1E90FF, Home=#abc"), {
+		work: "#1e90ff",
+		home: "#abc",
+	});
+	// Malformed hex is rejected; named colours still pass alongside it.
+	assert.deepEqual(parseVaultColorPreference("A=#12, B=blue"), {
+		b: "blue",
+	});
+});
+
 test("extracts credit-card fields from a typed content block", () => {
 	// Mirrors the pass-cli CreditCardItem proto field names.
 	const fields = typedFields(

@@ -79,19 +79,22 @@ export function roleStyle(role?: string): { icon: Icon; color: Color } {
 }
 
 // Per-vault colour resolution. By default a vault is coloured by its role
-// (executor-style ownership colouring); the `vaultColors` preference lets the
-// user override individual vaults with "Name=color, Other=blue". Proton's own
-// vault colours are not exposed by pass-cli, so this is the only way to match
-// them.
+// (ownership colouring); the `vaultColors` preference lets the user override
+// individual vaults with "Name=color, Other=blue". A colour may be a named
+// colour or any CSS colour string (e.g. #RRGGBB). Proton's own vault colours
+// are not exposed by pass-cli, so this is the only way to match them.
 type VaultColorPreferences = {
 	vaultColors?: string;
 };
 
-export function vaultColor(role: string | undefined, name: string): Color {
+export function vaultColor(
+	role: string | undefined,
+	name: string,
+): Color | Color.Raw {
 	const override = parseVaultColorPreference(
 		getPreferenceValues<VaultColorPreferences>().vaultColors,
 	)[name.toLowerCase()];
-	if (override) return override as Color;
+	if (override) return override;
 	return roleStyle(role).color;
 }
 

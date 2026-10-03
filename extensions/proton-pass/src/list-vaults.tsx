@@ -279,7 +279,10 @@ export default function Command() {
 			const cached = await getCachedVaults();
 			if (cached && active) {
 				setVaults(cached.data);
-				if (!cached.isStale || !backgroundRefresh) {
+				// Treat a cache missing role data as stale: older builds cached
+				// vaults without roles, which would otherwise stick as grey.
+				const missingRoles = cached.data.some((vault) => !vault.role);
+				if ((!cached.isStale && !missingRoles) || !backgroundRefresh) {
 					setLoading(false);
 					return;
 				}

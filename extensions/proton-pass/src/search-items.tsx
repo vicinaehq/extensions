@@ -94,7 +94,13 @@ async function copySecret(
 	await copyShared(title, value, { concealed, sensitive });
 }
 
-export function ItemDetailView({ item }: { item: PassItem }) {
+export function ItemDetailView({
+	item,
+	vaultRole,
+}: {
+	item: PassItem;
+	vaultRole?: string;
+}) {
 	const [detail, setDetail] = useState<PassItemDetail>();
 	const [error, setError] = useState<string>();
 	const totpItems = useMemo(() => (item.hasTotp ? [item] : []), [item]);
@@ -190,7 +196,13 @@ export function ItemDetailView({ item }: { item: PassItem }) {
 						text={detail.type}
 						icon={itemIcon(detail)}
 					/>
-					<Detail.Metadata.Label title="Vault" text={detail.vaultName} />
+					<Detail.Metadata.Label
+						title="Vault"
+						text={{
+							value: detail.vaultName,
+							color: vaultColor(vaultRole, detail.vaultName),
+						}}
+					/>
 					{detail.username && (
 						<Detail.Metadata.Label title="Username" text={detail.username} />
 					)}
@@ -318,7 +330,13 @@ export function ItemDetailView({ item }: { item: PassItem }) {
 	);
 }
 
-function ItemActions({ item }: { item: PassItem }) {
+function ItemActions({
+	item,
+	vaultRole,
+}: {
+	item: PassItem;
+	vaultRole?: string;
+}) {
 	async function safely(action: () => Promise<void>): Promise<void> {
 		try {
 			await action();
@@ -347,7 +365,7 @@ function ItemActions({ item }: { item: PassItem }) {
 				key="view-details"
 				title="View Details"
 				icon={Icon.Eye}
-				target={<ItemDetailView item={item} />}
+				target={<ItemDetailView item={item} vaultRole={vaultRole} />}
 			/>
 		),
 		"copy-username": (
@@ -533,7 +551,12 @@ function ItemRows({ items, vaults }: { items: PassItem[]; vaults: Vault[] }) {
 							? [{ icon: Icon.Clock, tooltip: "Has TOTP" }]
 							: []),
 					]}
-					actions={<ItemActions item={item} />}
+					actions={
+						<ItemActions
+							item={item}
+							vaultRole={roleByShareId.get(item.shareId)}
+						/>
+					}
 				/>
 			))}
 		</>

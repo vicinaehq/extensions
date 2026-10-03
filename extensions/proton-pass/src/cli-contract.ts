@@ -103,23 +103,29 @@ export const VAULT_COLOR_NAMES = [
 
 export type VaultColorName = (typeof VAULT_COLOR_NAMES)[number];
 
+const HEX_COLOR = /^#[0-9a-f]{3,8}$/i;
+
 /**
- * Parse a "Name=color, Other=blue" preference into a lowercase-name ->
- * colour-name map. Only recognised colour names are honoured; malformed or
- * unknown entries are ignored rather than throwing.
+ * Parse a "Name=color, Other=blue" preference into a lowercase-name -> colour
+ * map. A colour is either a recognised Vicinae colour name or a hex string
+ * (e.g. #aabbcc). Malformed or unknown entries are ignored rather than
+ * throwing.
  */
 export function parseVaultColorPreference(
 	preference: string | undefined,
-): Record<string, VaultColorName> {
-	const map: Record<string, VaultColorName> = {};
+): Record<string, string> {
+	const map: Record<string, string> = {};
 	if (!preference) return map;
 	for (const entry of preference.split(",")) {
 		const [rawName, rawColor] = entry.split("=");
 		const name = rawName?.trim().toLowerCase();
 		const color = rawColor?.trim().toLowerCase();
 		if (!name || !color) continue;
-		if ((VAULT_COLOR_NAMES as readonly string[]).includes(color))
-			map[name] = color as VaultColorName;
+		if ((VAULT_COLOR_NAMES as readonly string[]).includes(color)) {
+			map[name] = color;
+		} else if (HEX_COLOR.test(color)) {
+			map[name] = color;
+		}
 	}
 	return map;
 }
