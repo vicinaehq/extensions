@@ -138,6 +138,8 @@ test("coerces malformed score output into safe defaults", () => {
 
 test("maps known penalty keys to readable text", () => {
 	assert.equal(penaltyLabel("NoNumbers"), "No numbers");
+	// "Consecutive" actually means an adjacent repeated character.
+	assert.equal(penaltyLabel("Consecutive"), "Contains repeated characters");
 	assert.equal(
 		penaltyLabel("ContainsCommonPassword"),
 		"Contains a common password",

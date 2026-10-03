@@ -57,16 +57,18 @@ const SCORE_LABELS = new Set(["Strong", "Good", "Weak", "Vulnerable"]);
 // Human-readable text for the penalty keys pass-cli actually emits.
 const PENALTY_LABELS: Record<string, string> = {
 	ContainsCommonPassword: "Contains a common password",
-	Consecutive: "Has consecutive characters",
-	Progressive: "Has a progressive/sequential pattern",
+	// pass-cli flags an adjacent repeated character (e.g. "aa", "55"), not a
+	// run of distinct consecutive characters — so "repeated", not "consecutive".
+	Consecutive: "Contains repeated characters",
+	Progressive: "Contains a progressive or sequential pattern",
 	Short: "Too short",
 	TooShort: "Too short",
 	NoUppercase: "No uppercase letters",
 	NoLowercase: "No lowercase letters",
 	NoNumbers: "No numbers",
 	NoSymbols: "No symbols",
-	Repetitive: "Repetitive characters",
-	Sequential: "Sequential pattern detected",
+	Repetitive: "Contains repeated characters",
+	Sequential: "Contains a sequential pattern",
 };
 
 export function penaltyLabel(penalty: string): string {
