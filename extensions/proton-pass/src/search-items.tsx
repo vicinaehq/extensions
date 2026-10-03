@@ -152,14 +152,14 @@ export function ItemDetailView({
 	if (detail.password) lines.push(`**Password:** ${mask(detail.password)}`);
 	if (detail.urls?.length)
 		lines.push(
-			`\n**URLs:**\n${detail.urls
+			`\n**URLs:**\n\n${detail.urls
 				.map((url, index) => `${index + 1}. ${escapeMarkdown(url)}`)
 				.join("\n")}`,
 		);
 	if (detail.note) lines.push(`\n**Note:**\n${escapeMarkdown(detail.note)}`);
 	if (detail.fields?.length) {
 		lines.push(
-			`\n**${fieldGroupTitle(detail.type)}:**\n${detail.fields
+			`\n**${fieldGroupTitle(detail.type)}:**\n\n${detail.fields
 				.map(
 					(field) =>
 						`- **${escapeMarkdown(field.title)}:** ${field.hidden ? mask(field.value) : escapeMarkdown(field.value)}`,
@@ -169,7 +169,7 @@ export function ItemDetailView({
 	}
 	if (detail.customFields?.length) {
 		lines.push(
-			`\n**Custom fields:**\n${detail.customFields.map((field) => `- **${escapeMarkdown(field.name)}:** ${field.type === "hidden" ? mask(field.value) : escapeMarkdown(field.value)}`).join("\n")}`,
+			`\n**Custom fields:**\n\n${detail.customFields.map((field) => `- **${escapeMarkdown(field.name)}:** ${field.type === "hidden" ? mask(field.value) : escapeMarkdown(field.value)}`).join("\n")}`,
 		);
 	}
 	if (detail.hasTotp) {
