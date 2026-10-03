@@ -3,6 +3,7 @@ import test from "node:test";
 import {
 	extractTotpCode,
 	parseScore,
+	parseVaultColorPreference,
 	passwordArgs,
 	penaltyLabel,
 	scoreArgs,
@@ -141,4 +142,26 @@ test("maps known penalty keys to readable text", () => {
 	);
 	// Unknown keys are de-camel-cased rather than dropped.
 	assert.equal(penaltyLabel("SomethingNew"), "Something New");
+});
+
+test("parses the vault colour preference", () => {
+	assert.deepEqual(parseVaultColorPreference("Personal=green, Work=blue"), {
+		personal: "green",
+		work: "blue",
+	});
+	// Case-insensitive names, whitespace tolerated.
+	assert.deepEqual(parseVaultColorPreference("  Home = Purple "), {
+		home: "purple",
+	});
+});
+
+test("ignores malformed vault colour entries", () => {
+	assert.deepEqual(parseVaultColorPreference(undefined), {});
+	assert.deepEqual(parseVaultColorPreference(""), {});
+	// Unknown colour, missing colour, and missing name are all skipped.
+	assert.deepEqual(parseVaultColorPreference("A=chartreuse, B, =red"), {});
+	// A valid entry alongside invalid ones survives.
+	assert.deepEqual(parseVaultColorPreference("Good=red, Bad=nope"), {
+		good: "red",
+	});
 });

@@ -17,6 +17,7 @@ import {
 	primaryUrl,
 	roleStyle,
 	SHORTCUTS,
+	vaultColor,
 } from "./actions";
 import {
 	clearCache,
@@ -417,7 +418,7 @@ const VaultFilter = memo(function VaultFilter({
 					value={vault.shareId}
 					icon={{
 						source: roleStyle(vault.role).icon,
-						tintColor: roleStyle(vault.role).color,
+						tintColor: vaultColor(vault.role, vault.name),
 					}}
 				/>
 			))}
@@ -485,7 +486,10 @@ function ItemRows({ items, vaults }: { items: PassItem[]; vaults: Vault[] }) {
 						{
 							tag: {
 								value: item.vaultName,
-								color: roleStyle(roleByShareId.get(item.shareId)).color,
+								color: vaultColor(
+									roleByShareId.get(item.shareId),
+									item.vaultName,
+								),
 							},
 							icon: roleStyle(roleByShareId.get(item.shareId)).icon,
 							tooltip: `Role: ${roleByShareId.get(item.shareId) ?? "unknown"}`,

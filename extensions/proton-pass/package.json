@@ -69,6 +69,14 @@
       "default": false
     },
     {
+      "name": "vaultColors",
+      "type": "textfield",
+      "required": false,
+      "title": "Vault colours",
+      "description": "Optional. Vaults are coloured by role by default. Override individual vaults here, e.g. Personal=green, Work=blue. Colours: blue, green, magenta, orange, purple, red, yellow.",
+      "default": ""
+    },
+    {
       "name": "primaryAction",
       "type": "dropdown",
       "required": false,

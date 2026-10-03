@@ -9,6 +9,7 @@ import {
 	showToast,
 	Toast,
 } from "@vicinae/api";
+import { parseVaultColorPreference } from "./cli-contract";
 import { copyProtected } from "./clipboard";
 
 // Keyboard shortcuts using native Linux modifiers. ctrl+shift+<letter> avoids
@@ -75,6 +76,23 @@ export function roleStyle(role?: string): { icon: Icon; color: Color } {
 			color: Color.SecondaryText,
 		}
 	);
+}
+
+// Per-vault colour resolution. By default a vault is coloured by its role
+// (executor-style ownership colouring); the `vaultColors` preference lets the
+// user override individual vaults with "Name=color, Other=blue". Proton's own
+// vault colours are not exposed by pass-cli, so this is the only way to match
+// them.
+type VaultColorPreferences = {
+	vaultColors?: string;
+};
+
+export function vaultColor(role: string | undefined, name: string): Color {
+	const override = parseVaultColorPreference(
+		getPreferenceValues<VaultColorPreferences>().vaultColors,
+	)[name.toLowerCase()];
+	if (override) return override as Color;
+	return roleStyle(role).color;
 }
 
 export type ActionId =

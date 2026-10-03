@@ -91,6 +91,39 @@ export function parseScore(data: unknown): PasswordScore | undefined {
 	return { numericScore, label, penalties };
 }
 
+export const VAULT_COLOR_NAMES = [
+	"blue",
+	"green",
+	"magenta",
+	"orange",
+	"purple",
+	"red",
+	"yellow",
+] as const;
+
+export type VaultColorName = (typeof VAULT_COLOR_NAMES)[number];
+
+/**
+ * Parse a "Name=color, Other=blue" preference into a lowercase-name ->
+ * colour-name map. Only recognised colour names are honoured; malformed or
+ * unknown entries are ignored rather than throwing.
+ */
+export function parseVaultColorPreference(
+	preference: string | undefined,
+): Record<string, VaultColorName> {
+	const map: Record<string, VaultColorName> = {};
+	if (!preference) return map;
+	for (const entry of preference.split(",")) {
+		const [rawName, rawColor] = entry.split("=");
+		const name = rawName?.trim().toLowerCase();
+		const color = rawColor?.trim().toLowerCase();
+		if (!name || !color) continue;
+		if ((VAULT_COLOR_NAMES as readonly string[]).includes(color))
+			map[name] = color as VaultColorName;
+	}
+	return map;
+}
+
 export function passwordArgs(options: PasswordOptions): string[] {
 	return options.type === "random"
 		? [

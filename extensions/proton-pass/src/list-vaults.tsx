@@ -13,6 +13,7 @@ import {
 	primaryUrl,
 	roleStyle,
 	SHORTCUTS,
+	vaultColor,
 } from "./actions";
 import {
 	clearCache,
@@ -124,7 +125,10 @@ function VaultItems({ vault }: { vault: Vault }) {
 							item.type,
 							...(item.urls ?? []),
 						]}
-						icon={item.hasTotp ? Icon.Lock : Icon.Key}
+						icon={{
+							source: item.hasTotp ? Icon.Lock : Icon.Key,
+							tintColor: vaultColor(vault.role, vault.name),
+						}}
 						accessories={
 							item.hasTotp
 								? [
@@ -327,7 +331,7 @@ export default function Command() {
 							{
 								tag: {
 									value: vault.role ?? "vault",
-									color: roleStyle(vault.role).color,
+									color: vaultColor(vault.role, vault.name),
 								},
 								icon: roleStyle(vault.role).icon,
 								tooltip: `Role: ${vault.role ?? "unknown"}`,
