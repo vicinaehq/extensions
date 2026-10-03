@@ -201,6 +201,38 @@ export default function Command() {
 		[generate],
 	);
 
+	// The increase/decrease pair for a numeric setting (length or word count).
+	// Both modes share this, so the handler and shortcut live in one place.
+	const amountActions = (
+		field: "length" | "words",
+		label: string,
+		value: number,
+	) => {
+		const [min, max] =
+			field === "length" ? [MIN_LENGTH, MAX_LENGTH] : [MIN_WORDS, MAX_WORDS];
+		const adjust = (delta: number) => () =>
+			updateSettings((current) => ({
+				...current,
+				[field]: clamp(current[field] + delta, min, max),
+			}));
+		return (
+			<>
+				<Action
+					title={`Increase ${label} (${value})`}
+					icon={Icon.Plus}
+					shortcut={{ key: "=", modifiers: ["ctrl"] }}
+					onAction={adjust(1)}
+				/>
+				<Action
+					title={`Decrease ${label} (${value})`}
+					icon={Icon.Minus}
+					shortcut={{ key: "-", modifiers: ["ctrl"] }}
+					onAction={adjust(-1)}
+				/>
+			</>
+		);
+	};
+
 	async function copy(): Promise<void> {
 		if (!password) throw new Error("No password has been generated yet.");
 		await copySecret("Password", password, { sensitive: true });
@@ -260,28 +292,7 @@ export default function Command() {
 			/>
 			{settings.type === "random" ? (
 				<ActionPanel.Section title="Random Password Settings">
-					<Action
-						title={`Increase Length (${settings.length})`}
-						icon={Icon.Plus}
-						shortcut={{ key: "=", modifiers: ["ctrl"] }}
-						onAction={() =>
-							updateSettings((current) => ({
-								...current,
-								length: clamp(current.length + 1, MIN_LENGTH, MAX_LENGTH),
-							}))
-						}
-					/>
-					<Action
-						title={`Decrease Length (${settings.length})`}
-						icon={Icon.Minus}
-						shortcut={{ key: "-", modifiers: ["ctrl"] }}
-						onAction={() =>
-							updateSettings((current) => ({
-								...current,
-								length: clamp(current.length - 1, MIN_LENGTH, MAX_LENGTH),
-							}))
-						}
-					/>
+					{amountActions("length", "Length", settings.length)}
 					<Action
 						title={
 							settings.includeUppercase
@@ -323,28 +334,7 @@ export default function Command() {
 				</ActionPanel.Section>
 			) : (
 				<ActionPanel.Section title="Passphrase Settings">
-					<Action
-						title={`Increase Words (${settings.words})`}
-						icon={Icon.Plus}
-						shortcut={{ key: "=", modifiers: ["ctrl"] }}
-						onAction={() =>
-							updateSettings((current) => ({
-								...current,
-								words: clamp(current.words + 1, MIN_WORDS, MAX_WORDS),
-							}))
-						}
-					/>
-					<Action
-						title={`Decrease Words (${settings.words})`}
-						icon={Icon.Minus}
-						shortcut={{ key: "-", modifiers: ["ctrl"] }}
-						onAction={() =>
-							updateSettings((current) => ({
-								...current,
-								words: clamp(current.words - 1, MIN_WORDS, MAX_WORDS),
-							}))
-						}
-					/>
+					{amountActions("words", "Words", settings.words)}
 					<Action
 						title={
 							settings.capitalize
