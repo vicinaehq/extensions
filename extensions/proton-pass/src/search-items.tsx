@@ -150,20 +150,12 @@ export function ItemDetailView({
 		lines.push(`**Username:** ${escapeMarkdown(detail.username)}`);
 	if (detail.email) lines.push(`**Email:** ${escapeMarkdown(detail.email)}`);
 	if (detail.password) lines.push(`**Password:** ${mask(detail.password)}`);
-	if (detail.urls?.length) {
-		// A GFM table gives a real second column, so every URL starts at the
-		// same x no matter how wide its number is — Vicinae's list markers sit
-		// in a row with their text, which leaves a proportional "1." shorter
-		// than "2." and nudges the first URL left. A single URL needs no table.
-		if (detail.urls.length === 1) {
-			lines.push(`\n**URLs:**\n\n${escapeMarkdown(detail.urls[0])}`);
-		} else {
-			const rows = detail.urls
-				.map((url, index) => `| ${index + 1} | ${escapeMarkdown(url)} |`)
-				.join("\n");
-			lines.push(`\n| # | URL |\n| --- | --- |\n${rows}`);
-		}
-	}
+	if (detail.urls?.length)
+		lines.push(
+			`\n**URLs:**\n\n${detail.urls
+				.map((url, index) => `${index + 1}. ${escapeMarkdown(url)}`)
+				.join("\n")}`,
+		);
 	if (detail.note) lines.push(`\n**Note:**\n${escapeMarkdown(detail.note)}`);
 	if (detail.fields?.length) {
 		lines.push(
