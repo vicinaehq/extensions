@@ -1,7 +1,7 @@
 import { getPreferenceValues, LocalStorage } from "@vicinae/api";
 import type { PassItem, Vault } from "./pass-cli";
 
-const CACHE_PREFIX = "proton_pass_vicinae_";
+const CACHE_PREFIX = "proton_pass_vicinae_v2_";
 const SNAPSHOT_KEY = `${CACHE_PREFIX}snapshot`;
 const VAULTS_KEY = `${CACHE_PREFIX}vaults`;
 const VAULT_ITEMS_PREFIX = `${CACHE_PREFIX}vault_items_`;
@@ -99,7 +99,8 @@ export async function clearCache(): Promise<void> {
 	const entries = await LocalStorage.allItems();
 	await Promise.all(
 		Object.keys(entries)
-			.filter((key) => key.startsWith(CACHE_PREFIX))
+			// Match any cache generation (v1, v2, ...) so old keys are purged.
+			.filter((key) => key.startsWith("proton_pass_vicinae"))
 			.map((key) => LocalStorage.removeItem(key)),
 	);
 }

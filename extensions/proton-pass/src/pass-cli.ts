@@ -232,41 +232,104 @@ function arrayFrom(data: unknown, key: string): unknown[] {
 	throw new Error(`Unexpected ${key} output from pass-cli.`);
 }
 
-async function vaultRoles(): Promise<Map<string, string>> {
-	// `vault list` carries no role; `share list` reports the role per share.
+let cachedAccountEmail: string | null | undefined;
+
+/** The signed-in account's email, used to identify its role in a vault. */
+async function accountEmail(): Promise<string | undefined> {
+	if (cachedAccountEmail !== undefined) return cachedAccountEmail ?? undefined;
+	try {
+		const data = parseJson(
+			await run(["user", "info", "--output", "json"], "read account info"),
+			"user info",
+		);
+		const raw = record(data)
+			? record(data.user)
+				? data.user
+				: data
+			: undefined;
+		cachedAccountEmail = text(raw?.email)?.toLowerCase() ?? null;
+	} catch {
+		// Agent sessions cannot read user info; fall back to the member list.
+		cachedAccountEmail = null;
+	}
+	return cachedAccountEmail ?? undefined;
+}
+
+/**
+ * The signed-in account's role in a vault. NOTE: `share list`'s `share_role`
+ * is unreliable (it reports Viewer even for owned vaults), so we resolve the
+ * role from `vault member list`, matching the account by email.
+ */
+async function vaultMemberRole(
+	shareId: string,
+	email: string | undefined,
+): Promise<string | undefined> {
 	try {
 		const data = parseJson(
 			await run(
-				["share", "list", "--only-vaults", "true", "--output", "json"],
-				"list vault roles",
+				[
+					"vault",
+					"member",
+					"list",
+					`--share-id=${shareId}`,
+					"--output",
+					"json",
+				],
+				"list vault members",
 			),
-			"share list",
+			"vault member list",
 		);
-		const roles = new Map<string, string>();
-		for (const raw of arrayFrom(data, "shares")) {
-			if (!record(raw)) continue;
-			const id = text(raw.id ?? raw.share_id ?? raw.shareId);
-			const role = text(
-				raw.share_role ?? raw.role ?? raw.shareRole,
-			)?.toLowerCase();
-			if (id && role) roles.set(id, role);
+		const members = (
+			Array.isArray(data)
+				? data
+				: record(data) && Array.isArray(data.members)
+					? data.members
+					: []
+		).flatMap((member) => (record(member) ? [member] : []));
+		if (email) {
+			const mine = members.find(
+				(member) => text(member.email)?.toLowerCase() === email,
+			);
+			if (mine) {
+				if (mine.is_group_share === true) return "group";
+				return text(mine.role ?? mine.member_role)?.toLowerCase();
+			}
 		}
-		return roles;
+		// A single non-group member is unambiguously the signed-in account.
+		const nonGroup = members.filter((member) => member.is_group_share !== true);
+		if (nonGroup.length === 1) return text(nonGroup[0].role)?.toLowerCase();
+		return undefined;
 	} catch {
-		// Roles are a cosmetic nicety; never fail vault listing over them.
-		return new Map();
+		return undefined;
 	}
 }
 
-export async function listVaults(): Promise<Vault[]> {
-	const [data, roles] = await Promise.all([
-		run(["vault", "list", "--output", "json"], "list vaults").then((out) =>
-			parseJson(out, "vault list"),
+async function vaultRoles(shareIds: string[]): Promise<Map<string, string>> {
+	const email = await accountEmail();
+	const entries = await Promise.all(
+		shareIds.map(
+			async (shareId) =>
+				[shareId, await vaultMemberRole(shareId, email)] as const,
 		),
-		vaultRoles(),
-	]);
-	return arrayFrom(data, "vaults").flatMap((raw) => {
-		if (!record(raw)) return [];
+	);
+	const roles = new Map<string, string>();
+	for (const [shareId, role] of entries) if (role) roles.set(shareId, role);
+	return roles;
+}
+
+export async function listVaults(): Promise<Vault[]> {
+	const data = parseJson(
+		await run(["vault", "list", "--output", "json"], "list vaults"),
+		"vault list",
+	);
+	const raws = arrayFrom(data, "vaults").flatMap((raw) =>
+		record(raw) ? [raw] : [],
+	);
+	const shareIds = raws
+		.map((raw) => text(raw.share_id ?? raw.shareId ?? raw.id))
+		.filter((id): id is string => Boolean(id));
+	const roles = await vaultRoles(shareIds);
+	return raws.flatMap((raw) => {
 		const shareId = text(raw.share_id ?? raw.shareId ?? raw.id);
 		const name = text(raw.name);
 		const itemCountRaw =
