@@ -286,14 +286,6 @@ export default function Command() {
 						key={vault.shareId}
 						title={vault.name}
 						accessories={[
-							{
-								tag: {
-									value: vault.role ?? "vault",
-									color: vaultColor(vault.role, vault.name),
-								},
-								icon: roleStyle(vault.role).icon,
-								tooltip: `Role: ${vault.role ?? "unknown"}`,
-							},
 							...(vault.itemCount === undefined
 								? []
 								: [
@@ -302,6 +294,14 @@ export default function Command() {
 											icon: Icon.Key,
 										},
 									]),
+							{
+								tag: {
+									value: vault.role ?? "vault",
+									color: vaultColor(vault.role, vault.name),
+								},
+								icon: roleStyle(vault.role).icon,
+								tooltip: `Role: ${vault.role ?? "unknown"}`,
+							},
 						]}
 						icon={{
 							source: Icon.Folder,

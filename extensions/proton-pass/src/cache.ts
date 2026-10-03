@@ -1,7 +1,7 @@
 import { getPreferenceValues, LocalStorage } from "@vicinae/api";
 import type { PassItem, Vault } from "./pass-cli";
 
-const CACHE_PREFIX = "proton_pass_vicinae_v2_";
+const CACHE_PREFIX = "proton_pass_vicinae_v3_";
 const SNAPSHOT_KEY = `${CACHE_PREFIX}snapshot`;
 const VAULTS_KEY = `${CACHE_PREFIX}vaults`;
 const VAULT_ITEMS_PREFIX = `${CACHE_PREFIX}vault_items_`;
