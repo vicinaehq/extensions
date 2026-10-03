@@ -321,14 +321,20 @@ async function vaultMemberRole(
 
 async function vaultRoles(shareIds: string[]): Promise<Map<string, string>> {
 	const email = await accountEmail();
-	const entries = await Promise.all(
-		shareIds.map(
-			async (shareId) =>
-				[shareId, await vaultMemberRole(shareId, email)] as const,
-		),
-	);
 	const roles = new Map<string, string>();
-	for (const [shareId, role] of entries) if (role) roles.set(shareId, role);
+	let next = 0;
+	async function worker(): Promise<void> {
+		while (next < shareIds.length) {
+			const shareId = shareIds[next++];
+			const role = await vaultMemberRole(shareId, email);
+			if (role) roles.set(shareId, role);
+		}
+	}
+	// Bound concurrency so a large vault list does not spawn one pass-cli
+	// process per vault all at once.
+	await Promise.all(
+		Array.from({ length: Math.min(6, shareIds.length) }, () => worker()),
+	);
 	return roles;
 }
 
