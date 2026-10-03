@@ -340,7 +340,10 @@ export default function Command() {
 								tooltip: `Role: ${vault.role ?? "unknown"}`,
 							},
 						]}
-						icon={Icon.Folder}
+						icon={{
+							source: Icon.Folder,
+							tintColor: vaultColor(vault.role, vault.name),
+						}}
 						actions={
 							<ActionPanel>
 								<Action.Push
