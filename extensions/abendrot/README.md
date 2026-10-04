@@ -2,7 +2,7 @@
 
 Vicinae extension for [Abendrot](https://abendrot.app), the macOS menu-bar app that warms your displays around sunset.
 
-Every command drives the official `abendrot` CLI with `--json`, so the extension changes nothing the CLI could not do from a terminal. The CLI binary is resolved from `PATH` first (the Homebrew cask symlinks it), falling back to `/Applications/Abendrot.app/Contents/Helpers/abendrot`.
+Status and control commands drive the official `abendrot` CLI with `--json`; Quit Abendrot uses `osascript` to request the app's normal quit path. The CLI binary is resolved from `PATH` first (the Homebrew cask symlinks it), falling back to `/Applications/Abendrot.app/Contents/Helpers/abendrot`.
 
 ## Commands
 
