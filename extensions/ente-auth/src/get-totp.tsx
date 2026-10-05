@@ -35,16 +35,17 @@ function timerColor(remaining: number): Color {
 	return remaining > 10 ? PURPLE : ORANGE;
 }
 
-// Raycast's getProgressIcon is a thin, partially drawn outer ring rather than
-// a solid progress glyph. Generate the same shape as a data URL so it can be
-// updated every second and use the same purple/orange threshold.
+// A full circular progress bar: the elapsed portion is dimmed, while the
+// remaining portion uses Raycast's purple/orange threshold. The whole ring
+// stays visible without putting seconds or the code in the list row.
 function progressIcon(remaining: number, period: number): { source: string } {
 	const fraction = Math.max(0, Math.min(1, remaining / Math.max(period, 1)));
 	const color = remaining > 10 ? "#A400B6" : "#FF9800";
+	const elapsedColor = "#808080";
 	const radius = 9;
 	const circumference = 2 * Math.PI * radius;
 	const dashOffset = circumference * (1 - fraction);
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 12 12)"/></svg>`;
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${elapsedColor}" stroke-opacity="0.38" stroke-width="2.2"/><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 12 12)"/></svg>`;
 	return { source: `data:image/svg+xml,${encodeURIComponent(svg)}` };
 }
 
