@@ -12,6 +12,7 @@ import {
 	vaultColor,
 } from "./actions";
 import { errorMessage } from "./cli-contract";
+import { pasteSecret } from "./clipboard";
 import {
 	getTotp,
 	type PassItem,
@@ -210,12 +211,30 @@ export function ItemDetailView({
 							}
 						/>
 					)}
+					{detail.username && (
+						<Action
+							title="Paste Username"
+							icon={Icon.Person}
+							onAction={() =>
+								void safely(() => pasteSecret(detail.username ?? ""))
+							}
+						/>
+					)}
 					{detail.email && (
 						<Action
 							title="Copy Email"
 							icon={Icon.Envelope}
 							onAction={() =>
 								void safely(() => copySecret("Email", detail.email ?? ""))
+							}
+						/>
+					)}
+					{detail.email && (
+						<Action
+							title="Paste Email"
+							icon={Icon.Envelope}
+							onAction={() =>
+								void safely(() => pasteSecret(detail.email ?? ""))
 							}
 						/>
 					)}
@@ -233,6 +252,15 @@ export function ItemDetailView({
 							}
 						/>
 					)}
+					{detail.password && (
+						<Action
+							title="Paste Password"
+							icon={Icon.Key}
+							onAction={() =>
+								void safely(() => pasteSecret(detail.password ?? ""))
+							}
+						/>
+					)}
 					{detail.hasTotp && (
 						<Action
 							title="Copy TOTP Code"
@@ -244,6 +272,15 @@ export function ItemDetailView({
 										sensitive: true,
 									}),
 								)
+							}
+						/>
+					)}
+					{detail.hasTotp && (
+						<Action
+							title="Paste TOTP Code"
+							icon={Icon.Clock}
+							onAction={() =>
+								void safely(async () => pasteSecret(await getTotp(item)))
 							}
 						/>
 					)}
@@ -328,13 +365,16 @@ function ItemActions({
 	const hasIdentity = Boolean(item.username || item.email);
 	const url = primaryUrl(item.urls);
 
-	// Which configurable actions this item supports. Password is always offered
-	// (its secret is fetched on demand); TOTP only when the item actually has
-	// one, so selecting it as the primary action cannot make Enter fail.
+	// Which configurable actions this item supports. Copy Password is always
+	// offered (its secret is fetched on demand); Paste Password is limited to
+	// login items because other types may not contain a password. TOTP actions
+	// are only offered when the item actually has one, so selecting them as the
+	// primary action cannot make Enter fail.
 	const available: ActionId[] = ["view-details"];
-	if (hasIdentity) available.push("copy-username");
+	if (hasIdentity) available.push("copy-username", "paste-username");
 	available.push("copy-password");
-	if (item.hasTotp) available.push("copy-totp");
+	if (item.type === "login") available.push("paste-password");
+	if (item.hasTotp) available.push("copy-totp", "paste-totp");
 	if (url) available.push("open-browser");
 
 	const render: Record<ActionId, React.ReactNode> = {
@@ -362,6 +402,16 @@ function ItemActions({
 				}
 			/>
 		),
+		"paste-username": (
+			<Action
+				key="paste-username"
+				title={item.username ? "Paste Username" : "Paste Email"}
+				icon={item.username ? Icon.Person : Icon.Envelope}
+				onAction={() =>
+					void safely(() => pasteSecret(item.username ?? item.email ?? ""))
+				}
+			/>
+		),
 		"copy-password": (
 			<Action
 				key="copy-password"
@@ -377,6 +427,20 @@ function ItemActions({
 				}
 			/>
 		),
+		"paste-password": (
+			<Action
+				key="paste-password"
+				title="Paste Password"
+				icon={Icon.Key}
+				onAction={() =>
+					void safely(async () => {
+						const detail = await viewItem(item);
+						if (!detail.password) throw new Error("This item has no password.");
+						await pasteSecret(detail.password);
+					})
+				}
+			/>
+		),
 		"copy-totp": (
 			<Action
 				key="copy-totp"
@@ -387,6 +451,16 @@ function ItemActions({
 					void safely(async () =>
 						copySecret("TOTP code", await getTotp(item), { sensitive: true }),
 					)
+				}
+			/>
+		),
+		"paste-totp": (
+			<Action
+				key="paste-totp"
+				title="Paste TOTP Code"
+				icon={Icon.Clock}
+				onAction={() =>
+					void safely(async () => pasteSecret(await getTotp(item)))
 				}
 			/>
 		),

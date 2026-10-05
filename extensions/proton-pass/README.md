@@ -10,13 +10,13 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 - Browse vaults and their items; each vault shows its role and live item count.
 - Colour-coded vaults: vaults are coloured by **role** by default (owner=yellow, manager=blue, editor=green, viewer=secondary, with role icons), matching the Raycast extension. Override individual vaults with the **Vault colours** preference, e.g. `Personal=green, Work=#1E90FF`. (Proton's own per-vault colours are not exposed by `pass-cli`.)
 - Open an on-demand item details view with masked secrets, URLs, notes and custom fields, plus type-specific fields (card number, expiry, security code, PIN for cards; identity, Wi-Fi and SSH-key fields), with secrets masked. Useful typed fields (card number, expiry, PIN, Wi-Fi password, SSH keys, identity email/phone) each get their own **Copy** action.
-- Copy usernames, emails, passwords and TOTP codes on demand.
+- Copy or paste usernames, emails, passwords and TOTP codes on demand. Password paste is the default Enter action for login items; other item types fall back to their next available action.
 - Select any listed item in the TOTP command; the extension then asks `pass-cli` for that item's code, rather than requiring the user to know share or item IDs.
 - Generate configurable random passwords: 8–128 characters, numbers, uppercase letters and symbols.
 - Generate configurable passphrases: 3–10 words, capitalisation, numbers and separators.
 - Score generated passwords with the real `pass-cli password score` (Strong/Good/Weak/Vulnerable) and list the specific weaknesses it finds, with a colour-coded strength indicator.
 - Keyboard shortcuts for the common actions: copy password (Ctrl+Shift+C), copy username (Ctrl+Shift+U), copy TOTP (Ctrl+Shift+T), open in browser (Ctrl+Shift+O).
-- Choose your primary and secondary actions for Search items, so Enter does what you want (view, copy or open).
+- Choose your primary and secondary actions for Search items, so Enter does what you want (view, paste, copy or open).
 - Close the launcher with a brief HUD after copying a value (on by default, so you return to your previous window; can be turned off in preferences).
 - Display live TOTP codes with a 30-second countdown and automatic refresh.
 - Cache vault and item metadata for fast startup while never caching passwords or TOTP values.
@@ -53,9 +53,9 @@ Set the extension's `pass-cli path` preference to the absolute path when Vicinae
 
 ## Commands
 
-- **Search Proton Pass Items** — searches every vault, filters by vault, opens item details and exposes copy/open actions with keyboard shortcuts. The primary and secondary actions are configurable in preferences.
+- **Search Proton Pass Items** — searches every vault, filters by vault, opens item details and exposes copy/paste/open actions with keyboard shortcuts. The primary and secondary actions are configurable in preferences; new installations default to **Paste Password** for login items.
 - **List Proton Pass Vaults** — opens a vault, then searches its items, sharing the same detail view and actions as Search.
-- **Get Proton Pass TOTP Code** — lists every item; select one and choose **Copy TOTP Code**.
+- **Get Proton Pass TOTP Code** — lists every item; select one and choose **Paste TOTP Code** or **Copy TOTP Code**.
 - **Generate Proton Pass Password** — a generated password item with a real `pass-cli` strength score and weakness list. Settings are actions (increase/decrease length or words with Ctrl+= / Ctrl+-, toggle character classes, cycle the separator, switch type), the type is a search-bar dropdown, and Enter copies the password while Ctrl+R generates a new one.
 - **Login to Proton Pass** — checks the CLI session and starts browser login when required.
 

@@ -138,8 +138,11 @@ export function vaultColor(
 export type ActionId =
 	| "view-details"
 	| "copy-username"
+	| "paste-username"
 	| "copy-password"
+	| "paste-password"
 	| "copy-totp"
+	| "paste-totp"
 	| "open-browser";
 
 type OrderPreferences = {
@@ -150,8 +153,11 @@ type OrderPreferences = {
 const KNOWN_ACTIONS: ActionId[] = [
 	"view-details",
 	"copy-username",
+	"paste-username",
 	"copy-password",
+	"paste-password",
 	"copy-totp",
+	"paste-totp",
 	"open-browser",
 ];
 

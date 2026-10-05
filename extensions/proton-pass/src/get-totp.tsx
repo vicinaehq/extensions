@@ -7,8 +7,15 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useMemo } from "react";
-import { copySecret, roleStyle, SHORTCUTS, vaultColor } from "./actions";
+import {
+	copySecret,
+	roleStyle,
+	SHORTCUTS,
+	safely,
+	vaultColor,
+} from "./actions";
 import { errorMessage } from "./cli-contract";
+import { pasteSecret } from "./clipboard";
 import { getTotp, type PassItem, roleByShareId } from "./pass-cli";
 import { useVaultSnapshot } from "./snapshot";
 import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
@@ -95,6 +102,17 @@ export default function Command() {
 								]}
 								actions={
 									<ActionPanel>
+										<Action
+											title="Paste TOTP Code"
+											icon={Icon.Clock}
+											onAction={() =>
+												void safely(async () =>
+													pasteSecret(
+														codes[totpItemKey(item)] ?? (await getTotp(item)),
+													),
+												)
+											}
+										/>
 										<Action
 											title="Copy TOTP Code"
 											icon={Icon.CopyClipboard}

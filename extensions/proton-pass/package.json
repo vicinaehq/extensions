@@ -13,7 +13,7 @@
       "name": "search-items",
       "title": "Search Proton Pass Items",
       "subtitle": "pass-cli",
-      "description": "Search all Proton Pass items across vaults and copy credentials.",
+      "description": "Search all Proton Pass items and copy or paste credentials.",
       "icon": "extension_icon.png",
       "mode": "view"
     },
@@ -37,7 +37,7 @@
       "name": "get-totp",
       "title": "Get Proton Pass TOTP Code",
       "subtitle": "pass-cli",
-      "description": "List Proton Pass items, choose one, and copy its current TOTP code.",
+      "description": "List Proton Pass items, choose one, and copy or paste its current TOTP code.",
       "icon": "extension_icon.png",
       "mode": "view"
     },
@@ -109,11 +109,14 @@
       "required": false,
       "title": "Primary action",
       "description": "Which action runs first (Enter) on an item in Search Proton Pass Items.",
-      "default": "view-details",
+      "default": "paste-password",
       "data": [
         { "title": "View Details", "value": "view-details" },
+        { "title": "Paste Username", "value": "paste-username" },
         { "title": "Copy Username", "value": "copy-username" },
+        { "title": "Paste Password", "value": "paste-password" },
         { "title": "Copy Password", "value": "copy-password" },
+        { "title": "Paste TOTP Code", "value": "paste-totp" },
         { "title": "Copy TOTP Code", "value": "copy-totp" },
         { "title": "Open in Browser", "value": "open-browser" }
       ]
@@ -127,8 +130,11 @@
       "default": "copy-password",
       "data": [
         { "title": "View Details", "value": "view-details" },
+        { "title": "Paste Username", "value": "paste-username" },
         { "title": "Copy Username", "value": "copy-username" },
+        { "title": "Paste Password", "value": "paste-password" },
         { "title": "Copy Password", "value": "copy-password" },
+        { "title": "Paste TOTP Code", "value": "paste-totp" },
         { "title": "Copy TOTP Code", "value": "copy-totp" },
         { "title": "Open in Browser", "value": "open-browser" }
       ]
