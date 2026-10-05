@@ -54,7 +54,7 @@ If Vicinae cannot find `ente`, set **Ente CLI path** to its absolute path. Set *
 
 ## Commands
 
-- **Get Ente Auth TOTP** — reads the existing export, searches accounts, and copies codes.
+- **Get Ente Auth TOTP** — reads the existing export, searches accounts, and copies or pastes codes.
 - **Import Ente Auth Secrets** — runs `ente export`, validates the resulting file, and makes it available to the search command.
 - **Export Ente Auth Secrets** — runs `ente export` and reports the resulting file.
 - **Delete Ente Auth Export** — permanently removes the local `ente_auth.txt` after confirmation.
