@@ -40,6 +40,56 @@ function serviceIcon(snapshot: TotpSnapshot) {
 	return favicon ? { source: favicon } : Icon.Key;
 }
 
+function TotpListDetail({ snapshot }: { snapshot: TotpSnapshot }) {
+	const [timestamp, setTimestamp] = useState(Date.now());
+	useEffect(() => {
+		const interval = setInterval(() => setTimestamp(Date.now()), 1000);
+		return () => clearInterval(interval);
+	}, []);
+	const current = useMemo(
+		() => snapshotSecret(snapshot, timestamp),
+		[snapshot, timestamp],
+	);
+	const url = noteUrl(current.notes);
+	return (
+		<List.Item.Detail
+			markdown={`#${current.remaining}s`}
+			metadata={
+				<Detail.Metadata>
+					<Detail.Metadata.Label title="Current" text={current.current} />
+					<Detail.Metadata.Label title="Next" text={current.next} />
+					<Detail.Metadata.Separator />
+					<Detail.Metadata.Label title="Username" text={current.username} />
+					<Detail.Metadata.Label title="Algorithm" text={current.algorithm} />
+					<Detail.Metadata.Label title="Digits" text={String(current.digits)} />
+					<Detail.Metadata.Label title="Period" text={String(current.period)} />
+					<Detail.Metadata.Separator />
+					{url ? (
+						<Detail.Metadata.Link
+							title="Notes"
+							target={url}
+							text={current.notes}
+						/>
+					) : current.notes ? (
+						<Detail.Metadata.Label title="Notes" text={current.notes} />
+					) : null}
+					{current.tags.length > 0 && (
+						<Detail.Metadata.TagList title="Tags">
+							{current.tags.map((tag) => (
+								<Detail.Metadata.TagList.Item
+									key={tag}
+									text={tag}
+									color={PURPLE}
+								/>
+							))}
+						</Detail.Metadata.TagList>
+					)}
+				</Detail.Metadata>
+			}
+		/>
+	);
+}
+
 function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 	const [timestamp, setTimestamp] = useState(Date.now());
 	useEffect(() => {
@@ -109,6 +159,16 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 								copyCode("Next code", current.next),
 							)
 						}
+					/>
+					<Action.Paste
+						title="Paste Current Code"
+						icon={Icon.Key}
+						content={current.current}
+					/>
+					<Action.Paste
+						title="Paste Next Code"
+						icon={Icon.Key}
+						content={current.next}
 					/>
 					{url && (
 						<Action.OpenInBrowser
@@ -197,7 +257,12 @@ export default function Command() {
 	}
 
 	return (
-		<List isLoading={loading} searchBarPlaceholder="Search Ente Auth accounts…">
+		<List
+			isLoading={loading}
+			isShowingDetail
+			navigationTitle="Get TOTP"
+			searchBarPlaceholder="Search Ente Auth accounts…"
+		>
 			{error ? (
 				<List.EmptyView
 					icon={Icon.Warning}
@@ -240,6 +305,13 @@ export default function Command() {
 							}
 						/>
 					);
+					const pasteCurrent = (
+						<Action.Paste
+							title="Paste Current Code"
+							icon={Icon.Key}
+							content={snapshot.current}
+						/>
+					);
 					return (
 						<List.Item
 							key={`${snapshot.serviceName}:${snapshot.username}:${index}`}
@@ -261,10 +333,12 @@ export default function Command() {
 								},
 								{ text: `${snapshot.remaining}s`, icon: Icon.Clock },
 							]}
+							detail={<TotpListDetail snapshot={snapshot} />}
 							actions={
 								<ActionPanel>
-									{preferredAction === "view-details" ? details : copyCurrent}
-									{preferredAction === "view-details" ? copyCurrent : details}
+									{preferredAction === "paste" ? pasteCurrent : copyCurrent}
+									{preferredAction === "paste" ? copyCurrent : pasteCurrent}
+									{details}
 									<Action
 										title="Copy Next Code"
 										icon={Icon.CopyClipboard}

@@ -8,7 +8,9 @@ The port is independently implemented from the MIT-licensed Raycast extension by
 
 - Search Ente Auth accounts by service, username, tag, or notes.
 - Display current and next TOTP codes with a live one-second countdown.
-- Copy the current or next code with keyboard shortcuts.
+- Paste or copy the current code directly into the focused application, matching Raycast's primary action.
+- Copy or paste the next code from the action panel.
+- Show a live side-panel detail view with current/next codes, countdown, metadata, notes, and tags.
 - Show algorithm, digits, period, tags, username, and notes in a detail view.
 - Fetch service icons from Ente's custom icon registry, then Simple Icons, with a notes-URL favicon fallback.
 - Refresh service icons manually.
@@ -56,7 +58,7 @@ If Vicinae cannot find `ente`, set **Ente CLI path** to its absolute path. Set *
 - **Export Ente Auth Secrets** — runs `ente export` and reports the resulting file.
 - **Delete Ente Auth Export** — permanently removes the local `ente_auth.txt` after confirmation.
 
-The Raycast extension offers Paste as a primary action. This Vicinae port deliberately uses Copy only: clipboard paste hand-off is unreliable on GNOME/Wayland, and adding a `ydotool` dependency would make the extension needlessly non-portable.
+The **Primary action** preference matches Raycast: it can put **Paste current code** or **Copy current code** on Enter. Vicinae closes its launcher before invoking `Clipboard.paste`, allowing focus to return to the previously active application without requiring a `ydotool` dependency.
 
 ## Privacy
 

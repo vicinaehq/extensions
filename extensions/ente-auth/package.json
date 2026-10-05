@@ -65,11 +65,11 @@
       "type": "dropdown",
       "required": false,
       "title": "Primary action",
-      "description": "Action bound to Enter on an account.",
-      "default": "copy-current",
+      "description": "Action bound to Enter on an account, matching the Raycast extension.",
+      "default": "paste",
       "data": [
-        { "title": "Copy current code", "value": "copy-current" },
-        { "title": "View details", "value": "view-details" }
+        { "title": "Paste current code", "value": "paste" },
+        { "title": "Copy current code", "value": "copy" }
       ]
     },
     {
