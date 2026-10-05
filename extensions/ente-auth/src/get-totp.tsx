@@ -1,9 +1,7 @@
 import {
 	Action,
 	ActionPanel,
-	Clipboard,
 	Color,
-	closeMainWindow,
 	Detail,
 	getPreferenceValues,
 	Icon,
@@ -53,12 +51,6 @@ function serviceIcon(snapshot: TotpSnapshot) {
 	if (cached) return { source: cached };
 	const favicon = faviconForNotes(snapshot.notes);
 	return favicon ? { source: favicon } : Icon.Key;
-}
-
-/** Close the launcher first, then await Vicinae's native paste request. */
-async function pasteCode(code: string): Promise<void> {
-	await closeMainWindow();
-	await Clipboard.paste(code);
 }
 
 function TotpListDetail({ snapshot }: { snapshot: TotpSnapshot }) {
@@ -142,14 +134,10 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 		/>
 	);
 	const pasteCurrent = (
-		<Action
+		<Action.Paste
 			title="Paste Current Code"
 			icon={Icon.Key}
-			onAction={() =>
-				void guardAction("Unable to paste current code", () =>
-					pasteCode(current.current),
-				)
-			}
+			content={current.current}
 		/>
 	);
 
@@ -197,23 +185,15 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 							)
 						}
 					/>
-					<Action
+					<Action.Paste
 						title="Paste Current Code"
 						icon={Icon.Key}
-						onAction={() =>
-							void guardAction("Unable to paste current code", () =>
-								pasteCode(current.current),
-							)
-						}
+						content={current.current}
 					/>
-					<Action
+					<Action.Paste
 						title="Paste Next Code"
 						icon={Icon.Key}
-						onAction={() =>
-							void guardAction("Unable to paste next code", () =>
-								pasteCode(current.next),
-							)
-						}
+						content={current.next}
 					/>
 					{url && (
 						<Action.OpenInBrowser
@@ -352,14 +332,10 @@ export default function Command() {
 						/>
 					);
 					const pasteCurrent = (
-						<Action
+						<Action.Paste
 							title="Paste Current Code"
 							icon={Icon.Key}
-							onAction={() =>
-								void guardAction("Unable to paste current code", () =>
-									pasteCode(snapshot.current),
-								)
-							}
+							content={snapshot.current}
 						/>
 					);
 					return (
