@@ -1,3 +1,4 @@
+import { setTimeout as delay } from 'node:timers/promises';
 import { closeMainWindow, PopToRootType } from '@vicinae/api';
 import type { HyprWorkspace, Layout } from '../types';
 import {
@@ -31,13 +32,17 @@ type HyprFocusTarget = 'window' | 'monitor' | 'workspace';
 export async function focusHyprTarget(target: HyprFocusTarget, value: string) {
   try {
     await ensureHyprRuntimeAvailable();
+    await closeMainWindow({ popToRootType: PopToRootType.Immediate });
+    // Vicinae schedules closing after 50ms. Let the launcher release keyboard
+    // focus before dispatching, or closing it can undo same-workspace focus.
+    await delay(100);
+
     try {
       await runHyprctlCommand(getLegacyHyprFocusArgs(target, value));
     } catch {
       await runHyprctlCommand(getLuaHyprFocusArgs(target, value));
     }
 
-    await closeMainWindow({ popToRootType: PopToRootType.Immediate });
     return true;
   } catch (error) {
     handleError('Focus failed', error);
