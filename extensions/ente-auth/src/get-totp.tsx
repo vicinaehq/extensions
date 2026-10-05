@@ -1,7 +1,9 @@
 import {
 	Action,
 	ActionPanel,
+	Clipboard,
 	Color,
+	closeMainWindow,
 	Detail,
 	getPreferenceValues,
 	Icon,
@@ -51,6 +53,19 @@ function serviceIcon(snapshot: TotpSnapshot) {
 	if (cached) return { source: cached };
 	const favicon = faviconForNotes(snapshot.notes);
 	return favicon ? { source: favicon } : Icon.Key;
+}
+
+// Vicinae schedules the launcher close 50 ms after the close request returns.
+// Wait for that hand-off before asking the host to inject Ctrl+V; otherwise
+// GNOME can still deliver the synthetic paste to Vicinae's search field.
+const PASTE_FOCUS_SETTLE_DELAY_MS = 150;
+
+async function pasteCode(code: string): Promise<void> {
+	await closeMainWindow();
+	await new Promise<void>((resolve) =>
+		setTimeout(resolve, PASTE_FOCUS_SETTLE_DELAY_MS),
+	);
+	await Clipboard.paste(code);
 }
 
 function TotpListDetail({ snapshot }: { snapshot: TotpSnapshot }) {
@@ -134,10 +149,14 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 		/>
 	);
 	const pasteCurrent = (
-		<Action.Paste
+		<Action
 			title="Paste Current Code"
 			icon={Icon.Key}
-			content={current.current}
+			onAction={() =>
+				void guardAction("Unable to paste current code", () =>
+					pasteCode(current.current),
+				)
+			}
 		/>
 	);
 
@@ -185,15 +204,23 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 							)
 						}
 					/>
-					<Action.Paste
+					<Action
 						title="Paste Current Code"
 						icon={Icon.Key}
-						content={current.current}
+						onAction={() =>
+							void guardAction("Unable to paste current code", () =>
+								pasteCode(current.current),
+							)
+						}
 					/>
-					<Action.Paste
+					<Action
 						title="Paste Next Code"
 						icon={Icon.Key}
-						content={current.next}
+						onAction={() =>
+							void guardAction("Unable to paste next code", () =>
+								pasteCode(current.next),
+							)
+						}
 					/>
 					{url && (
 						<Action.OpenInBrowser
@@ -332,10 +359,14 @@ export default function Command() {
 						/>
 					);
 					const pasteCurrent = (
-						<Action.Paste
+						<Action
 							title="Paste Current Code"
 							icon={Icon.Key}
-							content={snapshot.current}
+							onAction={() =>
+								void guardAction("Unable to paste current code", () =>
+									pasteCode(snapshot.current),
+								)
+							}
 						/>
 					);
 					return (
