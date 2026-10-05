@@ -200,43 +200,40 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 			}
 			actions={
 				<ActionPanel>
-					{pasteIsPrimary ? pasteCurrent : copyCurrent}
-					{pasteIsPrimary ? copyCurrent : pasteCurrent}
-					<Action
-						title="Copy Next Code"
-						icon={Icon.CopyClipboard}
-						shortcut={SHORTCUTS.copyNext}
-						onAction={() =>
-							void guardAction("Unable to copy next code", () =>
-								copyCode("Next code", current.next),
-							)
-						}
-					/>
-					<Action
-						title="Paste Current Code"
-						icon={Icon.Key}
-						onAction={() =>
-							void guardAction("Unable to paste current code", () =>
-								pasteCode(current.current),
-							)
-						}
-					/>
-					<Action
-						title="Paste Next Code"
-						icon={Icon.Key}
-						onAction={() =>
-							void guardAction("Unable to paste next code", () =>
-								pasteCode(current.next),
-							)
-						}
-					/>
-					{url && (
-						<Action.OpenInBrowser
-							title="Open Notes URL"
-							url={url}
-							icon={Icon.Link}
+					<ActionPanel.Section title="Current">
+						{pasteIsPrimary ? pasteCurrent : copyCurrent}
+						{pasteIsPrimary ? copyCurrent : pasteCurrent}
+					</ActionPanel.Section>
+					<ActionPanel.Section title="Next">
+						<Action
+							title="Copy Next Code"
+							icon={Icon.CopyClipboard}
+							shortcut={SHORTCUTS.copyNext}
+							onAction={() =>
+								void guardAction("Unable to copy next code", () =>
+									copyCode("Next code", current.next),
+								)
+							}
 						/>
-					)}
+						<Action
+							title="Paste Next Code"
+							icon={Icon.Key}
+							onAction={() =>
+								void guardAction("Unable to paste next code", () =>
+									pasteCode(current.next),
+								)
+							}
+						/>
+					</ActionPanel.Section>
+					<ActionPanel.Section>
+						{url && (
+							<Action.OpenInBrowser
+								title="Open Notes URL"
+								url={url}
+								icon={Icon.Link}
+							/>
+						)}
+					</ActionPanel.Section>
 				</ActionPanel>
 			}
 		/>
@@ -397,37 +394,43 @@ export default function Command() {
 							detail={<TotpListDetail snapshot={snapshot} />}
 							actions={
 								<ActionPanel>
-									{pasteIsPrimary ? pasteCurrent : copyCurrent}
-									{pasteIsPrimary ? copyCurrent : pasteCurrent}
-									{details}
-									<Action
-										title="Copy Next Code"
-										icon={Icon.CopyClipboard}
-										shortcut={SHORTCUTS.copyNext}
-										onAction={() =>
-											void guardAction("Unable to copy next code", () =>
-												copyCode("Next code", snapshot.next),
-											)
-										}
-									/>
-									{noteUrl(snapshot.notes) && (
-										<Action.OpenInBrowser
-											title="Open Notes URL"
-											url={noteUrl(snapshot.notes) ?? ""}
-											icon={Icon.Link}
+									<ActionPanel.Section title="Current">
+										{pasteIsPrimary ? pasteCurrent : copyCurrent}
+										{pasteIsPrimary ? copyCurrent : pasteCurrent}
+									</ActionPanel.Section>
+									<ActionPanel.Section title="Next">
+										<Action
+											title="Copy Next Code"
+											icon={Icon.CopyClipboard}
+											shortcut={SHORTCUTS.copyNext}
+											onAction={() =>
+												void guardAction("Unable to copy next code", () =>
+													copyCode("Next code", snapshot.next),
+												)
+											}
 										/>
-									)}
-									<Action
-										title="Refresh Export"
-										icon={Icon.ArrowClockwise}
-										onAction={() => void load()}
-									/>
-									<Action
-										title="Refresh Service Icons"
-										icon={Icon.Image}
-										shortcut={SHORTCUTS.refresh}
-										onAction={() => void refreshIcons()}
-									/>
+									</ActionPanel.Section>
+									<ActionPanel.Section>
+										{details}
+										{noteUrl(snapshot.notes) && (
+											<Action.OpenInBrowser
+												title="Open Notes URL"
+												url={noteUrl(snapshot.notes) ?? ""}
+												icon={Icon.Link}
+											/>
+										)}
+										<Action
+											title="Refresh Export"
+											icon={Icon.ArrowClockwise}
+											onAction={() => void load()}
+										/>
+										<Action
+											title="Refresh Service Icons"
+											icon={Icon.Image}
+											shortcut={SHORTCUTS.refresh}
+											onAction={() => void refreshIcons()}
+										/>
+									</ActionPanel.Section>
 								</ActionPanel>
 							}
 						/>
