@@ -58,7 +58,7 @@ function serviceIcon(snapshot: TotpSnapshot) {
 // Vicinae schedules the launcher close 50 ms after the close request returns.
 // Wait for that hand-off before asking the host to inject Ctrl+V; otherwise
 // GNOME can still deliver the synthetic paste to Vicinae's search field.
-const PASTE_FOCUS_SETTLE_DELAY_MS = 150;
+const PASTE_FOCUS_SETTLE_DELAY_MS = 100;
 
 async function pasteCode(code: string): Promise<void> {
 	await closeMainWindow();
