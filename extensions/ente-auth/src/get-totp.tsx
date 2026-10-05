@@ -1,7 +1,9 @@
 import {
 	Action,
 	ActionPanel,
+	Clipboard,
 	Color,
+	closeMainWindow,
 	Detail,
 	getPreferenceValues,
 	Icon,
@@ -33,16 +35,17 @@ function timerColor(remaining: number): Color {
 	return remaining > 10 ? PURPLE : ORANGE;
 }
 
-// Raycast's getProgressIcon uses a circular progress glyph. Vicinae exposes
-// five fixed progress variants, so map the live remaining fraction to the
-// closest one and tint it with the same Ente purple/orange thresholds.
-function progressIcon(remaining: number, period: number): Icon {
+// Raycast's getProgressIcon is a thin, partially drawn outer ring rather than
+// a solid progress glyph. Generate the same shape as a data URL so it can be
+// updated every second and use the same purple/orange threshold.
+function progressIcon(remaining: number, period: number): { source: string } {
 	const fraction = Math.max(0, Math.min(1, remaining / Math.max(period, 1)));
-	if (fraction >= 0.875) return Icon.CircleProgress100;
-	if (fraction >= 0.625) return Icon.CircleProgress75;
-	if (fraction >= 0.375) return Icon.CircleProgress50;
-	if (fraction >= 0.125) return Icon.CircleProgress25;
-	return Icon.CircleProgress;
+	const color = remaining > 10 ? "#A400B6" : "#FF9800";
+	const radius = 9;
+	const circumference = 2 * Math.PI * radius;
+	const dashOffset = circumference * (1 - fraction);
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 12 12)"/></svg>`;
+	return { source: `data:image/svg+xml,${encodeURIComponent(svg)}` };
 }
 
 function serviceIcon(snapshot: TotpSnapshot) {
@@ -50,6 +53,12 @@ function serviceIcon(snapshot: TotpSnapshot) {
 	if (cached) return { source: cached };
 	const favicon = faviconForNotes(snapshot.notes);
 	return favicon ? { source: favicon } : Icon.Key;
+}
+
+/** Close the launcher first, then await Vicinae's native paste request. */
+async function pasteCode(code: string): Promise<void> {
+	await closeMainWindow();
+	await Clipboard.paste(code);
 }
 
 function TotpListDetail({ snapshot }: { snapshot: TotpSnapshot }) {
@@ -172,15 +181,23 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 							)
 						}
 					/>
-					<Action.Paste
+					<Action
 						title="Paste Current Code"
 						icon={Icon.Key}
-						content={current.current}
+						onAction={() =>
+							void guardAction("Unable to paste current code", () =>
+								pasteCode(current.current),
+							)
+						}
 					/>
-					<Action.Paste
+					<Action
 						title="Paste Next Code"
 						icon={Icon.Key}
-						content={current.next}
+						onAction={() =>
+							void guardAction("Unable to paste next code", () =>
+								pasteCode(current.next),
+							)
+						}
 					/>
 					{url && (
 						<Action.OpenInBrowser
@@ -338,10 +355,7 @@ export default function Command() {
 							]}
 							accessories={[
 								{
-									icon: {
-										source: progressIcon(snapshot.remaining, snapshot.period),
-										tintColor: timerColor(snapshot.remaining),
-									},
+									icon: progressIcon(snapshot.remaining, snapshot.period),
 								},
 							]}
 							detail={<TotpListDetail snapshot={snapshot} />}
