@@ -33,6 +33,18 @@ function timerColor(remaining: number): Color {
 	return remaining > 10 ? PURPLE : ORANGE;
 }
 
+// Raycast's getProgressIcon uses a circular progress glyph. Vicinae exposes
+// five fixed progress variants, so map the live remaining fraction to the
+// closest one and tint it with the same Ente purple/orange thresholds.
+function progressIcon(remaining: number, period: number): Icon {
+	const fraction = Math.max(0, Math.min(1, remaining / Math.max(period, 1)));
+	if (fraction >= 0.875) return Icon.CircleProgress100;
+	if (fraction >= 0.625) return Icon.CircleProgress75;
+	if (fraction >= 0.375) return Icon.CircleProgress50;
+	if (fraction >= 0.125) return Icon.CircleProgress25;
+	return Icon.CircleProgress;
+}
+
 function serviceIcon(snapshot: TotpSnapshot) {
 	const cached = getIconPath(snapshot.serviceName);
 	if (cached) return { source: cached };
@@ -326,12 +338,11 @@ export default function Command() {
 							]}
 							accessories={[
 								{
-									tag: {
-										value: snapshot.current,
-										color: timerColor(snapshot.remaining),
+									icon: {
+										source: progressIcon(snapshot.remaining, snapshot.period),
+										tintColor: timerColor(snapshot.remaining),
 									},
 								},
-								{ text: `${snapshot.remaining}s`, icon: Icon.Clock },
 							]}
 							detail={<TotpListDetail snapshot={snapshot} />}
 							actions={

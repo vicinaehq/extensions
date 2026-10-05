@@ -8,6 +8,7 @@ The port is independently implemented from the MIT-licensed Raycast extension by
 
 - Search Ente Auth accounts by service, username, tag, or notes.
 - Display current and next TOTP codes with a live one-second countdown.
+- Keep list rows compact: the code and seconds stay in the detail pane while a live colour-tinted progress glyph shows the remaining window.
 - Paste or copy the current code directly into the focused application, matching Raycast's primary action.
 - Copy or paste the next code from the action panel.
 - Show a live side-panel detail view with current/next codes, countdown, metadata, notes, and tags.
