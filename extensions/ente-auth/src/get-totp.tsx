@@ -97,9 +97,10 @@ function TotpListDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 							target={url}
 							text={current.notes}
 						/>
-					) : current.notes ? (
-						<Detail.Metadata.Label title="Notes" text={current.notes} />
-					) : null}
+					) : (
+						<Detail.Metadata.Label title="Notes" text={current.notes || "—"} />
+					)}
+					<Detail.Metadata.Separator />
 					{current.tags.length > 0 && (
 						<Detail.Metadata.TagList title="Tags">
 							{current.tags.map((tag) => (
@@ -185,9 +186,16 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 						title="Tags"
 						text={current.tags.length ? current.tags.join(", ") : "—"}
 					/>
-					{current.notes && (
-						<Detail.Metadata.Label title="Notes" text={current.notes} />
+					{url ? (
+						<Detail.Metadata.Link
+							title="Notes"
+							target={url}
+							text={current.notes}
+						/>
+					) : (
+						<Detail.Metadata.Label title="Notes" text={current.notes || "—"} />
 					)}
+					<Detail.Metadata.Separator />
 				</Detail.Metadata>
 			}
 			actions={
