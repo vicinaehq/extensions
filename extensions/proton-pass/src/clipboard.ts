@@ -7,16 +7,19 @@ type ClipboardPreferences = {
 
 let copyGeneration = 0;
 
-// Vicinae schedules the launcher close asynchronously. Waiting beyond its
-// 50 ms close delay prevents GNOME from injecting the paste into the launcher
-// search field instead of the window that was focused before it opened.
+// Vicinae closes the launcher asynchronously. Give the host a short,
+// platform-neutral focus-settle window before requesting the native paste.
 const PASTE_FOCUS_SETTLE_DELAY_MS = 100;
+
+function waitForPasteFocus(): Promise<void> {
+	return new Promise((resolve) =>
+		setTimeout(resolve, PASTE_FOCUS_SETTLE_DELAY_MS),
+	);
+}
 
 export async function pasteSecret(value: string): Promise<void> {
 	await closeMainWindow();
-	await new Promise<void>((resolve) =>
-		setTimeout(resolve, PASTE_FOCUS_SETTLE_DELAY_MS),
-	);
+	await waitForPasteFocus();
 	await Clipboard.paste(value);
 }
 
