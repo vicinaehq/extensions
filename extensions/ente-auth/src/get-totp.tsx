@@ -128,6 +128,31 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 		`**Next code:** ${current.next}`,
 		`**Expires in:** ${current.remaining}s`,
 	].join("\n\n");
+	const pasteIsPrimary =
+		getPreferenceValues<Preferences>().primaryAction !== "copy";
+	const copyCurrent = (
+		<Action
+			title="Copy Current Code"
+			icon={Icon.CopyClipboard}
+			shortcut={SHORTCUTS.copyCurrent}
+			onAction={() =>
+				void guardAction("Unable to copy current code", () =>
+					copyCode("Current code", current.current),
+				)
+			}
+		/>
+	);
+	const pasteCurrent = (
+		<Action
+			title="Paste Current Code"
+			icon={Icon.Key}
+			onAction={() =>
+				void guardAction("Unable to paste current code", () =>
+					pasteCode(current.current),
+				)
+			}
+		/>
+	);
 
 	return (
 		<Detail
@@ -161,16 +186,8 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 			}
 			actions={
 				<ActionPanel>
-					<Action
-						title="Copy Current Code"
-						icon={Icon.CopyClipboard}
-						shortcut={SHORTCUTS.copyCurrent}
-						onAction={() =>
-							void guardAction("Unable to copy current code", () =>
-								copyCode("Current code", current.current),
-							)
-						}
-					/>
+					{pasteIsPrimary ? pasteCurrent : copyCurrent}
+					{pasteIsPrimary ? copyCurrent : pasteCurrent}
 					<Action
 						title="Copy Next Code"
 						icon={Icon.CopyClipboard}
@@ -264,6 +281,7 @@ export default function Command() {
 			.sort((left, right) => left.serviceName.localeCompare(right.serviceName));
 	}, [iconEpoch, secrets, timestamp]);
 	const preferredAction = getPreferenceValues<Preferences>().primaryAction;
+	const pasteIsPrimary = preferredAction !== "copy";
 
 	async function refreshIcons(): Promise<void> {
 		const toast = await showToast({
@@ -335,10 +353,14 @@ export default function Command() {
 						/>
 					);
 					const pasteCurrent = (
-						<Action.Paste
+						<Action
 							title="Paste Current Code"
 							icon={Icon.Key}
-							content={snapshot.current}
+							onAction={() =>
+								void guardAction("Unable to paste current code", () =>
+									pasteCode(snapshot.current),
+								)
+							}
 						/>
 					);
 					return (
@@ -361,8 +383,8 @@ export default function Command() {
 							detail={<TotpListDetail snapshot={snapshot} />}
 							actions={
 								<ActionPanel>
-									{preferredAction === "paste" ? pasteCurrent : copyCurrent}
-									{preferredAction === "paste" ? copyCurrent : pasteCurrent}
+									{pasteIsPrimary ? pasteCurrent : copyCurrent}
+									{pasteIsPrimary ? copyCurrent : pasteCurrent}
 									{details}
 									<Action
 										title="Copy Next Code"
