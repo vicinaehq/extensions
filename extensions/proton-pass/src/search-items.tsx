@@ -388,7 +388,7 @@ function ItemActions({
 	if (hasIdentity) available.push("paste-username");
 	available.push("view-details");
 	if (hasIdentity) available.push("copy-username");
-	if (isLogin && item.hasPassword === true) available.push("copy-password");
+	if (isLogin) available.push("copy-password");
 	if (item.hasTotp) available.push("copy-totp", "paste-totp");
 	if (url) available.push("open-browser");
 
