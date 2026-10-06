@@ -379,16 +379,16 @@ function ItemActions({
 	const hasIdentity = Boolean(item.username || item.email);
 	const url = primaryUrl(item.urls);
 
-	// Password-bearing login items default to Paste Password; View Details
-	// remains available immediately after it. Other item types fall back to
-	// View Details because they cannot provide a password paste action.
+	// Login rows reserve Paste Password and Paste Username/Email as the first
+	// two actions. Paste Password resolves the secret lazily, so an incomplete
+	// metadata snapshot must never hide the action itself.
+	const isLogin = item.type === "login";
 	const available: ActionId[] = [];
-	if (item.type === "login" && item.hasPassword === true)
-		available.push("paste-password");
+	if (isLogin) available.push("paste-password");
+	if (hasIdentity) available.push("paste-username");
 	available.push("view-details");
-	if (hasIdentity) available.push("copy-username", "paste-username");
-	if (item.type === "login" && item.hasPassword === true)
-		available.push("copy-password");
+	if (hasIdentity) available.push("copy-username");
+	if (isLogin && item.hasPassword === true) available.push("copy-password");
 	if (item.hasTotp) available.push("copy-totp", "paste-totp");
 	if (url) available.push("open-browser");
 
@@ -491,7 +491,17 @@ function ItemActions({
 		) : null,
 	};
 
-	const ordered = orderedActionIds(available);
+	const preferredLoginActions: ActionId[] = [];
+	if (isLogin) {
+		preferredLoginActions.push("paste-password");
+		if (hasIdentity) preferredLoginActions.push("paste-username");
+	}
+	const ordered = isLogin
+		? [
+				...preferredLoginActions,
+				...available.filter((id) => !preferredLoginActions.includes(id)),
+			]
+		: orderedActionIds(available);
 	const primary = ordered.slice(0, 2);
 	const rest = ordered.slice(2);
 	const details = rest.filter((id) => id === "view-details");

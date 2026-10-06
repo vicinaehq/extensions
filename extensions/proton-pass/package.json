@@ -108,7 +108,7 @@
       "type": "dropdown",
       "required": false,
       "title": "Primary action",
-      "description": "Which action runs first (Enter) on an item in Search Proton Pass Items.",
+      "description": "Which action runs first (Enter) on non-login items in Search Proton Pass Items. Login rows always use Paste Password first.",
       "default": "paste-password",
       "data": [
         { "title": "View Details", "value": "view-details" },
@@ -126,7 +126,7 @@
       "type": "dropdown",
       "required": false,
       "title": "Secondary action",
-      "description": "Which action is promoted to second place on an item in Search Proton Pass Items.",
+      "description": "Which action is promoted to second place on non-login items in Search Proton Pass Items. Login rows use Paste Username/Email second when available.",
       "default": "paste-username",
       "data": [
         { "title": "View Details", "value": "view-details" },
