@@ -330,6 +330,12 @@ export default function Command() {
 					onAction={() => void safely(paste)}
 				/>
 				<Action
+					title="Copy Password"
+					icon={Icon.CopyClipboard}
+					shortcut={SHORTCUTS.copyPassword}
+					onAction={() => void safely(copy)}
+				/>
+				<Action
 					title="Paste and Generate Next"
 					icon={Icon.ArrowClockwise}
 					onAction={() => void safely(pasteAndGenerateNext)}

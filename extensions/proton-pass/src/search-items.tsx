@@ -109,10 +109,6 @@ export function ItemDetailView({
 		markdownLines.push(`**${identityTitle}:** ${escapeMarkdown(identity)}`);
 	if (detail.password)
 		markdownLines.push(`**Password:** ${mask(detail.password)}`);
-	if (detail.hasTotp) {
-		markdownLines.push(`**2FA Code:** ${currentTotpText}`);
-		markdownLines.push(`**Expires in:** ${remaining}s`);
-	}
 	if (detail.urls?.length) {
 		markdownLines.push(
 			`**Websites:**\n\n${detail.urls.map((url) => `- ${escapeMarkdown(url)}`).join("\n")}`,
@@ -127,6 +123,25 @@ export function ItemDetailView({
 				<Detail.Metadata>
 					<Detail.Metadata.Label title="Note" text={detail.note ?? "—"} />
 					<Detail.Metadata.Separator />
+					{detail.hasTotp && (
+						<>
+							<Detail.Metadata.Label
+								title="2FA Code"
+								text={
+									currentTotp
+										? {
+												value: currentTotp,
+												color: totpTimerColor(remaining),
+											}
+										: currentTotpText
+								}
+							/>
+							<Detail.Metadata.Label
+								title="Expires in"
+								text={`${remaining}s`}
+							/>
+						</>
+					)}
 					<Detail.Metadata.Label
 						title="Vault"
 						text={{
