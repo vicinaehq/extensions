@@ -109,7 +109,18 @@ export default function Command() {
 										tooltip: `TOTP expires in ${remaining}s`,
 									},
 								]}
-								detail={<ItemDetailView item={item} vaultRole={role} />}
+								detail={
+									<ItemDetailView
+										item={item}
+										vaultRole={role}
+										totpState={{
+											code: codes[totpItemKey(item)],
+											remaining,
+											refreshing,
+											refresh,
+										}}
+									/>
+								}
 								actions={
 									<ActionPanel>
 										<Action

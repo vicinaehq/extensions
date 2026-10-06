@@ -52,6 +52,13 @@ function mask(value: string): string {
 	return "•".repeat(Math.min(Math.max(value.length, 8), 24));
 }
 
+export type TotpDisplayState = {
+	code?: string;
+	remaining: number;
+	refreshing: boolean;
+	refresh: () => Promise<void>;
+};
+
 // Heading for the type-specific field block in the detail markdown.
 function fieldGroupTitle(type: string): string {
 	switch (type) {
@@ -73,15 +80,24 @@ function fieldGroupTitle(type: string): string {
 export function ItemDetailView({
 	item,
 	vaultRole,
+	totpState,
 }: {
 	item: PassItem;
 	vaultRole?: string;
+	totpState?: TotpDisplayState;
 }) {
 	const [detail, setDetail] = useState<PassItemDetail>();
 	const [error, setError] = useState<string>();
-	const totpItems = useMemo(() => (item.hasTotp ? [item] : []), [item]);
-	const { codes, remaining, refreshing, refresh } = useTotpCodes(totpItems);
-	const currentTotp = codes[totpItemKey(item)];
+	const hasExternalTotpState = Boolean(totpState);
+	const totpItems = useMemo(
+		() => (hasExternalTotpState ? [] : item.hasTotp ? [item] : []),
+		[hasExternalTotpState, item],
+	);
+	const internalTotp = useTotpCodes(totpItems);
+	const currentTotp = totpState?.code ?? internalTotp.codes[totpItemKey(item)];
+	const remaining = totpState?.remaining ?? internalTotp.remaining;
+	const refreshing = totpState?.refreshing ?? internalTotp.refreshing;
+	const refresh = totpState?.refresh ?? internalTotp.refresh;
 
 	useEffect(() => {
 		let active = true;
