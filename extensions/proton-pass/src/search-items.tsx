@@ -102,7 +102,7 @@ export function ItemDetailView({
 	return (
 		<Detail
 			navigationTitle={detail.title}
-			markdown=""
+			markdown={`# ${escapeMarkdown(detail.title)}`}
 			metadata={
 				<Detail.Metadata>
 					<Detail.Metadata.Label
