@@ -1,15 +1,20 @@
-import { Color } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getTotp, type PassItem } from "./pass-cli";
+
+export const TOTP_COLORS = {
+	active: "#A400B6", // Proton purple; matches the Ente-style active colour.
+	warning: "#FF9800", // Orange; use the same value for the ring and code.
+	critical: "#E53935",
+} as const;
 
 export function totpItemKey(item: PassItem): string {
 	return `${item.shareId}:${item.itemId}`;
 }
 
-export function totpTimerColor(seconds: number): Color {
-	if (seconds > 10) return Color.Green;
-	if (seconds > 5) return Color.Yellow;
-	return Color.Red;
+export function totpTimerColor(seconds: number): string {
+	if (seconds > 10) return TOTP_COLORS.active;
+	if (seconds > 5) return TOTP_COLORS.warning;
+	return TOTP_COLORS.critical;
 }
 
 function currentStep(): number {

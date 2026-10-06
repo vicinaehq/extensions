@@ -18,7 +18,7 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 - Keyboard shortcuts for common actions: copy password (Ctrl+Shift+C), copy username (Ctrl+Shift+U), copy TOTP (Ctrl+Shift+T), view details (Ctrl+Shift+D), view vault items (Ctrl+Shift+V), refresh (Ctrl+Shift+R), copy-and-generate-next (Ctrl+Shift+G), and open in browser (Ctrl+Shift+O). In List action panels, Vicinae reserves Enter and Shift+Enter for the first two actions; those promoted actions use the built-in bindings.
 - Choose your primary and secondary actions for Search items, so Enter does what you want (view, paste, copy or open).
 - Close the launcher with a brief HUD after copying a value (on by default, so you return to your previous window; can be turned off in preferences).
-- Display live TOTP codes with a circular progress ring, a 30-second countdown and automatic refresh.
+- Display live TOTP codes with a circular progress ring, a 30-second countdown and automatic refresh. The ring and code share one explicit palette: Proton purple while healthy, orange after 10 seconds, and red in the final 5 seconds.
 - Cache vault and item metadata for fast startup while never caching passwords or TOTP values.
 - Optionally clear copied passwords and TOTP codes after a safe, configurable timeout.
 - Check or start the local Proton Pass CLI login session; browser login URLs are opened automatically when pass-cli emits one.
