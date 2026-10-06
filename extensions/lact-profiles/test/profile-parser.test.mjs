@@ -121,6 +121,7 @@ test("refreshes state after a transient profile readback failure", async () => {
 		currentProfile: "Gaming",
 		autoSwitchStatus: { available: true, enabled: false },
 		error: null,
+		warning: null,
 	});
 	assert.deepEqual(
 		calls.map(({ command, args }) => [command, args]),
@@ -161,6 +162,7 @@ test("retries an unavailable auto-switch status after profile selection", async 
 		currentProfile: "Gaming",
 		autoSwitchStatus: { available: true, enabled: false },
 		error: null,
+		warning: null,
 	});
 	assert.deepEqual(
 		calls.map(({ command, args }) => [command, args]),
@@ -202,6 +204,7 @@ test("does not confirm selection without automatic-switch status", async () => {
 			error: "temporarily unavailable",
 		},
 		error: "Could not confirm automatic-switch status: temporarily unavailable",
+		warning: null,
 	});
 });
 
@@ -227,7 +230,47 @@ test("does not confirm selection while auto-switch remains enabled", async () =>
 		currentProfile: "Gaming",
 		autoSwitchStatus: { available: true, enabled: true },
 		error: "LACT still reports automatic switching enabled.",
+		warning: null,
 	});
+});
+
+test("reports a set-command error as a warning when readback confirms the state", async () => {
+	const calls = [];
+	const commandError = Object.assign(new Error("response lost"), { code: 1 });
+	const responses = [
+		{ error: commandError, stderr: "command response lost" },
+		{ stdout: "Gaming\n" },
+		{ stdout: "disabled\n" },
+		{ stdout: "Gaming\n" },
+		{ stdout: "disabled\n" },
+	];
+	const executeFile = (command, args, _options, callback) => {
+		calls.push({ command, args: [...args] });
+		const response = responses.shift();
+		callback(
+			response.error ?? null,
+			response.stdout ?? "",
+			response.stderr ?? "",
+		);
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.selectProfileAndRefresh("Gaming"), {
+		currentProfile: "Gaming",
+		autoSwitchStatus: { available: true, enabled: false },
+		error: null,
+		warning: "command response lost",
+	});
+	assert.deepEqual(
+		calls.map(({ command, args }) => [command, args]),
+		[
+			["lact", ["cli", "profile", "set", "Gaming"]],
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+		],
+	);
 });
 
 test("disabling auto-switch restores the previously active profile", async () => {

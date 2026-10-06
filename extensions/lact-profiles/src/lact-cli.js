@@ -70,7 +70,7 @@ export function createLactClient(executeFile = execFile) {
 	 * its first readback fails after the daemon has already applied the change.
 	 *
 	 * @param {string} profile
-	 * @returns {Promise<{currentProfile: string | null, autoSwitchStatus: ReturnType<typeof parseAutoSwitchStatus>, error: string | null}>}
+	 * @returns {Promise<{currentProfile: string | null, autoSwitchStatus: ReturnType<typeof parseAutoSwitchStatus>, error: string | null, warning: string | null}>}
 	 */
 	const selectProfileAndRefresh = async (profile) => {
 		let commandError = null;
@@ -104,8 +104,12 @@ export function createLactClient(executeFile = execFile) {
 			state = await readState();
 		}
 
+		const finalStateVerified =
+			state.currentProfile === profile &&
+			state.autoSwitchStatus.available &&
+			!state.autoSwitchStatus.enabled;
 		const errors = [];
-		if (commandError) errors.push(commandError);
+		if (commandError && !finalStateVerified) errors.push(commandError);
 		if (state.currentProfile === null) {
 			errors.push(
 				`Could not read LACT's current profile: ${state.error ?? "unknown error"}`,
@@ -128,6 +132,7 @@ export function createLactClient(executeFile = execFile) {
 			currentProfile: state.currentProfile,
 			autoSwitchStatus: state.autoSwitchStatus,
 			error,
+			warning: finalStateVerified ? commandError : null,
 		};
 	};
 	/** @param {boolean} enabled */

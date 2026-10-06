@@ -63,6 +63,7 @@ export default function LactProfiles() {
 				currentProfile,
 				autoSwitchStatus: actualStatus,
 				error: selectionError,
+				warning: selectionWarning,
 			} = await selectProfileAndRefresh(profile);
 			setActiveProfile(currentProfile ?? "");
 			setAutoSwitchStatus(actualStatus);
@@ -82,8 +83,12 @@ export default function LactProfiles() {
 			}
 
 			showToast({
-				title: "LACT profile selected",
-				message: `${profile}; automatic switching is now disabled.`,
+				title: selectionWarning
+					? "Profile state verified"
+					: "LACT profile selected",
+				message: selectionWarning
+					? `${profile}; automatic switching is disabled. LACT returned an error, but readback confirms the requested state: ${selectionWarning}`
+					: `${profile}; automatic switching is now disabled.`,
 				style: Toast.Style.Success,
 			});
 		} catch (changeError) {
