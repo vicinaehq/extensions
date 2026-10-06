@@ -22,7 +22,13 @@ import {
 	viewItem,
 } from "./pass-cli";
 import { useVaultSnapshot } from "./snapshot";
-import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
+import {
+	type TotpCodesState,
+	totpItemKey,
+	totpProgressIcon,
+	totpTimerColor,
+	useTotpCodes,
+} from "./totp-state";
 
 function itemIcon(item: PassItem): Icon {
 	if (item.hasTotp) return Icon.Lock;
@@ -73,15 +79,21 @@ function fieldGroupTitle(type: string): string {
 export function ItemDetailView({
 	item,
 	vaultRole,
+	totpState,
 }: {
 	item: PassItem;
 	vaultRole?: string;
+	totpState?: TotpCodesState;
 }) {
 	const [detail, setDetail] = useState<PassItemDetail>();
 	const [error, setError] = useState<string>();
-	const totpItems = useMemo(() => (item.hasTotp ? [item] : []), [item]);
+	const totpItems = useMemo(
+		() => (item.hasTotp && !totpState ? [item] : []),
+		[item, totpState],
+	);
+	const localTotpState = useTotpCodes(totpItems);
 	const { codes, remaining, refreshing, refreshError, refresh } =
-		useTotpCodes(totpItems);
+		totpState ?? localTotpState;
 	const currentTotp = codes[totpItemKey(item)];
 
 	useEffect(() => {
@@ -287,6 +299,7 @@ export function ItemDetailView({
 							<Action
 								title="Paste TOTP Code"
 								icon={Icon.Clock}
+								shortcut={SHORTCUTS.pasteTotp}
 								onAction={() =>
 									void safely(async () => pasteSecret(await getTotp(item)))
 								}
@@ -370,9 +383,11 @@ export function ItemDetailView({
 function ItemActions({
 	item,
 	vaultRole,
+	totpState,
 }: {
 	item: PassItem;
 	vaultRole?: string;
+	totpState: TotpCodesState;
 }) {
 	const hasIdentity = Boolean(item.username || item.email);
 	const url = primaryUrl(item.urls);
@@ -397,7 +412,13 @@ function ItemActions({
 				title="View Details"
 				icon={Icon.Eye}
 				shortcut={SHORTCUTS.viewDetails}
-				target={<ItemDetailView item={item} vaultRole={vaultRole} />}
+				target={
+					<ItemDetailView
+						item={item}
+						vaultRole={vaultRole}
+						totpState={totpState}
+					/>
+				}
 			/>
 		),
 		"copy-username": (
@@ -473,6 +494,7 @@ function ItemActions({
 				key="paste-totp"
 				title="Paste TOTP Code"
 				icon={Icon.Clock}
+				shortcut={SHORTCUTS.pasteTotp}
 				onAction={() =>
 					void safely(async () => pasteSecret(await getTotp(item)))
 				}
@@ -633,9 +655,11 @@ const TypeFilter = memo(function TypeFilter({
 export function ItemRows({
 	items,
 	vaults,
+	totpState,
 }: {
 	items: PassItem[];
 	vaults: Vault[];
+	totpState: TotpCodesState;
 }) {
 	const roleMap = roleByShareId(vaults);
 	return (
@@ -667,11 +691,26 @@ export function ItemRows({
 							tooltip: `Role: ${roleMap.get(item.shareId) ?? "unknown"}`,
 						},
 						...(item.hasTotp
-							? [{ icon: Icon.Clock, tooltip: "Has TOTP" }]
+							? [
+									{
+										tag: {
+											value: totpState.codes[totpItemKey(item)] ?? "---",
+											color: totpTimerColor(totpState.remaining),
+										},
+									},
+									{
+										icon: totpProgressIcon(totpState.remaining),
+										tooltip: `TOTP expires in ${totpState.remaining}s`,
+									},
+								]
 							: []),
 					]}
 					actions={
-						<ItemActions item={item} vaultRole={roleMap.get(item.shareId)} />
+						<ItemActions
+							item={item}
+							vaultRole={roleMap.get(item.shareId)}
+							totpState={totpState}
+						/>
 					}
 				/>
 			))}
@@ -681,6 +720,7 @@ export function ItemRows({
 
 export default function Command() {
 	const { vaults, items, loading, error } = useVaultSnapshot();
+	const totpState = useTotpCodes(items);
 	const [selectedVault, setSelectedVault] = useState("all");
 	const [selectedType, setSelectedType] = useState("all");
 	const filterAccessory = useMemo(
@@ -714,7 +754,7 @@ export default function Command() {
 			) : visibleItems.length === 0 && !loading ? (
 				<List.EmptyView icon={Icon.Key} title="No Proton Pass items found" />
 			) : (
-				<ItemRows items={visibleItems} vaults={vaults} />
+				<ItemRows items={visibleItems} vaults={vaults} totpState={totpState} />
 			)}
 		</List>
 	);

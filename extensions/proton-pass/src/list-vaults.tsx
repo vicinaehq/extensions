@@ -29,6 +29,7 @@ import {
 	type Vault,
 } from "./pass-cli";
 import { ItemRows } from "./search-items";
+import { useTotpCodes } from "./totp-state";
 
 type Preferences = {
 	enableBackgroundRefresh?: boolean;
@@ -40,6 +41,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 	const [loading, setLoading] = useState(true);
 	const backgroundRefresh =
 		getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
+	const totpState = useTotpCodes(items);
 
 	useEffect(() => {
 		let active = true;
@@ -87,7 +89,7 @@ function VaultItems({ vault }: { vault: Vault }) {
 			) : items.length === 0 && !loading ? (
 				<List.EmptyView icon={Icon.Key} title="No Proton Pass items found" />
 			) : (
-				<ItemRows items={items} vaults={[vault]} />
+				<ItemRows items={items} vaults={[vault]} totpState={totpState} />
 			)}
 		</List>
 	);

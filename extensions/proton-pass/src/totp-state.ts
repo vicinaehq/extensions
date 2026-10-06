@@ -17,6 +17,16 @@ export function totpTimerColor(seconds: number): string {
 	return TOTP_COLORS.critical;
 }
 
+export function totpProgressIcon(remaining: number): { source: string } {
+	const fraction = Math.max(0, Math.min(1, remaining / 30));
+	const color = totpTimerColor(remaining);
+	const radius = 9;
+	const circumference = 2 * Math.PI * radius;
+	const dashOffset = circumference * (1 - fraction);
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-opacity="0.28" stroke-width="2.2"/><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 12 12)"/></svg>`;
+	return { source: `data:image/svg+xml,${encodeURIComponent(svg)}` };
+}
+
 function currentStep(): number {
 	return Math.floor(Date.now() / 30_000);
 }
@@ -25,13 +35,15 @@ function secondsRemaining(): number {
 	return 30 - (Math.floor(Date.now() / 1000) % 30);
 }
 
-export function useTotpCodes(items: PassItem[]): {
+export type TotpCodesState = {
 	codes: Record<string, string>;
 	remaining: number;
 	refreshing: boolean;
 	refreshError?: string;
 	refresh: () => Promise<void>;
-} {
+};
+
+export function useTotpCodes(items: PassItem[]): TotpCodesState {
 	const [codes, setCodes] = useState<Record<string, string>>({});
 	const [remaining, setRemaining] = useState(secondsRemaining());
 	const [refreshing, setRefreshing] = useState(false);

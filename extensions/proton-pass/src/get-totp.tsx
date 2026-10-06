@@ -13,17 +13,12 @@ import { errorMessage } from "./cli-contract";
 import { pasteSecret } from "./clipboard";
 import { getTotp, type PassItem, roleByShareId } from "./pass-cli";
 import { useVaultSnapshot } from "./snapshot";
-import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
-
-function totpProgressIcon(remaining: number): { source: string } {
-	const fraction = Math.max(0, Math.min(1, remaining / 30));
-	const color = totpTimerColor(remaining);
-	const radius = 9;
-	const circumference = 2 * Math.PI * radius;
-	const dashOffset = circumference * (1 - fraction);
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-opacity="0.28" stroke-width="2.2"/><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 12 12)"/></svg>`;
-	return { source: `data:image/svg+xml,${encodeURIComponent(svg)}` };
-}
+import {
+	totpItemKey,
+	totpProgressIcon,
+	totpTimerColor,
+	useTotpCodes,
+} from "./totp-state";
 
 function TotpListDetail({
 	item,
@@ -174,6 +169,7 @@ export default function Command() {
 											<Action
 												title="Paste TOTP Code"
 												icon={Icon.Clock}
+												shortcut={SHORTCUTS.pasteTotp}
 												onAction={() =>
 													void safely(async () =>
 														pasteSecret(

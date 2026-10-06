@@ -41,7 +41,8 @@ export const safely = (action: () => Promise<void>): Promise<void> =>
 export const SHORTCUTS: Record<string, Keyboard.Shortcut> = {
 	copyPassword: { modifiers: ["ctrl", "shift"], key: "c" },
 	copyUsername: { modifiers: ["ctrl", "shift"], key: "u" },
-	copyTotp: { modifiers: ["ctrl", "shift"], key: "t" },
+	pasteTotp: { modifiers: ["ctrl", "shift"], key: "t" },
+	copyTotp: { modifiers: ["ctrl", "shift"], key: "y" },
 	openInBrowser: { modifiers: ["ctrl", "shift"], key: "o" },
 	copyExpiry: { modifiers: ["ctrl"], key: "d" },
 	viewDetails: { modifiers: ["ctrl", "shift"], key: "d" },
