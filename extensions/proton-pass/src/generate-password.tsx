@@ -219,13 +219,13 @@ export default function Command() {
 		return (
 			<>
 				<Action
-					title={`Increase ${label} (${value})`}
+					title={`Increase ${label} (${clamp(value + 1, min, max)})`}
 					icon={Icon.Plus}
 					shortcut={{ key: "=", modifiers: ["ctrl"] }}
 					onAction={adjust(1)}
 				/>
 				<Action
-					title={`Decrease ${label} (${value})`}
+					title={`Decrease ${label} (${clamp(value - 1, min, max)})`}
 					icon={Icon.Minus}
 					shortcut={{ key: "-", modifiers: ["ctrl"] }}
 					onAction={adjust(-1)}
