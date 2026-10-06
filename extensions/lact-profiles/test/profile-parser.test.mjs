@@ -205,12 +205,74 @@ test("does not confirm selection without automatic-switch status", async () => {
 	});
 });
 
+test("does not confirm selection while auto-switch remains enabled", async () => {
+	const responses = [
+		{ stdout: "" },
+		{ stdout: "Gaming\n" },
+		{ stdout: "enabled\n" },
+		{ stdout: "Gaming\n" },
+		{ stdout: "enabled\n" },
+	];
+	const executeFile = (_command, _args, _options, callback) => {
+		const response = responses.shift();
+		callback(
+			response.error ?? null,
+			response.stdout ?? "",
+			response.stderr ?? "",
+		);
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.selectProfileAndRefresh("Gaming"), {
+		currentProfile: "Gaming",
+		autoSwitchStatus: { available: true, enabled: true },
+		error: "LACT still reports automatic switching enabled.",
+	});
+});
+
 test("disabling auto-switch restores the previously active profile", async () => {
 	const calls = [];
 	const responses = ["Gaming\n", "", "", "disabled\n", "Gaming\n"];
 	const executeFile = (command, args, _options, callback) => {
 		calls.push({ command, args: [...args] });
 		callback(null, responses.shift(), "");
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.setAutoSwitchEnabledPreservingProfile(false), {
+		status: { available: true, enabled: false },
+		currentProfile: "Gaming",
+	});
+	assert.deepEqual(
+		calls.map(({ command, args }) => [command, args]),
+		[
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "disable"]],
+			["lact", ["cli", "profile", "set", "Gaming"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "get"]],
+		],
+	);
+});
+
+test("restores the active profile when disabling auto-switch reports an error", async () => {
+	const calls = [];
+	const disableError = Object.assign(new Error("response lost"), { code: 1 });
+	const responses = [
+		{ stdout: "Gaming\n" },
+		{ error: disableError, stderr: "command response lost" },
+		{ stdout: "" },
+		{ stdout: "disabled\n" },
+		{ stdout: "Gaming\n" },
+	];
+	const executeFile = (command, args, _options, callback) => {
+		calls.push({ command, args: [...args] });
+		const response = responses.shift();
+		callback(
+			response.error ?? null,
+			response.stdout ?? "",
+			response.stderr ?? "",
+		);
 	};
 	const client = createLactClient(executeFile);
 

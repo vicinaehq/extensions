@@ -148,10 +148,20 @@ export function createLactClient(executeFile = execFile) {
 	 */
 	const setAutoSwitchEnabledPreservingProfile = async (enabled) => {
 		const previousProfile = enabled ? null : await getCurrentProfile();
-		await setAutoSwitchEnabled(enabled);
+		let toggleError = null;
+		try {
+			await setAutoSwitchEnabled(enabled);
+		} catch (error) {
+			toggleError = error instanceof Error ? error.message : String(error);
+		}
 
+		let restoreError = null;
 		if (!enabled && previousProfile !== null && previousProfile !== "Default") {
-			await setProfile(previousProfile);
+			try {
+				await setProfile(previousProfile);
+			} catch (error) {
+				restoreError = error instanceof Error ? error.message : String(error);
+			}
 		}
 
 		const [status, currentProfile] = await Promise.all([
@@ -159,14 +169,27 @@ export function createLactClient(executeFile = execFile) {
 			getCurrentProfile(),
 		]);
 
-		if (!status.available) throw new Error(status.error);
-		if (status.enabled !== enabled) {
-			throw new Error("LACT did not confirm the requested auto-switch state.");
+		const verificationErrors = [];
+		if (!status.available) {
+			verificationErrors.push(
+				`Could not confirm automatic-switch status: ${status.error}`,
+			);
+		} else if (status.enabled !== enabled) {
+			verificationErrors.push(
+				`LACT reports automatic switching ${status.enabled ? "enabled" : "disabled"}; expected ${enabled ? "enabled" : "disabled"}.`,
+			);
 		}
 		if (!enabled && currentProfile !== previousProfile) {
-			throw new Error(
+			verificationErrors.push(
 				`Could not restore the previously active profile (${previousProfile}); LACT reports ${currentProfile}.`,
 			);
+		}
+		if (verificationErrors.length > 0) {
+			const commandErrors = [toggleError, restoreError].filter(Boolean);
+			if (commandErrors.length > 0) {
+				verificationErrors.push(`Command errors: ${commandErrors.join("; ")}`);
+			}
+			throw new Error(verificationErrors.join(" "));
 		}
 
 		return { status, currentProfile };
