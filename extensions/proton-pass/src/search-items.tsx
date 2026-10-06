@@ -58,24 +58,6 @@ function mask(value: string): string {
 	return "•".repeat(Math.min(Math.max(value.length, 8), 24));
 }
 
-// Heading for the type-specific field block in the detail markdown.
-function fieldGroupTitle(type: string): string {
-	switch (type) {
-		case "credit_card":
-			return "Card details";
-		case "identity":
-			return "Identity details";
-		case "wifi":
-			return "Network details";
-		case "ssh_key":
-			return "SSH key";
-		case "custom":
-			return "Fields";
-		default:
-			return "Details";
-	}
-}
-
 export function ItemDetailView({
 	item,
 	vaultRole,
@@ -117,66 +99,41 @@ export function ItemDetailView({
 			/>
 		);
 
-	const lines = [
-		`# ${escapeMarkdown(detail.title)}`,
-		`**Type:** ${escapeMarkdown(detail.type)}`,
-		`**Vault:** ${escapeMarkdown(detail.vaultName)}`,
-	];
-	if (detail.username)
-		lines.push(`**Username:** ${escapeMarkdown(detail.username)}`);
-	if (detail.email) lines.push(`**Email:** ${escapeMarkdown(detail.email)}`);
-	if (detail.password) lines.push(`**Password:** ${mask(detail.password)}`);
-	if (detail.urls?.length)
-		lines.push(
-			`\n**URLs:**\n\n${detail.urls
-				.map((url, index) => `${index + 1}. ${escapeMarkdown(url)}`)
-				.join("\n")}`,
-		);
-	if (detail.note) lines.push(`\n**Note:**\n${escapeMarkdown(detail.note)}`);
-	if (detail.fields?.length) {
-		lines.push(
-			`\n**${fieldGroupTitle(detail.type)}:**\n\n${detail.fields
-				.map(
-					(field) =>
-						`- **${escapeMarkdown(field.title)}:** ${field.hidden ? mask(field.value) : escapeMarkdown(field.value)}`,
-				)
-				.join("\n")}`,
-		);
-	}
-	if (detail.customFields?.length) {
-		lines.push(
-			`\n**Custom fields:**\n\n${detail.customFields.map((field) => `- **${escapeMarkdown(field.name)}:** ${field.type === "hidden" ? mask(field.value) : escapeMarkdown(field.value)}`).join("\n")}`,
-		);
-	}
+	const markdown = detail.note
+		? `# ${escapeMarkdown(detail.title)}\n\n${escapeMarkdown(detail.note)}`
+		: `# ${escapeMarkdown(detail.title)}`;
 	return (
 		<Detail
 			navigationTitle={detail.title}
-			markdown={lines.join("\n\n")}
+			markdown={markdown}
 			metadata={
 				<Detail.Metadata>
-					<Detail.Metadata.Label
-						title="Type"
-						text={detail.type}
-						icon={itemIcon(detail)}
-					/>
-					<Detail.Metadata.Label
-						title="Vault"
-						text={{
-							value: detail.vaultName,
-							color: vaultColor(vaultRole, detail.vaultName),
-						}}
-					/>
 					{detail.username && (
 						<Detail.Metadata.Label title="Username" text={detail.username} />
 					)}
 					{detail.email && (
 						<Detail.Metadata.Label title="Email" text={detail.email} />
 					)}
+					{detail.password && (
+						<Detail.Metadata.Label
+							title="Password"
+							text={mask(detail.password)}
+							icon={Icon.Key}
+						/>
+					)}
 					{detail.fields?.map((field) => (
 						<Detail.Metadata.Label
 							key={field.title}
 							title={field.title}
 							text={field.hidden ? mask(field.value) : field.value}
+						/>
+					))}
+					{detail.urls?.map((url, index) => (
+						<Detail.Metadata.Link
+							key={`url-${url}`}
+							title={index === 0 ? "Website" : `Website ${index + 1}`}
+							target={url}
+							text={url}
 						/>
 					))}
 					{detail.hasTotp && (
@@ -200,6 +157,26 @@ export function ItemDetailView({
 							/>
 						</>
 					)}
+					<Detail.Metadata.Separator />
+					<Detail.Metadata.Label
+						title="Vault"
+						text={{
+							value: detail.vaultName,
+							color: vaultColor(vaultRole, detail.vaultName),
+						}}
+					/>
+					<Detail.Metadata.Label
+						title="Type"
+						text={detail.type}
+						icon={itemIcon(detail)}
+					/>
+					{detail.customFields?.map((field) => (
+						<Detail.Metadata.Label
+							key={`custom-${field.name}`}
+							title={field.name}
+							text={field.type === "hidden" ? mask(field.value) : field.value}
+						/>
+					))}
 				</Detail.Metadata>
 			}
 			actions={
