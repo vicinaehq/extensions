@@ -79,21 +79,15 @@ function fieldGroupTitle(type: string): string {
 export function ItemDetailView({
 	item,
 	vaultRole,
-	totpState,
 }: {
 	item: PassItem;
 	vaultRole?: string;
-	totpState?: TotpCodesState;
 }) {
 	const [detail, setDetail] = useState<PassItemDetail>();
 	const [error, setError] = useState<string>();
-	const totpItems = useMemo(
-		() => (item.hasTotp && !totpState ? [item] : []),
-		[item, totpState],
-	);
-	const localTotpState = useTotpCodes(totpItems);
+	const totpItems = useMemo(() => (item.hasTotp ? [item] : []), [item]);
 	const { codes, remaining, refreshing, refreshError, refresh } =
-		totpState ?? localTotpState;
+		useTotpCodes(totpItems);
 	const currentTotp = codes[totpItemKey(item)];
 
 	useEffect(() => {
@@ -154,12 +148,6 @@ export function ItemDetailView({
 			`\n**Custom fields:**\n\n${detail.customFields.map((field) => `- **${escapeMarkdown(field.name)}:** ${field.type === "hidden" ? mask(field.value) : escapeMarkdown(field.value)}`).join("\n")}`,
 		);
 	}
-	if (detail.hasTotp) {
-		lines.push(
-			`\n**2FA:** ${currentTotp ?? (refreshError ? "Unavailable" : "Refreshing…")}\n**Expires in:** ${remaining}s`,
-		);
-	}
-
 	return (
 		<Detail
 			navigationTitle={detail.title}
@@ -383,11 +371,9 @@ export function ItemDetailView({
 function ItemActions({
 	item,
 	vaultRole,
-	totpState,
 }: {
 	item: PassItem;
 	vaultRole?: string;
-	totpState: TotpCodesState;
 }) {
 	const hasIdentity = Boolean(item.username || item.email);
 	const url = primaryUrl(item.urls);
@@ -412,13 +398,7 @@ function ItemActions({
 				title="View Details"
 				icon={Icon.Eye}
 				shortcut={SHORTCUTS.viewDetails}
-				target={
-					<ItemDetailView
-						item={item}
-						vaultRole={vaultRole}
-						totpState={totpState}
-					/>
-				}
+				target={<ItemDetailView item={item} vaultRole={vaultRole} />}
 			/>
 		),
 		"copy-username": (
@@ -706,11 +686,7 @@ export function ItemRows({
 							: []),
 					]}
 					actions={
-						<ItemActions
-							item={item}
-							vaultRole={roleMap.get(item.shareId)}
-							totpState={totpState}
-						/>
+						<ItemActions item={item} vaultRole={roleMap.get(item.shareId)} />
 					}
 				/>
 			))}
