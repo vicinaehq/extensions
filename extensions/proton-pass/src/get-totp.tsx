@@ -55,7 +55,7 @@ export default function Command() {
 
 	return (
 		<List
-			isLoading={loading || refreshing}
+			isLoading={loading}
 			isShowingDetail
 			searchBarPlaceholder="Search Proton Pass TOTP items..."
 		>
