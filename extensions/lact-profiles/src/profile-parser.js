@@ -32,3 +32,22 @@ export function parseAutoSwitchState(output) {
 	if (state === "disabled") return false;
 	return null;
 }
+
+/**
+ * Keep unsupported commands and unexpected output distinguishable from valid states.
+ *
+ * @param {string} output
+ * @returns {{ available: true, enabled: boolean } | { available: false, error: string }}
+ */
+export function parseAutoSwitchStatus(output) {
+	const enabled = parseAutoSwitchState(output);
+	if (enabled !== null) return { available: true, enabled };
+
+	const detail = output.trim();
+	return {
+		available: false,
+		error: detail
+			? `Unrecognized LACT auto-switch status: ${detail}`
+			: "LACT returned no auto-switch status.",
+	};
+}

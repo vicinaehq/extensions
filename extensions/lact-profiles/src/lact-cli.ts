@@ -1,11 +1,13 @@
 import { execFile } from "node:child_process";
 import {
-	parseAutoSwitchState,
+	parseAutoSwitchStatus,
 	parseCurrentProfile,
 	parseProfileList,
 } from "./profile-parser.js";
 
 const COMMAND_TIMEOUT_MS = 10_000;
+
+export type AutoSwitchStatus = ReturnType<typeof parseAutoSwitchStatus>;
 
 function runLact(args: string[]): Promise<string> {
 	return new Promise((resolve, reject) => {
@@ -43,13 +45,15 @@ export async function setProfile(profile: string): Promise<void> {
 	await runLact(["cli", "profile", "set", profile]);
 }
 
-export async function getAutoSwitchEnabled(): Promise<boolean | null> {
+export async function getAutoSwitchStatus(): Promise<AutoSwitchStatus> {
 	try {
 		const output = await runLact(["cli", "profile", "auto-switch", "get"]);
-		return parseAutoSwitchState(output);
-	} catch {
-		// Keep profile switching available on older LACT versions without this command.
-		return null;
+		return parseAutoSwitchStatus(output);
+	} catch (error) {
+		return {
+			available: false,
+			error: error instanceof Error ? error.message : String(error),
+		};
 	}
 }
 

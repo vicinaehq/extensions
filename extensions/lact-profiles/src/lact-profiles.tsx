@@ -9,7 +9,8 @@ import {
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import {
-	getAutoSwitchEnabled,
+	type AutoSwitchStatus,
+	getAutoSwitchStatus,
 	getCurrentProfile,
 	getProfiles,
 	setAutoSwitchEnabled,
@@ -24,9 +25,8 @@ export default function LactProfiles() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [profiles, setProfiles] = useState<string[]>([]);
 	const [activeProfile, setActiveProfile] = useState("");
-	const [autoSwitchEnabled, setAutoSwitchEnabledState] = useState<
-		boolean | null
-	>(null);
+	const [autoSwitchStatus, setAutoSwitchStatus] =
+		useState<AutoSwitchStatus | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	const refresh = async () => {
@@ -35,7 +35,7 @@ export default function LactProfiles() {
 
 		try {
 			const [availableProfiles, currentProfile, autoSwitch] = await Promise.all(
-				[getProfiles(), getCurrentProfile(), getAutoSwitchEnabled()],
+				[getProfiles(), getCurrentProfile(), getAutoSwitchStatus()],
 			);
 
 			if (availableProfiles.length === 0) {
@@ -44,7 +44,7 @@ export default function LactProfiles() {
 
 			setProfiles(availableProfiles);
 			setActiveProfile(currentProfile);
-			setAutoSwitchEnabledState(autoSwitch);
+			setAutoSwitchStatus(autoSwitch);
 		} catch (loadError) {
 			setError(errorMessage(loadError));
 		} finally {
@@ -61,7 +61,7 @@ export default function LactProfiles() {
 			await setProfile(profile);
 			const currentProfile = await getCurrentProfile();
 			setActiveProfile(currentProfile);
-			setAutoSwitchEnabledState(await getAutoSwitchEnabled());
+			setAutoSwitchStatus(await getAutoSwitchStatus());
 
 			if (currentProfile !== profile) {
 				showToast({
@@ -87,16 +87,20 @@ export default function LactProfiles() {
 	};
 
 	const handleToggleAutoSwitch = async () => {
-		if (autoSwitchEnabled === null) return;
+		if (!autoSwitchStatus?.available) return;
 
-		const requestedState = !autoSwitchEnabled;
+		const requestedState = !autoSwitchStatus.enabled;
 
 		try {
 			await setAutoSwitchEnabled(requestedState);
-			const confirmedState = await getAutoSwitchEnabled();
-			setAutoSwitchEnabledState(confirmedState);
+			const confirmedStatus = await getAutoSwitchStatus();
+			setAutoSwitchStatus(confirmedStatus);
 
-			if (confirmedState !== requestedState) {
+			if (!confirmedStatus.available) {
+				throw new Error(confirmedStatus.error);
+			}
+
+			if (confirmedStatus.enabled !== requestedState) {
 				throw new Error(
 					"LACT did not confirm the requested auto-switch state.",
 				);
@@ -149,26 +153,30 @@ export default function LactProfiles() {
 			<List.Section title="Automatic switching">
 				<List.Item
 					title={
-						autoSwitchEnabled === null
-							? "Status unavailable"
-							: autoSwitchEnabled
-								? "Enabled"
-								: "Disabled"
+						autoSwitchStatus === null
+							? "Checking status…"
+							: !autoSwitchStatus.available
+								? "Status unavailable"
+								: autoSwitchStatus.enabled
+									? "Enabled"
+									: "Disabled"
 					}
 					subtitle={
-						autoSwitchEnabled
-							? "LACT rules may replace a manually selected profile"
-							: autoSwitchEnabled === false
-								? "Manual profile selections will remain in effect"
-								: "This LACT version may not expose auto-switch status"
+						autoSwitchStatus === null
+							? "Reading LACT profile-switch settings"
+							: !autoSwitchStatus.available
+								? `Could not read automatic-switch status: ${autoSwitchStatus.error}`
+								: autoSwitchStatus.enabled
+									? "LACT rules may replace a manually selected profile"
+									: "Manual profile selections will remain in effect"
 					}
 					icon={Icon.Cog}
 					actions={
-						autoSwitchEnabled === null ? undefined : (
+						!autoSwitchStatus?.available ? undefined : (
 							<ActionPanel>
 								<Action
 									title={
-										autoSwitchEnabled
+										autoSwitchStatus.enabled
 											? "Disable automatic switching"
 											: "Enable automatic switching"
 									}
