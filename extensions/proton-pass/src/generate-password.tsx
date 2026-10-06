@@ -4,6 +4,7 @@ import {
 	getPreferenceValues,
 	Icon,
 	List,
+	LocalStorage,
 } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { copySecret, SHORTCUTS, safely } from "./actions";
@@ -47,6 +48,7 @@ const MIN_LENGTH = 8;
 const MAX_LENGTH = 128;
 const MIN_WORDS = 3;
 const MAX_WORDS = 10;
+const GENERATOR_SETTINGS_KEY = "proton_pass_vicinae_generator_settings_v1";
 
 const separators: Separator[] = [
 	"hyphens",
@@ -83,6 +85,87 @@ function defaultSettings(): GeneratorSettings {
 		separator: "hyphens",
 		capitalize: true,
 	};
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null;
+}
+
+function restoreSettingsFromValue(
+	fallback: GeneratorSettings,
+	saved: unknown,
+): GeneratorSettings {
+	if (!isRecord(saved)) return fallback;
+	const parsedLength = Number(saved.length);
+	const parsedWords = Number(saved.words);
+	return {
+		...fallback,
+		type: saved.type === "passphrase" ? "passphrase" : "random",
+		length: Number.isFinite(parsedLength)
+			? clamp(parsedLength, MIN_LENGTH, MAX_LENGTH)
+			: fallback.length,
+		words: Number.isFinite(parsedWords)
+			? clamp(parsedWords, MIN_WORDS, MAX_WORDS)
+			: fallback.words,
+		includeNumbers:
+			typeof saved.includeNumbers === "boolean"
+				? saved.includeNumbers
+				: fallback.includeNumbers,
+		includeUppercase:
+			typeof saved.includeUppercase === "boolean"
+				? saved.includeUppercase
+				: fallback.includeUppercase,
+		includeSymbols:
+			typeof saved.includeSymbols === "boolean"
+				? saved.includeSymbols
+				: fallback.includeSymbols,
+		separator: separators.includes(saved.separator as Separator)
+			? (saved.separator as Separator)
+			: fallback.separator,
+		capitalize:
+			typeof saved.capitalize === "boolean"
+				? saved.capitalize
+				: fallback.capitalize,
+	};
+}
+
+function sameSettings(
+	left: GeneratorSettings,
+	right: GeneratorSettings,
+): boolean {
+	return (
+		left.type === right.type &&
+		left.length === right.length &&
+		left.words === right.words &&
+		left.includeNumbers === right.includeNumbers &&
+		left.includeUppercase === right.includeUppercase &&
+		left.includeSymbols === right.includeSymbols &&
+		left.separator === right.separator &&
+		left.capitalize === right.capitalize
+	);
+}
+
+function restoreSettings(
+	fallback: GeneratorSettings,
+	raw: string | undefined,
+): GeneratorSettings {
+	if (!raw) return fallback;
+	try {
+		const parsed: unknown = JSON.parse(raw);
+		if (!isRecord(parsed)) return fallback;
+		const storedDefaults = parsed.defaults;
+		if (
+			storedDefaults !== undefined &&
+			!sameSettings(
+				restoreSettingsFromValue(fallback, storedDefaults),
+				fallback,
+			)
+		)
+			return fallback;
+		return restoreSettingsFromValue(fallback, parsed.settings ?? parsed);
+	} catch {
+		return fallback;
+	}
 }
 
 function separatorLabel(separator: Separator): string {
@@ -150,6 +233,7 @@ function mask(value: string): string {
 export default function Command() {
 	const initial = useRef(defaultSettings()).current;
 	const [settings, setSettings] = useState<GeneratorSettings>(initial);
+	const [settingsLoaded, setSettingsLoaded] = useState(false);
 	const [password, setPassword] = useState("");
 	const [score, setScore] = useState<PasswordScore>();
 	const [scoring, setScoring] = useState(false);
@@ -188,13 +272,35 @@ export default function Command() {
 	}, []);
 
 	useEffect(() => {
-		void generate(initial);
+		let active = true;
+		async function loadSettings(): Promise<void> {
+			try {
+				const raw = await LocalStorage.getItem<string>(GENERATOR_SETTINGS_KEY);
+				const restored = restoreSettings(initial, raw);
+				if (!active) return;
+				setSettings(restored);
+				setSettingsLoaded(true);
+				void generate(restored);
+			} catch {
+				if (!active) return;
+				setSettingsLoaded(true);
+				void generate(initial);
+			}
+		}
+		void loadSettings();
+		return () => {
+			active = false;
+		};
 	}, [generate, initial]);
 
 	const updateSettings = useCallback(
 		(change: (current: GeneratorSettings) => GeneratorSettings): void => {
 			setSettings((current) => {
 				const next = change(current);
+				void LocalStorage.setItem(
+					GENERATOR_SETTINGS_KEY,
+					JSON.stringify({ defaults: initial, settings: next }),
+				).catch(() => undefined);
 				void generate(next);
 				return next;
 			});
@@ -394,7 +500,7 @@ export default function Command() {
 
 	return (
 		<List
-			isLoading={loading}
+			isLoading={loading || !settingsLoaded}
 			navigationTitle="Generate Proton Pass Password"
 			searchBarPlaceholder="Generate a password…"
 			searchBarAccessory={

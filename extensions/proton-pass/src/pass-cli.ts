@@ -46,6 +46,7 @@ export type PassItem = {
 	username?: string;
 	email?: string;
 	urls?: string[];
+	hasPassword?: boolean;
 	hasTotp: boolean;
 };
 
@@ -452,6 +453,7 @@ function itemFrom(raw: unknown, vault: Vault): PassItem | undefined {
 			raw.totp_uri ??
 			raw.totpUri,
 	);
+	const password = login ? text(login.password) : undefined;
 	return {
 		shareId: vault.shareId,
 		itemId,
@@ -461,6 +463,7 @@ function itemFrom(raw: unknown, vault: Vault): PassItem | undefined {
 		username: login ? text(login.username) : text(raw.username),
 		email: login ? text(login.email) : text(raw.email),
 		urls,
+		hasPassword: type === "login" ? password !== undefined : undefined,
 		hasTotp: Boolean(totp),
 	};
 }
@@ -572,15 +575,17 @@ async function itemHasTotp(item: PassItem): Promise<boolean> {
 
 async function enrichItem(item: PassItem): Promise<PassItem> {
 	if (item.type !== "login" && item.type !== "alias") return item;
-	const [username, email, hasTotp] = await Promise.all([
+	const [username, email, password, hasTotp] = await Promise.all([
 		item.type === "login" ? readOptionalField(item, "username") : undefined,
 		readOptionalField(item, "email"),
+		item.type === "login" ? readOptionalField(item, "password") : undefined,
 		item.type === "login" ? itemHasTotp(item) : false,
 	]);
 	return {
 		...item,
 		username,
 		email,
+		hasPassword: item.type === "login" ? password !== undefined : undefined,
 		hasTotp,
 	};
 }

@@ -7,7 +7,7 @@ import {
 	showToast,
 	Toast,
 } from "@vicinae/api";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { copySecret, SHORTCUTS, safely, vaultColor } from "./actions";
 import { errorMessage } from "./cli-contract";
 import { pasteSecret } from "./clipboard";
@@ -30,17 +30,21 @@ function TotpListDetail({
 	role,
 	code,
 	remaining,
+	refreshError,
 }: {
 	item: PassItem;
 	role?: string;
 	code?: string;
 	remaining: number;
+	refreshError?: string;
 }) {
 	const identity = item.username ?? item.email ?? "—";
 	const url = item.urls?.[0];
-	const currentText = code
-		? { value: code, color: totpTimerColor(remaining) }
-		: "Refreshing…";
+	const currentText = refreshError
+		? "Unavailable"
+		: code
+			? { value: code, color: totpTimerColor(remaining) }
+			: "Refreshing…";
 	return (
 		<List.Item.Detail
 			metadata={
@@ -76,7 +80,22 @@ export default function Command() {
 		[items],
 	);
 	const roleMap = useMemo(() => roleByShareId(vaults), [vaults]);
-	const { codes, remaining, refreshing, refresh } = useTotpCodes(totpItems);
+	const { codes, remaining, refreshing, refreshError, refresh } =
+		useTotpCodes(totpItems);
+	const lastRefreshError = useRef<string | undefined>(undefined);
+	useEffect(() => {
+		if (!refreshError) {
+			lastRefreshError.current = undefined;
+			return;
+		}
+		if (lastRefreshError.current === refreshError) return;
+		lastRefreshError.current = refreshError;
+		void showToast({
+			style: Toast.Style.Failure,
+			title: "Unable to refresh TOTP codes",
+			message: refreshError,
+		});
+	}, [refreshError]);
 
 	async function copy(item: PassItem): Promise<void> {
 		try {
@@ -113,7 +132,8 @@ export default function Command() {
 				<List.Section
 					title="TOTP Codes"
 					subtitle={
-						refreshing ? "Refreshing…" : `Codes refresh in ${remaining}s`
+						refreshError ??
+						(refreshing ? "Refreshing…" : `Codes refresh in ${remaining}s`)
 					}
 				>
 					{totpItems.map((item) => {
@@ -145,6 +165,7 @@ export default function Command() {
 										role={role}
 										code={codes[totpItemKey(item)]}
 										remaining={remaining}
+										refreshError={refreshError}
 									/>
 								}
 								actions={

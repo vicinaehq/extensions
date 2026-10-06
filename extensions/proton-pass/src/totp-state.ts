@@ -24,11 +24,13 @@ export function useTotpCodes(items: PassItem[]): {
 	codes: Record<string, string>;
 	remaining: number;
 	refreshing: boolean;
+	refreshError?: string;
 	refresh: () => Promise<void>;
 } {
 	const [codes, setCodes] = useState<Record<string, string>>({});
 	const [remaining, setRemaining] = useState(secondsRemaining());
 	const [refreshing, setRefreshing] = useState(false);
+	const [refreshError, setRefreshError] = useState<string>();
 	const itemsRef = useRef<PassItem[]>(items);
 	const stepRef = useRef(currentStep());
 	const refreshingRef = useRef(false);
@@ -47,28 +49,35 @@ export function useTotpCodes(items: PassItem[]): {
 			const requestStep = currentStep();
 			const requestItemsVersion = itemsVersionRef.current;
 			try {
-				const entries = await Promise.all(
+				const results = await Promise.all(
 					source
 						.filter((item) => item.hasTotp)
 						.map(async (item) => {
 							try {
-								return [totpItemKey(item), await getTotp(item)] as const;
+								return {
+									entry: [totpItemKey(item), await getTotp(item)] as const,
+									failed: false,
+								};
 							} catch {
-								return undefined;
+								return { entry: undefined, failed: true };
 							}
 						}),
 				);
+				const failedCount = results.filter((result) => result.failed).length;
 				if (
 					requestStep !== currentStep() ||
 					requestItemsVersion !== itemsVersionRef.current
 				) {
 					queuedRefreshRef.current = true;
 				} else if (mountedRef.current) {
+					setRefreshError(
+						failedCount > 0
+							? `Unable to refresh ${failedCount} TOTP code${failedCount === 1 ? "" : "s"}.`
+							: undefined,
+					);
 					setCodes(
 						Object.fromEntries(
-							entries.filter((entry): entry is readonly [string, string] =>
-								Boolean(entry),
-							),
+							results.flatMap((result) => (result.entry ? [result.entry] : [])),
 						),
 					);
 				}
@@ -105,11 +114,13 @@ export function useTotpCodes(items: PassItem[]): {
 			const nextStep = currentStep();
 			if (nextStep !== stepRef.current) {
 				stepRef.current = nextStep;
+				setCodes({});
+				setRefreshError(undefined);
 				void refresh();
 			}
 		}, 1000);
 		return () => clearInterval(interval);
 	}, [items.length, refresh]);
 
-	return { codes, remaining, refreshing, refresh };
+	return { codes, remaining, refreshing, refreshError, refresh };
 }

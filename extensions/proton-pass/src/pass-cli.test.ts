@@ -240,6 +240,26 @@ test("labels unknown typed fields by de-snake-casing", () => {
 	);
 });
 
+test("normalises secret field names before masking", () => {
+	assert.deepEqual(
+		typedFieldList({ verificationNumber: "123", privateKey: "secret-key" }),
+		[
+			{
+				title: "Security code",
+				value: "123",
+				hidden: true,
+				copy: true,
+			},
+			{
+				title: "Private key",
+				value: "secret-key",
+				hidden: true,
+				copy: true,
+			},
+		],
+	);
+});
+
 test("suppresses the field block for logins and notes", () => {
 	assert.equal(
 		typedFields("login", { password: "x" }, { username: "u" }),

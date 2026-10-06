@@ -80,7 +80,8 @@ export function ItemDetailView({
 	const [detail, setDetail] = useState<PassItemDetail>();
 	const [error, setError] = useState<string>();
 	const totpItems = useMemo(() => (item.hasTotp ? [item] : []), [item]);
-	const { codes, remaining, refreshing, refresh } = useTotpCodes(totpItems);
+	const { codes, remaining, refreshing, refreshError, refresh } =
+		useTotpCodes(totpItems);
 	const currentTotp = codes[totpItemKey(item)];
 
 	useEffect(() => {
@@ -143,7 +144,7 @@ export function ItemDetailView({
 	}
 	if (detail.hasTotp) {
 		lines.push(
-			`\n**2FA:** ${currentTotp ?? "Refreshing…"}\n**Expires in:** ${remaining}s`,
+			`\n**2FA:** ${currentTotp ?? (refreshError ? "Unavailable" : "Refreshing…")}\n**Expires in:** ${remaining}s`,
 		);
 	}
 
@@ -185,9 +186,11 @@ export function ItemDetailView({
 								text={
 									currentTotp
 										? { value: currentTotp, color: totpTimerColor(remaining) }
-										: refreshing
-											? "Refreshing…"
-											: "Unavailable"
+										: refreshError
+											? "Unavailable"
+											: refreshing
+												? "Refreshing…"
+												: "Unavailable"
 								}
 								icon={Icon.Clock}
 							/>
@@ -380,10 +383,12 @@ function ItemActions({
 	// remains available immediately after it. Other item types fall back to
 	// View Details because they cannot provide a password paste action.
 	const available: ActionId[] = [];
-	if (item.type === "login") available.push("paste-password");
+	if (item.type === "login" && item.hasPassword === true)
+		available.push("paste-password");
 	available.push("view-details");
 	if (hasIdentity) available.push("copy-username", "paste-username");
-	available.push("copy-password");
+	if (item.type === "login" && item.hasPassword === true)
+		available.push("copy-password");
 	if (item.hasTotp) available.push("copy-totp", "paste-totp");
 	if (url) available.push("open-browser");
 

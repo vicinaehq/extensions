@@ -219,9 +219,17 @@ const COPYABLE_FIELDS = new Set([
 	"username",
 ]);
 
-function labelForKey(key: string): string {
-	if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+function normaliseFieldKey(key: string): string {
 	return key
+		.replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+		.replace(/[\s-]+/g, "_")
+		.toLowerCase();
+}
+
+function labelForKey(key: string): string {
+	const normalisedKey = normaliseFieldKey(key);
+	if (FIELD_LABELS[normalisedKey]) return FIELD_LABELS[normalisedKey];
+	return normalisedKey
 		.split("_")
 		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
 		.join(" ");
@@ -239,11 +247,12 @@ export function typedFieldList(
 		if (raw === null || typeof raw === "object") continue;
 		const value = typeof raw === "string" ? raw.trim() : String(raw);
 		if (!value) continue;
+		const normalisedKey = normaliseFieldKey(key);
 		fields.push({
 			title: labelForKey(key),
 			value,
-			hidden: HIDDEN_FIELDS.has(key),
-			copy: COPYABLE_FIELDS.has(key),
+			hidden: HIDDEN_FIELDS.has(normalisedKey),
+			copy: COPYABLE_FIELDS.has(normalisedKey),
 		});
 	}
 	return fields;

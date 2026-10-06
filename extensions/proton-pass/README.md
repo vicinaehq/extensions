@@ -13,7 +13,7 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 - Copy or paste usernames, emails, passwords and TOTP codes on demand. Password paste is the default Enter action for login items; other item types fall back to their next available action.
 - Select any listed item in the TOTP command; the extension then asks `pass-cli` for that item's code, rather than requiring the user to know share or item IDs.
 - Generate configurable random passwords: 8–128 characters, numbers, uppercase letters and symbols.
-- Generate configurable passphrases: 3–10 words, capitalisation, numbers and separators.
+- Generate configurable passphrases: 3–10 words, capitalisation, numbers and separators; the last-used generator settings are remembered locally for the next session.
 - Score generated passwords with the real `pass-cli password score` (Strong/Good/Weak/Vulnerable) and list the specific weaknesses it finds, with a colour-coded strength indicator.
 - Keyboard shortcuts for common actions: copy password (Ctrl+Shift+C), copy username (Ctrl+Shift+U), copy TOTP (Ctrl+Shift+T), view details (Ctrl+Shift+D), view vault items (Ctrl+Shift+V), refresh (Ctrl+Shift+R), copy-and-generate-next (Ctrl+Shift+G), and open in browser (Ctrl+Shift+O).
 - Choose your primary and secondary actions for Search items, so Enter does what you want (view, paste, copy or open).

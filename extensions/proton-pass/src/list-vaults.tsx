@@ -179,21 +179,26 @@ function VaultItems({ vault }: { vault: Vault }) {
 											}
 										/>
 									)}
-									<Action
-										title="Copy Password"
-										icon={Icon.Key}
-										shortcut={SHORTCUTS.copyPassword}
-										onAction={() =>
-											void guardAction("Unable to copy password", async () => {
-												const detail = await viewItem(item);
-												if (!detail.password)
-													throw new Error("This item has no password.");
-												await copySecret("Password", detail.password, {
-													sensitive: true,
-												});
-											})
-										}
-									/>
+									{item.type === "login" && item.hasPassword === true && (
+										<Action
+											title="Copy Password"
+											icon={Icon.Key}
+											shortcut={SHORTCUTS.copyPassword}
+											onAction={() =>
+												void guardAction(
+													"Unable to copy password",
+													async () => {
+														const detail = await viewItem(item);
+														if (!detail.password)
+															throw new Error("This item has no password.");
+														await copySecret("Password", detail.password, {
+															sensitive: true,
+														});
+													},
+												)
+											}
+										/>
+									)}{" "}
 								</ActionPanel.Section>
 								<ActionPanel.Section title="TOTP">
 									{item.hasTotp && (
