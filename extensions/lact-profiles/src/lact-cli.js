@@ -44,43 +44,75 @@ export function createLactClient(executeFile = execFile) {
 	/** @param {string[]} args */
 	const run = (args) => runLact(args, executeFile);
 
+	const getProfiles = async () =>
+		parseProfileList(await run(["cli", "profile", "list"]));
+	const getCurrentProfile = async () =>
+		parseCurrentProfile(await run(["cli", "profile", "get"]));
+	/** @param {string} profile */
+	const setProfile = async (profile) => {
+		await run(["cli", "profile", "set", profile]);
+	};
+	/** @returns {Promise<ReturnType<typeof parseAutoSwitchStatus>>} */
+	const getAutoSwitchStatus = async () => {
+		try {
+			return parseAutoSwitchStatus(
+				await run(["cli", "profile", "auto-switch", "get"]),
+			);
+		} catch (error) {
+			return /** @type {{available: false, error: string}} */ ({
+				available: false,
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
+	};
+	/** @param {boolean} enabled */
+	const setAutoSwitchEnabled = async (enabled) => {
+		await run([
+			"cli",
+			"profile",
+			"auto-switch",
+			enabled ? "enable" : "disable",
+		]);
+	};
+	/**
+	 * LACT resets the active profile to Default when auto-switch is disabled.
+	 * Restore the profile that was active before turning it off.
+	 *
+	 * @param {boolean} enabled
+	 * @returns {Promise<{status: ReturnType<typeof parseAutoSwitchStatus>, currentProfile: string}>}
+	 */
+	const setAutoSwitchEnabledPreservingProfile = async (enabled) => {
+		const previousProfile = enabled ? null : await getCurrentProfile();
+		await setAutoSwitchEnabled(enabled);
+
+		if (!enabled && previousProfile !== null && previousProfile !== "Default") {
+			await setProfile(previousProfile);
+		}
+
+		const [status, currentProfile] = await Promise.all([
+			getAutoSwitchStatus(),
+			getCurrentProfile(),
+		]);
+
+		if (!status.available) throw new Error(status.error);
+		if (status.enabled !== enabled) {
+			throw new Error("LACT did not confirm the requested auto-switch state.");
+		}
+		if (!enabled && currentProfile !== previousProfile) {
+			throw new Error(
+				`Could not restore the previously active profile (${previousProfile}); LACT reports ${currentProfile}.`,
+			);
+		}
+
+		return { status, currentProfile };
+	};
+
 	return {
-		async getProfiles() {
-			return parseProfileList(await run(["cli", "profile", "list"]));
-		},
-
-		async getCurrentProfile() {
-			return parseCurrentProfile(await run(["cli", "profile", "get"]));
-		},
-
-		/** @param {string} profile */
-		async setProfile(profile) {
-			await run(["cli", "profile", "set", profile]);
-		},
-
-		/** @returns {Promise<ReturnType<typeof parseAutoSwitchStatus>>} */
-		async getAutoSwitchStatus() {
-			try {
-				return parseAutoSwitchStatus(
-					await run(["cli", "profile", "auto-switch", "get"]),
-				);
-			} catch (error) {
-				return {
-					available: false,
-					error: error instanceof Error ? error.message : String(error),
-				};
-			}
-		},
-
-		/** @param {boolean} enabled */
-		async setAutoSwitchEnabled(enabled) {
-			await run([
-				"cli",
-				"profile",
-				"auto-switch",
-				enabled ? "enable" : "disable",
-			]);
-		},
+		getProfiles,
+		getCurrentProfile,
+		setProfile,
+		getAutoSwitchStatus,
+		setAutoSwitchEnabledPreservingProfile,
 	};
 }
 
@@ -90,4 +122,5 @@ export const getProfiles = defaultClient.getProfiles;
 export const getCurrentProfile = defaultClient.getCurrentProfile;
 export const setProfile = defaultClient.setProfile;
 export const getAutoSwitchStatus = defaultClient.getAutoSwitchStatus;
-export const setAutoSwitchEnabled = defaultClient.setAutoSwitchEnabled;
+export const setAutoSwitchEnabledPreservingProfile =
+	defaultClient.setAutoSwitchEnabledPreservingProfile;

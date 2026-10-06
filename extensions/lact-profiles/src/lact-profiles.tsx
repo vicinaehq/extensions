@@ -12,7 +12,7 @@ import {
 	getAutoSwitchStatus,
 	getCurrentProfile,
 	getProfiles,
-	setAutoSwitchEnabled,
+	setAutoSwitchEnabledPreservingProfile,
 	setProfile,
 } from "./lact-cli.js";
 
@@ -66,8 +66,8 @@ export default function LactProfiles() {
 
 			if (currentProfile !== profile) {
 				showToast({
-					title: "Profile selection was overridden",
-					message: `LACT reports “${currentProfile}”. Automatic switching may be enabled.`,
+					title: "Profile selection did not take effect",
+					message: `Requested “${profile}”; LACT reports “${currentProfile}”.`,
 					style: Toast.Style.Failure,
 				});
 				return;
@@ -75,7 +75,7 @@ export default function LactProfiles() {
 
 			showToast({
 				title: "LACT profile selected",
-				message: profile,
+				message: `${profile}; automatic switching is now disabled.`,
 				style: Toast.Style.Success,
 			});
 		} catch (changeError) {
@@ -93,19 +93,10 @@ export default function LactProfiles() {
 		const requestedState = !autoSwitchStatus.enabled;
 
 		try {
-			await setAutoSwitchEnabled(requestedState);
-			const confirmedStatus = await getAutoSwitchStatus();
+			const { status: confirmedStatus, currentProfile } =
+				await setAutoSwitchEnabledPreservingProfile(requestedState);
 			setAutoSwitchStatus(confirmedStatus);
-
-			if (!confirmedStatus.available) {
-				throw new Error(confirmedStatus.error);
-			}
-
-			if (confirmedStatus.enabled !== requestedState) {
-				throw new Error(
-					"LACT did not confirm the requested auto-switch state.",
-				);
-			}
+			setActiveProfile(currentProfile);
 
 			showToast({
 				title: requestedState
@@ -114,9 +105,21 @@ export default function LactProfiles() {
 				style: Toast.Style.Success,
 			});
 		} catch (toggleError) {
+			const [actualStatus, currentProfile] = await Promise.all([
+				getAutoSwitchStatus(),
+				getCurrentProfile().catch(() => null),
+			]);
+			setAutoSwitchStatus(actualStatus);
+			if (currentProfile !== null) setActiveProfile(currentProfile);
+			const actualSwitchState = actualStatus.available
+				? actualStatus.enabled
+					? "enabled"
+					: "disabled"
+				: "unavailable";
+
 			showToast({
-				title: "Could not change automatic switching",
-				message: errorMessage(toggleError),
+				title: "Could not complete automatic-switch change",
+				message: `${errorMessage(toggleError)} Current profile: ${currentProfile ?? "unavailable"}; automatic switching is ${actualSwitchState}.`,
 				style: Toast.Style.Failure,
 			});
 		}
@@ -142,7 +145,7 @@ export default function LactProfiles() {
 						actions={
 							<ActionPanel>
 								<Action
-									title="Select profile"
+									title="Select profile (disables auto-switch)"
 									icon={Icon.Checkmark}
 									onAction={() => handleSelectProfile(profile)}
 								/>
@@ -168,7 +171,7 @@ export default function LactProfiles() {
 							: !autoSwitchStatus.available
 								? `Could not read automatic-switch status: ${autoSwitchStatus.error}`
 								: autoSwitchStatus.enabled
-									? "LACT rules may replace a manually selected profile"
+									? "Selecting a profile turns automatic switching off"
 									: "Manual profile selections will remain in effect"
 					}
 					icon={Icon.Cog}

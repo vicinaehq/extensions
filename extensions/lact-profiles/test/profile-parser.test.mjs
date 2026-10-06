@@ -66,9 +66,9 @@ test("runs LACT with direct argv and a bounded timeout", async () => {
 	assert.equal(invocation.options.timeout, 10_000);
 });
 
-test("maps profile and auto-switch operations to documented CLI arguments", async () => {
+test("maps profile and auto-switch reads to documented CLI arguments", async () => {
 	const calls = [];
-	const responses = ["Default\nGaming\n", "Gaming\n", "", "enabled\n", ""];
+	const responses = ["Default\nGaming\n", "Gaming\n", "", "enabled\n"];
 	const executeFile = (command, args, options, callback) => {
 		calls.push({ command, args: [...args], options });
 		callback(null, responses.shift(), "");
@@ -82,7 +82,6 @@ test("maps profile and auto-switch operations to documented CLI arguments", asyn
 		available: true,
 		enabled: true,
 	});
-	await client.setAutoSwitchEnabled(false);
 
 	assert.deepEqual(
 		calls.map(({ command, args }) => [command, args]),
@@ -91,7 +90,78 @@ test("maps profile and auto-switch operations to documented CLI arguments", asyn
 			["lact", ["cli", "profile", "get"]],
 			["lact", ["cli", "profile", "set", "Quiet Undervolt"]],
 			["lact", ["cli", "profile", "auto-switch", "get"]],
+		],
+	);
+});
+
+test("disabling auto-switch restores the previously active profile", async () => {
+	const calls = [];
+	const responses = ["Gaming\n", "", "", "disabled\n", "Gaming\n"];
+	const executeFile = (command, args, _options, callback) => {
+		calls.push({ command, args: [...args] });
+		callback(null, responses.shift(), "");
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.setAutoSwitchEnabledPreservingProfile(false), {
+		status: { available: true, enabled: false },
+		currentProfile: "Gaming",
+	});
+	assert.deepEqual(
+		calls.map(({ command, args }) => [command, args]),
+		[
+			["lact", ["cli", "profile", "get"]],
 			["lact", ["cli", "profile", "auto-switch", "disable"]],
+			["lact", ["cli", "profile", "set", "Gaming"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "get"]],
+		],
+	);
+});
+
+test("disabling auto-switch leaves the Default profile in place", async () => {
+	const calls = [];
+	const responses = ["Default\n", "", "disabled\n", "Default\n"];
+	const executeFile = (command, args, _options, callback) => {
+		calls.push({ command, args: [...args] });
+		callback(null, responses.shift(), "");
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.setAutoSwitchEnabledPreservingProfile(false), {
+		status: { available: true, enabled: false },
+		currentProfile: "Default",
+	});
+	assert.deepEqual(
+		calls.map(({ command, args }) => [command, args]),
+		[
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "disable"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "get"]],
+		],
+	);
+});
+
+test("enabling auto-switch confirms the resulting status and profile", async () => {
+	const calls = [];
+	const responses = ["", "enabled\n", "Gaming\n"];
+	const executeFile = (command, args, _options, callback) => {
+		calls.push({ command, args: [...args] });
+		callback(null, responses.shift(), "");
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.setAutoSwitchEnabledPreservingProfile(true), {
+		status: { available: true, enabled: true },
+		currentProfile: "Gaming",
+	});
+	assert.deepEqual(
+		calls.map(({ command, args }) => [command, args]),
+		[
+			["lact", ["cli", "profile", "auto-switch", "enable"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "get"]],
 		],
 	);
 });
