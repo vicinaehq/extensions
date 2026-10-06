@@ -1,9 +1,7 @@
 import {
 	Action,
 	ActionPanel,
-	Clipboard,
 	Color,
-	closeMainWindow,
 	Detail,
 	getPreferenceValues,
 	Icon,
@@ -53,22 +51,6 @@ function serviceIcon(snapshot: TotpSnapshot) {
 	if (cached) return { source: cached };
 	const favicon = faviconForNotes(snapshot.notes);
 	return favicon ? { source: favicon } : Icon.Key;
-}
-
-// Vicinae closes the launcher asynchronously. Give the host a short,
-// platform-neutral focus-settle window before requesting the native paste.
-const PASTE_FOCUS_SETTLE_DELAY_MS = 100;
-
-function waitForPasteFocus(): Promise<void> {
-	return new Promise((resolve) =>
-		setTimeout(resolve, PASTE_FOCUS_SETTLE_DELAY_MS),
-	);
-}
-
-async function pasteCode(code: string): Promise<void> {
-	await closeMainWindow();
-	await waitForPasteFocus();
-	await Clipboard.paste(code);
 }
 
 function TotpListDetail({ snapshot }: { snapshot: TotpSnapshot }) {
@@ -153,14 +135,10 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 		/>
 	);
 	const pasteCurrent = (
-		<Action
+		<Action.Paste
 			title="Paste Current Code"
-			icon={Icon.Key}
-			onAction={() =>
-				void guardAction("Unable to paste current code", () =>
-					pasteCode(current.current),
-				)
-			}
+			icon={Icon.CopyClipboard}
+			content={current.current}
 		/>
 	);
 
@@ -218,14 +196,10 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 								)
 							}
 						/>
-						<Action
+						<Action.Paste
 							title="Paste Next Code"
-							icon={Icon.Key}
-							onAction={() =>
-								void guardAction("Unable to paste next code", () =>
-									pasteCode(current.next),
-								)
-							}
+							icon={Icon.CopyClipboard}
+							content={current.next}
 						/>
 					</ActionPanel.Section>
 					<ActionPanel.Section>
@@ -367,14 +341,10 @@ export default function Command() {
 						/>
 					);
 					const pasteCurrent = (
-						<Action
+						<Action.Paste
 							title="Paste Current Code"
-							icon={Icon.Key}
-							onAction={() =>
-								void guardAction("Unable to paste current code", () =>
-									pasteCode(snapshot.current),
-								)
-							}
+							icon={Icon.CopyClipboard}
+							content={snapshot.current}
 						/>
 					);
 					return (
