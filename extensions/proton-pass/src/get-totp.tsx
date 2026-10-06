@@ -1,6 +1,7 @@
 import {
 	Action,
 	ActionPanel,
+	Detail,
 	Icon,
 	List,
 	showToast,
@@ -17,7 +18,6 @@ import {
 import { errorMessage } from "./cli-contract";
 import { pasteSecret } from "./clipboard";
 import { getTotp, type PassItem, roleByShareId } from "./pass-cli";
-import { ItemDetailView } from "./search-items";
 import { useVaultSnapshot } from "./snapshot";
 import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 
@@ -29,6 +29,50 @@ function totpProgressIcon(remaining: number): { source: string } {
 	const dashOffset = circumference * (1 - fraction);
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-opacity="0.28" stroke-width="2.2"/><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 12 12)"/></svg>`;
 	return { source: `data:image/svg+xml,${encodeURIComponent(svg)}` };
+}
+
+function TotpListDetail({
+	item,
+	role,
+	code,
+	remaining,
+}: {
+	item: PassItem;
+	role?: string;
+	code?: string;
+	remaining: number;
+}) {
+	const identity = item.username ?? item.email ?? "—";
+	const url = item.urls?.[0];
+	const currentText = code
+		? { value: code, color: totpTimerColor(remaining) }
+		: "Refreshing…";
+	return (
+		<List.Item.Detail
+			metadata={
+				<Detail.Metadata>
+					<Detail.Metadata.Label title="Current" text={currentText} />
+					<Detail.Metadata.Label title="Expires in" text={`${remaining}s`} />
+					<Detail.Metadata.Separator />
+					<Detail.Metadata.Label title="Username / Email" text={identity} />
+					<Detail.Metadata.Label
+						title="Vault"
+						text={{
+							value: item.vaultName,
+							color: vaultColor(role, item.vaultName),
+						}}
+					/>
+					<Detail.Metadata.Label title="Type" text={item.type} />
+					<Detail.Metadata.Separator />
+					{url ? (
+						<Detail.Metadata.Link title="URL" target={url} text={url} />
+					) : (
+						<Detail.Metadata.Label title="URL" text="—" />
+					)}
+				</Detail.Metadata>
+			}
+		/>
+	);
 }
 
 export default function Command() {
@@ -110,15 +154,11 @@ export default function Command() {
 									},
 								]}
 								detail={
-									<ItemDetailView
+									<TotpListDetail
 										item={item}
-										vaultRole={role}
-										totpState={{
-											code: codes[totpItemKey(item)],
-											remaining,
-											refreshing,
-											refresh,
-										}}
+										role={role}
+										code={codes[totpItemKey(item)]}
+										remaining={remaining}
 									/>
 								}
 								actions={
