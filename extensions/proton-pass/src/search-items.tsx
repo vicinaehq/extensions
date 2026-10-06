@@ -111,7 +111,7 @@ export function ItemDetailView({
 		markdownLines.push(`**Password:** ${mask(detail.password)}`);
 	if (detail.urls?.length) {
 		markdownLines.push(
-			`**Websites:**\n\n${detail.urls.map((url) => `- ${escapeMarkdown(url)}`).join("\n")}`,
+			`**Websites:**\n\n${detail.urls.map((url, index) => `${index + 1}. ${escapeMarkdown(url)}`).join("\n")}`,
 		);
 	}
 
