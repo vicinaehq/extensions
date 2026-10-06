@@ -104,7 +104,7 @@
       "default": ""
     },
     {
-      "name": "primaryAction",
+      "name": "primaryActionMode",
       "type": "dropdown",
       "required": false,
       "title": "Primary action",
@@ -122,12 +122,12 @@
       ]
     },
     {
-      "name": "secondaryAction",
+      "name": "secondaryActionMode",
       "type": "dropdown",
       "required": false,
       "title": "Secondary action",
       "description": "Which action is promoted to second place on an item in Search Proton Pass Items.",
-      "default": "copy-password",
+      "default": "paste-username",
       "data": [
         { "title": "View Details", "value": "view-details" },
         { "title": "Paste Username", "value": "paste-username" },

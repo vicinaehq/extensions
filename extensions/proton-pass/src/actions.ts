@@ -151,9 +151,12 @@ export type ActionId =
 	| "paste-totp"
 	| "open-browser";
 
+// The Mode suffix intentionally starts a fresh preference namespace. Vicinae
+// persists preference values by name, so the old keys could retain the earlier
+// Paste Username/View Details defaults after the action order changed.
 type OrderPreferences = {
-	primaryAction?: string;
-	secondaryAction?: string;
+	primaryActionMode?: string;
+	secondaryActionMode?: string;
 };
 
 const KNOWN_ACTIONS: ActionId[] = [
@@ -180,7 +183,10 @@ function isActionId(value: string | undefined): value is ActionId {
 export function orderedActionIds(available: ActionId[]): ActionId[] {
 	const prefs = getPreferenceValues<OrderPreferences>();
 	const preferred: ActionId[] = [];
-	for (const candidate of [prefs.primaryAction, prefs.secondaryAction]) {
+	for (const candidate of [
+		prefs.primaryActionMode,
+		prefs.secondaryActionMode,
+	]) {
 		if (
 			isActionId(candidate) &&
 			available.includes(candidate) &&
