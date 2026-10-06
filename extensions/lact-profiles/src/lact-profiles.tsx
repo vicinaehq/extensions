@@ -12,8 +12,8 @@ import {
 	getAutoSwitchStatus,
 	getCurrentProfile,
 	getProfiles,
+	selectProfileAndRefresh,
 	setAutoSwitchEnabledPreservingProfile,
-	setProfile,
 } from "./lact-cli.js";
 
 type AutoSwitchStatus = Awaited<ReturnType<typeof getAutoSwitchStatus>>;
@@ -59,15 +59,23 @@ export default function LactProfiles() {
 
 	const handleSelectProfile = async (profile: string) => {
 		try {
-			await setProfile(profile);
-			const currentProfile = await getCurrentProfile();
-			setActiveProfile(currentProfile);
-			setAutoSwitchStatus(await getAutoSwitchStatus());
+			const {
+				currentProfile,
+				autoSwitchStatus: actualStatus,
+				error: selectionError,
+			} = await selectProfileAndRefresh(profile);
+			setActiveProfile(currentProfile ?? "");
+			setAutoSwitchStatus(actualStatus);
+			const actualSwitchState = actualStatus.available
+				? actualStatus.enabled
+					? "enabled"
+					: "disabled"
+				: "unavailable";
 
-			if (currentProfile !== profile) {
+			if (selectionError) {
 				showToast({
-					title: "Profile selection did not take effect",
-					message: `Requested “${profile}”; LACT reports “${currentProfile}”.`,
+					title: "Could not complete profile selection",
+					message: `${selectionError} Current profile: ${currentProfile ?? "unavailable"}; automatic switching is ${actualSwitchState}.`,
 					style: Toast.Style.Failure,
 				});
 				return;
@@ -79,9 +87,21 @@ export default function LactProfiles() {
 				style: Toast.Style.Success,
 			});
 		} catch (changeError) {
+			const [actualStatus, currentProfile] = await Promise.all([
+				getAutoSwitchStatus(),
+				getCurrentProfile().catch(() => null),
+			]);
+			setActiveProfile(currentProfile ?? "");
+			setAutoSwitchStatus(actualStatus);
+			const actualSwitchState = actualStatus.available
+				? actualStatus.enabled
+					? "enabled"
+					: "disabled"
+				: "unavailable";
+
 			showToast({
-				title: "Could not change LACT profile",
-				message: errorMessage(changeError),
+				title: "Could not complete profile selection",
+				message: `${errorMessage(changeError)} Current profile: ${currentProfile ?? "unavailable"}; automatic switching is ${actualSwitchState}.`,
 				style: Toast.Style.Failure,
 			});
 		}

@@ -94,6 +94,46 @@ test("maps profile and auto-switch reads to documented CLI arguments", async () 
 	);
 });
 
+test("refreshes state after a transient profile readback failure", async () => {
+	const calls = [];
+	const responses = [
+		{ stdout: "" },
+		{
+			error: Object.assign(new Error("readback failed"), { code: 1 }),
+			stderr: "temporarily unavailable",
+		},
+		{ stdout: "disabled\n" },
+		{ stdout: "Gaming\n" },
+		{ stdout: "disabled\n" },
+	];
+	const executeFile = (command, args, _options, callback) => {
+		calls.push({ command, args: [...args] });
+		const response = responses.shift();
+		callback(
+			response.error ?? null,
+			response.stdout ?? "",
+			response.stderr ?? "",
+		);
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.selectProfileAndRefresh("Gaming"), {
+		currentProfile: "Gaming",
+		autoSwitchStatus: { available: true, enabled: false },
+		error: null,
+	});
+	assert.deepEqual(
+		calls.map(({ command, args }) => [command, args]),
+		[
+			["lact", ["cli", "profile", "set", "Gaming"]],
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+		],
+	);
+});
+
 test("disabling auto-switch restores the previously active profile", async () => {
 	const calls = [];
 	const responses = ["Gaming\n", "", "", "disabled\n", "Gaming\n"];

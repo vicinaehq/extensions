@@ -65,6 +65,57 @@ export function createLactClient(executeFile = execFile) {
 			});
 		}
 	};
+	/**
+	 * Select a profile, then reconcile the displayed state even if a command or
+	 * its first readback fails after the daemon has already applied the change.
+	 *
+	 * @param {string} profile
+	 * @returns {Promise<{currentProfile: string | null, autoSwitchStatus: ReturnType<typeof parseAutoSwitchStatus>, error: string | null}>}
+	 */
+	const selectProfileAndRefresh = async (profile) => {
+		let commandError = null;
+		try {
+			await setProfile(profile);
+		} catch (error) {
+			commandError = error instanceof Error ? error.message : String(error);
+		}
+
+		const readState = async () => {
+			const [profileResult, autoSwitchStatus] = await Promise.all([
+				getCurrentProfile()
+					.then((currentProfile) => ({ currentProfile, error: null }))
+					.catch((error) => ({
+						currentProfile: null,
+						error: error instanceof Error ? error.message : String(error),
+					})),
+				getAutoSwitchStatus(),
+			]);
+			return { ...profileResult, autoSwitchStatus };
+		};
+
+		let state = await readState();
+		if (
+			commandError ||
+			state.error !== null ||
+			state.currentProfile !== profile
+		) {
+			state = await readState();
+		}
+
+		const error =
+			commandError ??
+			(state.currentProfile === null
+				? `Could not read LACT's current profile: ${state.error ?? "unknown error"}`
+				: state.currentProfile !== profile
+					? `Requested “${profile}”; LACT reports “${state.currentProfile}”.`
+					: null);
+
+		return {
+			currentProfile: state.currentProfile,
+			autoSwitchStatus: state.autoSwitchStatus,
+			error,
+		};
+	};
 	/** @param {boolean} enabled */
 	const setAutoSwitchEnabled = async (enabled) => {
 		await run([
@@ -112,6 +163,7 @@ export function createLactClient(executeFile = execFile) {
 		getCurrentProfile,
 		setProfile,
 		getAutoSwitchStatus,
+		selectProfileAndRefresh,
 		setAutoSwitchEnabledPreservingProfile,
 	};
 }
@@ -122,5 +174,6 @@ export const getProfiles = defaultClient.getProfiles;
 export const getCurrentProfile = defaultClient.getCurrentProfile;
 export const setProfile = defaultClient.setProfile;
 export const getAutoSwitchStatus = defaultClient.getAutoSwitchStatus;
+export const selectProfileAndRefresh = defaultClient.selectProfileAndRefresh;
 export const setAutoSwitchEnabledPreservingProfile =
 	defaultClient.setAutoSwitchEnabledPreservingProfile;
