@@ -204,7 +204,30 @@ export function ItemDetailView({
 			}
 			actions={
 				<ActionPanel>
-					<ActionPanel.Section title="Identity">
+					<ActionPanel.Section title="Credentials">
+						{detail.password && (
+							<Action
+								title="Copy Password"
+								icon={Icon.Key}
+								shortcut={SHORTCUTS.copyPassword}
+								onAction={() =>
+									void safely(() =>
+										copySecret("Password", detail.password ?? "", {
+											sensitive: true,
+										}),
+									)
+								}
+							/>
+						)}
+						{detail.password && (
+							<Action
+								title="Paste Password"
+								icon={Icon.Key}
+								onAction={() =>
+									void safely(() => pasteSecret(detail.password ?? ""))
+								}
+							/>
+						)}
 						{detail.username && (
 							<Action
 								title="Copy Username"
@@ -241,31 +264,6 @@ export function ItemDetailView({
 								icon={Icon.Envelope}
 								onAction={() =>
 									void safely(() => pasteSecret(detail.email ?? ""))
-								}
-							/>
-						)}
-					</ActionPanel.Section>
-					<ActionPanel.Section title="Credentials">
-						{detail.password && (
-							<Action
-								title="Copy Password"
-								icon={Icon.Key}
-								shortcut={SHORTCUTS.copyPassword}
-								onAction={() =>
-									void safely(() =>
-										copySecret("Password", detail.password ?? "", {
-											sensitive: true,
-										}),
-									)
-								}
-							/>
-						)}
-						{detail.password && (
-							<Action
-								title="Paste Password"
-								icon={Icon.Key}
-								onAction={() =>
-									void safely(() => pasteSecret(detail.password ?? ""))
 								}
 							/>
 						)}
@@ -387,8 +385,8 @@ function ItemActions({
 	if (isLogin) available.push("paste-password");
 	if (hasIdentity) available.push("paste-username");
 	available.push("view-details");
-	if (hasIdentity) available.push("copy-username");
 	if (isLogin) available.push("copy-password");
+	if (hasIdentity) available.push("copy-username");
 	if (item.hasTotp) available.push("copy-totp", "paste-totp");
 	if (url) available.push("open-browser");
 
@@ -632,7 +630,13 @@ const TypeFilter = memo(function TypeFilter({
 	);
 });
 
-function ItemRows({ items, vaults }: { items: PassItem[]; vaults: Vault[] }) {
+export function ItemRows({
+	items,
+	vaults,
+}: {
+	items: PassItem[];
+	vaults: Vault[];
+}) {
 	const roleMap = roleByShareId(vaults);
 	return (
 		<>

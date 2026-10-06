@@ -8,8 +8,6 @@ import {
 import { useEffect, useState } from "react";
 import {
 	copySecret,
-	guardAction,
-	primaryUrl,
 	roleStyle,
 	SHORTCUTS,
 	safely,
@@ -25,15 +23,12 @@ import {
 } from "./cache";
 import { errorMessage } from "./cli-contract";
 import {
-	getTotp,
 	listItems,
 	listVaultsWithItemCounts,
 	type PassItem,
 	type Vault,
-	viewItem,
 } from "./pass-cli";
-import { ItemDetailView } from "./search-items";
-import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
+import { ItemRows } from "./search-items";
 
 type Preferences = {
 	enableBackgroundRefresh?: boolean;
@@ -45,7 +40,6 @@ function VaultItems({ vault }: { vault: Vault }) {
 	const [loading, setLoading] = useState(true);
 	const backgroundRefresh =
 		getPreferenceValues<Preferences>().enableBackgroundRefresh !== false;
-	const { codes, remaining } = useTotpCodes(items);
 
 	useEffect(() => {
 		let active = true;
@@ -82,157 +76,18 @@ function VaultItems({ vault }: { vault: Vault }) {
 		<List
 			isLoading={loading}
 			navigationTitle={vault.name}
-			searchBarPlaceholder="Search items..."
+			searchBarPlaceholder="Search Proton Pass items..."
 		>
 			{error ? (
 				<List.EmptyView
 					icon={Icon.Warning}
-					title="Unable to load vault items"
-					description={error}
+					title="Unable to load Proton Pass"
+					description={`${error} Check that pass-cli is installed and authenticated.`}
 				/>
 			) : items.length === 0 && !loading ? (
-				<List.EmptyView icon={Icon.Folder} title="No items in this vault" />
+				<List.EmptyView icon={Icon.Key} title="No Proton Pass items found" />
 			) : (
-				items.map((item) => (
-					<List.Item
-						key={`${item.shareId}:${item.itemId}`}
-						title={item.title}
-						subtitle={item.username ?? item.email ?? item.type}
-						keywords={[
-							item.title,
-							item.username ?? "",
-							item.email ?? "",
-							item.type,
-							...(item.urls ?? []),
-						]}
-						icon={{
-							source: item.hasTotp ? Icon.Lock : Icon.Key,
-							tintColor: vaultColor(vault.role, vault.name),
-						}}
-						accessories={
-							item.hasTotp
-								? [
-										{
-											tag: {
-												value: codes[totpItemKey(item)] ?? "---",
-												color: totpTimerColor(remaining),
-											},
-										},
-										{ text: `${remaining}s`, icon: Icon.Clock },
-									]
-								: []
-						}
-						actions={
-							<ActionPanel>
-								<ActionPanel.Section title="Details">
-									<Action.Push
-										title="View Details"
-										icon={Icon.Eye}
-										shortcut={SHORTCUTS.viewDetails}
-										target={<ItemDetailView item={item} />}
-									/>
-								</ActionPanel.Section>
-								<ActionPanel.Section title="Credentials">
-									{item.username || item.email ? (
-										<Action
-											title={item.username ? "Copy Username" : "Copy Email"}
-											icon={item.username ? Icon.Person : Icon.Envelope}
-											shortcut={SHORTCUTS.copyUsername}
-											onAction={() =>
-												void safely(() =>
-													copySecret(
-														item.username ? "Username" : "Email",
-														item.username ?? item.email ?? "",
-													),
-												)
-											}
-										/>
-									) : (
-										<Action
-											title="Find Username or Email"
-											icon={Icon.Person}
-											onAction={() =>
-												void guardAction(
-													"Unable to copy username or email",
-													async () => {
-														const detail = await viewItem(item);
-														const value = detail.username ?? detail.email;
-														if (!value)
-															throw new Error(
-																"This item has no username or email.",
-															);
-														await copySecret(
-															detail.username ? "Username" : "Email",
-															value,
-														);
-													},
-												)
-											}
-										/>
-									)}
-									{item.username && item.email && (
-										<Action
-											title="Copy Email"
-											icon={Icon.Envelope}
-											onAction={() =>
-												void safely(() => copySecret("Email", item.email ?? ""))
-											}
-										/>
-									)}
-									{item.type === "login" && item.hasPassword === true && (
-										<Action
-											title="Copy Password"
-											icon={Icon.Key}
-											shortcut={SHORTCUTS.copyPassword}
-											onAction={() =>
-												void guardAction(
-													"Unable to copy password",
-													async () => {
-														const detail = await viewItem(item);
-														if (!detail.password)
-															throw new Error("This item has no password.");
-														await copySecret("Password", detail.password, {
-															sensitive: true,
-														});
-													},
-												)
-											}
-										/>
-									)}{" "}
-								</ActionPanel.Section>
-								<ActionPanel.Section title="TOTP">
-									{item.hasTotp && (
-										<Action
-											title="Copy TOTP Code"
-											icon={Icon.Clock}
-											shortcut={SHORTCUTS.copyTotp}
-											onAction={() =>
-												void guardAction(
-													"Unable to copy TOTP code",
-													async () => {
-														await copySecret("TOTP code", await getTotp(item), {
-															sensitive: true,
-														});
-													},
-												)
-											}
-										/>
-									)}
-								</ActionPanel.Section>
-								<ActionPanel.Section>
-									{primaryUrl(item.urls) && (
-										<Action.OpenInBrowser
-											title="Open in Browser"
-											icon={Icon.Link}
-											shortcut={SHORTCUTS.openInBrowser}
-											url={primaryUrl(item.urls) ?? ""}
-										/>
-									)}
-								</ActionPanel.Section>
-							</ActionPanel>
-						}
-					/>
-				))
+				<ItemRows items={items} vaults={[vault]} />
 			)}
 		</List>
 	);
