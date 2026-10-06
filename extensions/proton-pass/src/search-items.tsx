@@ -99,15 +99,19 @@ export function ItemDetailView({
 			/>
 		);
 
-	const markdown = detail.note
-		? `# ${escapeMarkdown(detail.title)}\n\n${escapeMarkdown(detail.note)}`
-		: `# ${escapeMarkdown(detail.title)}`;
 	return (
 		<Detail
 			navigationTitle={detail.title}
-			markdown={markdown}
+			markdown=""
 			metadata={
 				<Detail.Metadata>
+					<Detail.Metadata.Label
+						title="Item"
+						text={detail.title}
+						icon={itemIcon(detail)}
+					/>
+					<Detail.Metadata.Label title="Note" text={detail.note ?? "—"} />
+					<Detail.Metadata.Separator />
 					{detail.username && (
 						<Detail.Metadata.Label title="Username" text={detail.username} />
 					)}
@@ -616,7 +620,7 @@ export function ItemRows({
 }: {
 	items: PassItem[];
 	vaults: Vault[];
-	totpState: TotpCodesState;
+	totpState?: TotpCodesState;
 }) {
 	const roleMap = roleByShareId(vaults);
 	return (
@@ -648,18 +652,20 @@ export function ItemRows({
 							tooltip: `Role: ${roleMap.get(item.shareId) ?? "unknown"}`,
 						},
 						...(item.hasTotp
-							? [
-									{
-										tag: {
-											value: totpState.codes[totpItemKey(item)] ?? "---",
-											color: totpTimerColor(totpState.remaining),
+							? totpState
+								? [
+										{
+											tag: {
+												value: totpState.codes[totpItemKey(item)] ?? "---",
+												color: totpTimerColor(totpState.remaining),
+											},
 										},
-									},
-									{
-										icon: totpProgressIcon(totpState.remaining),
-										tooltip: `TOTP expires in ${totpState.remaining}s`,
-									},
-								]
+										{
+											icon: totpProgressIcon(totpState.remaining),
+											tooltip: `TOTP expires in ${totpState.remaining}s`,
+										},
+									]
+								: [{ icon: Icon.Clock, tooltip: "Has TOTP" }]
 							: []),
 					]}
 					actions={
@@ -673,7 +679,6 @@ export function ItemRows({
 
 export default function Command() {
 	const { vaults, items, loading, error } = useVaultSnapshot();
-	const totpState = useTotpCodes(items);
 	const [selectedVault, setSelectedVault] = useState("all");
 	const [selectedType, setSelectedType] = useState("all");
 	const filterAccessory = useMemo(
@@ -707,7 +712,7 @@ export default function Command() {
 			) : visibleItems.length === 0 && !loading ? (
 				<List.EmptyView icon={Icon.Key} title="No Proton Pass items found" />
 			) : (
-				<ItemRows items={visibleItems} vaults={vaults} totpState={totpState} />
+				<ItemRows items={visibleItems} vaults={vaults} />
 			)}
 		</List>
 	);
