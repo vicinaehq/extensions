@@ -8,13 +8,7 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useMemo } from "react";
-import {
-	copySecret,
-	roleStyle,
-	SHORTCUTS,
-	safely,
-	vaultColor,
-} from "./actions";
+import { copySecret, SHORTCUTS, safely, vaultColor } from "./actions";
 import { errorMessage } from "./cli-contract";
 import { pasteSecret } from "./clipboard";
 import { getTotp, type PassItem, roleByShareId } from "./pass-cli";
@@ -140,14 +134,6 @@ export default function Command() {
 									tintColor: vaultColor(role, item.vaultName),
 								}}
 								accessories={[
-									{
-										tag: {
-											value: item.vaultName,
-											color: vaultColor(role, item.vaultName),
-										},
-										icon: roleStyle(role).icon,
-										tooltip: `Vault: ${item.vaultName} (${role ?? "unknown"})`,
-									},
 									{
 										icon: totpProgressIcon(remaining),
 										tooltip: `TOTP expires in ${remaining}s`,
