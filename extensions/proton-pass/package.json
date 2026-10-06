@@ -140,26 +140,6 @@
       ]
     },
     {
-      "name": "defaultPasswordLength",
-      "type": "textfield",
-      "required": false,
-      "title": "Default password length",
-      "description": "Initial random-password length; the command supports 8–128 characters.",
-      "default": "20"
-    },
-    {
-      "name": "defaultPasswordType",
-      "type": "dropdown",
-      "required": false,
-      "title": "Default password type",
-      "description": "Initial generator mode.",
-      "default": "random",
-      "data": [
-        { "title": "Random", "value": "random" },
-        { "title": "Passphrase", "value": "passphrase" }
-      ]
-    },
-    {
       "name": "enableBackgroundRefresh",
       "type": "checkbox",
       "required": false,

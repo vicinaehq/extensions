@@ -1,11 +1,4 @@
-import {
-	Action,
-	ActionPanel,
-	getPreferenceValues,
-	Icon,
-	List,
-	LocalStorage,
-} from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, LocalStorage } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { copySecret, safely } from "./actions";
 import { errorMessage } from "./cli-contract";
@@ -27,11 +20,6 @@ type Separator =
 	| "underscores"
 	| "numbers"
 	| "numbers-and-symbols";
-
-type Preferences = {
-	defaultPasswordLength?: string;
-	defaultPasswordType?: string;
-};
 
 type GeneratorSettings = {
 	type: PasswordType;
@@ -65,19 +53,9 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function defaultSettings(): GeneratorSettings {
-	const preferences = getPreferenceValues<Preferences>();
-	const parsedLength = Number.parseInt(
-		preferences.defaultPasswordLength ?? "20",
-		10,
-	);
 	return {
-		type:
-			preferences.defaultPasswordType === "passphrase"
-				? "passphrase"
-				: "random",
-		length: Number.isFinite(parsedLength)
-			? clamp(parsedLength, MIN_LENGTH, MAX_LENGTH)
-			: 20,
+		type: "random",
+		length: 20,
 		words: 4,
 		includeNumbers: true,
 		includeUppercase: true,
@@ -129,22 +107,6 @@ function restoreSettingsFromValue(
 	};
 }
 
-function sameSettings(
-	left: GeneratorSettings,
-	right: GeneratorSettings,
-): boolean {
-	return (
-		left.type === right.type &&
-		left.length === right.length &&
-		left.words === right.words &&
-		left.includeNumbers === right.includeNumbers &&
-		left.includeUppercase === right.includeUppercase &&
-		left.includeSymbols === right.includeSymbols &&
-		left.separator === right.separator &&
-		left.capitalize === right.capitalize
-	);
-}
-
 function restoreSettings(
 	fallback: GeneratorSettings,
 	raw: string | undefined,
@@ -153,15 +115,6 @@ function restoreSettings(
 	try {
 		const parsed: unknown = JSON.parse(raw);
 		if (!isRecord(parsed)) return fallback;
-		const storedDefaults = parsed.defaults;
-		if (
-			storedDefaults !== undefined &&
-			!sameSettings(
-				restoreSettingsFromValue(fallback, storedDefaults),
-				fallback,
-			)
-		)
-			return fallback;
 		return restoreSettingsFromValue(fallback, parsed.settings ?? parsed);
 	} catch {
 		return fallback;
@@ -299,7 +252,7 @@ export default function Command() {
 				const next = change(current);
 				void LocalStorage.setItem(
 					GENERATOR_SETTINGS_KEY,
-					JSON.stringify({ defaults: initial, settings: next }),
+					JSON.stringify({ settings: next }),
 				).catch(() => undefined);
 				void generate(next);
 				return next;

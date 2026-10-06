@@ -23,7 +23,7 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 - Optionally clear copied passwords and TOTP codes after a safe, configurable timeout.
 - Check or start the local Proton Pass CLI login session; browser login URLs are opened automatically when pass-cli emits one.
 - Use the official Proton Pass diamond icon for the extension and every command.
-- Configure the `pass-cli` path and default password generator settings.
+- Configure the `pass-cli` path; generator settings are adjusted in the command and remembered locally.
 
 ## Requirements
 
