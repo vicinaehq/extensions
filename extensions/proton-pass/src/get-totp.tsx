@@ -17,6 +17,7 @@ import {
 import { errorMessage } from "./cli-contract";
 import { pasteSecret } from "./clipboard";
 import { getTotp, type PassItem, roleByShareId } from "./pass-cli";
+import { ItemDetailView } from "./search-items";
 import { useVaultSnapshot } from "./snapshot";
 import { totpItemKey, totpTimerColor, useTotpCodes } from "./totp-state";
 
@@ -55,6 +56,7 @@ export default function Command() {
 	return (
 		<List
 			isLoading={loading || refreshing}
+			isShowingDetail
 			searchBarPlaceholder="Search Proton Pass TOTP items..."
 		>
 			{error ? (
@@ -107,6 +109,7 @@ export default function Command() {
 										tooltip: `TOTP expires in ${remaining}s`,
 									},
 								]}
+								detail={<ItemDetailView item={item} vaultRole={role} />}
 								actions={
 									<ActionPanel>
 										<Action

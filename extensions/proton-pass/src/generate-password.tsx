@@ -8,6 +8,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { copySecret, safely } from "./actions";
 import { errorMessage } from "./cli-contract";
+import { pasteSecret } from "./clipboard";
 import {
 	generatePassword,
 	type PasswordOptions,
@@ -238,7 +239,12 @@ export default function Command() {
 		await copySecret("Password", password, { sensitive: true });
 	}
 
-	async function copyAndGenerate(): Promise<void> {
+	async function paste(): Promise<void> {
+		if (!password) throw new Error("No password has been generated yet.");
+		await pasteSecret(password);
+	}
+
+	async function copyAndGenerateNext(): Promise<void> {
 		await copy();
 		await generate(settings);
 	}
@@ -249,19 +255,19 @@ export default function Command() {
 			: "No penalties";
 
 	// A List, not a Form: a Form swallows Enter for its own submit and traps
-	// focus in its fields, so the action shortcuts never fire. Here the first
-	// action (Copy Password) is the primary one and owns Enter.
+	// focus in its fields, so the action shortcuts never fire. The first action
+	// (Paste Password) is the primary one and owns Enter.
 	const actionPanel = (
 		<ActionPanel>
 			<Action
-				title="Copy Password"
+				title="Paste Password"
 				icon={Icon.CopyClipboard}
-				onAction={() => void safely(copy)}
+				onAction={() => void safely(paste)}
 			/>
 			<Action
 				title="Copy and Generate Next"
 				icon={Icon.ArrowClockwise}
-				onAction={() => void safely(copyAndGenerate)}
+				onAction={() => void safely(copyAndGenerateNext)}
 			/>
 			<Action
 				title="Generate New Password"

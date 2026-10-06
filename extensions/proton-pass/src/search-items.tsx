@@ -365,15 +365,14 @@ function ItemActions({
 	const hasIdentity = Boolean(item.username || item.email);
 	const url = primaryUrl(item.urls);
 
-	// Which configurable actions this item supports. Copy Password is always
-	// offered (its secret is fetched on demand); Paste Password is limited to
-	// login items because other types may not contain a password. TOTP actions
-	// are only offered when the item actually has one, so selecting them as the
-	// primary action cannot make Enter fail.
-	const available: ActionId[] = ["view-details"];
+	// Password-bearing login items default to Paste Password; View Details
+	// remains available immediately after it. Other item types fall back to
+	// View Details because they cannot provide a password paste action.
+	const available: ActionId[] = [];
+	if (item.type === "login") available.push("paste-password");
+	available.push("view-details");
 	if (hasIdentity) available.push("copy-username", "paste-username");
 	available.push("copy-password");
-	if (item.type === "login") available.push("paste-password");
 	if (item.hasTotp) available.push("copy-totp", "paste-totp");
 	if (url) available.push("open-browser");
 
