@@ -134,6 +134,77 @@ test("refreshes state after a transient profile readback failure", async () => {
 	);
 });
 
+test("retries an unavailable auto-switch status after profile selection", async () => {
+	const calls = [];
+	const statusError = Object.assign(new Error("status read failed"), {
+		code: 1,
+	});
+	const responses = [
+		{ stdout: "" },
+		{ stdout: "Gaming\n" },
+		{ error: statusError, stderr: "temporarily unavailable" },
+		{ stdout: "Gaming\n" },
+		{ stdout: "disabled\n" },
+	];
+	const executeFile = (command, args, _options, callback) => {
+		calls.push({ command, args: [...args] });
+		const response = responses.shift();
+		callback(
+			response.error ?? null,
+			response.stdout ?? "",
+			response.stderr ?? "",
+		);
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.selectProfileAndRefresh("Gaming"), {
+		currentProfile: "Gaming",
+		autoSwitchStatus: { available: true, enabled: false },
+		error: null,
+	});
+	assert.deepEqual(
+		calls.map(({ command, args }) => [command, args]),
+		[
+			["lact", ["cli", "profile", "set", "Gaming"]],
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+		],
+	);
+});
+
+test("does not confirm selection without automatic-switch status", async () => {
+	const statusError = Object.assign(new Error("status read failed"), {
+		code: 1,
+	});
+	const responses = [
+		{ stdout: "" },
+		{ stdout: "Gaming\n" },
+		{ error: statusError, stderr: "temporarily unavailable" },
+		{ stdout: "Gaming\n" },
+		{ error: statusError, stderr: "temporarily unavailable" },
+	];
+	const executeFile = (_command, _args, _options, callback) => {
+		const response = responses.shift();
+		callback(
+			response.error ?? null,
+			response.stdout ?? "",
+			response.stderr ?? "",
+		);
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.selectProfileAndRefresh("Gaming"), {
+		currentProfile: "Gaming",
+		autoSwitchStatus: {
+			available: false,
+			error: "temporarily unavailable",
+		},
+		error: "Could not confirm automatic-switch status: temporarily unavailable",
+	});
+});
+
 test("disabling auto-switch restores the previously active profile", async () => {
 	const calls = [];
 	const responses = ["Gaming\n", "", "", "disabled\n", "Gaming\n"];

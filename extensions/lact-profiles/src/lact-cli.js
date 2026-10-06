@@ -97,18 +97,32 @@ export function createLactClient(executeFile = execFile) {
 		if (
 			commandError ||
 			state.error !== null ||
-			state.currentProfile !== profile
+			state.currentProfile !== profile ||
+			!state.autoSwitchStatus.available ||
+			state.autoSwitchStatus.enabled
 		) {
 			state = await readState();
 		}
 
-		const error =
-			commandError ??
-			(state.currentProfile === null
-				? `Could not read LACT's current profile: ${state.error ?? "unknown error"}`
-				: state.currentProfile !== profile
-					? `Requested “${profile}”; LACT reports “${state.currentProfile}”.`
-					: null);
+		const errors = [];
+		if (commandError) errors.push(commandError);
+		if (state.currentProfile === null) {
+			errors.push(
+				`Could not read LACT's current profile: ${state.error ?? "unknown error"}`,
+			);
+		} else if (state.currentProfile !== profile) {
+			errors.push(
+				`Requested “${profile}”; LACT reports “${state.currentProfile}”.`,
+			);
+		}
+		if (!state.autoSwitchStatus.available) {
+			errors.push(
+				`Could not confirm automatic-switch status: ${state.autoSwitchStatus.error}`,
+			);
+		} else if (state.autoSwitchStatus.enabled) {
+			errors.push("LACT still reports automatic switching enabled.");
+		}
+		const error = errors.length > 0 ? errors.join(" ") : null;
 
 		return {
 			currentProfile: state.currentProfile,
