@@ -7,7 +7,7 @@ The extension icon is the official LACT application icon from `res/io.github.ily
 ## Requirements
 
 - Linux and Vicinae
-- The `lact` CLI installed and available on `PATH`
+- LACT v0.8.2 or later, with `lact` available on `PATH` ([releases](https://github.com/ilya-zlobintsev/LACT/releases))
 - The LACT daemon (`lactd`) running and accessible to the desktop user
 
 The extension runs as the logged-in user and does not invoke `sudo`. Follow LACT's installation and socket-permissions documentation if the CLI cannot reach the daemon.

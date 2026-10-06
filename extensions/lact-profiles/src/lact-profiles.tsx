@@ -9,13 +9,14 @@ import {
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import {
-	type AutoSwitchStatus,
 	getAutoSwitchStatus,
 	getCurrentProfile,
 	getProfiles,
 	setAutoSwitchEnabled,
 	setProfile,
-} from "./lact-cli";
+} from "./lact-cli.js";
+
+type AutoSwitchStatus = Awaited<ReturnType<typeof getAutoSwitchStatus>>;
 
 function errorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
@@ -124,7 +125,7 @@ export default function LactProfiles() {
 	if (error) {
 		return (
 			<Detail
-				markdown={`# LACT profiles unavailable\n\n${error}\n\nCheck that the LACT CLI is installed, the \`lactd\` service is running, and your desktop user can access its socket.`}
+				markdown={`# LACT profiles unavailable\n\n${error}\n\nThe profile CLI requires LACT v0.8.2 or later. Check that the lact command is on PATH, lactd is running, and your desktop user can access its socket.`}
 			/>
 		);
 	}

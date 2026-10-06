@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createLactClient, runLact } from "../src/lact-cli.js";
 import {
 	parseAutoSwitchState,
 	parseAutoSwitchStatus,
@@ -44,5 +45,70 @@ test("surfaces unrecognized automatic-switch output instead of masking it", () =
 	assert.deepEqual(parseAutoSwitchStatus("\n"), {
 		available: false,
 		error: "LACT returned no auto-switch status.",
+	});
+});
+
+test("runs LACT with direct argv and a bounded timeout", async () => {
+	let invocation;
+	const profile = "Quiet; $(touch /tmp/should-not-run)";
+	const output = await runLact(
+		["cli", "profile", "set", profile],
+		(command, args, options, callback) => {
+			invocation = { command, args, options };
+			callback(null, "Quiet\n", "");
+		},
+	);
+
+	assert.equal(output, "Quiet");
+	assert.equal(invocation.command, "lact");
+	assert.deepEqual(invocation.args, ["cli", "profile", "set", profile]);
+	assert.equal(invocation.options.shell, undefined);
+	assert.equal(invocation.options.timeout, 10_000);
+});
+
+test("maps profile and auto-switch operations to documented CLI arguments", async () => {
+	const calls = [];
+	const responses = ["Default\nGaming\n", "Gaming\n", "", "enabled\n", ""];
+	const executeFile = (command, args, options, callback) => {
+		calls.push({ command, args: [...args], options });
+		callback(null, responses.shift(), "");
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.getProfiles(), ["Default", "Gaming"]);
+	assert.equal(await client.getCurrentProfile(), "Gaming");
+	await client.setProfile("Quiet Undervolt");
+	assert.deepEqual(await client.getAutoSwitchStatus(), {
+		available: true,
+		enabled: true,
+	});
+	await client.setAutoSwitchEnabled(false);
+
+	assert.deepEqual(
+		calls.map(({ command, args }) => [command, args]),
+		[
+			["lact", ["cli", "profile", "list"]],
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "set", "Quiet Undervolt"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "disable"]],
+		],
+	);
+});
+
+test("preserves actionable subprocess errors for profiles and auto-switch status", async () => {
+	const executeFile = (_command, _args, _options, callback) => {
+		callback(
+			Object.assign(new Error("LACT command failed"), { code: 1 }),
+			"",
+			"lactd socket permission denied",
+		);
+	};
+	const client = createLactClient(executeFile);
+
+	await assert.rejects(client.getProfiles(), /lactd socket permission denied/);
+	assert.deepEqual(await client.getAutoSwitchStatus(), {
+		available: false,
+		error: "lactd socket permission denied",
 	});
 });
