@@ -49,6 +49,7 @@ export const SHORTCUTS: Record<string, Keyboard.Shortcut> = {
 	copyVaultName: { modifiers: ["ctrl", "shift"], key: "n" },
 	copyShareId: { modifiers: ["ctrl", "shift"], key: "i" },
 	refresh: { modifiers: ["ctrl", "shift"], key: "r" },
+	copyAndGenerate: { modifiers: ["ctrl", "shift"], key: "g" },
 };
 
 type CopyPreferences = {

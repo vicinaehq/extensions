@@ -1,6 +1,6 @@
 import { Action, ActionPanel, Icon, List, LocalStorage } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { copySecret, safely } from "./actions";
+import { copySecret, SHORTCUTS, safely } from "./actions";
 import { errorMessage } from "./cli-contract";
 import { pasteSecret } from "./clipboard";
 import {
@@ -303,6 +303,11 @@ export default function Command() {
 		await pasteSecret(password);
 	}
 
+	async function pasteAndGenerateNext(): Promise<void> {
+		await paste();
+		await generate(settings);
+	}
+
 	async function copyAndGenerateNext(): Promise<void> {
 		await copy();
 		await generate(settings);
@@ -325,8 +330,14 @@ export default function Command() {
 					onAction={() => void safely(paste)}
 				/>
 				<Action
-					title="Copy and Generate Next"
+					title="Paste and Generate Next"
 					icon={Icon.ArrowClockwise}
+					onAction={() => void safely(pasteAndGenerateNext)}
+				/>
+				<Action
+					title="Copy and Generate Next"
+					icon={Icon.CopyClipboard}
+					shortcut={SHORTCUTS.copyAndGenerate}
 					onAction={() => void safely(copyAndGenerateNext)}
 				/>
 				<Action
