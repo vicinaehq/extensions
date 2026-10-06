@@ -7,6 +7,7 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
+import { SHORTCUTS } from "./actions";
 import { clearCache } from "./cache";
 import { errorMessage } from "./cli-contract";
 import { checkAuth, login } from "./pass-cli";
@@ -79,20 +80,25 @@ export default function Command() {
 				}
 				actions={
 					<ActionPanel>
-						<Action
-							title={
-								state === "authenticated"
-									? "Run Login Again"
-									: "Login with pass-cli"
-							}
-							icon={Icon.Globe01}
-							onAction={() => void runLogin()}
-						/>
-						<Action
-							title="Check Authentication"
-							icon={Icon.ArrowClockwise}
-							onAction={() => void refresh()}
-						/>
+						<ActionPanel.Section title="Authentication">
+							<Action
+								title={
+									state === "authenticated"
+										? "Run Login Again"
+										: "Login with pass-cli"
+								}
+								icon={Icon.Globe01}
+								onAction={() => void runLogin()}
+							/>
+						</ActionPanel.Section>
+						<ActionPanel.Section title="Actions">
+							<Action
+								title="Check Authentication"
+								icon={Icon.ArrowClockwise}
+								shortcut={SHORTCUTS.refresh}
+								onAction={() => void refresh()}
+							/>
+						</ActionPanel.Section>
 					</ActionPanel>
 				}
 			/>

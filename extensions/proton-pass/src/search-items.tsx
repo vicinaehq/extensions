@@ -201,154 +201,165 @@ export function ItemDetailView({
 			}
 			actions={
 				<ActionPanel>
-					{detail.username && (
-						<Action
-							title="Copy Username"
-							icon={Icon.Person}
-							shortcut={SHORTCUTS.copyUsername}
-							onAction={() =>
-								void safely(() => copySecret("Username", detail.username ?? ""))
-							}
-						/>
-					)}
-					{detail.username && (
-						<Action
-							title="Paste Username"
-							icon={Icon.Person}
-							onAction={() =>
-								void safely(() => pasteSecret(detail.username ?? ""))
-							}
-						/>
-					)}
-					{detail.email && (
-						<Action
-							title="Copy Email"
-							icon={Icon.Envelope}
-							onAction={() =>
-								void safely(() => copySecret("Email", detail.email ?? ""))
-							}
-						/>
-					)}
-					{detail.email && (
-						<Action
-							title="Paste Email"
-							icon={Icon.Envelope}
-							onAction={() =>
-								void safely(() => pasteSecret(detail.email ?? ""))
-							}
-						/>
-					)}
-					{detail.password && (
-						<Action
-							title="Copy Password"
-							icon={Icon.Key}
-							shortcut={SHORTCUTS.copyPassword}
-							onAction={() =>
-								void safely(() =>
-									copySecret("Password", detail.password ?? "", {
-										sensitive: true,
-									}),
-								)
-							}
-						/>
-					)}
-					{detail.password && (
-						<Action
-							title="Paste Password"
-							icon={Icon.Key}
-							onAction={() =>
-								void safely(() => pasteSecret(detail.password ?? ""))
-							}
-						/>
-					)}
-					{detail.hasTotp && (
-						<Action
-							title="Copy TOTP Code"
-							icon={Icon.Clock}
-							shortcut={SHORTCUTS.copyTotp}
-							onAction={() =>
-								void safely(async () =>
-									copySecret("TOTP code", await getTotp(item), {
-										sensitive: true,
-									}),
-								)
-							}
-						/>
-					)}
-					{detail.hasTotp && (
-						<Action
-							title="Paste TOTP Code"
-							icon={Icon.Clock}
-							onAction={() =>
-								void safely(async () => pasteSecret(await getTotp(item)))
-							}
-						/>
-					)}
-					{detail.hasTotp && (
-						<Action
-							title="Refresh TOTP Code"
-							icon={Icon.ArrowClockwise}
-							onAction={() => void safely(refresh)}
-						/>
-					)}
-					{detail.note && (
-						<Action
-							title="Copy Note"
-							icon={Icon.BlankDocument}
-							shortcut={{ modifiers: ["ctrl", "shift"], key: "n" }}
-							onAction={() =>
-								void safely(() =>
-									copySecret("Note", detail.note ?? "", { concealed: true }),
-								)
-							}
-						/>
-					)}
-					{detail.urls?.map((url, index) => (
-						<Action.OpenInBrowser
-							key={url}
-							title={`Open URL ${index + 1}`}
-							url={url}
-							icon={Icon.Link}
-							shortcut={index === 0 ? SHORTCUTS.openInBrowser : undefined}
-						/>
-					))}
-					{detail.customFields?.map((field) => (
-						<Action
-							key={field.name}
-							title={`Copy ${field.name}`}
-							icon={Icon.CopyClipboard}
-							onAction={() =>
-								void safely(() =>
-									copySecret(field.name, field.value, {
-										concealed: true,
-										sensitive: field.type === "hidden",
-									}),
-								)
-							}
-						/>
-					))}
-					{detail.fields?.map((field) =>
-						field.copy ? (
+					<ActionPanel.Section title="Identity">
+						{detail.username && (
 							<Action
-								key={`copy-${field.title}`}
-								title={`Copy ${field.title}`}
-								icon={Icon.CopyClipboard}
-								shortcut={
-									field.title === "Expiry date"
-										? SHORTCUTS.copyExpiry
-										: undefined
-								}
+								title="Copy Username"
+								icon={Icon.Person}
+								shortcut={SHORTCUTS.copyUsername}
 								onAction={() =>
 									void safely(() =>
-										copySecret(field.title, field.value, {
-											concealed: true,
-											sensitive: field.hidden,
+										copySecret("Username", detail.username ?? ""),
+									)
+								}
+							/>
+						)}
+						{detail.username && (
+							<Action
+								title="Paste Username"
+								icon={Icon.Person}
+								onAction={() =>
+									void safely(() => pasteSecret(detail.username ?? ""))
+								}
+							/>
+						)}
+						{detail.email && (
+							<Action
+								title="Copy Email"
+								icon={Icon.Envelope}
+								onAction={() =>
+									void safely(() => copySecret("Email", detail.email ?? ""))
+								}
+							/>
+						)}
+						{detail.email && (
+							<Action
+								title="Paste Email"
+								icon={Icon.Envelope}
+								onAction={() =>
+									void safely(() => pasteSecret(detail.email ?? ""))
+								}
+							/>
+						)}
+					</ActionPanel.Section>
+					<ActionPanel.Section title="Credentials">
+						{detail.password && (
+							<Action
+								title="Copy Password"
+								icon={Icon.Key}
+								shortcut={SHORTCUTS.copyPassword}
+								onAction={() =>
+									void safely(() =>
+										copySecret("Password", detail.password ?? "", {
+											sensitive: true,
 										}),
 									)
 								}
 							/>
-						) : null,
-					)}
+						)}
+						{detail.password && (
+							<Action
+								title="Paste Password"
+								icon={Icon.Key}
+								onAction={() =>
+									void safely(() => pasteSecret(detail.password ?? ""))
+								}
+							/>
+						)}
+					</ActionPanel.Section>
+					<ActionPanel.Section title="TOTP">
+						{detail.hasTotp && (
+							<Action
+								title="Copy TOTP Code"
+								icon={Icon.Clock}
+								shortcut={SHORTCUTS.copyTotp}
+								onAction={() =>
+									void safely(async () =>
+										copySecret("TOTP code", await getTotp(item), {
+											sensitive: true,
+										}),
+									)
+								}
+							/>
+						)}
+						{detail.hasTotp && (
+							<Action
+								title="Paste TOTP Code"
+								icon={Icon.Clock}
+								onAction={() =>
+									void safely(async () => pasteSecret(await getTotp(item)))
+								}
+							/>
+						)}
+						{detail.hasTotp && (
+							<Action
+								title="Refresh TOTP Code"
+								icon={Icon.ArrowClockwise}
+								shortcut={SHORTCUTS.refresh}
+								onAction={() => void safely(refresh)}
+							/>
+						)}
+					</ActionPanel.Section>
+					<ActionPanel.Section title="Additional">
+						{detail.note && (
+							<Action
+								title="Copy Note"
+								icon={Icon.BlankDocument}
+								shortcut={{ modifiers: ["ctrl", "shift"], key: "n" }}
+								onAction={() =>
+									void safely(() =>
+										copySecret("Note", detail.note ?? "", { concealed: true }),
+									)
+								}
+							/>
+						)}
+						{detail.urls?.map((url, index) => (
+							<Action.OpenInBrowser
+								key={url}
+								title={`Open URL ${index + 1}`}
+								url={url}
+								icon={Icon.Link}
+								shortcut={index === 0 ? SHORTCUTS.openInBrowser : undefined}
+							/>
+						))}
+						{detail.customFields?.map((field) => (
+							<Action
+								key={field.name}
+								title={`Copy ${field.name}`}
+								icon={Icon.CopyClipboard}
+								onAction={() =>
+									void safely(() =>
+										copySecret(field.name, field.value, {
+											concealed: true,
+											sensitive: field.type === "hidden",
+										}),
+									)
+								}
+							/>
+						))}
+						{detail.fields?.map((field) =>
+							field.copy ? (
+								<Action
+									key={`copy-${field.title}`}
+									title={`Copy ${field.title}`}
+									icon={Icon.CopyClipboard}
+									shortcut={
+										field.title === "Expiry date"
+											? SHORTCUTS.copyExpiry
+											: undefined
+									}
+									onAction={() =>
+										void safely(() =>
+											copySecret(field.title, field.value, {
+												concealed: true,
+												sensitive: field.hidden,
+											}),
+										)
+									}
+								/>
+							) : null,
+						)}
+					</ActionPanel.Section>
 				</ActionPanel>
 			}
 		/>
@@ -382,6 +393,7 @@ function ItemActions({
 				key="view-details"
 				title="View Details"
 				icon={Icon.Eye}
+				shortcut={SHORTCUTS.viewDetails}
 				target={<ItemDetailView item={item} vaultRole={vaultRole} />}
 			/>
 		),
@@ -475,6 +487,21 @@ function ItemActions({
 	};
 
 	const ordered = orderedActionIds(available);
+	const primary = ordered.slice(0, 2);
+	const rest = ordered.slice(2);
+	const details = rest.filter((id) => id === "view-details");
+	const credentials = rest.filter((id) =>
+		[
+			"copy-username",
+			"paste-username",
+			"copy-password",
+			"paste-password",
+		].includes(id),
+	);
+	const totp = rest.filter((id) => ["copy-totp", "paste-totp"].includes(id));
+	const utility = rest.filter((id) => id === "open-browser");
+	const renderSection = (ids: ActionId[]) => ids.map((id) => render[id]);
+
 	const findFallback = !hasIdentity ? (
 		<Action
 			key="find-identity"
@@ -493,8 +520,30 @@ function ItemActions({
 
 	return (
 		<ActionPanel>
-			{ordered.map((id) => render[id])}
-			{findFallback}
+			<ActionPanel.Section title="Primary">
+				{renderSection(primary)}
+			</ActionPanel.Section>
+			{details.length > 0 && (
+				<ActionPanel.Section title="Details">
+					{renderSection(details)}
+				</ActionPanel.Section>
+			)}
+			{credentials.length > 0 && (
+				<ActionPanel.Section title="Credentials">
+					{renderSection(credentials)}
+				</ActionPanel.Section>
+			)}
+			{totp.length > 0 && (
+				<ActionPanel.Section title="TOTP">
+					{renderSection(totp)}
+				</ActionPanel.Section>
+			)}
+			{utility.length > 0 || findFallback ? (
+				<ActionPanel.Section>
+					{renderSection(utility)}
+					{findFallback}
+				</ActionPanel.Section>
+			) : null}
 		</ActionPanel>
 	);
 }

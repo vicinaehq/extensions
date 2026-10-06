@@ -6,7 +6,7 @@ import {
 	List,
 } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { copySecret, safely } from "./actions";
+import { copySecret, SHORTCUTS, safely } from "./actions";
 import { errorMessage } from "./cli-contract";
 import { pasteSecret } from "./clipboard";
 import {
@@ -259,43 +259,46 @@ export default function Command() {
 	// (Paste Password) is the primary one and owns Enter.
 	const actionPanel = (
 		<ActionPanel>
-			<Action
-				title="Paste Password"
-				icon={Icon.CopyClipboard}
-				onAction={() => void safely(paste)}
-			/>
-			<Action
-				title="Copy and Generate Next"
-				icon={Icon.ArrowClockwise}
-				onAction={() => void safely(copyAndGenerateNext)}
-			/>
-			<Action
-				title="Generate New Password"
-				icon={Icon.Shuffle}
-				shortcut={{ key: "r", modifiers: ["ctrl"] }}
-				onAction={() => void safely(() => generate(settings))}
-			/>
-			<Action
-				title={showPassword ? "Hide Password" : "Show Password"}
-				icon={showPassword ? Icon.EyeDisabled : Icon.Eye}
-				shortcut={{ key: "y", modifiers: ["ctrl"] }}
-				onAction={() => setShowPassword((value) => !value)}
-			/>
-			<Action
-				title={
-					settings.type === "random"
-						? "Switch to Passphrase"
-						: "Switch to Random Password"
-				}
-				icon={Icon.Switch}
-				shortcut={{ key: "t", modifiers: ["ctrl"] }}
-				onAction={() =>
-					updateSettings((current) => ({
-						...current,
-						type: current.type === "random" ? "passphrase" : "random",
-					}))
-				}
-			/>
+			<ActionPanel.Section title="Actions">
+				<Action
+					title="Paste Password"
+					icon={Icon.CopyClipboard}
+					onAction={() => void safely(paste)}
+				/>
+				<Action
+					title="Copy and Generate Next"
+					icon={Icon.ArrowClockwise}
+					shortcut={SHORTCUTS.copyAndGenerate}
+					onAction={() => void safely(copyAndGenerateNext)}
+				/>
+				<Action
+					title="Generate New Password"
+					icon={Icon.Shuffle}
+					shortcut={{ key: "r", modifiers: ["ctrl"] }}
+					onAction={() => void safely(() => generate(settings))}
+				/>
+				<Action
+					title={showPassword ? "Hide Password" : "Show Password"}
+					icon={showPassword ? Icon.EyeDisabled : Icon.Eye}
+					shortcut={{ key: "y", modifiers: ["ctrl"] }}
+					onAction={() => setShowPassword((value) => !value)}
+				/>
+				<Action
+					title={
+						settings.type === "random"
+							? "Switch to Passphrase"
+							: "Switch to Random Password"
+					}
+					icon={Icon.Switch}
+					shortcut={{ key: "t", modifiers: ["ctrl"] }}
+					onAction={() =>
+						updateSettings((current) => ({
+							...current,
+							type: current.type === "random" ? "passphrase" : "random",
+						}))
+					}
+				/>
+			</ActionPanel.Section>
 			{settings.type === "random" ? (
 				<ActionPanel.Section title="Random Password Settings">
 					{amountActions("length", "Length", settings.length)}

@@ -149,28 +149,33 @@ export default function Command() {
 								}
 								actions={
 									<ActionPanel>
-										<Action
-											title="Paste TOTP Code"
-											icon={Icon.Clock}
-											onAction={() =>
-												void safely(async () =>
-													pasteSecret(
-														codes[totpItemKey(item)] ?? (await getTotp(item)),
-													),
-												)
-											}
-										/>
-										<Action
-											title="Copy TOTP Code"
-											icon={Icon.CopyClipboard}
-											shortcut={SHORTCUTS.copyTotp}
-											onAction={() => void copy(item)}
-										/>
-										<Action
-											title="Refresh Codes"
-											icon={Icon.ArrowClockwise}
-											onAction={() => void refresh()}
-										/>
+										<ActionPanel.Section title="Current">
+											<Action
+												title="Paste TOTP Code"
+												icon={Icon.Clock}
+												onAction={() =>
+													void safely(async () =>
+														pasteSecret(
+															codes[totpItemKey(item)] ?? (await getTotp(item)),
+														),
+													)
+												}
+											/>
+											<Action
+												title="Copy TOTP Code"
+												icon={Icon.CopyClipboard}
+												shortcut={SHORTCUTS.copyTotp}
+												onAction={() => void copy(item)}
+											/>
+										</ActionPanel.Section>
+										<ActionPanel.Section title="Actions">
+											<Action
+												title="Refresh Codes"
+												icon={Icon.ArrowClockwise}
+												shortcut={SHORTCUTS.refresh}
+												onAction={() => void refresh()}
+											/>
+										</ActionPanel.Section>
 									</ActionPanel>
 								}
 							/>

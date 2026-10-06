@@ -124,94 +124,106 @@ function VaultItems({ vault }: { vault: Vault }) {
 						}
 						actions={
 							<ActionPanel>
-								<Action.Push
-									title="View Details"
-									icon={Icon.Eye}
-									target={<ItemDetailView item={item} />}
-								/>
-								{item.username || item.email ? (
-									<Action
-										title={item.username ? "Copy Username" : "Copy Email"}
-										icon={item.username ? Icon.Person : Icon.Envelope}
-										shortcut={SHORTCUTS.copyUsername}
-										onAction={() =>
-											void safely(() =>
-												copySecret(
-													item.username ? "Username" : "Email",
-													item.username ?? item.email ?? "",
-												),
-											)
-										}
+								<ActionPanel.Section title="Details">
+									<Action.Push
+										title="View Details"
+										icon={Icon.Eye}
+										shortcut={SHORTCUTS.viewDetails}
+										target={<ItemDetailView item={item} />}
 									/>
-								) : (
-									<Action
-										title="Find Username or Email"
-										icon={Icon.Person}
-										onAction={() =>
-											void guardAction(
-												"Unable to copy username or email",
-												async () => {
-													const detail = await viewItem(item);
-													const value = detail.username ?? detail.email;
-													if (!value)
-														throw new Error(
-															"This item has no username or email.",
+								</ActionPanel.Section>
+								<ActionPanel.Section title="Credentials">
+									{item.username || item.email ? (
+										<Action
+											title={item.username ? "Copy Username" : "Copy Email"}
+											icon={item.username ? Icon.Person : Icon.Envelope}
+											shortcut={SHORTCUTS.copyUsername}
+											onAction={() =>
+												void safely(() =>
+													copySecret(
+														item.username ? "Username" : "Email",
+														item.username ?? item.email ?? "",
+													),
+												)
+											}
+										/>
+									) : (
+										<Action
+											title="Find Username or Email"
+											icon={Icon.Person}
+											onAction={() =>
+												void guardAction(
+													"Unable to copy username or email",
+													async () => {
+														const detail = await viewItem(item);
+														const value = detail.username ?? detail.email;
+														if (!value)
+															throw new Error(
+																"This item has no username or email.",
+															);
+														await copySecret(
+															detail.username ? "Username" : "Email",
+															value,
 														);
-													await copySecret(
-														detail.username ? "Username" : "Email",
-														value,
-													);
-												},
-											)
-										}
-									/>
-								)}
-								{item.username && item.email && (
+													},
+												)
+											}
+										/>
+									)}
+									{item.username && item.email && (
+										<Action
+											title="Copy Email"
+											icon={Icon.Envelope}
+											onAction={() =>
+												void safely(() => copySecret("Email", item.email ?? ""))
+											}
+										/>
+									)}
 									<Action
-										title="Copy Email"
-										icon={Icon.Envelope}
+										title="Copy Password"
+										icon={Icon.Key}
+										shortcut={SHORTCUTS.copyPassword}
 										onAction={() =>
-											void safely(() => copySecret("Email", item.email ?? ""))
-										}
-									/>
-								)}
-								<Action
-									title="Copy Password"
-									icon={Icon.Key}
-									shortcut={SHORTCUTS.copyPassword}
-									onAction={() =>
-										void guardAction("Unable to copy password", async () => {
-											const detail = await viewItem(item);
-											if (!detail.password)
-												throw new Error("This item has no password.");
-											await copySecret("Password", detail.password, {
-												sensitive: true,
-											});
-										})
-									}
-								/>
-								{item.hasTotp && (
-									<Action
-										title="Copy TOTP Code"
-										icon={Icon.Clock}
-										shortcut={SHORTCUTS.copyTotp}
-										onAction={() =>
-											void guardAction("Unable to copy TOTP code", async () => {
-												await copySecret("TOTP code", await getTotp(item), {
+											void guardAction("Unable to copy password", async () => {
+												const detail = await viewItem(item);
+												if (!detail.password)
+													throw new Error("This item has no password.");
+												await copySecret("Password", detail.password, {
 													sensitive: true,
 												});
 											})
 										}
 									/>
-								)}
-								{primaryUrl(item.urls) && (
-									<Action.OpenInBrowser
-										title="Open in Browser"
-										icon={Icon.Link}
-										shortcut={SHORTCUTS.openInBrowser}
-										url={primaryUrl(item.urls) ?? ""}
-									/>
-								)}
+								</ActionPanel.Section>
+								<ActionPanel.Section title="TOTP">
+									{item.hasTotp && (
+										<Action
+											title="Copy TOTP Code"
+											icon={Icon.Clock}
+											shortcut={SHORTCUTS.copyTotp}
+											onAction={() =>
+												void guardAction(
+													"Unable to copy TOTP code",
+													async () => {
+														await copySecret("TOTP code", await getTotp(item), {
+															sensitive: true,
+														});
+													},
+												)
+											}
+										/>
+									)}
+								</ActionPanel.Section>
+								<ActionPanel.Section>
+									{primaryUrl(item.urls) && (
+										<Action.OpenInBrowser
+											title="Open in Browser"
+											icon={Icon.Link}
+											shortcut={SHORTCUTS.openInBrowser}
+											url={primaryUrl(item.urls) ?? ""}
+										/>
+									)}
+								</ActionPanel.Section>
 							</ActionPanel>
 						}
 					/>
@@ -304,25 +316,32 @@ export default function Command() {
 						}}
 						actions={
 							<ActionPanel>
-								<Action.Push
-									title="View Items"
-									icon={Icon.Folder}
-									target={<VaultItems vault={vault} />}
-								/>
-								<Action
-									title="Copy Vault Name"
-									icon={Icon.CopyClipboard}
-									onAction={() =>
-										void safely(() => copySecret("Vault name", vault.name))
-									}
-								/>
-								<Action
-									title="Copy Share ID"
-									icon={Icon.CopyClipboard}
-									onAction={() =>
-										void safely(() => copySecret("Share ID", vault.shareId))
-									}
-								/>
+								<ActionPanel.Section title="Vault">
+									<Action.Push
+										title="View Items"
+										icon={Icon.Folder}
+										shortcut={SHORTCUTS.viewItems}
+										target={<VaultItems vault={vault} />}
+									/>
+								</ActionPanel.Section>
+								<ActionPanel.Section title="Copy">
+									<Action
+										title="Copy Vault Name"
+										icon={Icon.CopyClipboard}
+										shortcut={SHORTCUTS.copyVaultName}
+										onAction={() =>
+											void safely(() => copySecret("Vault name", vault.name))
+										}
+									/>
+									<Action
+										title="Copy Share ID"
+										icon={Icon.CopyClipboard}
+										shortcut={SHORTCUTS.copyShareId}
+										onAction={() =>
+											void safely(() => copySecret("Share ID", vault.shareId))
+										}
+									/>
+								</ActionPanel.Section>
 							</ActionPanel>
 						}
 					/>
