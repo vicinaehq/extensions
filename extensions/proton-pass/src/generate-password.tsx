@@ -7,7 +7,7 @@ import {
 	LocalStorage,
 } from "@vicinae/api";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { copySecret, SHORTCUTS, safely } from "./actions";
+import { copySecret, safely } from "./actions";
 import { errorMessage } from "./cli-contract";
 import { pasteSecret } from "./clipboard";
 import {
@@ -374,7 +374,6 @@ export default function Command() {
 				<Action
 					title="Copy and Generate Next"
 					icon={Icon.ArrowClockwise}
-					shortcut={SHORTCUTS.copyAndGenerate}
 					onAction={() => void safely(copyAndGenerateNext)}
 				/>
 				<Action

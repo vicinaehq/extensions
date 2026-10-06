@@ -10,12 +10,12 @@ This port is an independent Vicinae implementation informed by the MIT-licensed 
 - Browse vaults and their items; each vault shows its role and live item count.
 - Colour-coded vaults: vaults are coloured by **role** by default (owner=yellow, manager=blue, editor=green, viewer=secondary, with role icons), matching the Raycast extension. Override individual vaults with the **Vault colours** preference, e.g. `Personal=green, Work=#1E90FF`. (Proton's own per-vault colours are not exposed by `pass-cli`.)
 - Open an on-demand item details view with masked secrets, URLs, notes and custom fields, plus type-specific fields (card number, expiry, security code, PIN for cards; identity, Wi-Fi and SSH-key fields), with secrets masked. Useful typed fields (card number, expiry, PIN, Wi-Fi password, SSH keys, identity email/phone) each get their own **Copy** action.
-- Copy or paste usernames, emails, passwords and TOTP codes on demand. Password paste is the default Enter action for login items; other item types fall back to their next available action.
+- Copy or paste usernames, emails, passwords and TOTP codes on demand. Password paste is the default Enter action for login items with a detected password; other item types or passwordless logins fall back to their next available action.
 - Select any listed item in the TOTP command; the extension then asks `pass-cli` for that item's code, rather than requiring the user to know share or item IDs.
 - Generate configurable random passwords: 8–128 characters, numbers, uppercase letters and symbols.
 - Generate configurable passphrases: 3–10 words, capitalisation, numbers and separators; the last-used generator settings are remembered locally for the next session.
 - Score generated passwords with the real `pass-cli password score` (Strong/Good/Weak/Vulnerable) and list the specific weaknesses it finds, with a colour-coded strength indicator.
-- Keyboard shortcuts for common actions: copy password (Ctrl+Shift+C), copy username (Ctrl+Shift+U), copy TOTP (Ctrl+Shift+T), view details (Ctrl+Shift+D), view vault items (Ctrl+Shift+V), refresh (Ctrl+Shift+R), copy-and-generate-next (Ctrl+Shift+G), and open in browser (Ctrl+Shift+O).
+- Keyboard shortcuts for common actions: copy password (Ctrl+Shift+C), copy username (Ctrl+Shift+U), copy TOTP (Ctrl+Shift+T), view details (Ctrl+Shift+D), view vault items (Ctrl+Shift+V), refresh (Ctrl+Shift+R), and open in browser (Ctrl+Shift+O). In List action panels, Vicinae reserves Enter and Shift+Enter for the first two actions; those promoted actions use the built-in bindings.
 - Choose your primary and secondary actions for Search items, so Enter does what you want (view, paste, copy or open).
 - Close the launcher with a brief HUD after copying a value (on by default, so you return to your previous window; can be turned off in preferences).
 - Display live TOTP codes with a circular progress ring, a 30-second countdown and automatic refresh.
@@ -54,9 +54,9 @@ Set the extension's `pass-cli path` preference to the absolute path when Vicinae
 ## Commands
 
 - **Search Proton Pass Items** — searches every vault, filters by vault, opens item details and exposes copy/paste/open actions with keyboard shortcuts. The primary and secondary actions are configurable in preferences; new installations default to **Paste Password** for login items.
-- **List Proton Pass Vaults** — opens a vault, then searches its items, sharing the same detail view and actions as Search.
-- **Get Proton Pass TOTP Code** — lists every item; select one and choose **Paste TOTP Code** or **Copy TOTP Code**.
-- **Generate Proton Pass Password** — a generated password item with a real `pass-cli` strength score and weakness list. Settings are actions (increase/decrease length or words with Ctrl+= / Ctrl+-, toggle character classes, cycle the separator, switch type), the type is a search-bar dropdown, and Enter pastes the password. **Copy and Generate Next** remains available, with Ctrl+Shift+G; Ctrl+R generates a new password.
+- **List Proton Pass Vaults** — opens a vault, then searches its items with the shared detail view and grouped vault-item actions.
+- **Get Proton Pass TOTP Code** — lists Proton Pass items that advertise TOTP; select one and choose **Paste TOTP Code** or **Copy TOTP Code**.
+- **Generate Proton Pass Password** — a generated password item with a real `pass-cli` strength score and weakness list. Settings are actions (increase/decrease length or words with Ctrl+= / Ctrl+-, toggle character classes, cycle the separator, switch type), the type is a search-bar dropdown, and Enter pastes the password. **Copy and Generate Next** remains available as the second action (Shift+Enter); Ctrl+R generates a new password.
 - **Login to Proton Pass** — checks the CLI session and starts browser login when required.
 
 Run the deterministic CLI contract tests with:
