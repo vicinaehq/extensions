@@ -1,6 +1,5 @@
 import { execFile } from "node:child_process";
-import { constants } from "node:fs";
-import { access, mkdir, readFile, rm } from "node:fs/promises";
+import { mkdir, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -142,13 +141,4 @@ export async function deleteEnteAuthExport(): Promise<string> {
 	const filePath = getExportFilePath();
 	await rm(filePath, { force: true });
 	return filePath;
-}
-
-export async function exportFileExists(): Promise<boolean> {
-	try {
-		await access(getExportFilePath(), constants.F_OK);
-		return true;
-	} catch {
-		return false;
-	}
 }

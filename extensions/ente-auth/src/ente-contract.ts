@@ -140,13 +140,6 @@ export function snapshotSecret(
 	};
 }
 
-export function snapshotSecrets(
-	secrets: EnteSecret[],
-	timestamp = Date.now(),
-): TotpSnapshot[] {
-	return secrets.map((secret) => snapshotSecret(secret, timestamp));
-}
-
 /** Parse the human-readable output of `ente account list`. */
 export function parseEnteAccounts(accountList: string): EnteAccount[] {
 	const accounts: EnteAccount[] = [];

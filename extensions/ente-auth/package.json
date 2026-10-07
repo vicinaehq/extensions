@@ -57,7 +57,7 @@
       "type": "textfield",
       "required": false,
       "title": "Ente CLI export directory",
-      "description": "Directory containing ente_auth.txt. Defaults to ~/Documents/ente.",
+      "description": "Directory containing ente_auth.txt (default: ~/Documents/ente); exporting also updates the Ente Auth account's CLI ExportDir to this directory.",
       "default": ""
     },
     {

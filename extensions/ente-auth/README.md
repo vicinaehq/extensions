@@ -64,7 +64,6 @@ The **Primary action** preference matches Raycast: it can put **Paste current co
 Keyboard shortcuts:
 
 - Enter — Paste current code (default primary action)
-- Shift+Enter — Copy current code when Paste is primary, or Paste current code when Copy is primary
 - Ctrl+Shift+C — Copy current code
 - Ctrl+Shift+N — Copy next code
 - Ctrl+Shift+P — Paste next code
