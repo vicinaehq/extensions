@@ -146,58 +146,114 @@ export function createLactClient(executeFile = execFile) {
 	};
 	/**
 	 * LACT resets the active profile to Default when auto-switch is disabled.
-	 * Restore the profile that was active before turning it off.
+	 * Restore and verify the profile that was active before turning it off.
 	 *
 	 * @param {boolean} enabled
-	 * @returns {Promise<{status: ReturnType<typeof parseAutoSwitchStatus>, currentProfile: string}>}
+	 * @returns {Promise<{status: ReturnType<typeof parseAutoSwitchStatus>, currentProfile: string, warning: string | null}>}
 	 */
 	const setAutoSwitchEnabledPreservingProfile = async (enabled) => {
 		const previousProfile = enabled ? null : await getCurrentProfile();
-		let toggleError = null;
+		const commandErrors = /** @type {string[]} */ ([]);
+		/** @param {unknown} error */
+		const rememberError = (error) => {
+			commandErrors.push(
+				error instanceof Error ? error.message : String(error),
+			);
+		};
+
 		try {
 			await setAutoSwitchEnabled(enabled);
 		} catch (error) {
-			toggleError = error instanceof Error ? error.message : String(error);
+			rememberError(error);
 		}
 
-		let restoreError = null;
-		if (!enabled && previousProfile !== null && previousProfile !== "Default") {
+		if (
+			!enabled &&
+			previousProfile !== null &&
+			(previousProfile !== "Default" || commandErrors.length > 0)
+		) {
 			try {
 				await setProfile(previousProfile);
 			} catch (error) {
-				restoreError = error instanceof Error ? error.message : String(error);
+				rememberError(error);
 			}
 		}
 
-		const [status, currentProfile] = await Promise.all([
-			getAutoSwitchStatus(),
-			getCurrentProfile(),
-		]);
+		const readState = async () => {
+			const [status, profileResult] = await Promise.all([
+				getAutoSwitchStatus(),
+				getCurrentProfile()
+					.then((currentProfile) => ({ currentProfile, error: null }))
+					.catch((error) => ({
+						currentProfile: null,
+						error: error instanceof Error ? error.message : String(error),
+					})),
+			]);
+			return {
+				currentProfile: profileResult.currentProfile,
+				profileError: profileResult.error,
+				status,
+			};
+		};
+		/**
+		 * @param {{currentProfile: string | null, profileError: string | null, status: ReturnType<typeof parseAutoSwitchStatus>}} state
+		 */
+		const isVerified = (state) =>
+			state.currentProfile !== null &&
+			state.status.available &&
+			state.status.enabled === enabled &&
+			(enabled || state.currentProfile === previousProfile);
+
+		let state = await readState();
+		if (!enabled && !isVerified(state) && previousProfile !== null) {
+			try {
+				await setProfile(previousProfile);
+			} catch (error) {
+				rememberError(error);
+			}
+			state = await readState();
+		}
 
 		const verificationErrors = [];
-		if (!status.available) {
+		if (!state.status.available) {
 			verificationErrors.push(
-				`Could not confirm automatic-switch status: ${status.error}`,
+				`Could not confirm automatic-switch status: ${state.status.error}`,
 			);
-		} else if (status.enabled !== enabled) {
+		} else if (state.status.enabled !== enabled) {
 			verificationErrors.push(
-				`LACT reports automatic switching ${status.enabled ? "enabled" : "disabled"}; expected ${enabled ? "enabled" : "disabled"}.`,
+				`LACT reports automatic switching ${state.status.enabled ? "enabled" : "disabled"}; expected ${enabled ? "enabled" : "disabled"}.`,
 			);
 		}
-		if (!enabled && currentProfile !== previousProfile) {
+		if (state.currentProfile === null) {
 			verificationErrors.push(
-				`Could not restore the previously active profile (${previousProfile}); LACT reports ${currentProfile}.`,
+				`Could not read LACT's current profile: ${state.profileError ?? "unknown error"}`,
+			);
+		} else if (!enabled && state.currentProfile !== previousProfile) {
+			verificationErrors.push(
+				`Could not restore the previously active profile (${previousProfile}); LACT reports ${state.currentProfile}.`,
 			);
 		}
 		if (verificationErrors.length > 0) {
-			const commandErrors = [toggleError, restoreError].filter(Boolean);
 			if (commandErrors.length > 0) {
-				verificationErrors.push(`Command errors: ${commandErrors.join("; ")}`);
+				verificationErrors.push(
+					`Command errors: ${[...new Set(commandErrors)].join("; ")}`,
+				);
 			}
 			throw new Error(verificationErrors.join(" "));
 		}
 
-		return { status, currentProfile };
+		if (!state.status.available || state.currentProfile === null) {
+			throw new Error("LACT did not return verifiable profile-switch state.");
+		}
+
+		return {
+			status: state.status,
+			currentProfile: state.currentProfile,
+			warning:
+				commandErrors.length > 0
+					? [...new Set(commandErrors)].join("; ")
+					: null,
+		};
 	};
 
 	return {

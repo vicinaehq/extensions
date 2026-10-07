@@ -118,15 +118,25 @@ export default function LactProfiles() {
 		const requestedState = !autoSwitchStatus.enabled;
 
 		try {
-			const { status: confirmedStatus, currentProfile } =
-				await setAutoSwitchEnabledPreservingProfile(requestedState);
+			const {
+				status: confirmedStatus,
+				currentProfile,
+				warning,
+			} = await setAutoSwitchEnabledPreservingProfile(requestedState);
 			setAutoSwitchStatus(confirmedStatus);
 			setActiveProfile(currentProfile);
 
 			showToast({
-				title: requestedState
-					? "Automatic profile switching enabled"
-					: "Automatic profile switching disabled",
+				title: warning
+					? "Auto-switch state verified"
+					: requestedState
+						? "Automatic profile switching enabled"
+						: "Automatic profile switching disabled",
+				message: warning
+					? requestedState
+						? `Readback confirms automatic switching is enabled. LACT reported: ${warning}`
+						: `Readback confirms automatic switching is disabled and the previous profile (“${currentProfile}”) is restored. LACT reported: ${warning}`
+					: undefined,
 				style: Toast.Style.Success,
 			});
 		} catch (toggleError) {

@@ -293,6 +293,7 @@ test("disabling auto-switch restores the previously active profile", async () =>
 	assert.deepEqual(await client.setAutoSwitchEnabledPreservingProfile(false), {
 		status: { available: true, enabled: false },
 		currentProfile: "Gaming",
+		warning: null,
 	});
 	assert.deepEqual(
 		calls.map(({ command, args }) => [command, args]),
@@ -330,6 +331,7 @@ test("restores the active profile when disabling auto-switch reports an error", 
 	assert.deepEqual(await client.setAutoSwitchEnabledPreservingProfile(false), {
 		status: { available: true, enabled: false },
 		currentProfile: "Gaming",
+		warning: "command response lost",
 	});
 	assert.deepEqual(
 		calls.map(({ command, args }) => [command, args]),
@@ -340,6 +342,85 @@ test("restores the active profile when disabling auto-switch reports an error", 
 			["lact", ["cli", "profile", "auto-switch", "get"]],
 			["lact", ["cli", "profile", "get"]],
 		],
+	);
+});
+
+test("retries restoring the active profile after a transient failure", async () => {
+	const calls = [];
+	const restoreError = Object.assign(new Error("write response lost"), {
+		code: 1,
+	});
+	const responses = [
+		{ stdout: "Gaming\n" },
+		{ stdout: "" },
+		{ error: restoreError, stderr: "temporary restore failure" },
+		{ stdout: "disabled\n" },
+		{ stdout: "Default\n" },
+		{ stdout: "" },
+		{ stdout: "disabled\n" },
+		{ stdout: "Gaming\n" },
+	];
+	const executeFile = (command, args, _options, callback) => {
+		calls.push({ command, args: [...args] });
+		const response = responses.shift();
+		callback(
+			response.error ?? null,
+			response.stdout ?? "",
+			response.stderr ?? "",
+		);
+	};
+	const client = createLactClient(executeFile);
+
+	assert.deepEqual(await client.setAutoSwitchEnabledPreservingProfile(false), {
+		status: { available: true, enabled: false },
+		currentProfile: "Gaming",
+		warning: "temporary restore failure",
+	});
+	assert.deepEqual(
+		calls.map(({ command, args }) => [command, args]),
+		[
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "auto-switch", "disable"]],
+			["lact", ["cli", "profile", "set", "Gaming"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "get"]],
+			["lact", ["cli", "profile", "set", "Gaming"]],
+			["lact", ["cli", "profile", "auto-switch", "get"]],
+			["lact", ["cli", "profile", "get"]],
+		],
+	);
+});
+
+test("reports an unrecovered profile restore failure", async () => {
+	const firstRestoreError = Object.assign(new Error("first failure"), {
+		code: 1,
+	});
+	const retryRestoreError = Object.assign(new Error("retry failure"), {
+		code: 1,
+	});
+	const responses = [
+		{ stdout: "Gaming\n" },
+		{ stdout: "" },
+		{ error: firstRestoreError, stderr: "temporary restore failure" },
+		{ stdout: "disabled\n" },
+		{ stdout: "Default\n" },
+		{ error: retryRestoreError, stderr: "profile restore failed" },
+		{ stdout: "disabled\n" },
+		{ stdout: "Default\n" },
+	];
+	const executeFile = (_command, _args, _options, callback) => {
+		const response = responses.shift();
+		callback(
+			response.error ?? null,
+			response.stdout ?? "",
+			response.stderr ?? "",
+		);
+	};
+	const client = createLactClient(executeFile);
+
+	await assert.rejects(
+		client.setAutoSwitchEnabledPreservingProfile(false),
+		/Could not restore the previously active profile \(Gaming\); LACT reports Default\. Command errors: temporary restore failure; profile restore failed/,
 	);
 });
 
@@ -355,6 +436,7 @@ test("disabling auto-switch leaves the Default profile in place", async () => {
 	assert.deepEqual(await client.setAutoSwitchEnabledPreservingProfile(false), {
 		status: { available: true, enabled: false },
 		currentProfile: "Default",
+		warning: null,
 	});
 	assert.deepEqual(
 		calls.map(({ command, args }) => [command, args]),
@@ -379,6 +461,7 @@ test("enabling auto-switch confirms the resulting status and profile", async () 
 	assert.deepEqual(await client.setAutoSwitchEnabledPreservingProfile(true), {
 		status: { available: true, enabled: true },
 		currentProfile: "Gaming",
+		warning: null,
 	});
 	assert.deepEqual(
 		calls.map(({ command, args }) => [command, args]),
