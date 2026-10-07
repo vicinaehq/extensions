@@ -35,10 +35,10 @@ function TotpListDetail({
 }) {
 	const identity = item.username ?? item.email ?? "—";
 	const url = item.urls?.[0];
-	const currentText = refreshError
-		? "Unavailable"
-		: code
-			? { value: code, color: totpTimerColor(remaining) }
+	const currentText = code
+		? { value: code, color: totpTimerColor(remaining) }
+		: refreshError
+			? "Unavailable"
 			: "Refreshing…";
 	return (
 		<List.Item.Detail

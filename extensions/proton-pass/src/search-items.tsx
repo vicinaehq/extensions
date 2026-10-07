@@ -101,9 +101,13 @@ export function ItemDetailView({
 
 	const identity = detail.username ?? detail.email;
 	const identityTitle = detail.username ? "Username" : "Email";
-	const currentTotpText = refreshError
-		? "Unavailable"
-		: (currentTotp ?? (refreshing ? "Refreshing…" : "Unavailable"));
+	const currentTotpText = currentTotp
+		? { value: currentTotp, color: totpTimerColor(remaining) }
+		: refreshError
+			? "Unavailable"
+			: refreshing
+				? "Refreshing…"
+				: "Unavailable";
 	const markdownLines = [`# ${escapeMarkdown(detail.title)}`];
 	if (identity)
 		markdownLines.push(`**${identityTitle}:** ${escapeMarkdown(identity)}`);
@@ -192,7 +196,8 @@ function ItemActions({
 	const identityTitle = username ? "Username" : "Email";
 	const hasIdentity = Boolean(identity);
 	const isLogin = item.type === "login";
-	const passwordAvailable = isLogin && (!detail || Boolean(detail.password));
+	const passwordAvailable =
+		isLogin && (detail ? Boolean(detail.password) : item.hasPassword === true);
 	const url = primaryUrl(detail?.urls ?? item.urls);
 	const available: ActionId[] = [];
 	if (passwordAvailable) available.push("paste-password");
