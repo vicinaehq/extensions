@@ -416,6 +416,16 @@ export default function Command() {
 												)
 											}
 										/>
+										<Action
+											title="Paste Next Code"
+											icon={Icon.Key}
+											shortcut={SHORTCUTS.pasteNext}
+											onAction={() =>
+												void guardAction("Unable to paste next code", () =>
+													pasteCode(snapshot.next),
+												)
+											}
+										/>
 									</ActionPanel.Section>
 									<ActionPanel.Section>
 										{details}
