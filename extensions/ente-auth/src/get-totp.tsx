@@ -209,22 +209,22 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 					</ActionPanel.Section>
 					<ActionPanel.Section title="Next">
 						<Action
-							title="Copy Next Code"
-							icon={Icon.CopyClipboard}
-							shortcut={SHORTCUTS.copyNext}
-							onAction={() =>
-								void guardAction("Unable to copy next code", () =>
-									copyCode("Next code", current.next),
-								)
-							}
-						/>
-						<Action
 							title="Paste Next Code"
 							icon={Icon.Key}
 							shortcut={SHORTCUTS.pasteNext}
 							onAction={() =>
 								void guardAction("Unable to paste next code", () =>
 									pasteCode(current.next),
+								)
+							}
+						/>
+						<Action
+							title="Copy Next Code"
+							icon={Icon.CopyClipboard}
+							shortcut={SHORTCUTS.copyNext}
+							onAction={() =>
+								void guardAction("Unable to copy next code", () =>
+									copyCode("Next code", current.next),
 								)
 							}
 						/>
@@ -407,22 +407,22 @@ export default function Command() {
 									</ActionPanel.Section>
 									<ActionPanel.Section title="Next">
 										<Action
-											title="Copy Next Code"
-											icon={Icon.CopyClipboard}
-											shortcut={SHORTCUTS.copyNext}
-											onAction={() =>
-												void guardAction("Unable to copy next code", () =>
-													copyCode("Next code", snapshot.next),
-												)
-											}
-										/>
-										<Action
 											title="Paste Next Code"
 											icon={Icon.Key}
 											shortcut={SHORTCUTS.pasteNext}
 											onAction={() =>
 												void guardAction("Unable to paste next code", () =>
 													pasteCode(snapshot.next),
+												)
+											}
+										/>
+										<Action
+											title="Copy Next Code"
+											icon={Icon.CopyClipboard}
+											shortcut={SHORTCUTS.copyNext}
+											onAction={() =>
+												void guardAction("Unable to copy next code", () =>
+													copyCode("Next code", snapshot.next),
 												)
 											}
 										/>
