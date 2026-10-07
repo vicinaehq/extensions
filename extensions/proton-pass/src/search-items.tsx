@@ -409,6 +409,16 @@ function ItemActions({
 				/>
 			))}
 			{detail.fields?.map((field) =>
+				field.title === "Card number" ? (
+					<Action
+						key="paste-card-number"
+						title="Paste Card Number"
+						icon={Icon.CreditCard}
+						onAction={() => void safely(() => pasteSecret(field.value))}
+					/>
+				) : null,
+			)}
+			{detail.fields?.map((field) =>
 				field.copy ? (
 					<Action
 						key={`field-${field.title}`}
