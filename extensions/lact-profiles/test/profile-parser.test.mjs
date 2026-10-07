@@ -8,7 +8,10 @@ import {
 	parseCurrentProfile,
 	parseProfileList,
 } from "../src/profile-parser.mjs";
-import { shouldRenderAutoSwitchSection } from "../src/profile-view-model.mjs";
+import {
+	createInFlightMutationGuard,
+	shouldRenderAutoSwitchSection,
+} from "../src/profile-view-model.mjs";
 
 test("declares Vicinae's generated JavaScript bundle as CommonJS", () => {
 	const manifest = JSON.parse(
@@ -27,6 +30,48 @@ test("keeps the command title distinct from its extension title", () => {
 test("keeps the settings row out of the initial profile selection", () => {
 	assert.equal(shouldRenderAutoSwitchSection(true), false);
 	assert.equal(shouldRenderAutoSwitchSection(false), true);
+});
+
+test("serializes profile mutations and releases the guard after completion", async () => {
+	const runExclusive = createInFlightMutationGuard();
+	let releaseFirst;
+	const firstOperationCanFinish = new Promise((resolve) => {
+		releaseFirst = resolve;
+	});
+	let operationCount = 0;
+
+	const first = runExclusive(async () => {
+		operationCount += 1;
+		await firstOperationCanFinish;
+	});
+	assert.equal(
+		await runExclusive(async () => {
+			operationCount += 1;
+		}),
+		false,
+	);
+	assert.equal(operationCount, 1);
+
+	releaseFirst();
+	assert.equal(await first, true);
+	assert.equal(
+		await runExclusive(async () => {
+			operationCount += 1;
+		}),
+		true,
+	);
+	assert.equal(operationCount, 2);
+});
+
+test("releases the mutation guard after an operation rejects", async () => {
+	const runExclusive = createInFlightMutationGuard();
+	await assert.rejects(
+		runExclusive(async () => {
+			throw new Error("mutation failed");
+		}),
+		/mutation failed/,
+	);
+	assert.equal(await runExclusive(async () => {}), true);
 });
 
 test("parses newline-delimited profiles and preserves spaces in names", () => {

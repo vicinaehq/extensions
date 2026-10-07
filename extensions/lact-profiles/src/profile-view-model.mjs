@@ -8,3 +8,22 @@
 export function shouldRenderAutoSwitchSection(isLoading) {
 	return !isLoading;
 }
+
+/**
+ * Prevents overlapping operations that mutate LACT profile state.
+ *
+ * @returns {(operation: () => Promise<void>) => Promise<boolean>}
+ */
+export function createInFlightMutationGuard() {
+	let inFlight = false;
+	return async (operation) => {
+		if (inFlight) return false;
+		inFlight = true;
+		try {
+			await operation();
+			return true;
+		} finally {
+			inFlight = false;
+		}
+	};
+}
