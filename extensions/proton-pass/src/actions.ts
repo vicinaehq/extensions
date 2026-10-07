@@ -45,6 +45,8 @@ export const SHORTCUTS: Record<string, Keyboard.Shortcut> = {
 	copyTotp: { modifiers: ["ctrl", "shift"], key: "y" },
 	openInBrowser: { modifiers: ["ctrl", "shift"], key: "o" },
 	copyExpiry: { modifiers: ["ctrl"], key: "d" },
+	copySecurityCode: { modifiers: ["ctrl", "shift"], key: "s" },
+	copyPin: { modifiers: ["ctrl", "shift"], key: "p" },
 	viewDetails: { modifiers: ["ctrl", "shift"], key: "d" },
 	viewItems: { modifiers: ["ctrl", "shift"], key: "v" },
 	copyVaultName: { modifiers: ["ctrl", "shift"], key: "n" },

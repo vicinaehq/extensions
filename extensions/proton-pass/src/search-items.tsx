@@ -58,6 +58,19 @@ function mask(value: string): string {
 	return "•".repeat(Math.min(Math.max(value.length, 8), 24));
 }
 
+function copyShortcutForField(title: string) {
+	switch (title) {
+		case "Expiry date":
+			return SHORTCUTS.copyExpiry;
+		case "Security code":
+			return SHORTCUTS.copySecurityCode;
+		case "PIN":
+			return SHORTCUTS.copyPin;
+		default:
+			return undefined;
+	}
+}
+
 let passwordPasteInFlight = false;
 
 async function pasteItemPassword(
@@ -140,7 +153,7 @@ export function ItemDetailView({
 				: "Unavailable";
 	const markdownLines = [`# ${escapeMarkdown(detail.title)}`];
 	if (detail.type === "credit_card" && cardType)
-		markdownLines.push(`**Card type:** ${escapeMarkdown(cardType)}`);
+		markdownLines.push(escapeMarkdown(cardType));
 	if (identity)
 		markdownLines.push(`**${identityTitle}:** ${escapeMarkdown(identity)}`);
 	if (detail.password)
@@ -431,9 +444,7 @@ function ItemActions({
 						key={`field-${field.title}`}
 						title={`Copy ${field.title}`}
 						icon={Icon.CopyClipboard}
-						shortcut={
-							field.title === "Expiry date" ? SHORTCUTS.copyExpiry : undefined
-						}
+						shortcut={copyShortcutForField(field.title)}
 						onAction={() =>
 							void safely(() =>
 								copySecret(field.title, field.value, {
