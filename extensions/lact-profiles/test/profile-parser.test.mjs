@@ -16,6 +16,13 @@ test("declares Vicinae's generated JavaScript bundle as CommonJS", () => {
 	assert.equal(manifest.type, "commonjs");
 });
 
+test("keeps the command title distinct from its extension title", () => {
+	const manifest = JSON.parse(
+		readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+	);
+	assert.notEqual(manifest.commands[0].title, manifest.title);
+});
+
 test("parses newline-delimited profiles and preserves spaces in names", () => {
 	assert.deepEqual(parseProfileList("Default\nGaming\nQuiet Undervolt\n"), [
 		"Default",

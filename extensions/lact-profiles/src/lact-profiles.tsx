@@ -189,44 +189,47 @@ export default function LactProfiles() {
 					/>
 				))}
 			</List.Section>
-			<List.Section title="Automatic switching">
-				<List.Item
-					title={
-						autoSwitchStatus === null
-							? "Checking status…"
-							: !autoSwitchStatus.available
-								? "Status unavailable"
-								: autoSwitchStatus.enabled
-									? "Enabled"
-									: "Disabled"
-					}
-					subtitle={
-						autoSwitchStatus === null
-							? "Reading LACT profile-switch settings"
-							: !autoSwitchStatus.available
-								? `Could not read automatic-switch status: ${autoSwitchStatus.error}`
-								: autoSwitchStatus.enabled
-									? "Selecting a profile turns automatic switching off"
-									: "Manual profile selections will remain in effect"
-					}
-					icon={Icon.Cog}
-					actions={
-						!autoSwitchStatus?.available ? undefined : (
-							<ActionPanel>
-								<Action
-									title={
-										autoSwitchStatus.enabled
-											? "Disable automatic switching"
-											: "Enable automatic switching"
-									}
-									icon={Icon.Cog}
-									onAction={handleToggleAutoSwitch}
-								/>
-							</ActionPanel>
-						)
-					}
-				/>
-			</List.Section>
+			{/* Avoid making the settings row the only selectable item during initial load. */}
+			{!isLoading && (
+				<List.Section title="Automatic switching">
+					<List.Item
+						title={
+							autoSwitchStatus === null
+								? "Checking status…"
+								: !autoSwitchStatus.available
+									? "Status unavailable"
+									: autoSwitchStatus.enabled
+										? "Enabled"
+										: "Disabled"
+						}
+						subtitle={
+							autoSwitchStatus === null
+								? "Reading LACT profile-switch settings"
+								: !autoSwitchStatus.available
+									? `Could not read automatic-switch status: ${autoSwitchStatus.error}`
+									: autoSwitchStatus.enabled
+										? "Selecting a profile turns automatic switching off"
+										: "Manual profile selections will remain in effect"
+						}
+						icon={Icon.Cog}
+						actions={
+							!autoSwitchStatus?.available ? undefined : (
+								<ActionPanel>
+									<Action
+										title={
+											autoSwitchStatus.enabled
+												? "Disable automatic switching"
+												: "Enable automatic switching"
+										}
+										icon={Icon.Cog}
+										onAction={handleToggleAutoSwitch}
+									/>
+								</ActionPanel>
+							)
+						}
+					/>
+				</List.Section>
+			)}
 		</List>
 	);
 }

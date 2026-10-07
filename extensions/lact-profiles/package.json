@@ -13,8 +13,8 @@
   "commands": [
     {
       "name": "lact-profiles",
-      "title": "LACT Profiles",
-      "subtitle": "Select a LACT GPU profile",
+      "title": "Select LACT profile",
+      "subtitle": "Browse and switch saved GPU profiles",
       "description": "Browse saved LACT GPU profiles and switch the active profile",
       "mode": "view"
     }
