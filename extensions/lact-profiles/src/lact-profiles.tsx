@@ -15,6 +15,7 @@ import {
 	selectProfileAndRefresh,
 	setAutoSwitchEnabledPreservingProfile,
 } from "./lact-cli.mjs";
+import { shouldRenderAutoSwitchSection } from "./profile-view-model.mjs";
 
 type AutoSwitchStatus = Awaited<ReturnType<typeof getAutoSwitchStatus>>;
 
@@ -190,7 +191,7 @@ export default function LactProfiles() {
 				))}
 			</List.Section>
 			{/* Avoid making the settings row the only selectable item during initial load. */}
-			{!isLoading && (
+			{shouldRenderAutoSwitchSection(isLoading) && (
 				<List.Section title="Automatic switching">
 					<List.Item
 						title={
