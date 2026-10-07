@@ -128,6 +128,9 @@ export function ItemDetailView({
 
 	const identity = detail.username ?? detail.email;
 	const identityTitle = detail.username ? "Username" : "Email";
+	const cardType = detail.fields?.find(
+		(field) => field.title === "Card type",
+	)?.value;
 	const currentTotpText = currentTotp
 		? { value: currentTotp, color: totpTimerColor(remaining) }
 		: refreshError
@@ -136,6 +139,8 @@ export function ItemDetailView({
 				? "Refreshing…"
 				: "Unavailable";
 	const markdownLines = [`# ${escapeMarkdown(detail.title)}`];
+	if (detail.type === "credit_card" && cardType)
+		markdownLines.push(`**Card type:** ${escapeMarkdown(cardType)}`);
 	if (identity)
 		markdownLines.push(`**${identityTitle}:** ${escapeMarkdown(identity)}`);
 	if (detail.password)
@@ -185,13 +190,15 @@ export function ItemDetailView({
 						text={detail.type}
 						icon={itemIcon(detail)}
 					/>
-					{detail.fields?.map((field) => (
-						<Detail.Metadata.Label
-							key={`field-${field.title}`}
-							title={field.title}
-							text={field.hidden ? mask(field.value) : field.value}
-						/>
-					))}
+					{detail.fields
+						?.filter((field) => field.title !== "Card type")
+						.map((field) => (
+							<Detail.Metadata.Label
+								key={`field-${field.title}`}
+								title={field.title}
+								text={field.hidden ? mask(field.value) : field.value}
+							/>
+						))}
 					{detail.customFields?.map((field) => (
 						<Detail.Metadata.Label
 							key={`custom-${field.name}`}
