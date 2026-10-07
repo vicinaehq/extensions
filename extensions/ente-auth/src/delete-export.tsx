@@ -58,7 +58,7 @@ export default function Command() {
 	if (state === "error") {
 		return (
 			<Detail
-				markdown={`# Delete failed\n\n${error ?? "Unknown error"}`}
+				markdown={["# Delete failed", "", error ?? "Unknown error"].join("\n")}
 				actions={
 					<ActionPanel>
 						<Action
@@ -76,6 +76,12 @@ export default function Command() {
 		);
 	}
 	return (
-		<Detail markdown="# Ente Auth export deleted\n\nThe plaintext export file has been removed." />
+		<Detail
+			markdown={[
+				"# Ente Auth export deleted",
+				"",
+				"The plaintext export file has been removed.",
+			].join("\n")}
+		/>
 	);
 }
