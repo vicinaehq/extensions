@@ -1,12 +1,20 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
-import { createLactClient, runLact } from "../src/lact-cli.js";
+import { createLactClient, runLact } from "../src/lact-cli.mjs";
 import {
 	parseAutoSwitchState,
 	parseAutoSwitchStatus,
 	parseCurrentProfile,
 	parseProfileList,
-} from "../src/profile-parser.js";
+} from "../src/profile-parser.mjs";
+
+test("declares Vicinae's generated JavaScript bundle as CommonJS", () => {
+	const manifest = JSON.parse(
+		readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+	);
+	assert.equal(manifest.type, "commonjs");
+});
 
 test("parses newline-delimited profiles and preserves spaces in names", () => {
 	assert.deepEqual(parseProfileList("Default\nGaming\nQuiet Undervolt\n"), [

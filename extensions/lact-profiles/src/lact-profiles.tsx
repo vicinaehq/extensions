@@ -14,7 +14,7 @@ import {
 	getProfiles,
 	selectProfileAndRefresh,
 	setAutoSwitchEnabledPreservingProfile,
-} from "./lact-cli.js";
+} from "./lact-cli.mjs";
 
 type AutoSwitchStatus = Awaited<ReturnType<typeof getAutoSwitchStatus>>;
 

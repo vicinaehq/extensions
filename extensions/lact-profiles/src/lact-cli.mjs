@@ -3,7 +3,7 @@ import {
 	parseAutoSwitchStatus,
 	parseCurrentProfile,
 	parseProfileList,
-} from "./profile-parser.js";
+} from "./profile-parser.mjs";
 
 const COMMAND_TIMEOUT_MS = 10_000;
 

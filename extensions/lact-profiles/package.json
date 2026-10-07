@@ -35,5 +35,5 @@
     "@biomejs/biome": "2.3.2",
     "typescript": "^5.9.2"
   },
-  "type": "module"
+  "type": "commonjs"
 }
