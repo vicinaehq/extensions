@@ -233,7 +233,8 @@ function ItemActions({
 				shortcut={{ modifiers: [], key: "return" }}
 				onAction={() =>
 					void safely(async () => {
-						const loaded = detail ?? (await viewItem(item));
+						const loaded =
+							detail ?? (item.password ? item : await viewItem(item));
 						if (!loaded.password) throw new Error("This item has no password.");
 						await pasteSecret(loaded.password);
 					})
@@ -257,7 +258,8 @@ function ItemActions({
 				shortcut={SHORTCUTS.copyPassword}
 				onAction={() =>
 					void safely(async () => {
-						const loaded = detail ?? (await viewItem(item));
+						const loaded =
+							detail ?? (item.password ? item : await viewItem(item));
 						if (!loaded.password) throw new Error("This item has no password.");
 						await copySecret("Password", loaded.password, { sensitive: true });
 					})

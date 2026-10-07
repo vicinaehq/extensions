@@ -65,6 +65,6 @@ Run the deterministic CLI contract tests with:
 npm test
 ```
 
-The extension deliberately does not cache passwords or TOTP values. Item listing normally uses one authenticated `--show-secrets` request per vault for fast startup, then retains only non-secret metadata; if the CLI rejects that flag (for example in an agent session), it falls back to field-level metadata requests. Full item content is fetched only when an item is selected. Passwords and TOTP values are copied with concealed clipboard handling, and URLs are sanitised before they enter metadata cache.
+The extension deliberately never persists passwords or TOTP values. For an authenticated `--show-secrets` listing, a password may remain transiently in the active item list for instant paste, but it is non-enumerable and omitted from metadata cache serialization; if the CLI rejects that flag, the extension falls back to field-level metadata requests. Full item content is fetched only when an item is selected. Passwords and TOTP values are copied with concealed clipboard handling, and URLs are sanitised before they enter metadata cache.
 
 The square icon is derived from Proton's official Proton Pass logo mark; `extension_icon.svg` is kept alongside the raster asset as the source artwork.

@@ -46,6 +46,8 @@ export type PassItem = {
 	username?: string;
 	email?: string;
 	urls?: string[];
+	/** Transient active-list secret; deliberately non-enumerable and never cached. */
+	password?: string;
 	hasPassword?: boolean;
 	hasTotp: boolean;
 };
@@ -259,6 +261,21 @@ function itemType(raw: Record<string, unknown>): string {
 	return typedData(raw).type;
 }
 
+function attachTransientPassword(
+	item: PassItem,
+	password: string | undefined,
+): PassItem {
+	if (password) {
+		Object.defineProperty(item, "password", {
+			configurable: true,
+			enumerable: false,
+			value: password,
+			writable: false,
+		});
+	}
+	return item;
+}
+
 function parseJson(output: string, action: string): unknown {
 	try {
 		return JSON.parse(output) as unknown;
@@ -454,18 +471,21 @@ function itemFrom(raw: unknown, vault: Vault): PassItem | undefined {
 			raw.totpUri,
 	);
 	const password = login ? text(login.password) : undefined;
-	return {
-		shareId: vault.shareId,
-		itemId,
-		title,
-		vaultName: vault.name,
-		type,
-		username: login ? text(login.username) : text(raw.username),
-		email: login ? text(login.email) : text(raw.email),
-		urls,
-		hasPassword: type === "login" ? password !== undefined : undefined,
-		hasTotp: Boolean(totp),
-	};
+	return attachTransientPassword(
+		{
+			shareId: vault.shareId,
+			itemId,
+			title,
+			vaultName: vault.name,
+			type,
+			username: login ? text(login.username) : text(raw.username),
+			email: login ? text(login.email) : text(raw.email),
+			urls,
+			hasPassword: type === "login" ? password !== undefined : undefined,
+			hasTotp: Boolean(totp),
+		},
+		password,
+	);
 }
 
 async function listItemsOutput(
@@ -581,13 +601,16 @@ async function enrichItem(item: PassItem): Promise<PassItem> {
 		item.type === "login" ? readOptionalField(item, "password") : undefined,
 		item.type === "login" ? itemHasTotp(item) : false,
 	]);
-	return {
-		...item,
-		username,
-		email,
-		hasPassword: item.type === "login" ? password !== undefined : undefined,
-		hasTotp,
-	};
+	return attachTransientPassword(
+		{
+			...item,
+			username,
+			email,
+			hasPassword: item.type === "login" ? password !== undefined : undefined,
+			hasTotp,
+		},
+		password,
+	);
 }
 
 async function enrichItems(items: PassItem[]): Promise<PassItem[]> {
