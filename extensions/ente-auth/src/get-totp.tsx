@@ -221,6 +221,7 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 						<Action
 							title="Paste Next Code"
 							icon={Icon.Key}
+							shortcut={SHORTCUTS.pasteNext}
 							onAction={() =>
 								void guardAction("Unable to paste next code", () =>
 									pasteCode(current.next),
@@ -234,6 +235,7 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 								title="Open Notes URL"
 								url={url}
 								icon={Icon.Link}
+								shortcut={SHORTCUTS.openNotesUrl}
 							/>
 						)}
 					</ActionPanel.Section>
@@ -334,6 +336,7 @@ export default function Command() {
 							<Action
 								title="Reload Export"
 								icon={Icon.ArrowClockwise}
+								shortcut={SHORTCUTS.reloadExport}
 								onAction={() => void load()}
 							/>
 						</ActionPanel>
@@ -351,6 +354,7 @@ export default function Command() {
 						<Action.Push
 							title="View Details"
 							icon={Icon.Eye}
+							shortcut={SHORTCUTS.viewDetails}
 							target={<TotpDetail snapshot={snapshot} />}
 						/>
 					);
@@ -420,11 +424,13 @@ export default function Command() {
 												title="Open Notes URL"
 												url={noteUrl(snapshot.notes) ?? ""}
 												icon={Icon.Link}
+												shortcut={SHORTCUTS.openNotesUrl}
 											/>
 										)}
 										<Action
 											title="Refresh Export"
 											icon={Icon.ArrowClockwise}
+											shortcut={SHORTCUTS.refreshExport}
 											onAction={() => void load()}
 										/>
 										<Action

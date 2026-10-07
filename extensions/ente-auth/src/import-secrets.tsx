@@ -7,6 +7,7 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
+import { SHORTCUTS } from "./actions";
 import { exportEnteAuthSecrets } from "./ente-cli";
 
 export default function Command() {
@@ -56,6 +57,7 @@ export default function Command() {
 							title="Open Ente CLI Guide"
 							url="https://github.com/ente-io/ente/tree/main/cli"
 							icon={Icon.Globe01}
+							shortcut={SHORTCUTS.openCliGuide}
 						/>
 					</ActionPanel>
 				}

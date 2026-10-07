@@ -61,6 +61,21 @@ If Vicinae cannot find `ente`, set **Ente CLI path** to its absolute path. Set *
 
 The **Primary action** preference matches Raycast: it can put **Paste current code** or **Copy current code** on Enter. Vicinae closes its launcher before invoking `Clipboard.paste`, allowing focus to return to the previously active application without requiring a `ydotool` dependency.
 
+Keyboard shortcuts:
+
+- Enter — Paste current code (default primary action)
+- Shift+Enter — Copy current code when Paste is primary, or Paste current code when Copy is primary
+- Ctrl+Shift+C — Copy current code
+- Ctrl+Shift+N — Copy next code
+- Ctrl+Shift+P — Paste next code
+- Ctrl+Shift+D — View details
+- Ctrl+Shift+O — Open the notes URL
+- Ctrl+Shift+E — Refresh the export
+- Ctrl+Shift+R — Refresh service icons
+- Ctrl+Shift+L — Reload the export after an error
+- Ctrl+Shift+Y — Retry a failed export deletion
+- Ctrl+Shift+G — Open the Ente CLI guide
+
 ## Privacy
 
 Ente's export is a plaintext file containing the TOTP seeds. The extension does not duplicate those seeds into Vicinae's persistent storage. Use **Delete Ente Auth Export** when the export is no longer needed, or configure Ente's export directory with appropriate filesystem permissions.

@@ -8,6 +8,7 @@ import {
 	Toast,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
+import { SHORTCUTS } from "./actions";
 import { deleteEnteAuthExport, getExportFilePath } from "./ente-cli";
 
 export default function Command() {
@@ -63,6 +64,7 @@ export default function Command() {
 						<Action
 							title="Retry"
 							icon={Icon.ArrowClockwise}
+							shortcut={SHORTCUTS.retry}
 							onAction={() => {
 								setState("loading");
 								setAttempt((value) => value + 1);
