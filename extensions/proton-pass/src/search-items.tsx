@@ -12,7 +12,7 @@ import {
 	vaultColor,
 } from "./actions";
 import { errorMessage } from "./cli-contract";
-import { pasteSecret } from "./clipboard";
+import { pasteSecret, pasteSecretWithLoader } from "./clipboard";
 import {
 	getTotp,
 	type PassItem,
@@ -56,6 +56,33 @@ function escapeMarkdown(value: string): string {
 
 function mask(value: string): string {
 	return "•".repeat(Math.min(Math.max(value.length, 8), 24));
+}
+
+let passwordPasteInFlight = false;
+
+async function pasteItemPassword(
+	item: PassItem,
+	detail: PassItemDetail | undefined,
+): Promise<void> {
+	if (passwordPasteInFlight) return;
+	passwordPasteInFlight = true;
+	try {
+		if (detail?.password) {
+			await pasteSecret(detail.password);
+			return;
+		}
+		if (item.password) {
+			await pasteSecret(item.password);
+			return;
+		}
+		await pasteSecretWithLoader(async () => {
+			const loaded = await viewItem(item);
+			if (!loaded.password) throw new Error("This item has no password.");
+			return loaded.password;
+		});
+	} finally {
+		passwordPasteInFlight = false;
+	}
 }
 
 export function ItemDetailView({
@@ -231,14 +258,7 @@ function ItemActions({
 				title="Paste Password"
 				icon={Icon.Key}
 				shortcut={{ modifiers: [], key: "return" }}
-				onAction={() =>
-					void safely(async () => {
-						const loaded =
-							detail ?? (item.password ? item : await viewItem(item));
-						if (!loaded.password) throw new Error("This item has no password.");
-						await pasteSecret(loaded.password);
-					})
-				}
+				onAction={() => void safely(() => pasteItemPassword(item, detail))}
 			/>
 		),
 		"paste-username": (

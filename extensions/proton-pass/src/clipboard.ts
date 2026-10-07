@@ -23,6 +23,20 @@ export async function pasteSecret(value: string): Promise<void> {
 	await Clipboard.paste(value);
 }
 
+/**
+ * Close the launcher before resolving a deferred secret. Metadata-only cache
+ * entries may need a protected CLI lookup; that lookup must never keep the
+ * launcher visible while it runs.
+ */
+export async function pasteSecretWithLoader(
+	load: () => Promise<string>,
+): Promise<void> {
+	await closeMainWindow();
+	const value = await load();
+	await waitForPasteFocus();
+	await Clipboard.paste(value);
+}
+
 export async function copyProtected(value: string): Promise<void> {
 	await Clipboard.copy(value, { concealed: true });
 	const generation = ++copyGeneration;
