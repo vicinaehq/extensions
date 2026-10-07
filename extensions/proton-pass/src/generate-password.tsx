@@ -36,7 +36,9 @@ const MIN_LENGTH = 8;
 const MAX_LENGTH = 128;
 const MIN_WORDS = 3;
 const MAX_WORDS = 10;
-const GENERATOR_SETTINGS_KEY = "proton_pass_vicinae_generator_settings_v1";
+const GENERATOR_SETTINGS_KEY = "proton_pass_generator_settings_v1";
+const LEGACY_GENERATOR_SETTINGS_KEY =
+	"proton_pass_vicinae_generator_settings_v1";
 
 const separators: Separator[] = [
 	"hyphens",
@@ -228,7 +230,16 @@ export default function Command() {
 		let active = true;
 		async function loadSettings(): Promise<void> {
 			try {
-				const raw = await LocalStorage.getItem<string>(GENERATOR_SETTINGS_KEY);
+				let raw = await LocalStorage.getItem<string>(GENERATOR_SETTINGS_KEY);
+				if (!raw) {
+					raw = await LocalStorage.getItem<string>(
+						LEGACY_GENERATOR_SETTINGS_KEY,
+					);
+					if (raw) {
+						await LocalStorage.setItem(GENERATOR_SETTINGS_KEY, raw);
+						await LocalStorage.removeItem(LEGACY_GENERATOR_SETTINGS_KEY);
+					}
+				}
 				const restored = restoreSettings(initial, raw);
 				if (!active) return;
 				setSettings(restored);

@@ -158,6 +158,13 @@ export function ItemDetailView({
 						text={detail.type}
 						icon={itemIcon(detail)}
 					/>
+					{detail.fields?.map((field) => (
+						<Detail.Metadata.Label
+							key={`field-${field.title}`}
+							title={field.title}
+							text={field.hidden ? mask(field.value) : field.value}
+						/>
+					))}
 					{detail.customFields?.map((field) => (
 						<Detail.Metadata.Label
 							key={`custom-${field.name}`}
