@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "niri-actions",
   "title": "Niri Actions",
-  "description": "Browse and run niri Wayland compositor IPC action with fuzzy search. Covers window, column, workspace, monitor, screenshot and system commands. Excludes commands with named arguments.",
+  "description": "Browse and run niri Wayland compositor IPC actions with fuzzy search. Covers window, column, workspace, monitor, screenshot and system commands. Excludes actions requiring free-form arguments.",
   "categories": ["System", "Productivity"],
   "license": "MIT",
   "platforms": ["Linux"],
