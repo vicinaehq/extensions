@@ -16,7 +16,6 @@
       "name": "niri-actions",
       "title": "Niri Actions",
       "description": "Lists supported niri IPC actions with fuzzy search and runs the selected one via `niri msg action`. Actions with enumerable arguments are expanded into concrete items using live compositor state.",
-      "description": "Lists all niri IPC actions with fuzzy search and runs the selected one via `niri msg action`. Actions that take arguments are expanded into concrete items using live compositor state.",
       "mode": "view",
       "keywords": ["niri", "compositor", "wayland", "ipc", "wm", "tiling"]
     }
