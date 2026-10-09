@@ -1,0 +1,95 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "vicinae-crates-search",
+  "description": "Search for Rust crates easily",
+  "categories": [
+    "Developer Tools"
+  ],
+  "keywords": [
+    "cargo",
+    "package manager",
+    "plugin",
+    "rust",
+    "vicinae"
+  ],
+  "license": "MIT",
+  "author": "bastiangx",
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vpr lint",
+    "ray:build": "ray build",
+    "ray:dev": "ray develop"
+  },
+  "dependencies": {
+    "@raycast/api": "^2.7.1",
+    "node-html-parser": "^9.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vicinae/api": "^0.29.1",
+    "jsdom": "^30.1.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "^7.0.2",
+    "vite-plus": "^1.1.0"
+  },
+  "icon": "icon.png",
+  "overrides": {
+    "@vicinae/api": {
+      "react": "19.3.0"
+    },
+    "@raycast/api": {
+      "react": "19.3.0",
+      "@types/react": "19.3.0"
+    }
+  },
+  "commands": [
+    {
+      "name": "search-crates",
+      "title": "Search Crates",
+      "subtitle": "Search Rust packages on crates.io",
+      "description": "Search Rust packages on crates.io",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "defaultOpenAction",
+      "type": "dropdown",
+      "title": "Default Open Action",
+      "description": "How to open the selected package when Enter is pressed",
+      "required": false,
+      "default": "viewOnCratesIo",
+      "data": [
+        {
+          "title": "Copy Dependency Line",
+          "value": "copyToClipboard"
+        },
+        {
+          "title": "View on crates.io",
+          "value": "viewOnCratesIo"
+        },
+        {
+          "title": "Open Documentation",
+          "value": "openCrateDocumentation"
+        },
+        {
+          "title": "Open Homepage",
+          "value": "openHomepage"
+        },
+        {
+          "title": "Open Repository",
+          "value": "openRepository"
+        },
+        {
+          "title": "View Symbols",
+          "value": "viewSymbols"
+        }
+      ]
+    }
+  ],
+  "title": "crates.io"
+}
