@@ -1,39 +1,43 @@
 {
-  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-  "name": "lact-profiles",
-  "title": "LACT Profiles",
-  "description": "Browse and switch LACT GPU profiles",
-  "categories": ["System"],
-  "license": "MIT",
-  "platforms": ["Linux"],
-  "author": "arduoi",
-  "contributors": [],
-  "pastContributors": [],
-  "icon": "assets/lact-icon.png",
-  "commands": [
-    {
-      "name": "lact-profiles",
-      "title": "Select LACT profile",
-      "subtitle": "Browse and switch saved GPU profiles",
-      "description": "Browse saved LACT GPU profiles and switch the active profile",
-      "mode": "view"
-    }
-  ],
-  "preferences": [],
-  "scripts": {
-    "build": "vici build",
-    "dev": "vici develop",
-    "format": "biome format --write src",
-    "lint": "vici lint",
-    "test": "node --test test/*.test.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
-  },
-  "dependencies": {
-    "@vicinae/api": "^0.23.2"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.3.2",
-    "typescript": "^5.9.2"
-  },
-  "type": "commonjs"
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "lact-profiles",
+	"title": "LACT Profiles",
+	"description": "Browse and switch LACT GPU profiles",
+	"categories": [
+		"System"
+	],
+	"license": "MIT",
+	"platforms": [
+		"Linux"
+	],
+	"author": "arduoi",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "lact-icon.png",
+	"commands": [
+		{
+			"name": "lact-profiles",
+			"title": "Select LACT profile",
+			"subtitle": "Browse and switch saved GPU profiles",
+			"description": "Browse saved LACT GPU profiles and switch the active profile",
+			"mode": "view"
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"format": "biome format --write src",
+		"lint": "vici lint",
+		"test": "node --test test/*.test.mjs",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.23.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.2",
+		"typescript": "^5.9.2"
+	},
+	"type": "commonjs"
 }
