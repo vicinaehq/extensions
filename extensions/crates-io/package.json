@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-  "name": "vicinae-crates-search",
+  "name": "crates-io",
   "description": "Search for Rust crates easily",
   "categories": [
     "Developer Tools"
