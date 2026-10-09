@@ -13,7 +13,7 @@
 
 ## Features
 
-- Search and list all published crates.
+- Search across published crates.
 - View crate details, including description, version, downloads, and more.
 - View symbols and implementations for each crate.
 - Copy dependency to your clipboard directly from the search results.
@@ -21,7 +21,7 @@
 
 ## Development
 
-Requires Node >= 20:
+Requires Node >= 22:
 
 ```bash
 vp install

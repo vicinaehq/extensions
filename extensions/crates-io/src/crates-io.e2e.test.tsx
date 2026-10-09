@@ -23,6 +23,7 @@ import { join } from "node:path";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import type { Crate, SymbolDetails, SymbolItem } from "./api";
+import type { ActionEntry } from "./search-crates";
 
 /** API surface under test, rebound by `beforeEach` after a module reset. */
 type Api = typeof import("./api");
@@ -1534,5 +1535,43 @@ describe("crates.io search live UI e2e", () => {
     } finally {
       await ui.unmount();
     }
+  });
+});
+
+describe("primary action resolution", () => {
+  /**
+   * Enter keeps opening when the preferred action has no URL for the crate.
+   *
+   * @remarks
+   * A crate without homepage, repository, or documentation URLs drops
+   * those rows from the panel. The resolver must then promote the
+   * always-available crates.io action instead of the first remaining
+   * (copy) action, while a present preference still wins outright.
+   */
+  it("p1. missing preferred open actions fall back to the crates.io page", async () => {
+    const { CrateActions, resolvePrimaryAction } = await import("./search-crates");
+    const entry = (id: ActionEntry["id"], group: ActionEntry["group"]): ActionEntry => ({
+      id,
+      group,
+      node: "action",
+    });
+    const copyLine = entry(CrateActions.COPY_TO_CLIPBOARD, "copy");
+    const cratesIo = entry(CrateActions.VIEW_ON_CRATES_IO, "open");
+    const homepage = entry(CrateActions.OPEN_HOMEPAGE, "open");
+
+    // The preferred action wins when the crate provides it.
+    expect(
+      resolvePrimaryAction([copyLine, cratesIo, homepage], CrateActions.OPEN_HOMEPAGE)?.id,
+    ).toBe(CrateActions.OPEN_HOMEPAGE);
+
+    // Without a homepage URL the row falls back to opening, not copying.
+    expect(resolvePrimaryAction([copyLine, cratesIo], CrateActions.OPEN_HOMEPAGE)?.id).toBe(
+      CrateActions.VIEW_ON_CRATES_IO,
+    );
+
+    // A preferred copy action still wins when present.
+    expect(resolvePrimaryAction([copyLine, cratesIo], CrateActions.COPY_TO_CLIPBOARD)?.id).toBe(
+      CrateActions.COPY_TO_CLIPBOARD,
+    );
   });
 });

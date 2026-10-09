@@ -31,7 +31,7 @@ import { crateIcon } from "./icons";
 import Symbols from "./symbols";
 
 /** Row actions; values double as the `defaultOpenAction` preference. */
-enum CrateActions {
+export enum CrateActions {
   COPY_TO_CLIPBOARD = "copyToClipboard",
   COPY_NAME = "copyName",
   VIEW_ON_CRATES_IO = "viewOnCratesIo",
@@ -52,7 +52,7 @@ type ActionGroup = "open" | "copy" | "view";
 type ActionShortcut = Keyboard.Shortcut;
 
 /** One row action plus its panel section; a falsy `node` hides it. */
-interface ActionEntry {
+export interface ActionEntry {
   /** Stable action id, matched against the default-action preference. */
   id: CrateActions;
   group: ActionGroup;
@@ -103,6 +103,24 @@ export function crateAccessories(
         crate.newestVersion !== version ? `Newest version: v${crate.newestVersion}` : undefined,
     },
   ];
+}
+
+/**
+ * Resolve the Enter action from the actions present on a row.
+ *
+ * A preferred open action may be missing when the crate has no URL for it;
+ * fall back to the always-available crates.io page so Enter keeps opening
+ * instead of silently copying.
+ */
+export function resolvePrimaryAction(
+  present: ActionEntry[],
+  defaultOpenAction: CrateActions,
+): ActionEntry | undefined {
+  return (
+    present.find((entry) => entry.id === defaultOpenAction) ??
+    present.find((entry) => entry.id === CrateActions.VIEW_ON_CRATES_IO) ??
+    present[0]
+  );
 }
 
 /** Actions for `crate`, grouped; the preferred default action leads (Enter). */
@@ -221,7 +239,7 @@ function getActions(
   ];
 
   const present = entries.filter((entry) => !!entry.node);
-  const primary = present.find((entry) => entry.id === defaultOpenAction) ?? present[0];
+  const primary = resolvePrimaryAction(present, defaultOpenAction);
   const rest = present.filter((entry) => entry !== primary);
   const inGroup = (group: ActionGroup) =>
     rest.filter((entry) => entry.group === group).map((entry) => entry.node);
