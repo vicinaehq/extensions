@@ -1,0 +1,100 @@
+{
+  "name": "vicinae-yubikey-code",
+  "title": "YubiKey Code",
+  "description": "Get OTP codes from a YubiKey using ykoath or ykman",
+  "categories": ["Productivity", "Security"],
+  "license": "MIT",
+  "author": "storm",
+  "icon": "ykoath.png",
+  "commands": [
+    {
+      "name": "get-code",
+      "title": "Get OTP Code",
+      "subtitle": "YubiKey",
+      "description": "Copy, paste, or reveal OTP codes from your YubiKey",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "ykmanPath",
+      "type": "textfield",
+      "required": false,
+      "title": "ykman Path",
+      "description": "Optional path to the ykman executable. Leave empty to use ykman from PATH.",
+      "placeholder": "ykman"
+    },
+    {
+      "name": "ykoathPath",
+      "type": "textfield",
+      "required": false,
+      "title": "ykoath Path",
+      "description": "Optional path to the ykoath executable. Leave empty to use ykoath from PATH.",
+      "placeholder": "ykoath"
+    },
+    {
+      "name": "backend",
+      "type": "dropdown",
+      "title": "Backend",
+      "required": true,
+      "default": "auto",
+      "data": [
+        {
+          "title": "Auto: ykoath, then ykman",
+          "value": "auto"
+        },
+        {
+          "title": "ykoath Only",
+          "value": "ykoath"
+        },
+        {
+          "title": "ykman Only",
+          "value": "ykman"
+        }
+      ],
+      "description": "Choose the OTP backend. Auto uses the Rust helper first and falls back to ykman."
+    },
+    {
+      "name": "primaryAction",
+      "type": "dropdown",
+      "title": "Primary Action",
+      "required": true,
+      "default": "copy",
+      "data": [
+        {
+          "title": "Copy to Clipboard",
+          "value": "copy"
+        },
+        {
+          "title": "Paste to Active App",
+          "value": "paste"
+        }
+      ],
+      "description": "Choose the default action for OTP codes."
+    },
+    {
+      "name": "debugLogging",
+      "type": "checkbox",
+      "required": false,
+      "default": false,
+      "title": "Debug Logging",
+      "label": "Enable debug logging",
+      "description": "Log timing details for account loading, OTP fetching, and backend subprocesses. Development sessions always log these details."
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "clean": "rm -rf dist .vicinae",
+    "dev": "XDG_RUNTIME_DIR=\"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}\" vici develop",
+    "lint": "vici lint",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "typescript": "^5.9.2"
+  }
+}
