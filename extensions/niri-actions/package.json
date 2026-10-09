@@ -1,0 +1,57 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "niri-actions",
+  "title": "Niri Actions",
+  "description": "Browse and run niri Wayland compositor IPC actions with fuzzy search. Covers window, column, workspace, monitor, screenshot and system commands. Excludes actions requiring free-form arguments.",
+  "categories": [
+    "System",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "platforms": [
+    "Linux"
+  ],
+  "author": "curliq",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "keywords": [
+    "niri",
+    "compositor",
+    "wayland",
+    "ipc",
+    "window",
+    "workspace",
+    "tiling"
+  ],
+  "commands": [
+    {
+      "name": "niri-actions",
+      "title": "Niri Actions",
+      "description": "Lists supported niri IPC actions with fuzzy search and runs the selected one via `niri msg action`. Actions with enumerable arguments are expanded into concrete items using live compositor state.",
+      "mode": "view",
+      "keywords": [
+        "niri",
+        "compositor",
+        "wayland",
+        "ipc",
+        "wm",
+        "tiling"
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.29.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.10",
+    "@types/node": "^26.6.5",
+    "typescript": "^5.9.3"
+  }
+}
