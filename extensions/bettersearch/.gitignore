@@ -1,0 +1,4 @@
+node_modules/
+assets/daemon/node_modules/
+dist/
+vicinae-env.d.ts
