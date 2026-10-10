@@ -1,0 +1,5 @@
+node_modules
+vicinae-env.d.ts
+
+# macOS
+.DS_Store
