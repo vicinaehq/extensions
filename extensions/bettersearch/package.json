@@ -1,0 +1,126 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "bettersearch",
+	"title": "BetterSearch",
+	"description": "Typo-tolerant file name and file content search for Vicinae, powered by the fff engine, with frecency ranking, git status, live previews and a file watcher.",
+	"categories": [
+		"Productivity",
+		"Developer Tools",
+		"System"
+	],
+	"license": "MIT",
+	"author": "selfxplanatorium",
+	"platforms": [
+		"Linux",
+		"macOS",
+		"Windows"
+	],
+	"icon": "icon.png",
+	"commands": [
+		{
+			"name": "search-files",
+			"title": "Search Files",
+			"subtitle": "BetterSearch",
+			"description": "Fuzzy search file and folder names across your indexed directories.",
+			"keywords": [
+				"find",
+				"file",
+				"folder",
+				"fff",
+				"bettersearch"
+			],
+			"mode": "view"
+		},
+		{
+			"name": "search-file-contents",
+			"title": "Search File Contents",
+			"subtitle": "BetterSearch",
+			"description": "Search inside text files with plain, regex or fuzzy matching.",
+			"keywords": [
+				"grep",
+				"content",
+				"text",
+				"fff",
+				"bettersearch"
+			],
+			"mode": "view"
+		},
+		{
+			"name": "manage-index",
+			"title": "Manage File Index",
+			"subtitle": "BetterSearch",
+			"description": "Show index status, rescan directories or restart the fff background index.",
+			"mode": "view",
+			"keywords": [
+				"fff",
+				"bettersearch",
+				"index"
+			]
+		}
+	],
+	"preferences": [
+		{
+			"name": "roots",
+			"title": "Indexed Directories",
+			"description": "Comma-separated directories to index. Hidden folders are skipped outside git repositories; .gitignore rules are respected inside them.",
+			"type": "textfield",
+			"default": "~",
+			"required": false
+		},
+		{
+			"name": "editorCommand",
+			"title": "Editor Command",
+			"description": "Command used to open a file at a line. Placeholders: {file}, {line}, {column}. Leave empty to use the default application.",
+			"type": "textfield",
+			"placeholder": "code --goto {file}:{line}:{column}",
+			"required": false
+		},
+		{
+			"name": "editorInTerminal",
+			"title": "",
+			"label": "Run editor command in a terminal (for nvim, helix, micro...)",
+			"description": "Launch the editor command inside your default terminal emulator.",
+			"type": "checkbox",
+			"default": false,
+			"required": false
+		},
+		{
+			"name": "showPreview",
+			"title": "Display",
+			"label": "Show preview panel",
+			"description": "Show a preview of the selected file or match next to the results.",
+			"type": "checkbox",
+			"default": true,
+			"required": false
+		},
+		{
+			"name": "followSymlinks",
+			"title": "",
+			"label": "Follow symlinked directories",
+			"description": "Index the contents of symlinked directories.",
+			"type": "checkbox",
+			"default": false,
+			"required": false
+		}
+	],
+	"scripts": {
+		"postinstall": "node scripts/install-daemon.mjs",
+		"build": "vici build",
+		"build:universal": "node scripts/install-daemon.mjs --all-platforms && vici build",
+		"dev": "vici develop",
+		"lint": "vici lint",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.29.1"
+	},
+	"devDependencies": {
+		"@types/node": "^24.9.2",
+		"@types/react": "^19.2.17",
+		"typescript": "^5.9.2"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/selfxplanatorium/bettersearch-vicinae"
+	}
+}
