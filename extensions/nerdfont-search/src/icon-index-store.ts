@@ -14,7 +14,7 @@ let cachedIconIndex: IconIndex[] | null = null;
 let iconIndexLoadPromise: Promise<IconIndex[]> | null = null;
 const cache = new Cache();
 
-const NERD_FONTS_VERSION = "3.4.0";
+const NERD_FONTS_VERSION = "3.5.1";
 const GLYPHNAMES_URL = `https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v${NERD_FONTS_VERSION}/glyphnames.json`;
 const ICON_INDEX_CACHE_KEY = `nerdfont-search.icon-index.${NERD_FONTS_VERSION}.v1`;
 
