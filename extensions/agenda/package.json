@@ -2,12 +2,15 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "agenda",
   "title": "Agenda",
-  "description": "View upcoming events from iCal calendars",
+  "description": "View upcoming events from iCal feeds and the macOS Calendar",
   "categories": [
     "Productivity"
   ],
   "license": "MIT",
-  "platforms": ["Linux", "macOS"],
+  "platforms": [
+    "Linux",
+    "macOS"
+  ],
   "author": "knoopx",
   "contributors": [],
   "pastContributors": [],

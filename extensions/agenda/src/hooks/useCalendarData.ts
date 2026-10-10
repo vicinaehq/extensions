@@ -5,7 +5,7 @@ import type { CalendarResponse, VEvent } from "node-ical";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Calendar } from "../lib/types";
-import { getCalendars } from "../lib/calendar";
+import { getActiveCalendars } from "../lib/calendar";
 import { saveToCache, loadFromCache } from "../lib/cache";
 import {
   sortEvents,
@@ -17,6 +17,17 @@ import {
 } from "../lib/eventProcessing";
 import { CACHE_KEY } from "../lib/constants";
 import { isLocalPath, expandPath } from "../lib/localPath";
+import {
+  isMacOS,
+  isMacOSCalendarUrl,
+  macosCalendarIdentifier,
+  macosCalendarUrl,
+} from "../lib/macosUrl";
+import {
+  fetchMacOSEvents,
+  hasMacOSAccess,
+  toAgendaEvent,
+} from "../lib/macosCalendar";
 
 async function fetchICSData(url: string): Promise<CalendarResponse> {
   if (isLocalPath(url)) {
@@ -46,7 +57,9 @@ async function fetchICSData(url: string): Promise<CalendarResponse> {
 }
 
 export function useCalendarData(refreshInterval: number) {
-  const [calendars, setCalendars] = useState<Calendar[]>(() => getCalendars());
+  const [calendars, setCalendars] = useState<Calendar[]>(() =>
+    getActiveCalendars(),
+  );
   const [eventsByDate, setEventsByDate] = useState<Record<string, VEvent[]>>(
     {},
   );
@@ -81,7 +94,14 @@ export function useCalendarData(refreshInterval: number) {
     eventCalendarsRef.current.clear();
 
     try {
-      for (const calendar of calendars) {
+      const icalCalendars = calendars.filter(
+        (calendar) => !isMacOSCalendarUrl(calendar.url),
+      );
+      const macosCalendars = calendars.filter((calendar) =>
+        isMacOSCalendarUrl(calendar.url),
+      );
+
+      for (const calendar of icalCalendars) {
         try {
           const parsed = await fetchICSData(calendar.url);
 
@@ -145,6 +165,57 @@ export function useCalendarData(refreshInterval: number) {
         }
       }
 
+      if (macosCalendars.length > 0 && isMacOS()) {
+        try {
+          const rangeStart = new Date();
+          const rangeEnd = new Date();
+          rangeEnd.setMonth(rangeEnd.getMonth() + 1);
+
+          const snapshot = await fetchMacOSEvents(
+            rangeStart,
+            rangeEnd,
+            macosCalendars.map((calendar) =>
+              macosCalendarIdentifier(calendar.url),
+            ),
+          );
+
+          if (!hasMacOSAccess(snapshot.status)) {
+            showToast({
+              style: Toast.Style.Failure,
+              title: "Can't read macOS Calendar",
+              message:
+                "Grant Agenda access in System Settings → Privacy & Security → Calendars.",
+            });
+          } else {
+            const configured = new Set(
+              macosCalendars.map((calendar) => calendar.url),
+            );
+
+            for (const raw of snapshot.events) {
+              if (!raw.calendarId) continue;
+              const url = macosCalendarUrl(raw.calendarId);
+              if (!configured.has(url)) continue;
+
+              const event = toAgendaEvent(
+                raw,
+                `${raw.calendarId}-${raw.start}`,
+              );
+              if (isFutureEvent(event)) {
+                allEvents.push(event);
+                eventCalendarsRef.current.set(event.uid, url);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Failed to read macOS Calendar:", error);
+          showToast({
+            style: Toast.Style.Failure,
+            title: "Failed to read macOS Calendar",
+            message: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
       const sortedEvents = sortEvents(allEvents);
       const grouped = groupEventsByDate(sortedEvents);
 
@@ -173,7 +244,7 @@ export function useCalendarData(refreshInterval: number) {
     );
 
     const cacheCheckInterval = setInterval(() => {
-      const currentCalendars = getCalendars();
+      const currentCalendars = getActiveCalendars();
       if (calendarsChanged(currentCalendars, calendars)) {
         setCalendars(currentCalendars);
         LocalStorage.removeItem(CACHE_KEY);
