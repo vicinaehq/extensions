@@ -9,6 +9,7 @@ type Slot = {
 const slots = new Map<string, Slot>();
 const listeners = new Map<string, Set<() => void>>();
 const loading = new Set<string>();
+const pendingWrites = new Map<string, unknown>();
 
 function getOrCreateSlot(key: string, initialValue: unknown): Slot {
   let slot = slots.get(key);
@@ -33,6 +34,18 @@ function emit(key: string) {
 function write(key: string, next: Slot) {
   slots.set(key, next);
   emit(key);
+}
+
+export function peekCachedState<T>(key: string, fallback: T): T {
+  const slot = slots.get(key);
+  if (!slot) {
+    return fallback;
+  }
+  return slot.value as T;
+}
+
+export function isCachedStateHydrated(key: string): boolean {
+  return slots.get(key)?.hydrated ?? false;
 }
 
 export function useCachedState<T>(key: string, initialValue: T): [T, (value: T) => void, boolean] {
@@ -77,6 +90,18 @@ export function useCachedState<T>(key: string, initialValue: T): [T, (value: T) 
       loading.delete(key);
       const current = getOrCreateSlot(key, initialValue);
 
+      if (current.hydrated) {
+        return;
+      }
+
+      if (pendingWrites.has(key)) {
+        const pending = pendingWrites.get(key) as T;
+        pendingWrites.delete(key);
+        write(key, { hydrated: true, value: pending });
+        void LocalStorage.setItem(key, JSON.stringify(pending));
+        return;
+      }
+
       if (raw !== undefined && raw !== null) {
         try {
           const parsed = typeof raw === "string" ? (JSON.parse(raw) as T) : (raw as T);
@@ -95,6 +120,14 @@ export function useCachedState<T>(key: string, initialValue: T): [T, (value: T) 
 
   const setCachedState = useCallback(
     (next: T) => {
+      const current = getOrCreateSlot(key, initialValue);
+      if (!current.hydrated) {
+        // Queue the write; it is applied and persisted once hydration finishes.
+        pendingWrites.set(key, next);
+        write(key, { hydrated: false, value: next });
+        return;
+      }
+
       write(key, { hydrated: true, value: next });
       void LocalStorage.setItem(key, JSON.stringify(next));
     },

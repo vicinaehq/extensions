@@ -4,6 +4,7 @@ import ImportSettingsForm from "@/components/ImportSettingsForm";
 import SelectEditor from "@/components/SelectEditor";
 import { App } from "@/types";
 import { toApp } from "@/utils/validation";
+import { EXTENSION_VERSION } from "@/utils/version";
 
 interface GeneralSettingsProps {
   defaultApp: App | null;
@@ -102,13 +103,15 @@ export default function GeneralSettings({
               <List.Item.Detail.Metadata.Separator />
               <List.Item.Detail.Metadata.Label title="Backup" text="Export or import from the action panel" />
               <List.Item.Detail.Metadata.Label title="Reset" text="Clear all data from the action panel" />
+              <List.Item.Detail.Metadata.Separator />
+              <List.Item.Detail.Metadata.Label title="Extension version" text={`v${EXTENSION_VERSION}`} />
             </List.Item.Detail.Metadata>
           }
         />
       }
       icon={Icon.AppWindow}
       id="general"
-      keywords={["app", "terminal", "backup", "export", "import", "reset"]}
+      keywords={["app", "terminal", "backup", "export", "import", "reset", "version"]}
       title="General"
     />
   );

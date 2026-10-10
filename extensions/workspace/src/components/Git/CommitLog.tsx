@@ -51,13 +51,15 @@ export default function CommitLog({ project }: CommitLogProps) {
             <ActionPanel>
               {data?.remoteUrl && (
                 <Action.OpenInBrowser
+                  icon={Icon.Globe01}
                   title="Open Commit in Browser"
                   url={commitBrowserUrl(data.remoteUrl, commit.hash)}
                 />
               )}
-              <Action.CopyToClipboard content={commit.hash} title="Copy Commit Hash" />
+              <Action.CopyToClipboard content={commit.hash} icon={Icon.CopyClipboard} title="Copy Commit Hash" />
               <Action.CopyToClipboard
                 content={commit.message}
+                icon={Icon.CopyClipboard}
                 shortcut={{ key: "c", modifiers: ["cmd", "shift"] }}
                 title="Copy Commit Message"
               />
