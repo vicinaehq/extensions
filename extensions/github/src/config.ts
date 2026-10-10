@@ -5,7 +5,9 @@ export const issueDropdownItems = [
 ] as const;
 
 export const prDropdownItems = [
-  { title: "My Pull Requests", value: "my" },
+  { title: "Open", value: "my" },
   { title: "Assigned to Me", value: "assigned" },
   { title: "Mentioning Me", value: "mentioning" },
+  { title: "Merged", value: "my-merged" },
+  { title: "Closed", value: "my-closed" },
 ] as const;
