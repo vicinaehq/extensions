@@ -62,7 +62,7 @@
 		{
 			"name": "roots",
 			"title": "Indexed Directories",
-			"description": "Comma-separated directories to index. Hidden folders and gitignored files are skipped outside git repositories.",
+			"description": "Comma-separated directories to index. Hidden folders are skipped outside git repositories; .gitignore rules are respected inside them.",
 			"type": "textfield",
 			"default": "~",
 			"required": false

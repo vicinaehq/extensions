@@ -1,4 +1,4 @@
-import { dirname } from "node:path";
+import { basename, dirname } from "node:path";
 import {
 	Action,
 	ActionPanel,
@@ -120,7 +120,7 @@ export function FileActions({
 				/>
 				<Action.CopyToClipboard
 					title="Copy Name"
-					content={path.split("/").pop() ?? path}
+					content={basename(path)}
 					shortcut={{ modifiers: ["ctrl", "shift"], key: "n" }}
 				/>
 				{kind === "file" ? (
