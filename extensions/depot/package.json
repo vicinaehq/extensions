@@ -1,0 +1,91 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "depot",
+  "title": "Depot",
+  "description": "Install, remove, and update APT and Flatpak applications without leaving Vicinae",
+  "categories": ["Applications", "System"],
+  "license": "MIT",
+  "platforms": ["Linux"],
+  "author": "oo7kc",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.svg",
+  "commands": [
+    {
+      "name": "install",
+      "title": "Install",
+      "subtitle": "APT · Flatpak",
+      "description": "Find and install software from configured APT repositories and Flatpak remotes",
+      "keywords": ["install software", "add software", "package", "apt", "flatpak"],
+      "mode": "view"
+    },
+    {
+      "name": "remove",
+      "title": "Remove",
+      "subtitle": "APT · Flatpak",
+      "description": "Find and conservatively remove installed applications",
+      "keywords": ["remove software", "uninstall", "delete application", "package", "apt", "flatpak"],
+      "mode": "view"
+    },
+    {
+      "name": "update",
+      "title": "Update",
+      "subtitle": "APT · Flatpak",
+      "description": "Review and install available software updates",
+      "keywords": ["update software", "upgrade", "package updates", "apt", "flatpak"],
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "aptEnabled",
+      "title": "Package Sources",
+      "description": "Search and manage software from configured APT repositories",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enable APT"
+    },
+    {
+      "name": "flatpakEnabled",
+      "title": "",
+      "description": "Search and manage applications from configured Flatpak remotes when Flatpak is installed",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enable Flatpak"
+    },
+    {
+      "name": "flatpakScope",
+      "title": "Preferred Flatpak Scope",
+      "description": "Prefer results from this installation scope when a remote exists in both",
+      "type": "dropdown",
+      "required": false,
+      "default": "user",
+      "data": [
+        {
+          "title": "User",
+          "value": "user"
+        },
+        {
+          "title": "System",
+          "value": "system"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "test": "node --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.28.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "5.9.2"
+  }
+}
