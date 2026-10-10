@@ -35,7 +35,7 @@ export const useGetWorkflows = (repo: Repository | null) => {
   useEffect(() => {
     const interval = setInterval(() => {
       query.refetch();
-    }, 10000);
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 

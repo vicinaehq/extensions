@@ -4,6 +4,7 @@
   "description": "Work with issues, pull requests, manage workflows, search repositories and stay on top of notifications",
   "version": "1.0.0",
   "author": "knoopx",
+  "contributors": ["FredrikMWold"],
   "license": "MIT",
   "icon": "icon.png",
   "categories": ["Developer Tools"],
@@ -137,24 +138,6 @@
           "value": "all"
         }
       ]
-    },
-    {
-      "name": "defaultRepositoryFilter",
-      "title": "Default Repository Filter",
-      "description": "The default filter to use when opening the repositories command.",
-      "type": "dropdown",
-      "default": "my",
-      "required": false,
-      "data": [
-        {
-          "title": "All Repositories",
-          "value": "all"
-        },
-        {
-          "title": "My Repositories",
-          "value": "my"
-        }
-      ]
     }
   ],
   "scripts": {
@@ -171,9 +154,6 @@
     "@tanstack/react-query-persist-client": "^5.90.22",
     "@uidotdev/usehooks": "^2.4.1",
     "@vicinae/api": "^0.20.2",
-    "date-fns": "^3.6.0",
-    "lodash": "^4.17.21",
-    "node-fetch": "^3.3.2",
     "zod": "^4.3.6"
   },
   "devDependencies": {
