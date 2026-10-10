@@ -6,35 +6,69 @@
 
 <b align="center">Search your passwords, usernames, TOTP codes, and more using KeePassXC directly from Vicinae.</b>
 
-## Requirements
+# Requirements
 
 To use this extension, you will need:
 
 - Installed [KeePassXC](https://keepassxc.org)
-- The `keepassxc-cli` HAVE TO be in the $PATH (Mostly in `/usr/bin` or in `/usr/local/bin`)
 - A `.kdbx` file that contains entries
+- The `keepassxc-cli` HAVE TO be in the $PATH (Mostly in `/usr/bin` or in `/usr/local/bin`) if the KeePassXC is not installed from `snap`, `AppImage` or `flatpak`
 
-## Installation
+# Installation
 
 The KeePassXC can be installed on linux several ways
 
-#### Fedora
+## Fedora
 
 ```shell
 $ sudo dnf install keepassxc
 ```
 
-#### Ubuntu and Debian based distros
+## Install via Flatpak
+
+[Here is](https://flathub.org/en/apps/org.keepassxc.KeePassXC) the flathub package.
+
+```shell
+$ flatpak install flathub org.keepassxc.KeePassXC
+```
+
+## Ubuntu and Debian based distros
 
 ```shell
 $ sudo apt install keepassxc
 ```
 
-#### Arch based distros
+or [with Snap](https://snapcraft.io/keepassxc)
+
+```shell
+$ sudo snap install keepassxc
+```
+
+## Arch based distros
 
 ```shell
 $ sudo pacman -Sy keepassxc
 ```
+
+## AppImage based installation
+
+You can download the latest AppImage from [here](https://github.com/keepassxreboot/keepassxc/releases/latest) and run it.
+
+### Install by hand:
+
+```shell
+$ chmod a+x KeePassXC-2.7.12-x86_64.AppImage
+```
+
+```shell
+$ ./KeePassXC-2.7.12-x86_64.AppImage
+```
+
+After this, you **HAVE TO** create a [`.desktop` entry](https://wiki.archlinux.org/title/Desktop_entries) for the AppImage.
+
+> The AppImage could be installed by an AppImage installer too, like [AppManager](https://github.com/kem-a/AppManager).
+
+> The `.desktop` can be created through a UI too: [dedicated apps](https://codeberg.org/libre-menu-editor/libre-menu-editor) for this.   
 
 ## Security Notes
 
