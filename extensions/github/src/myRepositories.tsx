@@ -3,6 +3,7 @@ import { Action, ActionPanel, List } from "@vicinae/api";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useGetMyRepos } from "./hooks/useGetRepos";
 import { persister, queryClient } from "./queryClient";
+import { GitHubAuthentication } from "./components/GitHubAuthentication";
 
 function Repositories() {
   return (
@@ -10,7 +11,9 @@ function Repositories() {
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Command />
+      <GitHubAuthentication>
+        <Command />
+      </GitHubAuthentication>
     </PersistQueryClientProvider>
   );
 }

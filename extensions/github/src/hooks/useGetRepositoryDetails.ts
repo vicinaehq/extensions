@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { octokit } from "../api/githubClient";
+import { getOctokit } from "../api/githubClient";
 import { Repository, RepositoryDetails } from "../types";
 
 export const useGetRepositoryDetails = (repo: Repository | null) => {
@@ -8,6 +8,7 @@ export const useGetRepositoryDetails = (repo: Repository | null) => {
     queryFn: async () => {
       if (!repo) return null;
 
+      const octokit = getOctokit();
       const [owner, repoName] = repo.full_name.split("/");
       const response = await octokit.repos.get({
         owner,

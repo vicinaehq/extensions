@@ -1,7 +1,7 @@
 import { Toast, closeMainWindow, showToast } from "@vicinae/api";
 import { useState } from "react";
 import z from "zod";
-import { octokit } from "../api/githubClient";
+import { getOctokit } from "../api/githubClient";
 import { Assignee, Branch, Issue, Repository } from "../types";
 
 export const usePullRequestForm = () => {
@@ -76,6 +76,7 @@ export const usePullRequestForm = () => {
       : validatedPr.data.fromBranch.name;
 
     try {
+      const octokit = getOctokit();
       const prResponse = await octokit.pulls.create({
         owner: baseOwner,
         repo: baseRepoName,
