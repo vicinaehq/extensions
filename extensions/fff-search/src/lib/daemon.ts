@@ -92,10 +92,10 @@ const scriptBuild = () =>
 
 export const socketPath = () => {
 	if (process.platform === "win32") {
-		return `\\\\.\\pipe\\vicinae-bettersearch-${os.userInfo().username}`;
+		return `\\\\.\\pipe\\vicinae-fff-search-${os.userInfo().username}`;
 	}
 	const dir = process.env.XDG_RUNTIME_DIR || os.tmpdir();
-	return join(dir, `vicinae-bettersearch-${os.userInfo().uid}.sock`);
+	return join(dir, `vicinae-fff-search-${os.userInfo().uid}.sock`);
 };
 
 export const logPath = () => join(environment.supportPath, "daemon.log");

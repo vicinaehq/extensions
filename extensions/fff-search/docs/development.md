@@ -3,8 +3,8 @@
 ## Setup
 
 ```bash
-git clone https://github.com/selfxplanatorium/bettersearch-vicinae
-cd bettersearch-vicinae
+git clone https://github.com/selfxplanatorium/fff-search
+cd fff-search
 npm install
 ```
 
@@ -44,7 +44,7 @@ The protocol is one JSON object per line, so a few lines of Node are enough for 
 ```js
 import net from "node:net";
 
-const socket = net.connect(`${process.env.XDG_RUNTIME_DIR}/vicinae-bettersearch-${process.getuid()}.sock`);
+const socket = net.connect(`${process.env.XDG_RUNTIME_DIR}/vicinae-fff-search-${process.getuid()}.sock`);
 socket.on("connect", () =>
 	socket.write(`${JSON.stringify({ id: 1, method: "grep", params: { query: "TODO", mode: "plain", pageSize: 5 } })}\n`),
 );

@@ -4,7 +4,7 @@
 
 Vicinae runs every extension command in a fresh Node.js worker thread and discards it when the command closes. An fff index built inside a command would therefore be rebuilt on every launch, and fff's speed comes from building the index once and keeping it current.
 
-BetterSearch splits into two parts:
+fff Search splits into two parts:
 
 | Part | Location | Runs |
 | --- | --- | --- |
@@ -28,9 +28,9 @@ The daemon is started with the Node binary that runs Vicinae's extensions (`proc
 
 | Platform | Address |
 | --- | --- |
-| Linux | `$XDG_RUNTIME_DIR/vicinae-bettersearch-<uid>.sock` |
-| macOS | `$TMPDIR/vicinae-bettersearch-<uid>.sock` |
-| Windows | `\\.\pipe\vicinae-bettersearch-<username>` |
+| Linux | `$XDG_RUNTIME_DIR/vicinae-fff-search-<uid>.sock` |
+| macOS | `$TMPDIR/vicinae-fff-search-<uid>.sock` |
+| Windows | `\\.\pipe\vicinae-fff-search-<username>` |
 
 ### Protocol
 
@@ -99,6 +99,6 @@ Each folder in **Indexed Directories** gets its own fff instance and its own his
 `scripts/install-daemon.mjs` runs as the package's `postinstall` step:
 
 - **Default:** `npm ci` in `assets/daemon/`, so npm installs only the binaries for the current machine.
-- **All platforms** (with `--all-platforms` as used by `npm run build:universal`, when `CI=true`, or with `BETTERSEARCH_ALL_PLATFORMS=1`): also downloads the binaries for the other seven platforms with `npm pack`, checks each against the integrity hash in `assets/daemon/package-lock.json`, and unpacks them. The result is one bundle that runs anywhere fff is supported.
+- **All platforms** (with `--all-platforms` as used by `npm run build:universal`, when `CI=true`, or with `FFF_SEARCH_ALL_PLATFORMS=1`): also downloads the binaries for the other seven platforms with `npm pack`, checks each against the integrity hash in `assets/daemon/package-lock.json`, and unpacks them. The result is one bundle that runs anywhere fff is supported.
 
 `vici build` copies `assets/` unchanged, so the daemon and its `node_modules` ship with the extension.

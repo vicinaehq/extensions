@@ -1,7 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-	"name": "bettersearch",
-	"title": "BetterSearch",
+	"name": "fff-search",
+	"title": "fff Search",
 	"description": "Typo-tolerant file name and file content search for Vicinae, powered by the fff engine, with frecency ranking, git status, live previews and a file watcher.",
 	"categories": [
 		"Productivity",
@@ -20,40 +20,40 @@
 		{
 			"name": "search-files",
 			"title": "Search Files",
-			"subtitle": "BetterSearch",
+			"subtitle": "fff Search",
 			"description": "Fuzzy search file and folder names across your indexed directories.",
 			"keywords": [
 				"find",
 				"file",
 				"folder",
 				"fff",
-				"bettersearch"
+				"fff-search"
 			],
 			"mode": "view"
 		},
 		{
 			"name": "search-file-contents",
 			"title": "Search File Contents",
-			"subtitle": "BetterSearch",
+			"subtitle": "fff Search",
 			"description": "Search inside text files with plain, regex or fuzzy matching.",
 			"keywords": [
 				"grep",
 				"content",
 				"text",
 				"fff",
-				"bettersearch"
+				"fff-search"
 			],
 			"mode": "view"
 		},
 		{
 			"name": "manage-index",
 			"title": "Manage File Index",
-			"subtitle": "BetterSearch",
+			"subtitle": "fff Search",
 			"description": "Show index status, rescan directories or restart the fff background index.",
 			"mode": "view",
 			"keywords": [
 				"fff",
-				"bettersearch",
+				"fff-search",
 				"index"
 			]
 		}
@@ -121,6 +121,6 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/selfxplanatorium/bettersearch-vicinae"
+		"url": "https://github.com/selfxplanatorium/fff-search"
 	}
 }

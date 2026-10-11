@@ -6,12 +6,12 @@ The log is `daemon.log` in the extension's support folder:
 
 | Platform | Path |
 | --- | --- |
-| Linux | `~/.local/share/vicinae/support/bettersearch/daemon.log` |
-| macOS and Windows | The `support/bettersearch` folder inside Vicinae's data folder |
+| Linux | `~/.local/share/vicinae/support/fff-search/daemon.log` |
+| macOS and Windows | The `support/fff-search` folder inside Vicinae's data folder |
 
 ## The commands do not appear in Vicinae
 
-The build output goes to Vicinae's extension folder (`~/.local/share/vicinae/extensions/bettersearch` on Linux). Check that the folder exists, then restart Vicinae with `vicinae server --replace`.
+The build output goes to Vicinae's extension folder (`~/.local/share/vicinae/extensions/fff-search` on Linux). Check that the folder exists, then restart Vicinae with `vicinae server --replace`.
 
 ## "fff native bindings are missing"
 
@@ -60,6 +60,6 @@ The daemon keeps the file list and a content index in memory. To reduce it, inde
 ## Reset everything
 
 1. **Manage File Index → Stop Background Index.**
-2. Delete the support folder (`~/.local/share/vicinae/support/bettersearch` on Linux).
+2. Delete the support folder (`~/.local/share/vicinae/support/fff-search` on Linux).
 
 The next search rebuilds the index from scratch.

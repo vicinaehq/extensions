@@ -1,4 +1,4 @@
-// Long-lived fff index server for the BetterSearch Vicinae extension.
+// Long-lived fff index server for the fff Search Vicinae extension.
 // Vicinae runs each command in a throwaway worker, so the index lives here
 // instead and the commands talk to it over a Unix socket or, on Windows, a
 // named pipe (one JSON line per request and per response).
@@ -20,7 +20,7 @@ if (!socketPath) {
 }
 
 const log = (...args) =>
-	console.error(new Date().toISOString(), "[bettersearch]", ...args);
+	console.error(new Date().toISOString(), "[fff-search]", ...args);
 
 // Loaded lazily so a platform without prebuilt fff binaries still answers
 // requests with a readable error instead of crashing on startup.

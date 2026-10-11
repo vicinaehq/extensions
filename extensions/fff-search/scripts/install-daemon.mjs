@@ -3,7 +3,7 @@
 //
 // By default npm installs only the native fff and ffi-rs binaries for the
 // machine running the install. With --all-platforms, in CI, or with
-// BETTERSEARCH_ALL_PLATFORMS=1, the binaries for every platform Vicinae
+// FFF_SEARCH_ALL_PLATFORMS=1, the binaries for every platform Vicinae
 // supports are added too, producing one bundle that runs on Linux (x64/arm64,
 // glibc/musl), macOS (x64/arm64) and Windows (x64/arm64).
 
@@ -49,13 +49,13 @@ function npm(args, cwd) {
 }
 
 function installForThisMachine() {
-	console.log("bettersearch: installing daemon dependencies");
+	console.log("fff-search: installing daemon dependencies");
 	npm(["ci", "--omit=dev", "--no-audit", "--no-fund"], DAEMON_DIR);
 }
 
 function installAllPlatforms() {
 	const lock = JSON.parse(readFileSync(join(DAEMON_DIR, "package-lock.json"), "utf8"));
-	const scratch = mkdtempSync(join(tmpdir(), "bettersearch-native-"));
+	const scratch = mkdtempSync(join(tmpdir(), "fff-search-native-"));
 
 	try {
 		for (const name of NATIVE_PACKAGES) {
@@ -76,7 +76,7 @@ function installAllPlatforms() {
 
 			mkdirSync(dest, { recursive: true });
 			execFileSync("tar", ["-xzf", join(scratch, packed.filename), "-C", dest, "--strip-components=1"]);
-			console.log(`bettersearch: added ${name}@${entry.version}`);
+			console.log(`fff-search: added ${name}@${entry.version}`);
 		}
 	} finally {
 		rmSync(scratch, { recursive: true, force: true });
@@ -88,7 +88,7 @@ function installAllPlatforms() {
 const allPlatforms =
 	process.argv.includes("--all-platforms") ||
 	process.env.CI === "true" ||
-	process.env.BETTERSEARCH_ALL_PLATFORMS === "1";
+	process.env.FFF_SEARCH_ALL_PLATFORMS === "1";
 
 installForThisMachine();
 if (allPlatforms) installAllPlatforms();

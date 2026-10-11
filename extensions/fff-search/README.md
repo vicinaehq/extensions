@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/icon.svg" width="128" height="128" alt="BetterSearch icon">
+  <img src="assets/icon.svg" width="128" height="128" alt="fff Search icon">
 </p>
 
-<h1 align="center">BetterSearch for Vicinae</h1>
+<h1 align="center">fff Search for Vicinae</h1>
 
 <p align="center">
   File name and file content search for <a href="https://vicinae.com">Vicinae</a>, powered by <a href="https://github.com/dmtrKovalenko/fff">fff</a>.<br>
@@ -16,9 +16,9 @@
   <img src="docs/screenshots/search-files.png" width="49%" alt="Search Files finding a file despite typos">
 </p>
 
-## Why BetterSearch
+## Why fff Search
 
-Vicinae's built-in file search matches file **names**. BetterSearch adds:
+Vicinae's built-in file search matches file **names**. fff Search adds:
 
 - **Search inside files.** Plain text, regex or fuzzy matching, with the surrounding lines previewed and one key to open your editor at the matching line.
 - **Speed for content search.** About 5 ms per search on a warm index. A ripgrep search of the same home folder takes about 180 ms, and a launcher repeats it on every keystroke.
@@ -27,7 +27,7 @@ Vicinae's built-in file search matches file **names**. BetterSearch adds:
 - **Ranking that learns.** Recently modified files rank first, and files you open for a query rank higher the next time you type that query.
 - **Typo tolerance in both commands.** `serch contnts` finds `search-file-contents.tsx`, and content search has a fuzzy mode for misspelled text.
 
-See [docs/comparison.md](docs/comparison.md) for measurements and an honest comparison with the alternatives, including what BetterSearch does not do.
+See [docs/comparison.md](docs/comparison.md) for measurements and an honest comparison with the alternatives, including what fff Search does not do.
 
 ## Features
 
@@ -71,7 +71,7 @@ Content search is smart-case: an all-lowercase query ignores case, while a query
 ## Requirements
 
 - Vicinae 0.29 or newer.
-- Node.js 18 or newer and npm, to build the extension. At runtime BetterSearch uses the Node runtime bundled with Vicinae.
+- Node.js 18 or newer and npm, to build the extension. At runtime fff Search uses the Node runtime bundled with Vicinae.
 - One of the platforms fff ships prebuilt binaries for:
 
 | OS | Architectures |
@@ -83,8 +83,8 @@ Content search is smart-case: an all-lowercase query ignores case, while a query
 ## Install
 
 ```bash
-git clone https://github.com/selfxplanatorium/bettersearch-vicinae
-cd bettersearch-vicinae
+git clone https://github.com/selfxplanatorium/fff-search
+cd fff-search
 npm install
 npm run build
 ```
@@ -93,11 +93,11 @@ npm run build
 
 ### One bundle for every platform
 
-`npm run build:universal` includes the native library for all eight supported platforms in a single build of about 75 MB. Use it when the build is made on one machine and run on others, for example a shared Nix or dotfiles setup. Builds in CI (`CI=true`, as in the Vicinae store's pipeline) do this automatically, and `BETTERSEARCH_ALL_PLATFORMS=1` forces it. Every downloaded package is checked against the hashes in `assets/daemon/package-lock.json`.
+`npm run build:universal` includes the native library for all eight supported platforms in a single build of about 75 MB. Use it when the build is made on one machine and run on others, for example a shared Nix or dotfiles setup. Builds in CI (`CI=true`, as in the Vicinae store's pipeline) do this automatically, and `FFF_SEARCH_ALL_PLATFORMS=1` forces it. Every downloaded package is checked against the hashes in `assets/daemon/package-lock.json`.
 
 ## Configuration
 
-Open Vicinae's settings, then **Extensions → BetterSearch**.
+Open Vicinae's settings, then **Extensions → fff Search**.
 
 | Preference | Default | Notes |
 | --- | --- | --- |
@@ -125,16 +125,16 @@ Editor command examples:
 
 Vicinae does not let extensions add results to its main search bar. That bar only shows file results from Vicinae's own indexer, and only when `"search_files_in_root": true` is set in its config.
 
-To use BetterSearch from the main bar, make it a **fallback command**. Fallbacks are offered when nothing else matches what you typed, and BetterSearch opens with your text already searched. Add its entrypoint ID to `fallbacks` in Vicinae's `settings.json`, or manage fallbacks from Vicinae's settings window:
+To use fff Search from the main bar, make it a **fallback command**. Fallbacks are offered when nothing else matches what you typed, and fff Search opens with your text already searched. Add its entrypoint ID to `fallbacks` in Vicinae's `settings.json`, or manage fallbacks from Vicinae's settings window:
 
 ```jsonc
 "fallbacks": [
-  "@selfxplanatorium/bettersearch:search-files",
+  "@selfxplanatorium/fff-search:search-files",
   "files:search" // Vicinae's built-in file search, the default fallback
 ]
 ```
 
-A global shortcut also works well. Bind `vicinae://launch/@selfxplanatorium/bettersearch/search-files` (or `search-file-contents`) in your desktop's shortcut settings.
+A global shortcut also works well. Bind `vicinae://launch/@selfxplanatorium/fff-search/search-files` (or `search-file-contents`) in your desktop's shortcut settings.
 
 ## What gets indexed
 
@@ -148,7 +148,7 @@ To include a hidden folder such as `~/.config`, add it to **Indexed Directories*
 
 ## How it works
 
-Vicinae runs each command in a short-lived worker, so an index built inside the command would be thrown away every time. BetterSearch instead starts a small background process on first use. It holds the fff index in memory, keeps it current with a file watcher, and answers the commands over a local socket (a named pipe on Windows).
+Vicinae runs each command in a short-lived worker, so an index built inside the command would be thrown away every time. fff Search instead starts a small background process on first use. It holds the fff index in memory, keeps it current with a file watcher, and answers the commands over a local socket (a named pipe on Windows).
 
 The process exits on its own when Vicinae exits, when the extension is removed, or when you stop it from **Manage File Index**. It makes no network connections.
 
@@ -156,7 +156,7 @@ Details: [docs/architecture.md](docs/architecture.md).
 
 ## Data and privacy
 
-Everything stays on your machine, in Vicinae's support folder for the extension (`~/.local/share/vicinae/support/bettersearch` on Linux):
+Everything stays on your machine, in Vicinae's support folder for the extension (`~/.local/share/vicinae/support/fff-search` on Linux):
 
 - `db/`: search history used for ranking, one database per indexed folder.
 - `daemon.log`: the background process's log.
@@ -165,7 +165,7 @@ Deleting the folder resets the ranking history.
 
 ## Uninstall
 
-1. Remove the extension from Vicinae's settings, or delete its folder from Vicinae's extension directory (`~/.local/share/vicinae/extensions/bettersearch` on Linux).
+1. Remove the extension from Vicinae's settings, or delete its folder from Vicinae's extension directory (`~/.local/share/vicinae/extensions/fff-search` on Linux).
 2. Optionally delete the support folder listed above.
 
 The background process notices that it was removed and exits within 10 seconds.
