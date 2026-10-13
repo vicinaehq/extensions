@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon.svg" width="128" height="128" alt="fff Search icon">
+  <img src="assets/icon.png" width="128" height="128" alt="fff Search icon">
 </p>
 
 <h1 align="center">fff Search for Vicinae</h1>

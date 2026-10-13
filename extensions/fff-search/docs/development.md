@@ -22,7 +22,7 @@ To build somewhere other than Vicinae's extension folder, run `npx vici build -o
 
 ```
 assets/
-  icon.svg, icon.png      Extension icon (the PNG is rendered from the SVG)
+  icon.png                Extension icon (the official fff logo)
   daemon/
     daemon.mjs            Background index server
     package.json          Its only dependency: @ff-labs/fff-node
@@ -68,9 +68,3 @@ npm install @ff-labs/fff-node@latest
 ```
 
 Commit the updated `package-lock.json`. It must keep entries for every platform's native package, which npm writes by default. `build:universal` fails if one is missing.
-
-## Regenerating the icon
-
-```bash
-rsvg-convert -w 512 -h 512 assets/icon.svg -o assets/icon.png
-```
