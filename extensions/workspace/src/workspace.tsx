@@ -1,6 +1,6 @@
 import { Action, ActionPanel, Icon, List } from "@vicinae/api";
 import path from "path";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import Onboarding from "@/components/Onboarding";
 import ProjectItem from "@/components/ProjectItem";
@@ -8,6 +8,7 @@ import Settings from "@/components/Settings";
 import { useWorkspace, WorkspaceProvider } from "@/hooks/useWorkspace";
 import { Project } from "@/types";
 import { listItemId } from "@/utils/paths";
+import { matchesProjectFilter, type ProjectFilter } from "@/utils/projectDisplay";
 import { organizeProjects } from "@/utils/projects";
 import { toApp } from "@/utils/validation";
 
@@ -28,20 +29,26 @@ function WorkspaceCommand() {
     onboardingCompleted,
     onboardingHydrated,
     pinnedProjects,
+    projectTags,
     projects,
     recentProjects,
     recentProjectsCount,
     recordProjectOpen,
+    refreshProjectGit,
     reorderPinnedProject,
     setOnboardingCompleted,
     showGitStatus,
     showRecentProjects,
+    showStashCount,
+    tags,
     terminalApp,
     togglePinProject,
     updateDefaultApp,
     workspaceApps,
     workspaces,
   } = useWorkspace();
+  const [filter, setFilter] = useState<ProjectFilter>("all");
+
   const { hasVisibleProjects, pinnedList, projectsByWorkspace, recentList } = useMemo(
     () =>
       organizeProjects({
@@ -56,6 +63,22 @@ function WorkspaceCommand() {
   );
 
   const pinnedSet = useMemo(() => new Set(pinnedProjects), [pinnedProjects]);
+
+  const filtered = useMemo(() => {
+    const keep = (project: Project) => matchesProjectFilter(project, filter, pinnedSet, projectTags);
+    return {
+      pinnedList: pinnedList.filter(keep),
+      projectsByWorkspace: Object.fromEntries(
+        Object.entries(projectsByWorkspace).map(([folder, items]) => [folder, items.filter(keep)]),
+      ) as Record<string, Project[]>,
+      recentList: recentList.filter(keep),
+    };
+  }, [filter, pinnedList, pinnedSet, projectTags, projectsByWorkspace, recentList]);
+
+  const filteredCount =
+    filtered.pinnedList.length +
+    filtered.recentList.length +
+    Object.values(filtered.projectsByWorkspace).reduce((sum, items) => sum + items.length, 0);
 
   if (onboardingHydrated && !onboardingCompleted) {
     return (
@@ -84,10 +107,12 @@ function WorkspaceCommand() {
         key={listItemId(project.fullPath)}
         onOpen={recordProjectOpen}
         onRefresh={loadData}
+        onRefreshGit={refreshProjectGit}
         onReorderPin={reorderPinnedProject}
         onTogglePin={togglePinProject}
         project={project}
         showGitStatus={showGitStatus}
+        showStashCount={showStashCount}
         terminalApp={terminalApp}
         workspaceApps={workspaceApps}
         workspacePath={project.parentFolder}
@@ -95,12 +120,48 @@ function WorkspaceCommand() {
     ));
 
   return (
-    <List isLoading={isLoading} searchBarPlaceholder="Search for projects...">
-      {pinnedList.length > 0 && <List.Section title="Pinned">{renderProjects(pinnedList, true)}</List.Section>}
-      {recentList.length > 0 && <List.Section title="Recent">{renderProjects(recentList, false)}</List.Section>}
+    <List
+      isLoading={isLoading}
+      searchBarAccessory={
+        <List.Dropdown onChange={(value) => setFilter(value as ProjectFilter)} tooltip="Filter" value={filter}>
+          <List.Dropdown.Item icon={Icon.BulletPoints} title="All Projects" value="all" />
+          <List.Dropdown.Item icon={Icon.Pin} title="Pinned" value="pinned" />
+          {tags.length > 0 ? (
+            <List.Dropdown.Section title="Tags">
+              {tags.map((tag) => (
+                <List.Dropdown.Item key={tag.id} icon={Icon.Tag} title={tag.name} value={`tag:${tag.id}`} />
+              ))}
+            </List.Dropdown.Section>
+          ) : null}
+          {workspaces.length > 0 ? (
+            <List.Dropdown.Section title="Workspaces">
+              {workspaces.map((folder) => (
+                <List.Dropdown.Item
+                  key={folder}
+                  icon={Icon.Folder}
+                  title={path.basename(folder)}
+                  value={`ws:${folder}`}
+                />
+              ))}
+            </List.Dropdown.Section>
+          ) : null}
+          <List.Dropdown.Section title="Git">
+            <List.Dropdown.Item icon={Icon.Exclamationmark} title="Dirty" value="dirty" />
+            <List.Dropdown.Item icon={Icon.CheckCircle} title="Clean" value="clean" />
+          </List.Dropdown.Section>
+        </List.Dropdown>
+      }
+      searchBarPlaceholder="Search projects…"
+    >
+      {filtered.pinnedList.length > 0 && (
+        <List.Section title="Pinned">{renderProjects(filtered.pinnedList, true)}</List.Section>
+      )}
+      {filtered.recentList.length > 0 && (
+        <List.Section title="Recent">{renderProjects(filtered.recentList, false)}</List.Section>
+      )}
 
       {workspaces.map((folder) => {
-        const workspaceProjects = projectsByWorkspace[folder] ?? [];
+        const workspaceProjects = filtered.projectsByWorkspace[folder] ?? [];
         if (workspaceProjects.length === 0) return null;
 
         return (
@@ -128,6 +189,13 @@ function WorkspaceCommand() {
           title="No Projects Found"
         />
       )}
+      {workspaces.length > 0 && hasVisibleProjects && filter !== "all" && filteredCount === 0 && (
+        <List.EmptyView
+          actions={listActions}
+          description="Try another filter, or clear the filter to see all projects."
+          title="No Projects Match Filter"
+        />
+      )}
       {workspaces.length > 0 && hasVisibleProjects && (
         <List.EmptyView actions={listActions} description="Try a different search." title="No Matching Projects" />
       )}
@@ -145,7 +213,12 @@ function RefreshAndSettingsActions({ loadData }: { loadData: () => Promise<void>
           shortcut={{ key: "r", modifiers: ["cmd", "shift"] }}
           title="Refresh Projects"
         />
-        <Action.Push target={<Settings onWorkspacesChanged={loadData} />} title="Open Settings" />
+        <Action.Push
+          icon={Icon.Cog}
+          shortcut={{ key: ",", modifiers: ["cmd", "shift"] }}
+          target={<Settings onWorkspacesChanged={loadData} />}
+          title="Open Settings…"
+        />
       </ActionPanel.Section>
     </ActionPanel>
   );

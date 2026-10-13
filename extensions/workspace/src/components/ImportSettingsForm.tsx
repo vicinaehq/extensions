@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Form, showToast, Toast, useNavigation } from "@vicinae/api";
+import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@vicinae/api";
 import { useState } from "react";
 
 import { isExistingFile, pathFromFormValue } from "@/utils/paths";
@@ -39,7 +39,7 @@ export default function ImportSettingsForm({ onImport }: ImportSettingsFormProps
       actions={
         <ActionPanel>
           <ActionPanel.Section title="Import">
-            <Action.SubmitForm onSubmit={handleSubmit} title="Import Settings" />
+            <Action.SubmitForm icon={Icon.Upload} onSubmit={handleSubmit} title="Import Settings" />
           </ActionPanel.Section>
         </ActionPanel>
       }

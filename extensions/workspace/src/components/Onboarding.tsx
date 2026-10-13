@@ -1,10 +1,14 @@
-import { Action, ActionPanel, Color, Icon, List, type Application } from "@vicinae/api";
+import { Action, ActionPanel, Color, Icon, List, showToast, Toast, type Application } from "@vicinae/api";
+import path from "path";
+import { useMemo } from "react";
 
 import AddWorkspaceForm from "@/components/AddWorkspaceForm";
 import ImportSettingsForm from "@/components/ImportSettingsForm";
 import SelectEditor from "@/components/SelectEditor";
 import Settings from "@/components/Settings";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { App } from "@/types";
+import { suggestedWorkspacePaths } from "@/utils/suggestions";
 
 interface OnboardingProps {
   defaultApp: App | null;
@@ -23,10 +27,26 @@ export default function Onboarding({
   onSelectDefaultApp,
   workspaces,
 }: OnboardingProps) {
+  const { updateWorkspaces } = useWorkspace();
   const hasWorkspaces = workspaces.length > 0;
   const hasApp = !!defaultApp;
   const isReady = hasWorkspaces;
   const nextStep = !hasWorkspaces ? "Add your first workspace" : "Finish onboarding";
+  const suggestions = useMemo(() => suggestedWorkspacePaths(workspaces), [workspaces]);
+
+  const addSuggested = async (workspacePath: string) => {
+    if (workspaces.includes(workspacePath)) {
+      return;
+    }
+
+    await updateWorkspaces([...workspaces, workspacePath]);
+    await loadData();
+    await showToast({
+      message: path.basename(workspacePath),
+      style: Toast.Style.Success,
+      title: "Workspace Added",
+    });
+  };
 
   return (
     <List navigationTitle="Workspace Onboarding">
@@ -99,6 +119,24 @@ export default function Onboarding({
           />
         )}
       </List.Section>
+      {suggestions.length > 0 ? (
+        <List.Section title="Suggested Folders">
+          {suggestions.map((suggestion) => (
+            <List.Item
+              key={suggestion}
+              actions={
+                <ActionPanel>
+                  <Action icon={Icon.Plus} onAction={() => addSuggested(suggestion)} title="Add Workspace" />
+                  <AddWorkspaceAction loadData={loadData} />
+                </ActionPanel>
+              }
+              icon={Icon.Folder}
+              subtitle={suggestion}
+              title={path.basename(suggestion)}
+            />
+          ))}
+        </List.Section>
+      ) : null}
       <List.Section title="Import Existing Setup">
         <List.Item
           actions={
