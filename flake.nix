@@ -67,7 +67,7 @@
             "bluetooth"
             "dbus"
             "systemd"
-			"fff-search"
+            "fff-search"
           ])
         ]
       );
