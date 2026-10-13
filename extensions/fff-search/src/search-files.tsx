@@ -107,7 +107,6 @@ export default function SearchFiles(props: LaunchProps) {
 		<List
 			isLoading={isLoading}
 			isShowingDetail={showPreview && items.length > 0}
-			searchText={query}
 			onSearchTextChange={setQuery}
 			onSelectionChange={setSelected}
 			searchBarPlaceholder="Search files and folders…"

@@ -122,7 +122,6 @@ export default function SearchFileContents(props: LaunchProps) {
 		<List
 			isLoading={isLoading}
 			isShowingDetail={showPreview && items.length > 0}
-			searchText={query}
 			onSearchTextChange={setQuery}
 			searchBarPlaceholder="Search file contents…"
 			throttle
