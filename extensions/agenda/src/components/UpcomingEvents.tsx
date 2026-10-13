@@ -54,7 +54,7 @@ export function UpcomingEvents({
         <List.EmptyView
           title="No calendars configured"
           description="Add iCal URLs using the 'Add Calendar' command"
-          icon={Icon.ExclamationMark}
+          icon={Icon.Exclamationmark}
         />
       </List>
     );

@@ -1,6 +1,8 @@
 import { Cache } from "@vicinae/api";
 import { Calendar } from "./types";
 import { isLocalPath, expandPath } from "./localPath";
+import { MACOS_ENABLED_KEY } from "./constants";
+import { isMacOS, isMacOSCalendarUrl } from "./macosUrl";
 
 const cache = new Cache();
 
@@ -11,6 +13,31 @@ export const getCalendars = (): Calendar[] => {
 
 export const setCalendars = (calendars: Calendar[]) => {
   cache.set("calendars", JSON.stringify(calendars));
+};
+
+/**
+ * Whether the user opted in to reading the local macOS Calendar. Off by
+ * default, because it requires a macOS privacy permission. Always false on
+ * platforms without EventKit, so a stale flag from another machine cannot
+ * surface the feature on Linux.
+ */
+export const isMacOSEnabled = (): boolean =>
+  isMacOS() && cache.get(MACOS_ENABLED_KEY) === "true";
+
+export const setMacOSEnabled = (enabled: boolean): void => {
+  cache.set(MACOS_ENABLED_KEY, enabled ? "true" : "false");
+};
+
+/**
+ * Calendars that should actually be read and shown. macOS calendars are
+ * hidden while the opt-in flag is off, but the selection itself is kept so it
+ * comes back when the user re-enables it.
+ */
+export const getActiveCalendars = (): Calendar[] => {
+  const calendars = getCalendars();
+  return isMacOSEnabled()
+    ? calendars
+    : calendars.filter((calendar) => !isMacOSCalendarUrl(calendar.url));
 };
 
 export const getCalendarName = (calendar: Calendar): string => {
