@@ -1,0 +1,18 @@
+node_modules/
+vicinae-env.d.ts
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+vicinae/
+*.local
+
+.build/
+
+# Tests and local docs are kept on disk only, never committed.
+*.test.ts
+src/agents/testkit.ts
+test/
+scripts/test.mjs
+AGENTS.md
+CLAUDE.md
