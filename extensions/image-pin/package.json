@@ -1,0 +1,92 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/main/extra/schemas/extension.json",
+  "name": "image-pin",
+  "title": "Image Pin",
+  "description": "Pin screenshots and images above your apps with cursor-centered zoom. GNOME only. Requires the separately installed Image Pin helper.",
+  "icon": "icon.png",
+  "author": "jinkim0823",
+  "license": "MIT",
+  "categories": [
+    "Productivity"
+  ],
+  "platforms": [
+    "Linux"
+  ],
+  "commands": [
+    {
+      "name": "capture",
+      "title": "Capture & Pin",
+      "description": "Select a screen area and pin it",
+      "mode": "no-view"
+    },
+    {
+      "name": "clipboard",
+      "title": "Pin Clipboard Image",
+      "description": "Pin the image copied to your clipboard",
+      "mode": "no-view"
+    },
+    {
+      "name": "file",
+      "title": "Pin Image File",
+      "description": "Choose an image file to pin",
+      "mode": "no-view"
+    },
+    {
+      "name": "close-all",
+      "title": "Close All Pins",
+      "description": "Close every Image Pin window",
+      "mode": "no-view"
+    },
+    {
+      "name": "reveal",
+      "title": "Bring Pins into View",
+      "description": "Bring off-screen pins back to the current monitor",
+      "mode": "no-view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "typecheck": "tsc --noEmit",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.27.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5.9"
+  },
+  "preferences": [
+    {
+      "name": "helperPath",
+      "title": "Helper executable",
+      "description": "Path to the locally installed Image Pin helper",
+      "type": "textfield",
+      "required": false,
+      "default": "~/.local/bin/image-pin"
+    },
+    {
+      "name": "language",
+      "title": "Language",
+      "description": "Language for Image Pin menus and dialogs",
+      "type": "dropdown",
+      "required": false,
+      "default": "system",
+      "data": [
+        {
+          "title": "System language",
+          "value": "system"
+        },
+        {
+          "title": "English",
+          "value": "en"
+        },
+        {
+          "title": "Korean",
+          "value": "ko"
+        }
+      ]
+    }
+  ]
+}
