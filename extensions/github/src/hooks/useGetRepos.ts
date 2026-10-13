@@ -3,7 +3,7 @@ import { octokit } from "../api/githubClient";
 import { Repository } from "../types";
 import { octokitPaginate } from "../api/octokitPaginate";
 
-export const useGetMyRepos = () => {
+export const useGetMyRepos = (enabled = true) => {
   return useQuery<Repository[]>({
     queryKey: ["myRepos"],
     queryFn: async () => {
@@ -13,5 +13,6 @@ export const useGetMyRepos = () => {
         affiliation: "owner,collaborator,organization_member",
       });
     },
+    enabled,
   });
 };

@@ -6,13 +6,37 @@ import { RequestError } from "@octokit/request-error";
 
 const { numberOfResults } = getPreferenceValues<GitHubPreferencesMinimal>();
 
-export const useSearchRepos = (query: string, enabled = false) => {
+export const ALL_REPOSITORIES_SCOPE = "all";
+export const MY_REPOSITORIES_SCOPE = "my-repositories";
+export const ORGANIZATION_SCOPE_PREFIX = "organization:";
+
+export type RepositorySearchScope =
+  | typeof ALL_REPOSITORIES_SCOPE
+  | typeof MY_REPOSITORIES_SCOPE
+  | `${typeof ORGANIZATION_SCOPE_PREFIX}${string}`;
+
+const buildSearchQuery = (
+  query: string,
+  scope: RepositorySearchScope,
+) => {
+  if (scope === ALL_REPOSITORIES_SCOPE) {
+    return query;
+  }
+
+  return `${query} org:${scope.slice(ORGANIZATION_SCOPE_PREFIX.length)}`;
+};
+
+export const useSearchRepos = (
+  query: string,
+  scope: RepositorySearchScope,
+  enabled = false,
+) => {
   return useQuery({
-    queryKey: ["githubRepos", query],
+    queryKey: ["githubRepos", query, scope],
     queryFn: async () => {
       try {
         const response = await octokit.search.repos({
-          q: query,
+          q: buildSearchQuery(query, scope),
           sort: "updated",
           order: "desc",
           per_page: parseInt(numberOfResults || "100"),
