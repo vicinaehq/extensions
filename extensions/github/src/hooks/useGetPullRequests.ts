@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { octokit } from "../api/githubClient";
+import { getOctokit } from "../api/githubClient";
 import { FilterType, PullRequest } from "../types";
 import { getPullRequestFilterQuery } from "../utils/getPullRequestFilterQuery";
 import { octokitPaginate } from "../api/octokitPaginate";
@@ -9,6 +9,7 @@ export const useGetPullRequests = (filter: FilterType, query = "") => {
   return useQuery<PullRequest[]>({
     queryKey: ["githubPrs", q, filter],
     queryFn: async () => {
+      const octokit = getOctokit();
       return octokitPaginate(octokit.search.issuesAndPullRequests, {
         q,
         sort: "updated",

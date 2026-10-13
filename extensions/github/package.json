@@ -100,9 +100,9 @@
     {
       "name": "personalAccessToken",
       "title": "GitHub Token",
-      "description": "Your GitHub personal access token. Required scopes: notifications, repo, project, read:org, read:user.",
+      "description": "Your GitHub personal access token. Used as a fallback when GitHub CLI is unavailable or not authenticated. Required scopes: notifications, repo, project, read:org, read:user.",
       "type": "password",
-      "required": true
+      "required": false
     },
     {
       "name": "numberOfResults",
