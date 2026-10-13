@@ -1,8 +1,13 @@
-import { dirname, join } from "path";
-import { homedir } from "os";
-import { OutputBlock, OutputConfigUpdate } from "./types";
+import { homedir } from "node:os";
+import { dirname, isAbsolute, join, normalize, posix, resolve } from "node:path";
+import type { OutputBlock, OutputConfigUpdate } from "./types";
 
 const MONITORS_FILENAME = "monitors.kdl";
+
+export interface MonitorsConfigTarget {
+  includePath: string;
+  configPath: string;
+}
 
 export function getNiriConfigPath(): string {
   const explicit = process.env.NIRI_CONFIG;
@@ -11,8 +16,96 @@ export function getNiriConfigPath(): string {
   return join(base, "niri", "config.kdl");
 }
 
-export function getMonitorsConfigPath(): string {
-  return join(dirname(getNiriConfigPath()), MONITORS_FILENAME);
+function extractActiveIncludePaths(config: string): string[] {
+  const cleaned = stripKdlComments(config);
+  const includeRegex =
+    /^[ \t]*include\b[^\r\n]*?(["'])([^"'\r\n]+)\1/gm;
+  const paths: string[] = [];
+
+  for (const match of cleaned.matchAll(includeRegex)) {
+    paths.push(match[2]);
+  }
+
+  return paths;
+}
+
+function isMonitorsIncludePath(includePath: string): boolean {
+  return posix.basename(includePath.replace(/\\/g, "/")) === MONITORS_FILENAME;
+}
+
+function findCommentedMonitorsIncludePath(config: string): string | null {
+  const commentedIncludeRegex =
+    /(?:^[ \t]*\/\/[ \t]*|\/-[\s\r\n]*)include\b[^\r\n]*?(["'])([^"'\r\n]+)\1/gm;
+
+  for (const match of config.matchAll(commentedIncludeRegex)) {
+    if (isMonitorsIncludePath(match[2])) return match[2];
+  }
+
+  return null;
+}
+
+function inferIncludeDirectory(includePaths: string[]): string | null {
+  const directories = new Set<string>();
+
+  for (const includePath of includePaths) {
+    if (
+      isAbsolute(includePath) ||
+      includePath === "~" ||
+      includePath.startsWith("~/")
+    ) {
+      continue;
+    }
+
+    const normalizedPath = posix.normalize(includePath.replace(/\\/g, "/"));
+    const directory = posix.dirname(normalizedPath);
+    if (
+      directory === "." ||
+      directory === ".." ||
+      directory.startsWith("../")
+    ) {
+      continue;
+    }
+
+    directories.add(directory);
+  }
+
+  return directories.size === 1 ? [...directories][0] : null;
+}
+
+function resolveMonitorsPath(
+  configPath: string,
+  includePath: string,
+): string {
+  if (includePath.startsWith("~/")) {
+    return join(homedir(), includePath.slice(2));
+  }
+  if (isAbsolute(includePath)) return normalize(includePath);
+  return resolve(dirname(configPath), includePath);
+}
+
+export function getMonitorsConfigTarget(
+  config: string,
+): MonitorsConfigTarget {
+  const configPath = getNiriConfigPath();
+  const activeIncludePaths = extractActiveIncludePaths(config);
+  const existingInclude = activeIncludePaths.find(isMonitorsIncludePath);
+  const commentedInclude = findCommentedMonitorsIncludePath(config);
+  const inferredDirectory = inferIncludeDirectory(activeIncludePaths);
+  const includePath =
+    existingInclude ??
+    commentedInclude ??
+    (inferredDirectory
+      ? posix.join(inferredDirectory, MONITORS_FILENAME)
+      : MONITORS_FILENAME);
+
+  return {
+    includePath,
+    configPath: resolveMonitorsPath(configPath, includePath),
+  };
+}
+
+export function getMonitorsConfigPath(config = ""): string {
+  return getMonitorsConfigTarget(config).configPath;
 }
 
 export function escapeRegExp(value: string): string {
@@ -134,39 +227,43 @@ export function setBareLine(
   return body;
 }
 
-export function hasActiveMonitorsInclude(config: string): boolean {
-  const cleaned = stripKdlComments(config);
-  const regex = new RegExp(
-    `^[ \\t]*include\\s+(?:optional=\\S+\\s+)?["']\\.?/?${escapeRegExp(MONITORS_FILENAME)}["']`,
-    "m",
+export function hasActiveMonitorsInclude(
+  config: string,
+  includePath = MONITORS_FILENAME,
+): boolean {
+  const expected = posix.normalize(includePath.replace(/\\/g, "/"));
+  return extractActiveIncludePaths(config).some(
+    (path) => posix.normalize(path.replace(/\\/g, "/")) === expected,
   );
-  return regex.test(cleaned);
 }
 
-export function ensureActiveInclude(config: string): {
+export function ensureActiveInclude(
+  config: string,
+  includePath = MONITORS_FILENAME,
+): {
   config: string;
   modified: boolean;
 } {
-  if (hasActiveMonitorsInclude(config)) {
+  if (hasActiveMonitorsInclude(config, includePath)) {
     return { config, modified: false };
   }
 
   // Matches single-line `// include ...` OR node comment `/- include ...` (even across newlines `/- \n include ...`)
   const commentedRegex = new RegExp(
-    `(?:^[ \\t]*//[ \\t]*include\\s+(?:optional=\\S+\\s+)?["']\\.?/?${escapeRegExp(MONITORS_FILENAME)}["']|/-(?:[ \\t]*\\r?\\n[ \\t]*|[ \\t]+)include\\s+(?:optional=\\S+\\s+)?["']\\.?/?${escapeRegExp(MONITORS_FILENAME)}["'])`,
+    `(?:^[ \\t]*//[ \\t]*include\\s+(?:optional=\\S+\\s+)?["']${escapeRegExp(includePath)}["']|/-(?:[ \\t]*\\r?\\n[ \\t]*|[ \\t]+)include\\s+(?:optional=\\S+\\s+)?["']${escapeRegExp(includePath)}["'])`,
     "m",
   );
 
   if (commentedRegex.test(config)) {
     const newConfig = config.replace(
       commentedRegex,
-      `include "${MONITORS_FILENAME}"`,
+      `include "${includePath}"`,
     );
     return { config: newConfig, modified: true };
   }
 
   // Prepend include at top
-  const includeLine = `include "${MONITORS_FILENAME}"\n`;
+  const includeLine = `include "${includePath}"\n`;
   const newConfig =
     config.length > 0 ? `${includeLine}\n${config}` : includeLine;
   return { config: newConfig, modified: true };

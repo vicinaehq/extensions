@@ -36,7 +36,12 @@ export default function ManageMonitors() {
     loadOutputs();
   }, []);
 
-  const outputList = Object.values(outputs);
+  const outputList = Object.values(outputs).sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    }),
+  );
   const enabledCount = outputList.filter((o) => o.logical !== null).length;
 
   const handleToggleMonitor = async (
