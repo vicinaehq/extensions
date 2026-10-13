@@ -1,0 +1,205 @@
+# Depot for Vicinae
+
+Depot is a Linux-only, Ubuntu-first software manager for Vicinae. It searches,
+installs, integrates, removes, and updates software without leaving the launcher.
+APT is the primary repository backend; Flatpak and local AppImage integration
+are optional Linux capabilities.
+
+**Depot Install** → type `vlc` → choose APT or Flatpak → press Enter.
+
+![Search APT and Flatpak together](assets/install.png)
+
+## Commands
+
+- **Depot Install** searches configured APT repositories and Flatpak remotes together.
+- **Depot Install Local** searches local package files by name, then inspects and
+  installs a selected `.deb`, `.flatpak`, `.flatpakref`, or AppImage file.
+- **Depot Remove** lists installed desktop applications and confirms every removal.
+- **Depot Update** shows available updates and supports individual or Update All
+  actions.
+
+APT and Flatpak choices remain separate and clearly labeled. Results stay
+keyboard-first, searchable, and native to Vicinae.
+
+![Review available updates](assets/update.png)
+
+## Highlights
+
+- Unified APT and Flatpak search
+- Friendly application names, summaries, and icons from local AppStream metadata
+- Installed-state detection and package details
+- Graphical Polkit authentication for APT operations
+- Truthful APT transaction phases
+- Desktop completion notifications for explicit package operations
+- Safe APT cancellation when aptdaemon marks a transaction cancellable
+- A bounded, local recent-actions list
+- User- or system-scoped Flatpak support
+- Metadata review before any local package installation
+- User-level AppImage integration under `~/Applications`
+- Conservative APT removal safeguards
+- No daemon, polling, background refresh, or private package index
+
+## Requirements
+
+- Vicinae 0.28.1
+- Ubuntu using the standard APT/dpkg toolchain (primary target)
+- Another Debian-based Linux distribution using the standard APT/dpkg paths
+  (best-effort compatibility)
+- Polkit for authenticated APT operations; Depot uses aptdaemon's D-Bus API
+  when available, with `pkexec` as the compatibility fallback
+- Flatpak with a configured remote, if Flatpak support is wanted
+- `dpkg-deb` for local Debian package inspection
+- `unsquashfs` for optional AppImage desktop metadata and icon extraction
+
+Flatpak is optional. Without it, Depot continues as an APT-only extension.
+AppStream enrichment is also optional; if local AppStream metadata or its CLI is
+unavailable, Depot immediately falls back to package-manager results.
+The current release candidate is validated on Ubuntu 26.04 amd64.
+
+## Local packages
+
+`Depot Install Local` opens with its search field focused. Type a package
+filename and press Enter on the selected result, or paste an absolute path.
+Search uses Vicinae's existing file index on demand and does not crawl the home
+directory. Depot then determines the format without a manual format picker. A
+filename extension is never enough to establish that a file is valid: Debian
+archives are checked by `dpkg-deb`, Flatpak files are checked by Flatpak, and
+AppImages must contain the expected ELF/AppImage and payload signatures.
+
+- `.deb` metadata is shown before installation. Depot invokes APT through
+  Polkit so APT can resolve dependencies; it does not use raw `dpkg -i` or
+  disable package verification.
+- `.flatpak` bundles are inspected in a disposable local repository, then
+  installed in the configured user or system scope.
+- `.flatpakref` files show their repository URL before confirmation. Installing
+  one may add the remote declared by that reference using Flatpak's normal
+  verification flow; Depot does not invent or discover other remotes.
+- AppImages are statically inspected without executing the selected file.
+  Depot copies an explicitly confirmed AppImage to `~/Applications`, marks the
+  managed copy executable, creates a user desktop entry, uses an embedded PNG
+  icon when safely available, and records only the files it created under its
+  Vicinae support directory. It never launches a newly integrated AppImage.
+
+AppImage integration is user-level and requires no root privileges. Existing
+files are never overwritten: Depot selects a numbered filename when needed and
+cleans up files it created if integration fails. Application settings and cache
+directories are not touched.
+
+Gear Lever 4.6.2 was evaluated during this milestone. Its documented Flatpak
+CLI supports integration, listing, updating, and removal, but Depot uses its own
+minimal integration path so the command remains functional without Gear Lever
+and can track ownership of every file it creates. Depot does not read Gear
+Lever's private state.
+
+## Search and performance
+
+Depot queries only enabled package managers after at least two characters are
+entered. Search is debounced, bounded, and cancelled when the query changes or
+the command closes. APT, Flatpak, and local AppStream metadata run independently,
+so friendly names and icons can appear progressively without delaying raw search
+results. Richer descriptions, categories, and license metadata are requested only
+when a user opens an item's details.
+
+AppStream uses the operating system's existing local metadata and cache. Depot
+does not download a catalogue, build its own package database, run a daemon, or
+perform work while Vicinae is idle.
+
+## Transactions and recent actions
+
+APT operations show the current phase reported by aptdaemon without a jumpy
+percentage display. When that backend explicitly marks a transaction
+cancellable, **Cancel** appears in the action panel with `Ctrl+X`. Depot does
+not terminate APT, dpkg, Flatpak, or `pkexec` processes arbitrarily. Backends
+without detailed phases expose an honest working state.
+
+Depot uses aptdaemon's own simulation result instead of resolving the same APT
+transaction twice. For removals and updates, the relevant Polkit authorization
+check can run alongside that read-only simulation, so an authentication dialog
+appears promptly. The package change is not queued until simulation succeeds
+and Depot verifies that no unexpected removals were introduced. If `pkcheck`
+is unavailable, aptdaemon performs its normal authorization flow.
+
+Successful installs, AppImage integrations, removals, and updates appear under
+**Recent Actions** in command action panels. Depot keeps at most 25 summaries in
+Vicinae's local extension storage. It does not copy package-manager logs, paths
+unrelated to the action, or authentication data. The list can be cleared from
+its action panel.
+
+## Security
+
+Repository search uses only APT sources and Flatpak remotes already configured
+on the machine. A user-selected `.flatpakref` is the sole local-file exception:
+its declared remote is displayed before the user confirms installation. Depot
+never discovers repositories, imports keys itself, stores passwords, invokes a
+shell, or performs package operations without an explicit user action.
+
+APT authentication is owned by the system's Polkit policy. Depot never sees or
+caches the password. Depot keeps one demand-driven aptdaemon D-Bus connection
+for the lifetime of the active command, allowing Polkit's normal per-action
+authorization grace period to work. Multiple package IDs can share one
+transaction. Local `.deb` files use aptdaemon's documented forced-file mode
+only after Depot's inspection and APT no-removal simulation succeed; this
+bypasses aptdaemon's extra packaging-quality gate, not Depot's safety checks.
+Systems without aptdaemon use the direct `pkexec` fallback.
+
+To keep Depot visible while an external authentication dialog owns focus, use
+`close_on_focus_loss: false`. `pop_to_root_on_close: true` is compatible with
+that flow and makes an intentional close return to Vicinae Home the next time
+the launcher opens. Depot does not silently change the user's global launcher
+configuration. A native desktop notification still reports every completed
+transaction.
+
+See [SECURITY.md](SECURITY.md) for the security model and reporting guidance.
+
+## Development
+
+```bash
+npm ci
+npm test
+npm run typecheck
+npm run lint
+npm run build
+```
+
+Use `npm run dev` while Vicinae is running for live extension development.
+
+The source tree stays intentionally direct:
+
+- `src/backends/` owns APT, Flatpak, AppStream, and desktop metadata.
+- `src/local-packages/` owns inspection and installation of user-selected files.
+- `src/hooks/` owns demand-driven command state and cancellation.
+- `src/utils/` contains small shared primitives without backend policy.
+- `src/linux.ts` is the single contract for trusted Linux executable and user
+  data paths.
+
+## Compatibility
+
+Primary support: Ubuntu with APT, plus optional Flatpak and local AppImages.
+
+Best effort: Debian and Ubuntu-derived Linux systems that retain the standard
+`/usr/bin` locations for APT, dpkg, Polkit, and optional Flatpak tooling. Depot
+uses absolute trusted executable paths deliberately; it does not resolve
+privileged package-manager commands through a mutable `PATH`.
+
+Not supported: Snap, DNF, pacman/AUR, Nix, and Homebrew.
+
+Known limitations:
+
+- APT results use package metadata, so some names are less polished than a full
+  software center when AppStream has no matching application component.
+- AppStream enrichment is best-effort and intentionally does not fetch remote
+  icons or screenshots.
+- The first Flatpak search can be slower while the Flatpak CLI queries remotes.
+- Packages requiring terminal-based configuration may not install successfully.
+- On systems without an authenticated transaction broker, the `pkexec` fallback
+  may require authentication for every privileged APT action. Depot does not
+  weaken system policy or retain credentials itself. That fallback also does
+  not expose cancellation or detailed phases because interrupting it would be
+  unsafe.
+- Type 1 AppImages can be validated and integrated, but embedded metadata
+  extraction currently targets the modern Type 2 SquashFS format.
+- Embedded AppImage icons are accepted only when they are bounded, valid PNG
+  files. Other icon formats fall back to the desktop environment's default.
+- AppImages integrated by Gear Lever or other tools are not yet included in
+  Depot's Remove command; unified installed-software management is a later
+  milestone.
