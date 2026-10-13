@@ -38,7 +38,10 @@ export const validateCalendarForm = async (
     return false;
   }
 
-  const existingCalendars = getCalendars();
+  const existingResult = getCalendars();
+  // If the load failed, skip the dedup check — handleSubmit will surface the
+  // load error and refuse to write. The form stays open with the user's input.
+  const existingCalendars = existingResult.ok ? existingResult.calendars : [];
 
   // Check if the URL already exists (and it's not the current one being edited)
   if (

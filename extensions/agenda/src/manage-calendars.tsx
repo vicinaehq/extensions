@@ -7,17 +7,51 @@ import {
   Toast,
   useNavigation,
 } from "@vicinae/api";
+import { useEffect, useRef, useState } from "react";
 import CalendarForm from "./components/CalendarForm";
 import EditCalendar from "./edit-calendar";
-import { getCalendars, setCalendars, getCalendarName } from "./lib/calendar";
+import {
+  getCalendars,
+  setCalendars,
+  getCalendarName,
+} from "./lib/calendar";
+import { toastLoadError } from "./lib/toastLoadError";
 
 export default function ManageCalendars() {
   const { push } = useNavigation();
-  const calendars = getCalendars();
+  const [loadResult, setLoadResult] = useState(() => getCalendars());
+  const calendars = loadResult.ok ? loadResult.calendars : [];
+  const loadError = loadResult.ok ? null : loadResult.error;
+
+  // Forms call this after writing the file so the list reflects the change
+  // without waiting for an external re-render.
+  const refresh = () => setLoadResult(getCalendars());
+
+  const lastToastedErrorKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (!loadError) {
+      lastToastedErrorKey.current = null;
+      return;
+    }
+    const key = `${loadError.filePath}|${loadError.reason}`;
+    if (lastToastedErrorKey.current === key) return;
+    lastToastedErrorKey.current = key;
+    toastLoadError(loadError);
+  }, [loadError]);
 
   const removeCalendar = async (urlToRemove: string) => {
-    const updatedCalendars = calendars.filter((cal) => cal.url !== urlToRemove);
+    // Re-read the file at mutation time so we never filter against a stale
+    // snapshot (which could overwrite calendars added since this view mounted).
+    const current = getCalendars();
+    if (!current.ok) {
+      toastLoadError(current.error);
+      return;
+    }
+    const updatedCalendars = current.calendars.filter(
+      (cal) => cal.url !== urlToRemove,
+    );
     setCalendars(updatedCalendars);
+    setLoadResult({ ok: true, calendars: updatedCalendars });
 
     await showToast({
       title: "Calendar Removed",
@@ -35,14 +69,26 @@ export default function ManageCalendars() {
             <Action
               title="Add Calendar"
               icon={Icon.Plus}
-              onAction={() => push(<CalendarForm />)}
+              onAction={() => push(<CalendarForm onSubmit={refresh} />)}
             />
           </ActionPanel>
         }
       >
         <List.EmptyView
-          title="No calendars configured"
-          description="Add your first calendar to get started"
+          title={
+            loadError
+              ? "Couldn't read calendars.json"
+              : "No calendars configured"
+          }
+          description={
+            loadError
+              ? `Reason: ${loadError.message}${
+                  loadError.backupPath
+                    ? `. Backup at ${loadError.backupPath}`
+                    : ""
+                }`
+              : "Add your first calendar to get started"
+          }
           icon={Icon.Calendar}
         />
       </List>
@@ -64,12 +110,19 @@ export default function ManageCalendars() {
                   <Action
                     title="Edit Calendar"
                     icon={Icon.Pencil}
-                    onAction={() => push(<EditCalendar calendar={calendar} />)}
+                    onAction={() =>
+                      push(
+                        <EditCalendar
+                          calendar={calendar}
+                          onSubmit={refresh}
+                        />,
+                      )
+                    }
                   />
                   <Action
                     title="Add Calendar"
                     icon={Icon.Plus}
-                    onAction={() => push(<CalendarForm />)}
+                    onAction={() => push(<CalendarForm onSubmit={refresh} />)}
                   />
                 </ActionPanel.Section>
                 <ActionPanel.Section>
