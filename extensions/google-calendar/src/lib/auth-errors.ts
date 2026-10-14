@@ -42,6 +42,26 @@ export function redactSensitiveText(text: string): string {
 }
 
 /**
+ * Shared unauthenticated-session predicate for every command boundary.
+ *
+ * True for both ways a Google session ends: a rejected refresh that cleared
+ * the stored tokens (`NotAuthenticatedError` from the auth module) and a
+ * live API call rejected with HTTP 401 (`GoogleApiError` with
+ * `status === 401`). Command boot handlers AND mid-flight catch paths must
+ * use this — checking only the 401 case leaves a rejected-refresh session
+ * stuck in a ready/error state instead of the sign-in view.
+ *
+ * Host-free on purpose (name + status duck-typing, no imports), so unit
+ * tests run without the Vicinae runtime.
+ */
+export function isUnauthenticatedError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const err = error as { name?: unknown; status?: unknown };
+  if (err.name === "NotAuthenticatedError") return true;
+  return err.name === "GoogleApiError" && err.status === 401;
+}
+
+/**
  * Shared OAuth error-code mapper used by both {@link formatRefreshTokenError}
  * and {@link formatBrowserAuthError}. Returns the actionable message, or
  * null when the input matches no known code (caller falls back to the raw,

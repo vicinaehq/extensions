@@ -10,7 +10,7 @@ import {
   showToast,
   Toast,
 } from "@vicinae/api";
-import { GoogleApiError, type CalendarListEntry, type GoogleEvent } from "./api/calendar";
+import { type CalendarListEntry, type GoogleEvent } from "./api/calendar";
 import { ensureSession, signOut } from "./auth/google-oauth";
 import { getListEventsPreferences } from "./preferences";
 import { getCalendarClient } from "./lib/get-client";
@@ -27,6 +27,7 @@ import { compareEventsByStart, dedupeEvents } from "./lib/event-dedupe";
 import type { EventListItemData } from "./lib/event-dedupe";
 import { EventDetailView, EventListItem } from "./components/EventListItem";
 import { formatGoogleApiError } from "./lib/api-errors";
+import { isUnauthenticatedError } from "./lib/auth-errors";
 import { UnauthenticatedView } from "./components/UnauthenticatedView";
 import ListCalendarsCommand from "./list-calendars";
 import CreateEventCommand from "./create-event";
@@ -100,7 +101,7 @@ export default function ListEventsCommand() {
           return { cal, events };
         } catch (error) {
           if (isAbortError(error, signal)) throw error;
-          if (error instanceof GoogleApiError && error.status === 401) {
+          if (isUnauthenticatedError(error)) {
             throw error;
           }
           await showToast({
@@ -165,7 +166,7 @@ export default function ListEventsCommand() {
     } catch (error) {
       if (isAbortError(error, controller.signal)) return;
       if (generationRef.current !== generation) return;
-      if (error instanceof GoogleApiError && error.status === 401) {
+      if (isUnauthenticatedError(error)) {
         await showToast({
           style: Toast.Style.Failure,
           title: "Google session expired",
@@ -216,7 +217,12 @@ export default function ListEventsCommand() {
         } catch (error) {
           if (isAbortError(error, controller.signal)) return;
           if (generationRef.current !== generation) return;
-          if (error instanceof GoogleApiError && error.status === 401) {
+          if (isUnauthenticatedError(error)) {
+            await showToast({
+              style: Toast.Style.Failure,
+              title: "Google session expired",
+              message: "Please sign in again.",
+            });
             setStatus("unauthed");
           } else {
             await showToast({

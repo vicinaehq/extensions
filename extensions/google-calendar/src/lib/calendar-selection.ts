@@ -13,7 +13,9 @@ import type { CalendarListEntry } from "../api/calendar";
  * Hidden-calendar ids are a JSON array under a single LocalStorage key.
  *
  * No static `@vicinae/api` import here (it crashes outside the Vicinae
- * host); LocalStorage is required lazily, mirroring `src/auth/tokens.ts`.
+ * host); LocalStorage is required lazily. (Only non-secret UI state lives
+ * here — default-calendar id, hidden ids. OAuth tokens live in the secure
+ * OAuth store via `src/auth/tokens.ts`, never in LocalStorage.)
  */
 
 export const DEFAULT_CALENDAR_STORAGE_KEY = "google-calendar:default-calendar-id";
@@ -45,6 +47,44 @@ export async function setStoredDefaultCalendarId(calendarId: string): Promise<vo
   await vicinaeLocalStorage().setItem(DEFAULT_CALENDAR_STORAGE_KEY, calendarId);
 }
 
+/** Pure inputs for resolving the effective default calendar. Host-free. */
+export interface DefaultCalendarResolution {
+  /** The `defaultCalendarId` extension preference, when set (explicit override). */
+  preferenceId?: string;
+  /** The id persisted via "Set as Default", when set. */
+  storedId?: string;
+  calendars?: Pick<CalendarListEntry, "id" | "primary">[];
+}
+
+/**
+ * Pure resolution of the effective default calendar id:
+ * preference override → stored choice → account primary → first listed.
+ * Host-free so it is unit-testable; `getDefaultCalendarId` wires the
+ * preference and storage reads into it.
+ */
+export function resolveDefaultCalendarId(resolution: DefaultCalendarResolution): string {
+  if (resolution.preferenceId) return resolution.preferenceId;
+  if (resolution.storedId) return resolution.storedId;
+  const primary = resolution.calendars?.find((c) => c.primary)?.id;
+  if (primary) return primary;
+  const first = resolution.calendars?.[0]?.id;
+  return first ?? "primary";
+}
+
+/** Where the effective default calendar id came from. Host-free. */
+export type DefaultCalendarSource = "preference" | "stored" | "primary" | "first" | "fallback";
+
+/** Pure source reporting for the same precedence. Host-free. */
+export function resolveDefaultCalendarSource(
+  resolution: DefaultCalendarResolution,
+): DefaultCalendarSource {
+  if (resolution.preferenceId) return "preference";
+  if (resolution.storedId) return "stored";
+  if (resolution.calendars?.some((c) => c.primary)) return "primary";
+  if (resolution.calendars?.length) return "first";
+  return "fallback";
+}
+
 /** Resolve the effective default calendar id given the listed calendars. */
 export async function getDefaultCalendarId(
   calendars?: Pick<CalendarListEntry, "id" | "primary">[],
@@ -52,11 +92,7 @@ export async function getDefaultCalendarId(
   const preferred = preferenceDefaultCalendarId();
   if (preferred) return preferred;
   const stored = await getStoredDefaultCalendarId();
-  if (stored) return stored;
-  const primary = calendars?.find((c) => c.primary)?.id;
-  if (primary) return primary;
-  const first = calendars?.[0]?.id;
-  return first ?? "primary";
+  return resolveDefaultCalendarId({ storedId: stored, calendars });
 }
 
 export async function getHiddenCalendarIds(): Promise<string[]> {

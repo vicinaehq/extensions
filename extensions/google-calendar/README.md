@@ -109,8 +109,8 @@ Two paths, both using your own Desktop-app client:
 
 - **Browser (PKCE) flow** — the extension opens Google's consent page in
   your browser and listens on a loopback redirect
-  (`http://127.0.0.1:<port>/callback`) to complete the code exchange.
-  Nothing is pasted by hand.
+  (`http://127.0.0.1:<port>/callback`, always an OS-assigned ephemeral
+  port) to complete the code exchange. Nothing is pasted by hand.
 - **Paste-refresh-token flow** — mint a refresh token for your own
   Desktop-app client with `scripts/get-refresh-token.mjs` (run
   `node scripts/get-refresh-token.mjs --help`) and paste it into the
@@ -125,9 +125,15 @@ Two paths, both using your own Desktop-app client:
   exchange fails with `invalid_grant`. Always mint with the same Client
   ID/secret stored in the extension preferences.
 
-Note: Vicinae's built-in `OAuth.PKCEClient` is intentionally not used —
-its redirect URIs (raycast.com / `raycast://` / `com.raycast:/`) are not
-usable with Google's Desktop-app client type.
+Note: Vicinae's built-in `OAuth.PKCEClient.authorize` is intentionally
+not used for the sign-in itself — its redirect URIs (raycast.com /
+`raycast://` / `com.raycast:/`) are not usable with Google's Desktop-app
+client type. But tokens ARE kept in Vicinae's secure OAuth credential
+store: a stable module-level `OAuth.PKCEClient` persists the token set
+via `setTokens` and reads it back via `getTokens` (cleared via
+`removeTokens` on sign-out or when Google rejects the refresh token).
+The custom loopback flow only performs the authorization; it never
+stores tokens itself.
 
 ## Troubleshooting
 
@@ -152,11 +158,11 @@ usable with Google's Desktop-app client type.
   also stops working about 7 days after consent; the fix is to publish the
   app (**Google Auth Platform → Audience → Publish app**) rather than
   re-signing in every week. See setup step 4.
-- **Nothing shows up in Vicinae's OAuth store.** Expected: tokens are
-  kept in the extension's own Vicinae `LocalStorage` entry, not in
-  Vicinae's OAuth credential store (`OAuth.PKCEClient` is intentionally
-  not used — its redirect URIs don't work with Google Desktop-app
-  clients).
+- **Nothing shows up in Vicinae's OAuth store.** Stale entry from before
+  the token-storage fix — tokens now live in Vicinae's OAuth credential
+  store via `OAuth.PKCEClient.setTokens`/`getTokens`/`removeTokens` (see
+  "Authentication" above). If you signed in before this change, sign out
+  and sign in again so the session moves to the OAuth store.
 
 ## Preferences
 

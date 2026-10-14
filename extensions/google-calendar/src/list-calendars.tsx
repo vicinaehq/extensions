@@ -10,8 +10,9 @@ import {
   showToast,
   Toast,
 } from "@vicinae/api";
-import { GoogleApiError, type CalendarListEntry } from "./api/calendar";
+import { type CalendarListEntry } from "./api/calendar";
 import { ensureSession, signOut } from "./auth/google-oauth";
+import { getExtensionPreferences } from "./preferences";
 import { getCalendarClient } from "./lib/get-client";
 import {
   fetchCalendarsWithCache,
@@ -24,6 +25,7 @@ import {
 import { UnauthenticatedView } from "./components/UnauthenticatedView";
 import { calendarDisplayName } from "./components/EventListItem";
 import { formatGoogleApiError } from "./lib/api-errors";
+import { isUnauthenticatedError } from "./lib/auth-errors";
 import ListEventsCommand from "./list-events";
 
 type Status = "checking" | "ready" | "unauthed";
@@ -36,6 +38,7 @@ export default function ListCalendarsCommand() {
   const [status, setStatus] = useState<Status>("checking");
   const [calendars, setCalendars] = useState<CalendarListEntry[]>([]);
   const [defaultId, setDefaultId] = useState<string>("primary");
+  const [preferenceDefaultId, setPreferenceDefaultId] = useState<string | undefined>();
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [reload, setReload] = useState(0);
@@ -55,6 +58,15 @@ export default function ListCalendarsCommand() {
         const client = getCalendarClient();
         const list = await fetchCalendarsWithCache(client);
         const resolvedDefault = await getDefaultCalendarId(list);
+        // The `defaultCalendarId` preference is an explicit override: when
+        // set, "Set as Default" cannot change the effective default, so the
+        // UI says so instead of reporting a success that changed nothing.
+        let preferenceOverride: string | undefined;
+        try {
+          preferenceOverride = getExtensionPreferences().defaultCalendarId;
+        } catch {
+          preferenceOverride = undefined;
+        }
         const hidden: string[] = [];
         for (const cal of list) {
           if (await isCalendarHidden(cal.id)) hidden.push(cal.id);
@@ -62,12 +74,13 @@ export default function ListCalendarsCommand() {
         if (!cancelled) {
           setCalendars(list);
           setDefaultId(resolvedDefault);
+          setPreferenceDefaultId(preferenceOverride);
           setHiddenIds(hidden);
           setStatus("ready");
         }
       } catch (error) {
         if (!cancelled) {
-          if (error instanceof GoogleApiError && error.status === 401) {
+          if (isUnauthenticatedError(error)) {
             await showToast({
               style: Toast.Style.Failure,
               title: "Google session expired",
@@ -102,6 +115,17 @@ export default function ListCalendarsCommand() {
   }
 
   async function handleSetDefault(id: string) {
+    // Defense in depth: the action itself is replaced when the preference
+    // override is set, but never store a value that cannot take effect.
+    if (preferenceDefaultId) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Default calendar comes from preferences",
+        message:
+          "Clear the Default Calendar ID override in extension preferences to let Set as Default take effect.",
+      });
+      return;
+    }
     await setStoredDefaultCalendarId(id);
     setDefaultId(id);
     await showToast({ style: Toast.Style.Success, title: "Default calendar updated" });
@@ -167,6 +191,8 @@ export default function ListCalendarsCommand() {
       {calendars.map((cal) => {
         const isDefault = cal.id === defaultId || (defaultId === "primary" && cal.primary === true);
         const hidden = hiddenIds.includes(cal.id);
+        const defaultFromPreferences =
+          preferenceDefaultId !== undefined && preferenceDefaultId.length > 0;
         return (
           <List.Item
             key={cal.id}
@@ -174,7 +200,16 @@ export default function ListCalendarsCommand() {
             title={calendarDisplayName(cal)}
             subtitle={cal.description || cal.id}
             accessories={[
-              ...(isDefault ? [{ icon: Icon.Checkmark, tooltip: "Default calendar" }] : []),
+              ...(isDefault
+                ? [
+                    {
+                      icon: Icon.Checkmark,
+                      tooltip: defaultFromPreferences
+                        ? "Default calendar (from extension preferences)"
+                        : "Default calendar",
+                    },
+                  ]
+                : []),
               ...(cal.accessRole ? [{ tag: cal.accessRole }] : []),
               ...(cal.backgroundColor
                 ? [{ tag: { value: "●", color: cal.backgroundColor }, tooltip: "Calendar colour" }]
@@ -183,15 +218,35 @@ export default function ListCalendarsCommand() {
             ]}
             actions={
               <ActionPanel>
-                <Action
-                  title="Set as Default"
-                  icon={Icon.Checkmark}
-                  onAction={() => void handleSetDefault(cal.id)}
-                />
+                {defaultFromPreferences ? (
+                  <Action
+                    title="Default Set in Preferences"
+                    icon={Icon.Info01}
+                    onAction={() =>
+                      void showToast({
+                        style: Toast.Style.Failure,
+                        title: "Default calendar comes from preferences",
+                        message:
+                          "Clear the Default Calendar ID override in extension preferences to let Set as Default take effect.",
+                      })
+                    }
+                  />
+                ) : (
+                  <Action
+                    title="Set as Default"
+                    icon={Icon.Checkmark}
+                    onAction={() => void handleSetDefault(cal.id)}
+                  />
+                )}
                 <Action
                   title={hidden ? "Show in List Events" : "Hide from List Events"}
                   icon={hidden ? Icon.Eye : Icon.EyeDisabled}
                   onAction={() => void handleToggleVisibility(cal.id)}
+                />
+                <Action
+                  title="Open Extension Preferences"
+                  icon={Icon.Cog}
+                  onAction={() => void openExtensionPreferences().catch(() => undefined)}
                 />
                 <Action.OpenInBrowser
                   title="Open in Google Calendar"

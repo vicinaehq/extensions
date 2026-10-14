@@ -60,11 +60,17 @@ export function isAllDay(eventDateTime: EventDateTime | undefined): boolean {
 
 function parseEventDate(value: EventDateTime | undefined): Date | undefined {
   if (!value) return undefined;
-  const raw = value.dateTime ?? value.date;
-  if (typeof raw !== "string" || raw.length === 0) return undefined;
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return undefined;
-  return parsed;
+  if (typeof value.dateTime === "string" && value.dateTime.length > 0) {
+    const parsed = new Date(value.dateTime);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  }
+  // Date-only (all-day) values are calendar dates, not instants:
+  // `new Date("2026-10-14")` parses as UTC midnight, which is still the
+  // previous local day west of UTC. Construct a local-midnight date so
+  // Today/Tomorrow/Upcoming grouping follows the user's calendar day.
+  const match = value.date?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return undefined;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 }
 
 export function formatEventTimeRange(

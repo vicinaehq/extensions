@@ -10,7 +10,7 @@ import {
   Toast,
   useNavigation,
 } from "@vicinae/api";
-import { GoogleApiError, type CalendarListEntry } from "./api/calendar";
+import { type CalendarListEntry } from "./api/calendar";
 import { ensureSession } from "./auth/google-oauth";
 import { readSendUpdates } from "./preferences";
 import { getCalendarClient } from "./lib/get-client";
@@ -22,6 +22,7 @@ import { parseQuickEventText } from "./lib/quick-event";
 import { UnauthenticatedView } from "./components/UnauthenticatedView";
 import { calendarDisplayName } from "./components/EventListItem";
 import { formatGoogleApiError } from "./lib/api-errors";
+import { isUnauthenticatedError } from "./lib/auth-errors";
 
 type Status = "checking" | "ready" | "unauthed";
 
@@ -62,7 +63,7 @@ export default function CreateQuickEventCommand() {
         }
       } catch (error) {
         if (!cancelled) {
-          if (error instanceof GoogleApiError && error.status === 401) {
+          if (isUnauthenticatedError(error)) {
             setStatus("unauthed");
           } else {
             await showToast({
@@ -154,7 +155,7 @@ export default function CreateQuickEventCommand() {
         />,
       );
     } catch (error) {
-      if (error instanceof GoogleApiError && error.status === 401) {
+      if (isUnauthenticatedError(error)) {
         toast.style = Toast.Style.Failure;
         toast.title = "Google session expired";
         toast.message = "Please sign in again.";

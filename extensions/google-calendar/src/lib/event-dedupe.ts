@@ -8,9 +8,18 @@ export interface EventListItemData {
 }
 
 function eventStartMs(event: GoogleEvent): number {
-  const raw = event.start?.dateTime ?? event.start?.date;
-  const ms = raw ? new Date(raw).getTime() : NaN;
-  return Number.isNaN(ms) ? 0 : ms;
+  // Mirror `parseEventDate` in date-utils: a date-only start is a calendar
+  // day, so anchor it at local midnight — `new Date("2026-10-14")` would be
+  // UTC midnight (the previous local day west of UTC) and would mis-sort
+  // all-day events against timed ones.
+  const dateTime = event.start?.dateTime;
+  if (typeof dateTime === "string" && dateTime.length > 0) {
+    const ms = new Date(dateTime).getTime();
+    return Number.isNaN(ms) ? 0 : ms;
+  }
+  const match = event.start?.date?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return 0;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])).getTime();
 }
 
 export function compareEventsByStart(a: GoogleEvent, b: GoogleEvent): number {

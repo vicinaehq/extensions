@@ -15,7 +15,6 @@ export const GOOGLE_SCOPES: string[] = [
   "profile",
 ];
 
-const DEFAULT_LOOPBACK_PORT = 8765;
 const DEFAULT_EXPIRES_IN_SECONDS = 3600;
 
 export class NotAuthenticatedError extends Error {
@@ -95,7 +94,6 @@ interface TokenEndpointResponse {
   refresh_token?: string;
   expires_in?: number;
   scope?: string;
-  token_type?: string;
   error?: string;
   error_description?: string;
 }
@@ -156,7 +154,6 @@ function toStoredTokens(
     refreshToken: data.refresh_token ?? previousRefreshToken,
     expiresAt: Date.now() + expiresIn * 1000,
     scope: data.scope,
-    tokenType: data.token_type,
   };
 }
 
@@ -272,9 +269,12 @@ export async function startBrowserAuthorization(): Promise<void> {
   const challenge = createCodeChallengeS256(verifier);
   const state = createState();
   let redirectUri = "";
+  // Always an OS-assigned ephemeral loopback port (no fixed preferred
+  // port): Desktop-app clients accept any loopback port, and a fixed port
+  // only adds collision/fingerprinting surface. `waitForAuthorizationCode`
+  // keeps `preferredPort` support for tests.
   const { code } = await waitForAuthorizationCode({
     expectedState: state,
-    preferredPort: DEFAULT_LOOPBACK_PORT,
     onListening: async (uri) => {
       redirectUri = uri;
       await openInBrowser(
