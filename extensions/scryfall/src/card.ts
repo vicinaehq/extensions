@@ -53,10 +53,13 @@ const FORMAT_NAMES: Record<string, string> = {
   predh: "Pre-EDH",
 };
 
-/** Formats where the card is legal or restricted, e.g. "Standard, Pauper Commander". */
+/** Formats where the card is legal or restricted, e.g. "Standard, Vintage (Restricted)". */
 export function legalFormats(card: Card): string {
   const formats = Object.entries(card.legalities)
     .filter(([, status]) => status === "legal" || status === "restricted")
-    .map(([format]) => FORMAT_NAMES[format] ?? format.charAt(0).toUpperCase() + format.slice(1));
+    .map(([format, status]) => {
+      const name = FORMAT_NAMES[format] ?? format.charAt(0).toUpperCase() + format.slice(1);
+      return status === "restricted" ? `${name} (Restricted)` : name;
+    });
   return formats.length ? formats.join(", ") : "None";
 }

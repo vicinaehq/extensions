@@ -54,9 +54,11 @@ export default function Command() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<SearchResult>({ cards: [], total: 0 });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>();
 
   useEffect(() => {
     const q = query.trim();
+    setError(undefined);
     if (!q) {
       setResult({ cards: [], total: 0 });
       setIsLoading(false);
@@ -69,15 +71,13 @@ export default function Command() {
       try {
         setResult(await searchCards(q, controller.signal));
         setIsLoading(false);
-      } catch (error) {
-        if (isAbortError(error)) return;
+      } catch (err) {
+        if (isAbortError(err)) return;
+        const message = err instanceof ScryfallError ? err.message : "Check your network connection";
         setResult({ cards: [], total: 0 });
+        setError(message);
         setIsLoading(false);
-        await showToast({
-          style: Toast.Style.Failure,
-          title: "Scryfall search failed",
-          message: error instanceof ScryfallError ? error.message : "Check your network connection",
-        });
+        await showToast({ style: Toast.Style.Failure, title: "Scryfall search failed", message });
       }
     }, DEBOUNCE_MS);
 
@@ -110,7 +110,19 @@ export default function Command() {
           }
         />
       )}
-      {q && !isLoading && cards.length === 0 && (
+      {q && !isLoading && error && (
+        <List.EmptyView
+          icon={Icon.Warning}
+          title="Scryfall search failed"
+          description={error}
+          actions={
+            <ActionPanel>
+              <Action.OpenInBrowser title="Open Scryfall Search" url={searchUrl(q)} />
+            </ActionPanel>
+          }
+        />
+      )}
+      {q && !isLoading && !error && cards.length === 0 && (
         <List.Section title="No cards found">
           <List.Item
             icon={Icon.Globe01}
