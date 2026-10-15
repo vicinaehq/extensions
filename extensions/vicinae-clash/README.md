@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/extension_icon.png" width="200" height="200" />
+</p>
+
 # Clash for Vicinae
 
 A Vicinae extension for monitoring and controlling a Clash-compatible REST API.
