@@ -76,11 +76,9 @@ export async function saveBackend(
   const url = normalizeBackendUrl(urlValue);
   const secret = normalizeSecret(secretValue);
   const backends = await getBackends();
-  const existing = backendId
-    ? backends.find((backend) => backend.id === backendId)
-    : backends.find((backend) => backend.url === url);
+  const existing = backendId ? backends.find((backend) => backend.id === backendId) : undefined;
   if (backendId && !existing) throw new Error("Backend no longer exists.");
-  if (backends.some((backend) => backend.url === url && backend.id !== existing?.id)) {
+  if (backends.some((backend) => backend.url === url && backend.id !== backendId)) {
     throw new Error("A backend with this URL already exists.");
   }
   const backend: Backend = existing

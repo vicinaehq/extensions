@@ -41,6 +41,7 @@ export function useWebSocketJson<T>(endpoint: string, params: Record<string, str
       socket.on("close", () => {
         if (socketRef.current !== socket) return;
         setIsConnecting(true);
+        setError((current) => current ?? "Connection closed. Reconnecting...");
         const delay = Math.min(1000 * 2 ** attemptsRef.current, 15_000);
         attemptsRef.current += 1;
         retryRef.current = setTimeout(() => void connect(), delay);
