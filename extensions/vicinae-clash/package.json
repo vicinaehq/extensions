@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "vicinae-clash",
+  "title": "Clash",
+  "description": "Monitor and control Clash from Vicinae.",
+  "icon": "extension_icon.png",
+  "author": "xiaozhuai",
+  "platforms": ["macOS", "Windows", "Linux"],
+  "categories": ["System", "Developer Tools"],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "clash",
+      "title": "Clash Dashboard",
+      "description": "Open the Clash dashboard.",
+      "mode": "view"
+    },
+    {
+      "name": "backends",
+      "title": "Clash Backends",
+      "description": "Manage Clash controller backends.",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "^0.29.0",
+    "react": "19.1.1",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "22.19.17",
+    "@types/react": "19.1.17",
+    "@types/ws": "^8.18.1",
+    "typescript": "^5.9.2"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "typecheck": "tsc --noEmit",
+    "lint": "vici lint && biome check src",
+    "fix-lint": "biome check --write src",
+    "format": "biome format --write src"
+  }
+}
