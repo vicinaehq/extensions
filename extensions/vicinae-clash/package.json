@@ -5,7 +5,7 @@
   "description": "Monitor and control Clash from Vicinae.",
   "icon": "extension_icon.png",
   "author": "xiaozhuai",
-  "platforms": ["macOS", "Linux"],
+  "platforms": ["macOS", "Windows", "Linux"],
   "categories": ["System", "Developer Tools"],
   "license": "MIT",
   "commands": [
