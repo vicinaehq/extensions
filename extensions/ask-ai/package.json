@@ -1,0 +1,56 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "ask-ai",
+	"title": "Ask AI",
+	"description": "Ask anything from the root search and read a streamed answer, with follow-ups, history and interactive calculators. Uses Claude Code, Codex or Antigravity through your existing login, or the Claude, OpenAI and Gemini APIs",
+	"categories": [
+		"Productivity",
+		"Developer Tools"
+	],
+	"keywords": ["ai", "assistant", "chat", "llm", "claude", "openai", "gemini", "codex", "antigravity", "question", "fallback"],
+	"license": "MIT",
+	"author": "Nael-Nathanael",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "icon.png",
+	"commands": [
+		{
+			"name": "ask-ai",
+			"title": "Ask AI",
+			"description": "Ask a question and read the answer full-width. Works best as a fallback command",
+			"keywords": ["ai", "ask", "chat", "question"],
+			"mode": "view"
+		},
+		{
+			"name": "ask-ai-histories",
+			"title": "Ask AI Histories",
+			"description": "Browse past Ask AI conversations and continue one",
+			"mode": "view"
+		},
+		{
+			"name": "ask-ai-settings",
+			"title": "Ask AI Settings",
+			"description": "Choose the provider, its sign-in and the answer style",
+			"mode": "view"
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"lint": "vici lint",
+		"typecheck": "tsc --noEmit",
+		"test": "node --experimental-strip-types --test test/*.test.ts"
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "^0.135.0",
+		"@openuidev/lang-core": "^1.0.1",
+		"@vicinae/api": "0.21.1",
+		"zod": "^4.6.7"
+	},
+	"devDependencies": {
+		"@types/node": "^22.0.0",
+		"@types/react": "19.0.10",
+		"typescript": "^5.9.2"
+	}
+}
