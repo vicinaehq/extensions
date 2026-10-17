@@ -19,7 +19,7 @@ Type a question into [Vicinae](https://vicinae.com). If nothing matches, press E
 | Claude Code | Your existing `claude` login |
 | Codex | Your existing `codex` login |
 | Antigravity | Your existing `agy` login |
-| Claude API | Anthropic API key, or any Anthropic-compatible gateway (set **Base URL**; the key is sent as a bearer token) |
+| Claude API | Anthropic API key, or any Anthropic-compatible gateway (set **Base URL**; the key is sent as a bearer token). Requests use low effort. Sent straight to Anthropic, a question the model declines may be answered by Anthropic's recommended fallback model. |
 | OpenAI API | OpenAI API key, or any gateway serving the Responses API (set **Base URL**) |
 | Gemini API | Gemini API key |
 
@@ -37,7 +37,7 @@ The three login providers run the official command-line tool you already have in
 
 **Output Style** is Full, Layman's terms (short sentences, everyday words, terms explained), or Custom (your own instructions).
 
-**Rich Answers** is in the spirit of ChatGPT's Intelligent UI: the model may add an [OpenUI Lang](https://github.com/thesysdev/openui) block. It renders as headings, tables, bar charts, tips, code and map links, and its buttons and suggested follow-ups appear in the action menu. Ask for a calculator, converter or estimate and you get a live tool: Ctrl+O opens it as a form whose results update as you change the inputs. Turn Rich Answers off in settings for plain Markdown.
+**Rich Answers** is in the spirit of ChatGPT's Intelligent UI: the model may add an [OpenUI Lang](https://github.com/thesysdev/openui) block. It renders as headings, tables, bar charts, tips, code, images and map links, and its buttons and suggested follow-ups appear in the action menu. Ask for a calculator, converter or estimate and you get a live tool: Ctrl+O opens it as a form whose results update as you change the inputs. Turn Rich Answers off in settings for plain Markdown.
 
 ## Install
 
@@ -68,6 +68,8 @@ Then, in Vicinae:
 3. Open **Ask AI Settings** and pick a provider.
 
 Ask AI only takes over Enter when nothing else in the root search matches. A long question can fuzzy-match an app; check that Ask AI is selected before pressing Enter.
+
+On Vicinae 0.24 and newer, that one Enter sends the question. Older Vicinae doesn't hand the question to the extension, only to its search bar, so press Enter a second time there to send it.
 
 ## Use
 

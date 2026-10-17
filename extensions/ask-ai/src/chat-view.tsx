@@ -55,7 +55,6 @@ export function ChatView() {
 		<Detail
 			navigationTitle={conv.title || "Ask AI"}
 			markdown={conversationMarkdown(conv, true)}
-			{...({ isLoading: streaming } as object)}
 			actions={
 				<ActionPanel>
 					<Action.CopyToClipboard

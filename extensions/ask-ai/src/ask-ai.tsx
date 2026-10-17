@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, List, clearSearchBar, environment, useNavigation } from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, clearSearchBar, useNavigation } from "@vicinae/api";
 import { useEffect, useRef, useState } from "react";
 import { ChatView } from "./chat-view.tsx";
 import { providerById } from "./providers/index.ts";
@@ -7,30 +7,20 @@ import { loadSettings } from "./settings.ts";
 import { SettingsForm } from "./settings-form.tsx";
 import { type Conversation, listConversations, loadConversation } from "./store.ts";
 
-/**
- * Vicinae 0.24+ passes fallback text as a prop. Older versions only replay it as the first search
- * event right after mount, so there a quick first event longer than one keystroke is taken as fallback text.
- */
-const FALLBACK_WINDOW_MS = 500;
-const fallbackByTiming = (() => {
-	const [major, minor] = (environment.vicinaeVersion?.tag ?? "").replace(/^v/, "").split(".").map(Number);
-	return Number.isFinite(major) && Number.isFinite(minor) ? major === 0 && minor < 24 : true;
-})();
 /** Opening the command by name within this window continues the last conversation. */
 const RESUME_WINDOW_MS = 10 * 60_000;
 
 /**
  * The search bar is the composer: Enter sends and opens the full-width answer.
- * As a fallback command, the unmatched root-search text is sent straight away.
+ * As a fallback command on Vicinae 0.24+, the unmatched root-search text arrives as a prop and is
+ * sent straight away. Older Vicinae only puts it in the search bar, where Enter sends it.
  */
 export function Composer(props: { fallbackText?: string; conversation?: Conversation }) {
 	const { push } = useNavigation();
 	const conv = useConversation();
 	const [query, setQuery] = useState("");
 	const [providerTitle, setProviderTitle] = useState<string>();
-	const mountedAt = useRef(Date.now());
 	const sawSearchEvent = useRef(false);
-	const fallbackSent = useRef<string | undefined>(undefined);
 	const asked = useRef(false);
 
 	const send = (text: string, fresh = false) => {
@@ -48,9 +38,7 @@ export function Composer(props: { fallbackText?: string; conversation?: Conversa
 			openConversation(props.conversation);
 			return;
 		}
-		// Newer Vicinae passes the fallback text as a prop.
 		if (props.fallbackText?.trim()) {
-			fallbackSent.current = props.fallbackText;
 			send(props.fallbackText, true);
 			return;
 		}
@@ -69,16 +57,8 @@ export function Composer(props: { fallbackText?: string; conversation?: Conversa
 	const onSearchTextChange = (text: string) => {
 		const first = !sawSearchEvent.current;
 		sawSearchEvent.current = true;
-		const early = Date.now() - mountedAt.current < FALLBACK_WINDOW_MS;
-		// Replayed fallback text arrives whole; a user typing after a launch by name starts with one character.
-		if (fallbackByTiming && first && early && text.trim().length > 1 && !props.conversation) {
-			if (fallbackSent.current !== text) {
-				fallbackSent.current = text;
-				send(text, true);
-			}
-			return;
-		}
-		if (early && text === fallbackSent.current) return;
+		// Vicinae may also replay the fallback text it already passed as a prop; it was sent.
+		if (first && props.fallbackText && text === props.fallbackText) return;
 		setQuery(text);
 	};
 
