@@ -23,7 +23,7 @@ Type a question into [Vicinae](https://vicinae.com). If nothing matches, press E
 | OpenAI API | OpenAI API key, or any gateway serving the Responses API (set **Base URL**) |
 | Gemini API | Gemini API key |
 
-The three login providers run the official command-line tool you already have installed and signed in to. The extension never reads their credentials, and each question runs in an empty folder. What the model can still do differs:
+The three login providers run the official command-line tool you already have installed and signed in to. The extension never reads their credentials, and each question runs in its own new, empty folder that is deleted afterwards. What the model can still do differs:
 
 | Provider | Tools left to the model |
 |---|---|

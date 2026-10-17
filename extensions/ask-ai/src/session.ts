@@ -1,5 +1,5 @@
 import { environment } from "@vicinae/api";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { useSyncExternalStore } from "react";
 import { ProviderError, providerById } from "./providers/index.ts";
@@ -81,8 +81,10 @@ export async function ask(raw: string, opts: { fresh?: boolean } = {}) {
 		if (conv.id === mine.id) set(mine);
 	};
 
-	const workdir = join(environment.supportPath, "workdir");
-	mkdirSync(workdir, { recursive: true });
+	// A fresh empty folder per question, so nothing one CLI run leaves behind is seen by the next.
+	const parent = join(environment.supportPath, "workdir");
+	mkdirSync(parent, { recursive: true });
+	const workdir = mkdtempSync(join(parent, "q-"));
 
 	// Deltas arrive faster than the host can re-render; batch them.
 	let answer = "";
@@ -118,6 +120,7 @@ export async function ask(raw: string, opts: { fresh?: boolean } = {}) {
 	} finally {
 		clearInterval(flushTimer);
 		clearInterval(saveTimer);
+		rmSync(workdir, { recursive: true, force: true });
 		if (controller === own) controller = undefined;
 		await saveConversation(current());
 	}

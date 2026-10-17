@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, List, clearSearchBar, useNavigation } from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, clearSearchBar, environment, useNavigation } from "@vicinae/api";
 import { useEffect, useRef, useState } from "react";
 import { ChatView } from "./chat-view.tsx";
 import { providerById } from "./providers/index.ts";
@@ -7,8 +7,15 @@ import { loadSettings } from "./settings.ts";
 import { SettingsForm } from "./settings-form.tsx";
 import { type Conversation, listConversations, loadConversation } from "./store.ts";
 
-/** The host replays fallback text right after mount; anything later is the user typing. */
+/**
+ * Vicinae 0.24+ passes fallback text as a prop. Older versions only replay it as the first search
+ * event right after mount, so there a quick first event longer than one keystroke is taken as fallback text.
+ */
 const FALLBACK_WINDOW_MS = 500;
+const fallbackByTiming = (() => {
+	const [major, minor] = (environment.vicinaeVersion?.tag ?? "").replace(/^v/, "").split(".").map(Number);
+	return Number.isFinite(major) && Number.isFinite(minor) ? major === 0 && minor < 24 : true;
+})();
 /** Opening the command by name within this window continues the last conversation. */
 const RESUME_WINDOW_MS = 10 * 60_000;
 
@@ -24,9 +31,11 @@ export function Composer(props: { fallbackText?: string; conversation?: Conversa
 	const mountedAt = useRef(Date.now());
 	const sawSearchEvent = useRef(false);
 	const fallbackSent = useRef<string | undefined>(undefined);
+	const asked = useRef(false);
 
 	const send = (text: string, fresh = false) => {
 		if (!text.trim()) return;
+		asked.current = true;
 		clearSearchBar();
 		setQuery("");
 		ask(text, { fresh });
@@ -45,10 +54,12 @@ export function Composer(props: { fallbackText?: string; conversation?: Conversa
 			send(props.fallbackText, true);
 			return;
 		}
+		// The extension process can outlive the window, so the in-memory conversation may be old too.
 		listConversations().then(async ([latest]) => {
-			if (!latest || Date.now() - latest.updatedAt > RESUME_WINDOW_MS) return;
-			const saved = await loadConversation(latest.id);
-			if (saved && !fallbackSent.current && getConversation().turns.length === 0) openConversation(saved);
+			const recent = latest && Date.now() - latest.updatedAt <= RESUME_WINDOW_MS ? await loadConversation(latest.id) : undefined;
+			if (asked.current) return;
+			if (recent) openConversation(recent);
+			else if (Date.now() - getConversation().updatedAt > RESUME_WINDOW_MS) startNew();
 		});
 	}, []);
 
@@ -60,7 +71,7 @@ export function Composer(props: { fallbackText?: string; conversation?: Conversa
 		sawSearchEvent.current = true;
 		const early = Date.now() - mountedAt.current < FALLBACK_WINDOW_MS;
 		// Replayed fallback text arrives whole; a user typing after a launch by name starts with one character.
-		if (first && early && text.trim().length > 1 && !props.conversation) {
+		if (fallbackByTiming && first && early && text.trim().length > 1 && !props.conversation) {
 			if (fallbackSent.current !== text) {
 				fallbackSent.current = text;
 				send(text, true);
