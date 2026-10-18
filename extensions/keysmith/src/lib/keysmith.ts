@@ -6,6 +6,19 @@ import * as path from "path";
 
 export type KeysmithType = "totp" | "hotp";
 
+export type HashAlgorithm = "sha1" | "sha256" | "sha512";
+
+/**
+ * Maps an otpauth `algorithm` value onto the hash names Keysmith stores. Anything
+ * unrecognized falls back to SHA-1, the otpauth default and the Keysmith default.
+ */
+export function keysmithHashName(value: string): string {
+  const clean = value.toLowerCase().replace(/-/g, "");
+  if (clean === "sha256") return "Sha256";
+  if (clean === "sha512") return "Sha512";
+  return "Sha1";
+}
+
 export type KeysmithAccount = {
   id: string;
   account: string;
@@ -64,8 +77,32 @@ export function describeConfigReadError(error: unknown, configPath: string): str
 
 export function writeConfig(configPath: string, config: Config): void {
   const tmpPath = `${configPath}.tmp`;
-  fs.writeFileSync(tmpPath, stringifyConfig(config), "utf8");
-  fs.renameSync(tmpPath, configPath);
+  // The rewritten vault must not end up more readable than the file it replaces,
+  // so the temporary file is created with the existing vault's mode.
+  let mode: number | null = null;
+  try {
+    mode = fs.statSync(configPath).mode & 0o777;
+  } catch {
+    // Nothing to copy from; fall back to the process umask.
+  }
+  try {
+    fs.rmSync(tmpPath, { force: true });
+    fs.writeFileSync(
+      tmpPath,
+      stringifyConfig(config),
+      mode === null ? "utf8" : { encoding: "utf8", mode },
+    );
+    // writeFileSync masks the mode with the umask, so apply it exactly afterwards.
+    if (mode !== null) fs.chmodSync(tmpPath, mode);
+    fs.renameSync(tmpPath, configPath);
+  } catch (error) {
+    try {
+      fs.rmSync(tmpPath, { force: true });
+    } catch {
+      // The write may never have created the file; cleanup failure is not the point.
+    }
+    throw error;
+  }
 }
 
 export function parseConfig(text: string): Config {

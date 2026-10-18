@@ -9,6 +9,11 @@ export type OTPURL = {
   algorithm: string;
 };
 
+function intParam(raw: string | null, fallback: number): number {
+  const parsed = Number.parseInt(raw ?? "", 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 export function parseOtpUrl(raw: string): OTPURL | null {
   try {
     const url = new URL(raw.trim());
@@ -24,9 +29,9 @@ export function parseOtpUrl(raw: string): OTPURL | null {
       account = label.slice(colonIndex + 1);
     }
     const secret = url.searchParams.get("secret") ?? "";
-    const digits = Number.parseInt(url.searchParams.get("digits") ?? "6", 10);
-    const period = Number.parseInt(url.searchParams.get("period") ?? "30", 10);
-    const counter = Number.parseInt(url.searchParams.get("counter") ?? "0", 10);
+    const digits = intParam(url.searchParams.get("digits"), 6);
+    const period = intParam(url.searchParams.get("period"), 30);
+    const counter = intParam(url.searchParams.get("counter"), 0);
     const algorithm = (url.searchParams.get("algorithm") || "SHA1").replace(/-/g, "");
     if (!secret) return null;
     return { type, account, issuer, secret, digits, timeStep: period, counter, algorithm };

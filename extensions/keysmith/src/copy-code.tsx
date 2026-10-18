@@ -225,17 +225,28 @@ function AccountList({
                       title="Use Code and Increment"
                       icon={Icon.ArrowRight}
                       onAction={async () => {
-                        await Clipboard.copy(item.code);
-                        const ok = incrementHotpCounter(configPath, item.account.id);
-                        if (!ok) {
+                        // Persist the counter before the code leaves the app. If
+                        // the write fails, the vault still owes this code, so it
+                        // must not be handed out as if it had been consumed.
+                        try {
+                          if (!incrementHotpCounter(configPath, item.account.id)) {
+                            await showToast({
+                              style: Toast.Style.Failure,
+                              title: "Keysmith",
+                              message: "Failed to update HOTP counter",
+                            });
+                            return;
+                          }
+                        } catch (error) {
                           await showToast({
                             style: Toast.Style.Failure,
                             title: "Keysmith",
-                            message: "Failed to update HOTP counter",
+                            message: error instanceof Error ? error.message : String(error),
                           });
-                        } else {
-                          setRefreshCount((n) => n + 1);
+                          return;
                         }
+                        await Clipboard.copy(item.code);
+                        setRefreshCount((n) => n + 1);
                       }}
                     />
                   ) : null}

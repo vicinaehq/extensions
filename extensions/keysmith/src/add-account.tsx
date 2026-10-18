@@ -10,11 +10,18 @@ import {
   Toast,
 } from "@vicinae/api";
 import { execFile } from "child_process";
+import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { useState } from "react";
 import { promisify } from "util";
-import { addKeysmithAccount, base32Decode, normalizeConfigPath } from "./lib/keysmith";
+import {
+  type HashAlgorithm,
+  addKeysmithAccount,
+  base32Decode,
+  keysmithHashName,
+  normalizeConfigPath,
+} from "./lib/keysmith";
 import { parseOtpUrl } from "./lib/otp";
 import { decodeQrImage } from "./lib/qr";
 import { type VaultSession, legacyMasterPassword, useVault } from "./lib/vault";
@@ -28,7 +35,39 @@ type AccountFields = {
   issuer: string;
   secret: string;
   type: "totp" | "hotp";
+  digits: number;
+  timeStep: number;
+  counter: number;
+  algorithm: string;
 };
+
+/** Keeps a numeric form field inside the range the OTP spec and Keysmith accept. */
+function boundedInt(value: unknown, fallback: number, min: number, max: number): number {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(parsed) || parsed < min || parsed > max) return fallback;
+  return parsed;
+}
+
+/** Reads the normalized algorithm name a QR carried back into a dropdown value. */
+function algorithmOption(value: string): HashAlgorithm {
+  const name = keysmithHashName(value);
+  if (name === "Sha256") return "sha256";
+  if (name === "Sha512") return "sha512";
+  return "sha1";
+}
+
+/**
+ * Deletes a captured QR screenshot. It holds an OTP secret in the clear, so it
+ * must not outlive the scan. Cleanup failure is swallowed on purpose: it must
+ * never mask the scan result the user needs to see.
+ */
+async function discardScreenshot(file: string): Promise<void> {
+  try {
+    await fs.promises.unlink(file);
+  } catch {
+    // The capture may have failed before writing anything, or the file is gone.
+  }
+}
 
 async function decodeAndApply(
   imagePath: string,
@@ -53,7 +92,16 @@ async function decodeAndApply(
     });
     return false;
   }
-  fill({ account: url.account, issuer: url.issuer, secret: url.secret, type: url.type });
+  fill({
+    account: url.account,
+    issuer: url.issuer,
+    secret: url.secret,
+    type: url.type,
+    digits: url.digits,
+    timeStep: url.timeStep,
+    counter: url.counter,
+    algorithm: url.algorithm,
+  });
   await showToast({
     title: "QR code detected",
     message: "Account details filled in. Review and submit.",
@@ -66,12 +114,20 @@ function AddAccountForm({ configPath, session }: { configPath: string; session: 
   const [issuer, setIssuer] = useState("");
   const [secret, setSecret] = useState("");
   const [type, setType] = useState<"totp" | "hotp">("totp");
+  const [algorithm, setAlgorithm] = useState<HashAlgorithm>("sha1");
+  const [digits, setDigits] = useState("6");
+  const [period, setPeriod] = useState("30");
+  const [counter, setCounter] = useState("0");
 
   function fillForm(fields: AccountFields) {
     setAccount(fields.account);
     setIssuer(fields.issuer);
     setSecret(fields.secret);
     setType(fields.type);
+    setAlgorithm(algorithmOption(fields.algorithm));
+    setDigits(String(fields.digits));
+    setPeriod(String(fields.timeStep));
+    setCounter(String(fields.counter));
   }
 
   async function handleQrFile(paths: string[]) {
@@ -91,28 +147,35 @@ function AddAccountForm({ configPath, session }: { configPath: string; session: 
   async function handleScreenshot() {
     const output = path.join(os.tmpdir(), `vicinae-keysmith-qr-${Date.now()}.png`);
     try {
-      await execFileAsync("spectacle", ["-r", "-b", "-n", "-o", output], { timeout: 120000 });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (message.includes("ENOENT")) {
+      try {
+        await execFileAsync("spectacle", ["-r", "-b", "-n", "-o", output], { timeout: 120000 });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (message.includes("ENOENT")) {
+          await showToast({
+            title: "Spectacle not found",
+            message: "Install Spectacle or pick a QR image file instead.",
+            style: Toast.Style.Failure,
+          });
+        } else {
+          await showToast({
+            title: "Screenshot cancelled",
+            message: "No screenshot was captured.",
+          });
+        }
+        return;
+      }
+      try {
+        await decodeAndApply(output, fillForm);
+      } catch (error) {
         await showToast({
-          title: "Spectacle not found",
-          message: "Install Spectacle or pick a QR image file instead.",
+          title: "Could not read screenshot",
+          message: error instanceof Error ? error.message : String(error),
           style: Toast.Style.Failure,
         });
-      } else {
-        await showToast({ title: "Screenshot cancelled", message: "No screenshot was captured." });
       }
-      return;
-    }
-    try {
-      await decodeAndApply(output, fillForm);
-    } catch (error) {
-      await showToast({
-        title: "Could not read screenshot",
-        message: error instanceof Error ? error.message : String(error),
-        style: Toast.Style.Failure,
-      });
+    } finally {
+      await discardScreenshot(output);
     }
   }
 
@@ -123,6 +186,12 @@ function AddAccountForm({ configPath, session }: { configPath: string; session: 
       .trim()
       .replace(/\s/g, "");
     const otpType = String(values.type ?? "totp") === "hotp" ? "hotp" : "totp";
+    // Labels and hashes come from the scanned QR when there is one, and from the
+    // shown fields otherwise. Defaults match Keysmith (6 digits, SHA-1, 30 s).
+    const hashValue = keysmithHashName(String(values.algorithm ?? "sha1"));
+    const digitsValue = boundedInt(values.digits, 6, 1, 10);
+    const periodValue = boundedInt(values.period, 30, 1, 86400);
+    const counterValue = boundedInt(values.counter, 0, 0, Number.MAX_SAFE_INTEGER);
 
     if (!name || !secretValue) {
       await showToast({
@@ -147,6 +216,10 @@ function AddAccountForm({ configPath, session }: { configPath: string; session: 
         account: name,
         issuer: issuerValue,
         type: otpType,
+        hash: hashValue,
+        pinLength: digitsValue,
+        timeStep: periodValue,
+        counter: counterValue,
         secret: secretValue,
       });
       await showToast({ title: "Account added", message: "The account was added to Keysmith." });
@@ -214,6 +287,40 @@ function AddAccountForm({ configPath, session }: { configPath: string; session: 
         <Form.Dropdown.Item value="totp" title="TOTP (time-based)" />
         <Form.Dropdown.Item value="hotp" title="HOTP (counter-based)" />
       </Form.Dropdown>
+      <Form.Dropdown
+        id="algorithm"
+        title="Algorithm"
+        value={algorithm}
+        onChange={(value) => setAlgorithm(value as HashAlgorithm)}
+      >
+        <Form.Dropdown.Item value="sha1" title="SHA-1" />
+        <Form.Dropdown.Item value="sha256" title="SHA-256" />
+        <Form.Dropdown.Item value="sha512" title="SHA-512" />
+      </Form.Dropdown>
+      <Form.TextField
+        id="digits"
+        title="Digits"
+        value={digits}
+        onChange={setDigits}
+        placeholder="6"
+      />
+      {type === "totp" ? (
+        <Form.TextField
+          id="period"
+          title="Period (seconds)"
+          value={period}
+          onChange={setPeriod}
+          placeholder="30"
+        />
+      ) : (
+        <Form.TextField
+          id="counter"
+          title="Counter"
+          value={counter}
+          onChange={setCounter}
+          placeholder="0"
+        />
+      )}
     </Form>
   );
 }

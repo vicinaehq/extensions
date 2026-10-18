@@ -4,15 +4,15 @@ A Vicinae extension that reads your KDE Keysmith OTP store directly. Search acco
 
 ## Commands
 
-- **Search OTP Codes**: searchable list of Keysmith accounts with live codes. TOTP rows show a countdown that turns red under 10 seconds. HOTP rows offer a "Use Code and Increment" action.
-- **Add Account**: scan a QR image file, capture a QR code straight from the screen with Spectacle, or enter the issuer, account name, and secret manually like in Keysmith or Aegis. The account is encrypted and appended to the same `Keysmith.conf` Keysmith uses.
+- **Search OTP Codes**: searchable list of Keysmith accounts with live codes. TOTP rows show a countdown that turns red under 10 seconds. HOTP rows offer a "Use Code and Increment" action, which saves the new counter before the code reaches the clipboard.
+- **Add Account**: scan a QR image file, capture a QR code from the screen with Spectacle, or type the details in like in Keysmith or Aegis. A scan fills in the account name, issuer, secret, type, algorithm, digits, and period or counter, and you can correct any of them before saving. The account is encrypted and appended to the same `Keysmith.conf` Keysmith uses.
 
 ## Features
 
 - Search Keysmith accounts by account name or issuer.
 - TOTP codes with live countdown, HOTP codes with counter tracking.
 - No network access. Codes are derived and verified on your machine.
-- One subprocess, and only on request: "Scan QR from Screen" runs Spectacle to grab a screenshot.
+- One subprocess, and only on request: "Scan QR from Screen" runs Spectacle to grab a screenshot, which the extension deletes as soon as it has read the QR code.
 
 ## Requirements
 
@@ -78,7 +78,7 @@ Removing a preference does not always purge its stored value, so the plaintext p
 - The cached key lives in Vicinae's local storage, which is only as private as `vicinae.db`. Database encryption is opt-in via sqlcipher, so on a default install the cache is a plaintext key on disk. Pick Every time if you would rather avoid that entirely, and treat Never as the option that accepts it permanently.
 - Locking clears the cached copy. A copy of the key can still sit in the worker's heap until the process exits, so clearing the cache removes the durable copy, not every in-memory one.
 - OTP secrets are held in memory only while the command view is open.
-- Adding an account or incrementing an HOTP counter rewrites `Keysmith.conf` atomically through a temporary file plus rename.
+- Adding an account or incrementing an HOTP counter rewrites `Keysmith.conf` through a temporary file holding the vault's own permissions, then renames it over the original.
 - The extension will not write a new account unless it has checked the password against an existing account. A vault with no accounts gets a warning instead of a silent empty list.
 
 ## Notes
