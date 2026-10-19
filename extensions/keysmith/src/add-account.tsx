@@ -58,14 +58,26 @@ function algorithmOption(value: string): HashAlgorithm {
 
 /**
  * Deletes a captured QR screenshot. It holds an OTP secret in the clear, so it
- * must not outlive the scan. Cleanup failure is swallowed on purpose: it must
- * never mask the scan result the user needs to see.
+ * must not outlive the scan. A missing file is fine, but any other failure means
+ * the secret may still be on disk: that gets a warning with the path. This never
+ * throws, so it cannot replace the scan result with a cleanup error.
  */
 async function discardScreenshot(file: string): Promise<void> {
   try {
     await fs.promises.unlink(file);
-  } catch {
-    // The capture may have failed before writing anything, or the file is gone.
+  } catch (error) {
+    const code = (error as { code?: unknown } | null | undefined)?.code;
+    if (code === "ENOENT") {
+      // The capture failed before writing anything, or the file is already gone.
+      return;
+    }
+    await showToast({
+      title: "Screenshot not deleted",
+      message: `The QR screenshot may still contain your OTP secret at ${file}. Delete it by hand.`,
+      style: Toast.Style.Failure,
+    }).catch(() => {
+      // Reporting the leftover file is best-effort too.
+    });
   }
 }
 
