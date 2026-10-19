@@ -15,7 +15,9 @@ export async function switchToLayout(layout: Layout) {
   try {
     const activeWorkspace =
       await getHyprctlJson<HyprWorkspace>('activeworkspace');
-    await runHyprctlCommand(getSwitchLayoutArgs(activeWorkspace.id, layout));
+    await runHyprctlCommand(
+      getSwitchLayoutArgs(activeWorkspace.id ?? activeWorkspace.name, layout)
+    );
     await closeMainWindow({ popToRootType: PopToRootType.Immediate });
     return true;
   } catch (error) {
@@ -53,10 +55,10 @@ export async function focusHyprTarget(target: HyprFocusTarget, value: string) {
 /**
  * Builds the hyprctl arguments for changing a workspace layout.
  */
-function getSwitchLayoutArgs(activeWorkspaceId: number, layout: Layout) {
+function getSwitchLayoutArgs(workspace: number | string, layout: Layout) {
   return [
     'eval',
-    `hl.workspace_rule({ workspace = "${activeWorkspaceId}", layout = "${layout}" })`,
+    `hl.workspace_rule({ workspace = "${escapeLuaString(String(workspace))}", layout = "${layout}" })`,
   ];
 }
 
