@@ -27,10 +27,16 @@ export async function captureRegion(outPath: string): Promise<boolean> {
 		if (err.code === "ENOENT") {
 			throw missing("spectacle");
 		}
-		if (err.status === 1 || err.code === "1") {
+		// If spectacle fails or is canceled, check if the file exists. If it doesn't, treat as cancellation.
+		try {
+			const stats = await fs.stat(outPath);
+			if (stats.size > 0) {
+				return true;
+			}
+		} catch {
 			return false;
 		}
-		throw err;
+		return false;
 	}
 
 	let i = 0;
@@ -109,8 +115,9 @@ export async function runQrScan(imagePath: string): Promise<string> {
 			errOutput = err.stderr;
 		}
 
+		// zbarimg returns non-zero when no symbols are found
 		const isNoSymbols =
-			errOutput.includes("no symbols found") || err.status === 4 || err.code === "4";
+			errOutput.includes("no symbols found") || errOutput.includes("WARNING");
 
 		if (isNoSymbols) {
 			return "";

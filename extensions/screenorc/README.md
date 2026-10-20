@@ -19,7 +19,6 @@ A Vicinae extension for Linux that captures a region of your screen to extract t
 - `spectacle` (screen capture)
 - `tesseract` (OCR engine, plus language data, e.g., `tesseract-data-eng`)
 - `zbar` / `zbarimg` (QR code scanner)
-- `wl-copy` (Wayland, from `wl-clipboard`) or `xclip` (X11)
 
 ## Layout
 - src/capture.tsx: Text OCR command entry point 
