@@ -13,8 +13,7 @@ A Vicinae extension for Linux that captures a region of your screen to extract t
 1. Run one of the scan commands from Vicinae. The launcher closes.
 2. Spectacle shows its region selector. Drag over the target area (Pressing `Esc` cancels silently).
 3. The tool processes the image (via Tesseract or ZBar), copies the decoded result to your clipboard, and confirms via a HUD toast.
-4. *Missing Language Pack Helper*: If a Tesseract language pack is missing, it will automatically copy the required system package name (e.g., `tesseract-data-spa`) to your clipboard so you can install it instantly for your given distro.
-
+4. *Missing Language Pack Helper*: If a Tesseract language pack is missing, it will automatically copy the required system package name (e.g., `tesseract-data-spa`) to your clipboard so you can install it for your given distro.
 ## Requirements
 
 - `spectacle` (screen capture)

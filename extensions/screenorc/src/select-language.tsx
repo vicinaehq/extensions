@@ -1,11 +1,4 @@
-import {
-	Action,
-	ActionPanel,
-	Icon,
-	List,
-	LocalStorage,
-	showHUD,
-} from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, LocalStorage, showHUD } from "@vicinae/api";
 import { useEffect, useState } from "react";
 
 export const STORAGE_KEY_LANG = "selected_ocr_language";
@@ -16,13 +9,14 @@ interface Language {
 	flag: string;
 }
 
+
 const TESSERACT_LANGUAGES: Language[] = [
-	{ code: "eng", name: "English (US)", flag: "🇺🇸" },
-	{ code: "fra", name: "French (France)", flag: "🇫🇷" },
-	{ code: "ita", name: "Italian (Italy)", flag: "🇮🇹" },
-	{ code: "deu", name: "German (Germany)", flag: "🇩🇪" },
-	{ code: "spa", name: "Spanish (Spain)", flag: "🇪🇸" },
-	{ code: "por", name: "Portuguese (Brazil)", flag: "🇧🇷" },
+	{ code: "eng", name: "English", flag: "🇺🇸" },
+	{ code: "fra", name: "French ", flag: "🇫🇷" },
+	{ code: "ita", name: "Italian", flag: "🇮🇹" },
+	{ code: "deu", name: "German", flag: "🇩🇪" },
+	{ code: "spa", name: "Spanish", flag: "🇪🇸" },
+	{ code: "por", name: "Portuguese", flag: "🇧🇷" },
 	{ code: "chi_sim", name: "Chinese (Simplified)", flag: "🇨🇳" },
 	{ code: "chi_tra", name: "Chinese (Traditional)", flag: "🇹🇼" },
 	{ code: "jpn", name: "Japanese", flag: "🇯🇵" },
@@ -55,19 +49,36 @@ export default function SelectLanguageCommand() {
 
 	useEffect(() => {
 		async function loadSavedLanguage() {
-			const saved = await LocalStorage.getItem<string>(STORAGE_KEY_LANG);
-			if (saved) {
-				setSelectedLang(saved);
+			try {
+				const saved = await LocalStorage.getItem<string>(STORAGE_KEY_LANG);
+				if (saved) {
+					setSelectedLang(saved);
+				}
+			} catch (error) {
+				let errorMessage = String(error);
+				if (error instanceof Error) {
+					errorMessage = error.message;
+				}
+				await showHUD(`Failed to load language: ${errorMessage}`);
+			} finally {
+				setIsLoading(false);
 			}
-			setIsLoading(false);
 		}
 		loadSavedLanguage();
 	}, []);
 
 	async function handleSelectLanguage(code: string, name: string) {
-		await LocalStorage.setItem(STORAGE_KEY_LANG, code);
-		setSelectedLang(code);
-		await showHUD(`OCR language set to ${name}`);
+		try {
+			await LocalStorage.setItem(STORAGE_KEY_LANG, code);
+			setSelectedLang(code);
+			await showHUD(`OCR language set to ${name}`);
+		} catch (error) {
+			let errorMessage = String(error);
+			if (error instanceof Error) {
+				errorMessage = error.message;
+			}
+			await showHUD(`Failed to save language: ${errorMessage}`);
+		}
 	}
 
 	return (

@@ -1,9 +1,4 @@
-import {
-	Clipboard,
-	closeMainWindow,
-	showHUD,
-	LocalStorage,
-} from "@vicinae/api";
+import { Clipboard, closeMainWindow, showHUD, LocalStorage } from "@vicinae/api";
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -14,46 +9,16 @@ import { promisify } from "node:util";
 const run = promisify(execFile);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-type ExecError = NodeJS.ErrnoException & { stderr?: string };
+type ExecError = NodeJS.ErrnoException & { stderr?: string; status?: number; code?: string | number };
 
-const missing = (cmd: string) =>
-	new Error(`${cmd} is not installed or not on PATH`);
+const missing = (cmd: string) => new Error(`${cmd} is not installed or not on PATH`);
 
 export class MissingLanguageError extends Error {
-	constructor(
-		public lang: string,
-		public pkgName: string,
-	) {
+	constructor(public lang: string, public pkgName: string) {
 		super(`Missing language package '${pkgName}' for '${lang}'`);
 	}
 }
 
-/** Copies text to the clipboard with retry validation */
-export async function copyText(text: string): Promise<boolean> {
-	let attempt = 0;
-	while (attempt < 3) {
-		try {
-			await Clipboard.copy(text);
-			await sleep(100);
-			const currentText = await Clipboard.readText();
-			if (currentText.trim() === text.trim()) {
-				return true;
-			}
-		} catch {
-			// Ignore loop errors and retry
-		}
-		attempt++;
-	}
-
-	try {
-		await Clipboard.copy(text);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-/** Captures a region of the screen using Spectacle */
 export async function captureRegion(outPath: string): Promise<boolean> {
 	try {
 		await run("spectacle", ["-r", "-b", "-n", "-o", outPath]);
@@ -62,6 +27,10 @@ export async function captureRegion(outPath: string): Promise<boolean> {
 		if (err.code === "ENOENT") {
 			throw missing("spectacle");
 		}
+		if (err.status === 1 || err.code === "1") {
+			return false;
+		}
+		throw err;
 	}
 
 	let i = 0;
@@ -92,13 +61,9 @@ export async function runOcr(imagePath: string): Promise<string> {
 	}
 
 	try {
-		const { stdout } = await run(
-			"tesseract",
-			[imagePath, "stdout", "-l", lang],
-			{
-				maxBuffer: 16 * 1024 * 1024,
-			},
-		);
+		const { stdout } = await run("tesseract", [imagePath, "stdout", "-l", lang], {
+			maxBuffer: 16 * 1024 * 1024,
+		});
 		return stdout.trim();
 	} catch (e) {
 		const err = e as ExecError;
@@ -138,14 +103,27 @@ export async function runQrScan(imagePath: string): Promise<string> {
 		if (err.code === "ENOENT") {
 			throw missing("zbarimg");
 		}
-		return "";
+
+		let errOutput = err.message;
+		if (err.stderr) {
+			errOutput = err.stderr;
+		}
+
+		const isNoSymbols =
+			errOutput.includes("no symbols found") || err.status === 4 || err.code === "4";
+
+		if (isNoSymbols) {
+			return "";
+		}
+
+		throw new Error(`ZBar failed: ${errOutput.trim()}`);
 	}
 }
 
 /** Shared execution workflow for screen capture and clipboard copying */
 export async function performScanAndCopy(
 	processor: (imagePath: string) => Promise<string>,
-	emptyMessage: string,
+	emptyMessage: string
 ) {
 	const image = path.join(tmpdir(), `vicinae-scan-${randomUUID()}.png`);
 	try {
@@ -162,15 +140,11 @@ export async function performScanAndCopy(
 			return showHUD(emptyMessage);
 		}
 
-		const copied = await copyText(resultText);
-		if (!copied) {
-			return showHUD("Scan recognized, but clipboard failed");
-		}
-
+		await Clipboard.copy(resultText);
 		await showHUD("Copied to clipboard");
 	} catch (error) {
 		if (error instanceof MissingLanguageError) {
-			await copyText(error.pkgName);
+			await Clipboard.copy(error.pkgName);
 			await showHUD(`Copied: ${error.pkgName}`);
 		} else {
 			let msg = String(error);
