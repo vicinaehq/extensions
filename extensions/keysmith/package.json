@@ -1,0 +1,65 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "keysmith",
+  "title": "Keysmith",
+  "description": "Search Keysmith OTP accounts and copy the current TOTP or HOTP code",
+  "categories": [
+    "Data",
+    "Security"
+  ],
+  "license": "MIT",
+  "author": "atybdot",
+  "contributors": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "oxfmt --write src",
+    "lint": "oxlint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.29.1",
+    "jpeg-js": "^0.4.4",
+    "jsqr": "^1.4.0",
+    "libsodium-wrappers-sumo": "^0.8.4",
+    "pngjs": "^7.0.0",
+    "react": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/jpeg-js": "^0.3.0",
+    "@types/node": "^26.6.4",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.3.0",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
+    "typescript": "^5.9.2"
+  },
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "copy-code",
+      "title": "Search OTP Codes",
+      "subtitle": "Keysmith",
+      "description": "Search Keysmith accounts and copy the current OTP code",
+      "mode": "view"
+    },
+    {
+      "name": "add-account",
+      "title": "Add Account",
+      "subtitle": "Keysmith",
+      "description": "Add a new TOTP or HOTP account to the Keysmith store",
+      "mode": "view"
+    }
+  ],
+  "pastContributors": [],
+  "preferences": [
+    {
+      "name": "configPath",
+      "title": "Config path",
+      "description": "Path to Keysmith.conf",
+      "required": false,
+      "type": "textfield",
+      "default": "~/.config/org.kde.keysmith/Keysmith.conf"
+    }
+  ]
+}
