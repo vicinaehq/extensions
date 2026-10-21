@@ -16,7 +16,7 @@ import {
   listKeysmithAccounts,
   normalizeConfigPath,
 } from "./lib/keysmith";
-import { type VaultGate, type VaultSession, legacyMasterPassword, useVault } from "./lib/vault";
+import { type VaultGate, type VaultSession, useVault } from "./lib/vault";
 import { UnlockForm } from "./components/unlock-form";
 import { UnsupportedPlatform } from "./components/unsupported-platform";
 import { VaultSettings } from "./components/vault-settings";
@@ -310,11 +310,5 @@ export default function CopyCode() {
     );
   }
 
-  return (
-    <UnlockForm
-      firstRun={gate.firstRun}
-      defaultPassword={gate.firstRun ? legacyMasterPassword() : ""}
-      onSubmit={gate.unlock}
-    />
-  );
+  return <UnlockForm firstRun={gate.firstRun} onSubmit={gate.unlock} />;
 }

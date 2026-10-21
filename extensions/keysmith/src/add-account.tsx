@@ -24,7 +24,7 @@ import {
 } from "./lib/keysmith";
 import { parseOtpUrl } from "./lib/otp";
 import { decodeQrImage } from "./lib/qr";
-import { type VaultSession, legacyMasterPassword, useVault } from "./lib/vault";
+import { type VaultSession, useVault } from "./lib/vault";
 import { UnlockForm } from "./components/unlock-form";
 import { UnsupportedPlatform } from "./components/unsupported-platform";
 
@@ -389,11 +389,5 @@ export default function AddAccount() {
     );
   }
 
-  return (
-    <UnlockForm
-      firstRun={gate.firstRun}
-      defaultPassword={gate.firstRun ? legacyMasterPassword() : ""}
-      onSubmit={gate.unlock}
-    />
-  );
+  return <UnlockForm firstRun={gate.firstRun} onSubmit={gate.unlock} />;
 }

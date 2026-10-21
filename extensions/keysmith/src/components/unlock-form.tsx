@@ -22,13 +22,11 @@ const NEVER_WARNING =
 type UnlockFormProps = {
   /** First run asks for the lock policy as well as the password. */
   firstRun: boolean;
-  /** Prefilled from the old master password preference during migration. */
-  defaultPassword?: string;
   onSubmit: (password: string, policy: LockPolicy) => Promise<UnlockResult>;
 };
 
-export function UnlockForm({ firstRun, defaultPassword = "", onSubmit }: UnlockFormProps) {
-  const [password, setPassword] = useState(defaultPassword);
+export function UnlockForm({ firstRun, onSubmit }: UnlockFormProps) {
+  const [password, setPassword] = useState("");
   const [policy, setPolicy] = useState<LockPolicy>(DEFAULT_LOCK_POLICY);
   const [error, setError] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);

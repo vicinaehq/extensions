@@ -1,4 +1,4 @@
-import { getPreferenceValues, LocalStorage, showToast, Toast } from "@vicinae/api";
+import { LocalStorage, showToast, Toast } from "@vicinae/api";
 import { randomBytes } from "crypto";
 import * as fs from "fs";
 import { useCallback, useEffect, useState } from "react";
@@ -310,19 +310,6 @@ export type VaultGate = {
   /** Changes the stored policy and re-caches the current key accordingly. */
   setPolicy: (policy: LockPolicy) => Promise<void>;
 };
-
-/**
- * The unwritten preference from the pre-unlock build. It is read only to prefill
- * the first-run form, and only until a lock policy has been stored.
- */
-export function legacyMasterPassword(): string {
-  try {
-    const preferences = getPreferenceValues<{ masterPassword?: unknown }>();
-    return typeof preferences.masterPassword === "string" ? preferences.masterPassword : "";
-  } catch {
-    return "";
-  }
-}
 
 /**
  * Drives the locked/unlocked gate shared by both commands. The derived key is
