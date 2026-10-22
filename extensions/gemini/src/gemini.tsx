@@ -38,18 +38,20 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
+
+  const isSubmittingRef = useRef(false);
   const chatIdRef = useRef(0);
 
   const handleSubmit = useCallback(
     async (prompt: string) => {
-      if (!prompt || !prompt.trim()) return;
+      if (!prompt || !prompt.trim() || isSubmittingRef.current) return;
 
-      const chatId = ++chatIdRef.current;
+      isSubmittingRef.current = true;
+      const currentChatId = chatIdRef.current;
 
       const userMessage: Message = { role: "user", content: prompt };
       const updatedConversation = [userMessage, ...conversation];
 
-      // Build context from conversation history (reverse chronological for display, but send in order)
       const contextMessages: Message[] = [...updatedConversation].reverse();
 
       setConversation(updatedConversation);
@@ -61,7 +63,7 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
           thinkingLevel,
         );
 
-        if (chatId !== chatIdRef.current) return;
+        if (currentChatId !== chatIdRef.current) return;
 
         const assistantMessage: Message = { role: "model", content: result };
         setConversation((prev) => [assistantMessage, ...prev]);
@@ -75,7 +77,7 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
         setItems((prev) => [newItem, ...prev]);
         setSearchText("");
       } catch (err) {
-        if (chatId !== chatIdRef.current) return;
+        if (currentChatId !== chatIdRef.current) return;
 
         const errorMessage = err instanceof Error ? err.message : String(err);
         const errorItem: ListItemData = {
@@ -87,7 +89,8 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
         // Remove the failed user message from conversation
         setConversation((prev) => prev.slice(1));
       } finally {
-        if (chatId === chatIdRef.current) {
+        isSubmittingRef.current = false;
+        if (currentChatId === chatIdRef.current) {
           setIsLoading(false);
         }
       }
@@ -101,6 +104,7 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
 
   const handleNewChat = () => {
     chatIdRef.current++;
+    isSubmittingRef.current = false;
     setItems([]);
     setConversation([]);
     setSearchText("");
@@ -119,12 +123,14 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
       actions={
         <ActionPanel>
           <ActionPanel.Section>
-            <Action
-              title="Ask"
-              onAction={() => handleSubmit(searchText)}
-              shortcut={Keyboard.Shortcut.Common.Refresh}
-              autoFocus
-            />
+            {!isLoading && (
+              <Action
+                title="Ask"
+                onAction={() => handleSubmit(searchText)}
+                shortcut={Keyboard.Shortcut.Common.Refresh}
+                autoFocus
+              />
+            )}
           </ActionPanel.Section>
         </ActionPanel>
       }
@@ -145,12 +151,14 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
           actions={
             <ActionPanel>
               <ActionPanel.Section>
-                <Action
-                  title="Ask"
-                  onAction={() => handleSubmit(searchText)}
-                  shortcut={Keyboard.Shortcut.Common.Refresh}
-                  autoFocus
-                />
+                {!isLoading && (
+                  <Action
+                    title="Ask"
+                    onAction={() => handleSubmit(searchText)}
+                    shortcut={Keyboard.Shortcut.Common.Refresh}
+                    autoFocus
+                  />
+                )}
                 <Action.CopyToClipboard
                   content={item.answer}
                   title="Copy response"
