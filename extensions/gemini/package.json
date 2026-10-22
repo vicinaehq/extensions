@@ -1,0 +1,119 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "gemini-ai",
+  "title": "Gemini AI",
+  "description": "Access Gemini AI directly from Vicinae",
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "avan1235",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "gemini-low",
+      "title": "Ask Low",
+      "description": "Ask Gemini with minimal thinking",
+      "mode": "view"
+    },
+    {
+      "name": "gemini-medium",
+      "title": "Ask Medium",
+      "description": "Ask Gemini with balanced thinking",
+      "mode": "view"
+    },
+    {
+      "name": "gemini-high",
+      "title": "Ask High",
+      "description": "Ask Gemini with deep thinking",
+      "mode": "view"
+    },
+    {
+      "name": "ask-in-browser",
+      "title": "Ask in Browser",
+      "description": "Search with Google AI in your browser",
+      "mode": "view"
+    },
+    {
+      "name": "open-chat",
+      "title": "Open Chat",
+      "description": "Open Gemini chat in your browser",
+      "mode": "view"
+    },
+    {
+      "name": "select-model",
+      "title": "Select Model",
+      "description": "Open settings to select the Gemini model",
+      "mode": "view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@google/genai": "^2.30.0",
+    "@vicinae/api": "^0.29.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "sharp": "^0.35.5",
+    "typescript": "^5.9.2"
+  },
+  "preferences": [
+    {
+      "name": "apiKey",
+      "title": "Gemini API Key",
+      "description": "Your API key for the Gemini API from https://aistudio.google.com/app/api-keys",
+      "type": "password",
+      "required": true
+    },
+    {
+      "name": "model",
+      "title": "Gemini Model",
+      "description": "The Gemini model to use for generating responses",
+      "type": "dropdown",
+      "required": false,
+      "default": "gemini-3.5-flash-lite",
+      "data": [
+        {
+          "value": "gemini-3.8-flash",
+          "title": "Gemini 3.8 Flash"
+        },
+        {
+          "value": "gemini-3.6-flash",
+          "title": "Gemini 3.6 Flash"
+        },
+        {
+          "value": "gemini-3.5-flash-lite",
+          "title": "Gemini 3.5 Flash Lite"
+        },
+        {
+          "value": "gemini-3.1-flash-lite",
+          "title": "Gemini 3.1 Flash Lite"
+        },
+        {
+          "value": "gemini-3-flash-preview",
+          "title": "Gemini 3 Flash Preview"
+        },
+        {
+          "value": "gemini-2.5-pro",
+          "title": "Gemini 2.5 Pro"
+        },
+        {
+          "value": "gemini-2.5-flash",
+          "title": "Gemini 2.5 Flash"
+        },
+        {
+          "value": "gemini-2.5-flash-lite",
+          "title": "Gemini 2.5 Flash Lite"
+        }
+      ]
+    }
+  ]
+}
