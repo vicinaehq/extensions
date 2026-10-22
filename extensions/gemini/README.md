@@ -21,9 +21,6 @@ By default, the extension uses `gemini-3.5-flash-lite`. You can change the model
   - Gemini 3.5 Flash Lite (default)
   - Gemini 3.1 Flash Lite
   - Gemini 3 Flash Preview
-  - Gemini 2.5 Pro
-  - Gemini 2.5 Flash
-  - Gemini 2.5 Flash Lite
 
 ## Commands
 
