@@ -7,7 +7,7 @@ import {
   Keyboard,
 } from "@vicinae/api";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 
 function extractAllCodeBlocks(text: string): string | null {
   const matches = text.match(/```\w*\n?([\s\S]*?)```/g);
@@ -38,10 +38,13 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
+  const chatIdRef = useRef(0);
 
   const handleSubmit = useCallback(
     async (prompt: string) => {
       if (!prompt || !prompt.trim()) return;
+
+      const chatId = ++chatIdRef.current;
 
       const userMessage: Message = { role: "user", content: prompt };
       const updatedConversation = [userMessage, ...conversation];
@@ -58,6 +61,8 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
           thinkingLevel,
         );
 
+        if (chatId !== chatIdRef.current) return;
+
         const assistantMessage: Message = { role: "model", content: result };
         setConversation((prev) => [assistantMessage, ...prev]);
 
@@ -70,6 +75,8 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
         setItems((prev) => [newItem, ...prev]);
         setSearchText("");
       } catch (err) {
+        if (chatId !== chatIdRef.current) return;
+
         const errorMessage = err instanceof Error ? err.message : String(err);
         const errorItem: ListItemData = {
           id: `error-${Date.now()}`,
@@ -80,7 +87,9 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
         // Remove the failed user message from conversation
         setConversation((prev) => prev.slice(1));
       } finally {
-        setIsLoading(false);
+        if (chatId === chatIdRef.current) {
+          setIsLoading(false);
+        }
       }
     },
     [conversation, thinkingLevel],
@@ -91,9 +100,11 @@ function GeminiCommand({ thinkingLevel }: { thinkingLevel: ThinkingLevel }) {
   };
 
   const handleNewChat = () => {
+    chatIdRef.current++;
     setItems([]);
     setConversation([]);
     setSearchText("");
+    setIsLoading(false);
   };
 
   return (
