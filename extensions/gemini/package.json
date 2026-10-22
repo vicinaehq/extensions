@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-  "name": "gemini-ai",
+  "name": "gemini",
   "title": "Gemini AI",
   "description": "Access Gemini AI directly from Vicinae",
   "categories": [
