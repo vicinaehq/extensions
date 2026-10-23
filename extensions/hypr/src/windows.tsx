@@ -23,6 +23,7 @@ export default function Windows() {
     'Failed to load windows'
   );
   const [nativeWindows, setNativeWindows] = useState<NativeWindow[]>([]);
+  const [isShowingDetail, setIsShowingDetail] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,7 +63,11 @@ export default function Windows() {
   );
 
   return (
-    <List isLoading={isLoading} searchBarPlaceholder="Search clients...">
+    <List
+      isLoading={isLoading}
+      isShowingDetail={isShowingDetail}
+      searchBarPlaceholder="Search clients..."
+    >
       {sortedClients.length === 0 && !isLoading ? (
         <List.EmptyView
           icon={Icon.AppWindow}
@@ -85,7 +90,11 @@ export default function Windows() {
               <List.Item
                 key={client.address}
                 title={client.title || client.class || client.address}
-                subtitle={nativeWindow?.application?.name ?? client.class}
+                subtitle={
+                  isShowingDetail
+                    ? undefined
+                    : (nativeWindow?.application?.name ?? client.class)
+                }
                 icon={nativeWindow?.application?.icon ?? Icon.AppWindow}
                 keywords={[
                   client.title,
@@ -95,38 +104,51 @@ export default function Windows() {
                   workspace,
                   client.pid.toString(),
                 ]}
-                accessories={[
-                  ...(client.floating
-                    ? [
-                        {
-                          tag: { value: 'Floating', color: Color.Green },
-                          icon: Icon.FloatingWindow,
-                        },
+                accessories={
+                  isShowingDetail
+                    ? []
+                    : [
+                        ...(client.floating
+                          ? [
+                              {
+                                tag: { value: 'Floating', color: Color.Green },
+                                icon: Icon.FloatingWindow,
+                              },
+                            ]
+                          : []),
+                        ...(client.focusHistoryID === 0
+                          ? [
+                              {
+                                tag: { value: 'Current', color: Color.Blue },
+                              },
+                            ]
+                          : []),
+                        ...(client.fullscreen
+                          ? [
+                              {
+                                tag: {
+                                  value: 'Fullscreen',
+                                  color: Color.Purple,
+                                },
+                                icon: Icon.Fullscreen,
+                              },
+                            ]
+                          : []),
+                        { tag: `WS ${workspace}` },
                       ]
-                    : []),
-                  ...(client.focusHistoryID === 0
-                    ? [
-                        {
-                          tag: { value: 'Current', color: Color.Blue },
-                        },
-                      ]
-                    : []),
-                  ...(client.fullscreen
-                    ? [
-                        {
-                          tag: { value: 'Fullscreen', color: Color.Purple },
-                          icon: Icon.Fullscreen,
-                        },
-                      ]
-                    : []),
-                  { tag: `WS ${workspace}` },
-                ]}
+                }
                 actions={
                   <ActionPanel>
                     <Action
                       title="Focus Window"
                       icon={Icon.Eye}
                       onAction={() => focusHyprTarget('window', client.address)}
+                    />
+                    <Action
+                      title={isShowingDetail ? 'Hide Details' : 'Show Details'}
+                      icon={Icon.AppWindowSidebarRight}
+                      shortcut={{ modifiers: ['cmd'], key: 'd' }}
+                      onAction={() => setIsShowingDetail((visible) => !visible)}
                     />
                     <Action.CopyToClipboard
                       title="Copy Title"
@@ -149,6 +171,105 @@ export default function Windows() {
                       content={JSON.stringify(client, null, 2)}
                     />
                   </ActionPanel>
+                }
+                detail={
+                  <List.Item.Detail
+                    metadata={
+                      <List.Item.Detail.Metadata>
+                        <List.Item.Detail.Metadata.Label
+                          title="Title"
+                          text={client.title || '-'}
+                        />
+                        <List.Item.Detail.Metadata.Label
+                          title="Application"
+                          text={nativeWindow?.application?.name ?? client.class}
+                        />
+                        <List.Item.Detail.Metadata.Label
+                          title="Class"
+                          text={client.class || '-'}
+                        />
+                        <List.Item.Detail.Metadata.Label
+                          title="Workspace"
+                          text={workspace}
+                        />
+                        <List.Item.Detail.Metadata.Label
+                          title="Monitor ID"
+                          text={client.monitor.toString()}
+                        />
+                        <List.Item.Detail.Metadata.TagList title="State">
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text={client.floating ? 'Floating' : 'Tiled'}
+                            color={client.floating ? Color.Green : undefined}
+                          />
+                          {client.focusHistoryID === 0 ? (
+                            <List.Item.Detail.Metadata.TagList.Item
+                              text="Current"
+                              color={Color.Blue}
+                            />
+                          ) : null}
+                          {client.fullscreen ? (
+                            <List.Item.Detail.Metadata.TagList.Item
+                              text={
+                                client.fullscreen === 1
+                                  ? 'Maximized'
+                                  : 'Fullscreen'
+                              }
+                              color={Color.Purple}
+                            />
+                          ) : null}
+                          {client.pinned ? (
+                            <List.Item.Detail.Metadata.TagList.Item
+                              text="Pinned"
+                              color={Color.Orange}
+                            />
+                          ) : null}
+                          {client.hidden ? (
+                            <List.Item.Detail.Metadata.TagList.Item
+                              text="Hidden"
+                              color={Color.SecondaryText}
+                            />
+                          ) : null}
+                          {client.inhibitingIdle ? (
+                            <List.Item.Detail.Metadata.TagList.Item
+                              text="Inhibiting Idle"
+                              color={Color.Yellow}
+                            />
+                          ) : null}
+                        </List.Item.Detail.Metadata.TagList>
+                        <List.Item.Detail.Metadata.TagList title="Protocol">
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text={client.xwayland ? 'XWayland' : 'Wayland'}
+                          />
+                        </List.Item.Detail.Metadata.TagList>
+                        <List.Item.Detail.Metadata.Label
+                          title="Size"
+                          text={`${client.size[0]} × ${client.size[1]}`}
+                        />
+                        <List.Item.Detail.Metadata.Label
+                          title="Position (X, Y)"
+                          text={`${client.at[0]}, ${client.at[1]}`}
+                        />
+                        <List.Item.Detail.Metadata.Label
+                          title="PID"
+                          text={client.pid.toString()}
+                        />
+                        <List.Item.Detail.Metadata.Label
+                          title="Address"
+                          text={client.address}
+                        />
+                        {client.tags.length > 0 ? (
+                          <List.Item.Detail.Metadata.TagList title="Tags">
+                            {client.tags.map((tag) => (
+                              <List.Item.Detail.Metadata.TagList.Item
+                                key={tag}
+                                text={tag}
+                              />
+                            ))}
+                          </List.Item.Detail.Metadata.TagList>
+                        ) : null}
+                      </List.Item.Detail.Metadata>
+                    }
+                  />
                 }
               />
             );

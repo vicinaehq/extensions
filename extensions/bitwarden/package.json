@@ -36,6 +36,7 @@
 	],
 	"scripts": {
 		"build": "vici build",
+		"test": "node --test test/*.test.cjs",
 		"dev": "vici develop",
 		"lint": "vici lint",
 		"format": "biome format --write src"

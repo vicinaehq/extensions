@@ -1,4 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { basename, dirname } from "node:path";
+
 import {
   Action,
   ActionPanel,
@@ -9,6 +13,7 @@ import {
   Toast,
   showToast,
   closeMainWindow,
+  environment,
 } from "@vicinae/api";
 import {
   RbwError,
@@ -23,6 +28,12 @@ import {
   syncVault,
   runRbw,
 } from "./rbw";
+
+const execFileAsync = promisify(execFile);
+const vicinaeCliPath =
+  process.platform === "darwin"
+    ? "/Applications/Vicinae.app/Contents/MacOS/vicinae-cli"
+    : "vicinae";
 
 type EntryState = { entries: VaultEntry[]; loaded: boolean };
 
@@ -86,23 +97,25 @@ export default function Command() {
       if (!unlocked) {
         setLocked(true);
         setState({ entries: [], loaded: true });
-        return;
+        return false;
       }
 
       const entries = await listEntries();
       entries.sort((a, b) => a.name.localeCompare(b.name));
       setState({ entries, loaded: true });
+      return true;
     } catch (error) {
       if (error instanceof RbwNotInstalledError) {
         setNotInstalled(true);
         setState({ entries: [], loaded: true });
-        return;
+        return false;
       }
       setState({ entries: [], loaded: true });
       showToast(
         Toast.Style.Failure,
         error instanceof RbwError ? error.message : "Failed to load entries",
       );
+      return false;
     }
   }, []);
 
@@ -114,7 +127,8 @@ export default function Command() {
     async (text: string) => {
       setSearchText(text);
       if (!text.trim()) {
-        return loadEntries();
+        await loadEntries();
+        return;
       }
       try {
         const results = await searchEntries(text);
@@ -159,17 +173,66 @@ export default function Command() {
                 title="Unlock Vault"
                 icon={Icon.LockUnlocked}
                 onAction={async () => {
-                  closeMainWindow();
                   try {
-                    await runRbw(["unlock"])
-                    setLocked(false);
-                    await loadEntries();
+                    await runRbw(["unlock"], { timeout: 120_000 });
                   } catch (error) {
                     showToast(
                       Toast.Style.Failure,
                       error instanceof RbwError
                         ? error.message
                         : "Failed to unlock vault",
+                    );
+                    return;
+                  }
+
+                  setLocked(false);
+                  if (!(await loadEntries())) return;
+
+                  const extensionId = basename(dirname(environment.assetsPath));
+                  const commandId = `@${environment.ownerOrAuthorName}/${extensionId}:${environment.commandName}`;
+                  try {
+                    await execFileAsync(vicinaeCliPath, ["version"]);
+                  } catch (error) {
+                    console.error("Vicinae CLI is unavailable", error);
+                    await showToast(
+                      Toast.Style.Failure,
+                      "Vault unlocked, but Vicinae CLI is unavailable",
+                    );
+                    return;
+                  }
+
+                  try {
+                    try {
+                      await execFileAsync(vicinaeCliPath, [
+                        "deeplink",
+                        "vicinae://close?popToRootType=suspended",
+                      ]);
+                    } catch (error) {
+                      const stderr =
+                        typeof error === "object" && error !== null && "stderr" in error
+                          ? error.stderr
+                          : undefined;
+                      if (
+                        typeof stderr !== "string" ||
+                        stderr.trim() !== "Failed to execute deeplink: Already closed"
+                      ) {
+                        throw error;
+                      }
+                    }
+                    await execFileAsync(vicinaeCliPath, ["cmd", "launch", commandId]);
+                  } catch (error) {
+                    console.error(
+                      "Failed to reopen Bitwarden Vault with vicinae-cli",
+                      error,
+                    );
+                    try {
+                      await execFileAsync(vicinaeCliPath, ["open"]);
+                    } catch (restoreError) {
+                      console.error("Failed to restore Vicinae window", restoreError);
+                    }
+                    await showToast(
+                      Toast.Style.Failure,
+                      "Vault unlocked, but failed to reopen Bitwarden Vault",
                     );
                   }
                 }}
@@ -254,7 +317,7 @@ export default function Command() {
   );
 }
 
-function SyncAction({ loadEntries }: { loadEntries: () => Promise<void> }) {
+function SyncAction({ loadEntries }: { loadEntries: () => Promise<boolean> }) {
   return (
     <Action
       title="Sync Vault"
@@ -277,12 +340,12 @@ function SyncAction({ loadEntries }: { loadEntries: () => Promise<void> }) {
   );
 }
 
-function RefreshAction({ loadEntries }: { loadEntries: () => Promise<void> }) {
+function RefreshAction({ loadEntries }: { loadEntries: () => Promise<boolean> }) {
   return (
     <Action
       title="Refresh"
       icon={Icon.RotateClockwise}
-      onAction={loadEntries}
+      onAction={async () => { await loadEntries(); }}
     />
   );
 }
