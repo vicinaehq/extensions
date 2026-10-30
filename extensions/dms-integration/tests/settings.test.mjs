@@ -23,7 +23,8 @@ test("every root command opens its matching Dux category and has an original ico
     const svg = readFileSync(new URL(`../assets/${command.icon}`, import.meta.url), "utf8");
     assert.match(svg, /<svg/);
     assert.match(svg, /<path[^>]+d="[^"]+"/);
-    assert.match(svg, /id="dux-badge"/);
+    assert.match(svg, /viewBox="-2 0 42 42"/);
+    assert.match(svg, /id="dux-badge" transform="translate\(-26 2\)"/);
     assert.match(svg, /<circle[^>]+stroke=/);
     assert.ok(command.subtitle.startsWith("Dux Shell"));
   }

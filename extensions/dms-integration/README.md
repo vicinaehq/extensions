@@ -14,7 +14,7 @@ Type a category or keyword directly in Vicinae, without opening an extension vie
 - `browser` → **Applications**
 - `wi-fi` → **Network**
 
-Each of the 24 top-level categories is a `no-view` command with its original Dux category icon, a small Dux-logo badge in the bottom-right corner, a description and separate search keywords. Press Enter to open the category through `dms ipc call settings openWith <category>`. No Dux modifications or plugins are required.
+Each of the 24 top-level categories is a `no-view` command with its original Dux category icon, a small Dux-logo badge in the bottom-left corner, slightly overlapping the outer edge, a description and separate search keywords. Press Enter to open the category through `dms ipc call settings openWith <category>`. No Dux modifications or plugins are required.
 
 Vicinae controls main-search ranking, including keyword weights, fuzzy matching, aliases, favorites and usage history. Titles are supplied separately from keywords so they receive native title weighting; this extension does not impose a custom scoring algorithm or guarantee a fixed result order. Category hints are displayed in command subtitles. Individual settings and child pages are **not** exposed as commands, although child-page labels and descriptions contribute keywords.
 
