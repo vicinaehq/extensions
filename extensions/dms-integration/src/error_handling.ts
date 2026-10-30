@@ -25,7 +25,7 @@ export function getErrorMessage(error: unknown): string {
         : undefined;
 
     if (code === "ECONNREFUSED") {
-      return "Cannot connect to DMS backend (connection refused). Is the server running?";
+      return "Cannot connect to Dux Shell backend (connection refused). Is the server running?";
     }
     return error.message || "Unknown error";
   }
