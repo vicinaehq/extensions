@@ -1,6 +1,7 @@
 import { Action, ActionPanel, Color, Detail, Icon } from "@vicinae/api";
-import { ActiveMirrorSession, Output } from "./types";
-import { cancelScreenMirror } from "./utils";
+import { DEFAULT_MIRROR_OPTIONS } from "./types";
+import type { ActiveMirrorSession, Output } from "./types";
+import { buildTransform, cancelScreenMirror } from "./utils";
 
 type Props = {
 	outputs: Output[] | undefined;
@@ -17,6 +18,7 @@ export default function ActiveMirrorUi({
 }: Props) {
 	const sourceOutput = outputs?.find((o) => o.name === activeMirror?.source);
 	const targetOutput = outputs?.find((o) => o.name === activeMirror?.target);
+	const options = { ...DEFAULT_MIRROR_OPTIONS, ...activeMirror?.options };
 
 	const getModeString = (output?: Output) => {
 		const current =
@@ -29,6 +31,8 @@ export default function ActiveMirrorUi({
 
 	const sourceRes = getModeString(sourceOutput);
 	const targetRes = getModeString(targetOutput);
+	const transform = buildTransform(options.rotation, options.flip);
+	const region = options.region.trim();
 
 	return (
 		<Detail
@@ -55,6 +59,27 @@ export default function ActiveMirrorUi({
 						text={`${activeMirror?.target} (${targetOutput?.make || "Display"})`}
 						icon={Icon.Monitor}
 					/>
+
+					<Detail.Metadata.Separator />
+
+					<Detail.Metadata.Label title="Scaling" text={options.scaling} />
+					<Detail.Metadata.Label
+						title="Transform"
+						text={transform === "normal" ? "None" : transform}
+						icon={Icon.RotateClockwise}
+					/>
+					<Detail.Metadata.Label
+						title="Cursor"
+						text={options.showCursor ? "Shown" : "Hidden"}
+						icon={Icon.Mouse}
+					/>
+					{region && (
+						<Detail.Metadata.Label
+							title="Region"
+							text={region}
+							icon={Icon.Crop}
+						/>
+					)}
 
 					<Detail.Metadata.Separator />
 

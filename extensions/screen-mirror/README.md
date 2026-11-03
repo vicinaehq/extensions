@@ -1,61 +1,66 @@
+<p align="center">
+  <img src="assets/extension_icon.png" width="128" height="128" alt="Screen Mirror extension icon" />
+</p>
+
+<h1 align="center">Screen Mirror</h1>
+
 ## Overview
 
-**Screen Mirror** brings effortless display mirroring to wlroots-compatible Wayland compositors (such as **Niri**, **Hyprland**, **Sway**, and other `wlroots`-based desktop environments).
+A Vicinae extension for mirroring one Wayland display onto another on wlroots-compatible compositors such as Niri, Sway, Hyprland, MangoWC, Umbriel, Wayfire, labwc, and River. Choose a source and target, adjust scaling, rotation, flip, cursor, and region options, then start mirroring fullscreen — all from the launcher.
 
-Select your source and target monitors from an intuitive interface, start mirroring in fullscreen with a single keystroke, and view real-time mirror status and display metrics.
-
----
+Built on [`wl-mirror`](https://github.com/Ferdi265/wl-mirror) and [`wlr-randr`](https://sr.ht/~emersion/wlr-randr/), with region selection powered by [`slurp`](https://git.sr.ht/~emersion/slurp).
 
 ## Features
 
-- **Instant Monitor Discovery**: Automatically detects all connected and active displays with resolutions, refresh rates, and hardware models.
-- **Smart Dropdown Synchronization**: Prevents selecting the same monitor for source and target. Automatically adjusts the counterpart selection across dual-monitor and multi-monitor setups.
-- **Managed Process Lifecycle**: Manages `wl-mirror` child processes with exact PID tracking, ensuring clean start and stop without affecting unrelated processes.
-- **Real-time Active Session Inspector**: Displays a clean metadata panel showing active source/target outputs, hardware details, resolutions, and backend status.
-- **Keyboard-Friendly**: Supports quick actions with shortcuts (<kbd>Ctrl</kbd> + <kbd>Enter</kbd> to start, <kbd>Enter</kbd> to stop).
-
----
+- **Fullscreen mirroring** — mirror any connected output onto a target display.
+- **Display discovery** — lists active outputs with resolution, refresh rate, and hardware model.
+- **Smart selection** — keeps source and target different and adjusts the counterpart automatically.
+- **Region capture** — drag a rectangle on screen with `slurp` and mirror only that area.
+- **Cursor control** — show or hide the cursor, with the last choice remembered.
+- **Scaling** — `fit` (preserve aspect ratio), `cover` (crop to fill), or `exact` (crisp pixels, may add black bars).
+- **Transform** — rotate 90°/180°/270° and flip horizontally or vertically.
+- **Keyboard-first** — start, select a region, clear it, and stop without leaving the keyboard.
 
 ## Requirements
 
-This extension requires the following system utilities:
-
-1. **`wl-mirror`** — Wayland screen mirroring client.
-2. **`wlr-randr`** — Wayland output management utility.
-
-### Installing Dependencies
-
-#### Arch Linux / Manjaro / EndeavourOS
+- **`wl-mirror`** — screen capture and mirroring.
+- **`wlr-randr`** — display discovery.
+- **`slurp`** — interactive region selection.
 
 ```bash
-sudo pacman -S wl-mirror wlr-randr
+# Arch Linux
+sudo pacman -S wl-mirror wlr-randr slurp
+
+# Ubuntu / Debian
+sudo apt install wl-mirror wlr-randr slurp
+
+# Fedora
+sudo dnf install wl-mirror wlr-randr slurp
 ```
 
-#### Ubuntu / Debian
-
-```bash
-sudo apt install wl-mirror wlr-randr
-```
-
-#### Fedora
-
-```bash
-sudo dnf install wl-mirror wlr-randr
-```
-
----
+The extension checks these dependencies and shows install instructions if anything is missing.
 
 ## Usage
 
-1. Open **Vicinae launcher**.
-2. Type **`Mirror Screen`** and press <kbd>Enter</kbd>.
-3. **Select Displays**:
-   - **Source Monitor**: The display you want to capture and share.
-   - **Target Monitor**: The display where the mirrored output will be displayed in fullscreen.
-4. Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> or click **Start Screen Mirror**.
-5. While mirroring is active, open the extension at any time to inspect live status or press <kbd>Enter</kbd> / click **Stop Screen Mirror** to stop.
+Open **Mirror Screen** from Vicinae, select a **source** and **target** monitor, adjust the optional settings, and press **Start Screen Mirror**.
 
----
+### Options
+
+- **Cursor** — show or hide the cursor in the mirrored output.
+- **Region** — mirror the full output or select a rectangle on screen with `slurp`.
+- **Scaling** — `fit` (preserve aspect ratio), `cover` (crop to fill), or `exact` (crisp pixels, may add black bars).
+- **Rotation / Flip** — rotate the mirrored image and optionally flip it.
+
+### Shortcuts
+
+| Action          | Shortcut           |
+| --------------- | ------------------ |
+| Start mirroring | `Ctrl + Enter`     |
+| Select region   | `Ctrl + R`         |
+| Clear region    | `Ctrl + Shift + R` |
+| Stop mirroring  | `Enter`            |
+
+While a mirror is active, reopen the extension to inspect the session or stop it.
 
 ## Development
 
@@ -65,27 +70,15 @@ sudo dnf install wl-mirror wlr-randr
 - npm, pnpm, or bun
 - Vicinae
 
-### Setup & Build
-
 ```bash
-# Install dependencies
 npm install
-
-# Run in development mode (live reload in Vicinae)
-npm run dev
-
-# Format and lint
-npm run format
-npm run lint
-
-# Build for production
-npm run build
+npm run dev    # Development mode
+npm run build  # Production bundle
 ```
-
----
 
 ## Links
 
-- **[Vicinae](https://github.com/vicinaehq/vicinae)** — A focused Application Launcher for your Desktop.
-- **[wl-mirror](https://github.com/Ferdi265/wl-mirror)** — Simple Wayland screen mirror client using wlroots screencopy protocol.
-- **[Wayland](https://wayland.freedesktop.org/)** — Modern display server protocol for Linux desktops.
+- [Vicinae](https://www.vicinae.com/) — A focused Application Launcher for your Desktop.
+- [wl-mirror](https://github.com/Ferdi265/wl-mirror) — Wayland screen mirror client.
+- [wlr-randr](https://sr.ht/~emersion/wlr-randr/) — Output management utility.
+- [slurp](https://github.com/emersion/slurp) — Select a region in a Wayland compositor.

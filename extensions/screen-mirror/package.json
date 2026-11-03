@@ -2,7 +2,8 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "screen-mirror",
   "title": "Screen Mirror",
-  "description": "Mirror display outputs on wlroots-compatible Wayland compositors using wl-mirror",
+  "description": "Mirror display outputs on wlroots-compatible Wayland compositors (Niri, Sway, Hyprland, MangoWC, Umbriel, Wayfire, labwc, River) using wl-mirror",
+  "version": "1.1.0",
   "categories": [
     "System"
   ],
