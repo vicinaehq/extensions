@@ -11,26 +11,26 @@ This extension is built specifically for the Niri Wayland window manager.
 If you are using another desktop environment or compositor (such as GNOME, KDE, Hyprland, or Sway), this extension cannot manage your displays.`;
 
 export default function NiriNotFound({
-  onRefresh,
+	onRefresh,
 }: {
-  onRefresh: () => Promise<void>;
+	onRefresh: () => Promise<void>;
 }) {
-  return (
-    <Detail
-      markdown={NOT_FOUND_MARKDOWN}
-      actions={
-        <ActionPanel>
-          <Action.OpenInBrowser
-            title="Open Niri Github"
-            url="https://github.com/niri-wm/niri"
-          />
-          <Action
-            title="Retry Connection"
-            icon={Icon.RotateClockwise}
-            onAction={onRefresh}
-          />
-        </ActionPanel>
-      }
-    />
-  );
+	return (
+		<Detail
+			markdown={NOT_FOUND_MARKDOWN}
+			actions={
+				<ActionPanel>
+					<Action.OpenInBrowser
+						title="Open Niri Github"
+						url="https://github.com/niri-wm/niri"
+					/>
+					<Action
+						title="Retry Connection"
+						icon={Icon.RotateClockwise}
+						onAction={onRefresh}
+					/>
+				</ActionPanel>
+			}
+		/>
+	);
 }
