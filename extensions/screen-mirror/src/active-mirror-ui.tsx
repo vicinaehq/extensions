@@ -75,7 +75,7 @@ export default function ActiveMirrorUi({
 					/>
 					{region && (
 						<Detail.Metadata.Label
-							title="Region"
+							title="Capture"
 							text={region}
 							icon={Icon.Crop}
 						/>

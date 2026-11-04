@@ -6,7 +6,7 @@
 
 ## Overview
 
-A Vicinae extension for mirroring one Wayland display onto another on wlroots-compatible compositors such as Niri, Sway, Hyprland, MangoWC, Umbriel, Wayfire, labwc, and River. Choose a source and target, adjust scaling, rotation, flip, cursor, and region options, then start mirroring fullscreen — all from the launcher.
+A Vicinae extension for mirroring one Wayland display onto another on wlroots-compatible compositors such as Niri, Sway, Hyprland, MangoWC, Umbriel, Wayfire, labwc, and River. Choose a source and target, adjust scaling, rotation, flip, cursor, and capture options, then start mirroring fullscreen — all from the launcher.
 
 Built on [`wl-mirror`](https://github.com/Ferdi265/wl-mirror) and [`wlr-randr`](https://sr.ht/~emersion/wlr-randr/), with region selection powered by [`slurp`](https://git.sr.ht/~emersion/slurp).
 
@@ -15,7 +15,7 @@ Built on [`wl-mirror`](https://github.com/Ferdi265/wl-mirror) and [`wlr-randr`](
 - **Fullscreen mirroring** — mirror any connected output onto a target display.
 - **Display discovery** — lists active outputs with resolution, refresh rate, and hardware model.
 - **Smart selection** — keeps source and target different and adjusts the counterpart automatically.
-- **Region capture** — drag a rectangle on screen with `slurp` and mirror only that area.
+- **Region capture** — drag a rectangle on screen with `slurp` and mirror only that region.
 - **Cursor control** — show or hide the cursor, with the last choice remembered.
 - **Scaling** — `fit` (preserve aspect ratio), `cover` (crop to fill), or `exact` (crisp pixels, may add black bars).
 - **Transform** — rotate 90°/180°/270° and flip horizontally or vertically.
@@ -25,7 +25,7 @@ Built on [`wl-mirror`](https://github.com/Ferdi265/wl-mirror) and [`wlr-randr`](
 
 - **`wl-mirror`** — screen capture and mirroring.
 - **`wlr-randr`** — display discovery.
-- **`slurp`** — interactive region selection.
+- **`slurp`** — optional; needed only for region selection.
 
 ```bash
 # Arch Linux
@@ -38,7 +38,7 @@ sudo apt install wl-mirror wlr-randr slurp
 sudo dnf install wl-mirror wlr-randr slurp
 ```
 
-The extension checks these dependencies and shows install instructions if anything is missing.
+The extension checks for `wl-mirror` and `wlr-randr` and shows install instructions if either is missing. If `slurp` is missing, region capture is unavailable, but fullscreen mirroring still works.
 
 ## Usage
 
@@ -47,7 +47,7 @@ Open **Mirror Screen** from Vicinae, select a **source** and **target** monitor,
 ### Options
 
 - **Cursor** — show or hide the cursor in the mirrored output.
-- **Region** — mirror the full output or select a rectangle on screen with `slurp`.
+- **Capture** — mirror the full screen or select a region on screen with `slurp`.
 - **Scaling** — `fit` (preserve aspect ratio), `cover` (crop to fill), or `exact` (crisp pixels, may add black bars).
 - **Rotation / Flip** — rotate the mirrored image and optionally flip it.
 

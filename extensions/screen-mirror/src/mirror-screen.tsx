@@ -8,6 +8,7 @@ import {
 	sendDesktopNotification,
 	showToast,
 	Toast,
+	useNavigation,
 } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import type {
@@ -44,8 +45,8 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export default function MirrorScreen() {
 	const [isWlrRandrFound, setIsWlrRandrFound] = useState(true);
 	const [isWlMirrorFound, setIsWlMirrorFound] = useState(true);
-	const [isSlurpFound, setIsSlurpFound] = useState(true);
 	const [loading, setLoading] = useState(false);
+	const navigation = useNavigation();
 	const [outputs, setOutputs] = useState<Output[]>();
 	const [selectedSource, setSelectedSource] = useState<string>("");
 	const [selectedTarget, setSelectedTarget] = useState<string>("");
@@ -73,12 +74,6 @@ export default function MirrorScreen() {
 			const wlMirrorFound = await isWlMirrorInstalled();
 			setIsWlMirrorFound(wlMirrorFound);
 			if (!wlMirrorFound) {
-				return;
-			}
-
-			const slurpFound = await isSlurpInstalled();
-			setIsSlurpFound(slurpFound);
-			if (!slurpFound) {
 				return;
 			}
 
@@ -252,11 +247,21 @@ export default function MirrorScreen() {
 
 	const handlePickRegion = async () => {
 		if (!(await isSlurpInstalled())) {
-			showToast({
-				style: Toast.Style.Failure,
-				title: "slurp is not installed",
-				message: "Install slurp to select a region on screen.",
-			});
+			navigation.push(
+				<HandleMissingRequirements
+					reason="slurp-not-found"
+					onRefresh={async () => {
+						if (await isSlurpInstalled()) {
+							navigation.pop();
+						} else {
+							showToast({
+								style: Toast.Style.Failure,
+								title: "slurp is still not installed",
+							});
+						}
+					}}
+				/>,
+			);
 			return;
 		}
 
@@ -403,14 +408,6 @@ export default function MirrorScreen() {
 			/>
 		);
 	}
-	if (!isSlurpFound) {
-		return (
-			<HandleMissingRequirements
-				reason="slurp-not-found"
-				onRefresh={loadOutputs}
-			/>
-		);
-	}
 
 	if (activeMirror) {
 		return (
@@ -525,7 +522,7 @@ export default function MirrorScreen() {
 
 			<Form.Dropdown
 				id="region"
-				title="Region"
+				title="Capture"
 				value={regionDropdownValue}
 				onChange={(value) => {
 					if (value === "pick") {
@@ -537,10 +534,10 @@ export default function MirrorScreen() {
 					}
 				}}
 			>
-				<Form.Dropdown.Item title="Full output" value="full" />
+				<Form.Dropdown.Item title="Fullscreen" value="full" />
 				{region && (
 					<Form.Dropdown.Item
-						title={`Current region: ${region}`}
+						title={`Selected region: ${region}`}
 						value="current"
 						icon={Icon.Crop}
 					/>

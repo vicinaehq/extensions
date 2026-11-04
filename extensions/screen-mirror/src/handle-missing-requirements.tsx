@@ -37,7 +37,7 @@ const DEPENDENCIES: Record<DependencyReason, DependencyInfo> = {
 	"slurp-not-found": {
 		packageName: "slurp",
 		summary:
-			"Screen Mirror uses **slurp** to draw the on-screen overlay where you drag the region you want to mirror.",
+			"Screen Mirror uses **slurp** to draw the on-screen overlay where you select the region you want to mirror.",
 		commands: [
 			{ label: "Arch Linux", command: "sudo pacman -S slurp" },
 			{ label: "Ubuntu / Debian", command: "sudo apt install slurp" },
