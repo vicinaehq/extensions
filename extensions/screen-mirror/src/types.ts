@@ -27,14 +27,44 @@ export type Output = {
 	adaptive_sync: boolean;
 };
 
+export type ScalingMode = "fit" | "cover" | "exact";
+
+export type Rotation = "none" | "90cw" | "180cw" | "270cw";
+
+export type Flip = "none" | "flipX" | "flipY";
+
+export type MirrorOptions = {
+	scaling: ScalingMode;
+	rotation: Rotation;
+	flip: Flip;
+	showCursor: boolean;
+	region: string;
+};
+
+export const DEFAULT_MIRROR_OPTIONS: MirrorOptions = {
+	scaling: "fit",
+	rotation: "none",
+	flip: "none",
+	showCursor: true,
+	region: "",
+};
+
 export type ActiveMirrorSession = {
 	pid?: number;
 	source: string;
 	target: string;
+	options?: MirrorOptions;
 };
 
 export type ScreenMirrorProps = {
 	source: string;
 	target: string;
+	options: MirrorOptions;
 	setActiveMirror?: (session: ActiveMirrorSession | null) => void;
+};
+
+export type SavedFormState = {
+	source: string;
+	target: string;
+	options: MirrorOptions;
 };
