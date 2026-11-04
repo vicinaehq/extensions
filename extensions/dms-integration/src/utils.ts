@@ -113,7 +113,7 @@ export async function prettifyData(hits: Hit[]): Promise<PrettyHit[]> {
   );
 }
 
-/** Requests search hits from the DMS backend with current filters and folder scope. */
+/** Requests search hits from the Dux Shell backend with current filters and folder scope. */
 export async function fetchData(
   query: string,
   searchMode: string,
