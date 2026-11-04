@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.cache/
+*.log
+.DS_Store
+
+vicinae-env.d.ts
+raycast-env.d.ts
