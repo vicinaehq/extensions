@@ -5,6 +5,7 @@
   "description": "Manage connected monitors, scales, rotation, power states for Niri Wayland compositor",
   "categories": [],
   "license": "MIT",
+  "version": "1.1.0",
   "author": "xwaleedahmad",
   "contributors": [],
   "pastContributors": [],
