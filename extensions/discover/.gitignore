@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.log
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+.DS_Store
+coverage/
+vicinae-env.d.ts

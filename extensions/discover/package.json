@@ -1,0 +1,127 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/v0.29.2/extra/schemas/extension.json",
+  "name": "discover",
+  "title": "Discover",
+  "description": "CachyOS/Arch software center: repository packages, AUR, Flatpak, firmware and Plasma add-ons",
+  "categories": [
+    "Applications",
+    "System"
+  ],
+  "license": "MIT",
+  "author": "rzgrozt",
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "discover",
+      "title": "Software Center",
+      "subtitle": "Discover",
+      "description": "Find, install and remove applications and system packages",
+      "mode": "view",
+      "keywords": [
+        "discover",
+        "software",
+        "package",
+        "install"
+      ]
+    },
+    {
+      "name": "installed",
+      "title": "Installed Software",
+      "subtitle": "Discover",
+      "description": "Manage installed packages and applications",
+      "mode": "view"
+    },
+    {
+      "name": "updates",
+      "title": "Updates",
+      "subtitle": "Discover",
+      "description": "System, AUR, Flatpak and firmware updates",
+      "mode": "view"
+    },
+    {
+      "name": "sources",
+      "title": "Software Sources",
+      "subtitle": "Discover",
+      "description": "Manage system repositories, Flatpak remotes and firmware sources",
+      "mode": "view"
+    },
+    {
+      "name": "addons",
+      "title": "Plasma Add-ons",
+      "subtitle": "Discover",
+      "description": "Plasma themes, widgets and KWin add-ons",
+      "mode": "view"
+    },
+    {
+      "name": "local-install",
+      "title": "Install from File",
+      "subtitle": "Discover",
+      "description": "Install local pacman, Flatpak and Plasma packages",
+      "mode": "view"
+    },
+    {
+      "name": "history",
+      "title": "Transaction History",
+      "subtitle": "Discover",
+      "description": "View background transactions and logs",
+      "mode": "view"
+    },
+    {
+      "name": "diagnostics",
+      "title": "System and Support",
+      "subtitle": "Discover",
+      "description": "Check backends, dependencies and supported features",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "includeAur",
+      "type": "checkbox",
+      "label": "Include AUR results in searches",
+      "title": "AUR",
+      "default": true,
+      "required": false,
+      "description": "AUR packages are community-maintained. Building and PKGBUILD review run in a terminal."
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "smoke": "tsx tests/smoke.ts",
+    "check": "npm run typecheck && npm test",
+    "build:bundle": "vici build --out ./dist",
+    "lint": "vici lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@vicinae/api": "0.29.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prettier": "^3.9.10",
+    "tsx": "^4.20.0",
+    "typescript": "5.9.2"
+  },
+  "version": "0.1.0",
+  "private": true,
+  "contributors": [],
+  "pastContributors": [],
+  "homepage": "https://github.com/rzgrozt/vicinae-discover",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rzgrozt/vicinae-discover.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rzgrozt/vicinae-discover/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "platforms": [
+    "Linux"
+  ]
+}
