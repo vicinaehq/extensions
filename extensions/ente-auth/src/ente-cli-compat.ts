@@ -1,5 +1,5 @@
 import { chmod, mkdtemp, mkdir, readFile, rename, rm } from "node:fs/promises";
-import path from "node:path";
+import * as path from "node:path";
 import {
 	type EnteSecret,
 	parseEnteAccounts,

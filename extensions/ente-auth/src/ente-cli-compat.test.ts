@@ -1,7 +1,7 @@
 import * as assert from "node:assert/strict";
 import { mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
+import * as os from "node:os";
+import * as path from "node:path";
 import { test } from "node:test";
 import { detectCliGeneration, exportModernPlaintext, syncLegacyAuthExportDirectory, type RunEnte } from "./ente-cli-compat";
 
