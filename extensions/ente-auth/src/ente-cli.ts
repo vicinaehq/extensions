@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, readFile, rm } from "node:fs/promises";
+import { chmod, mkdir, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -7,9 +7,15 @@ import { getPreferenceValues } from "@vicinae/api";
 import {
 	type EnteSecret,
 	expandConfiguredPath,
-	parseEnteAccounts,
 	parseSecrets,
 } from "./ente-contract";
+
+import { resolveEnteCliPath } from "./ente-cli-path";
+import {
+	detectCliGeneration,
+	exportModernPlaintext,
+	syncLegacyAuthExportDirectory,
+} from "./ente-cli-compat";
 
 const execFileAsync = promisify(execFile);
 const EXPORT_FILE_NAME = "ente_auth.txt";
@@ -25,7 +31,7 @@ function preferences(): EntePreferences {
 
 function cliPath(): string {
 	const configured = expandConfiguredPath(preferences().cliPath, os.homedir());
-	return configured || "ente";
+	return resolveEnteCliPath(configured);
 }
 
 function exportDirectory(): string {
@@ -64,50 +70,21 @@ async function runEnte(args: string[], timeout = 20_000): Promise<string> {
 	}
 }
 
-export async function checkEnteCli(): Promise<void> {
-	await runEnte(["version"], 10_000);
-}
-
-async function syncAuthExportDirectory(
-	expectedDirectory: string,
-): Promise<void> {
-	const accountList = await runEnte(["account", "list"]);
-	const authAccount = parseEnteAccounts(accountList).find(
-		(account) => account.app === "auth",
-	);
-	if (!authAccount?.email) {
-		throw new Error(
-			"No Ente Auth account was found. Run `ente account add`, choose `auth`, and authenticate first.",
-		);
-	}
-	if (
-		authAccount.exportDir &&
-		path.resolve(authAccount.exportDir) === path.resolve(expectedDirectory)
-	)
-		return;
-	await runEnte([
-		"account",
-		"update",
-		"--app",
-		"auth",
-		"--email",
-		authAccount.email,
-		"--dir",
-		expectedDirectory,
-	]);
-}
-
-/** Run `ente export` and verify that the expected export file was created. */
+/** Export Auth codes using the matching legacy or modern Ente CLI interface. */
 export async function exportEnteAuthSecrets(): Promise<{
 	filePath: string;
 	secrets: EnteSecret[];
 }> {
-	await checkEnteCli();
+	const generation = await detectCliGeneration(runEnte);
 	const directory = exportDirectory();
-	await mkdir(directory, { recursive: true });
-	await syncAuthExportDirectory(directory);
+	if (generation === "modern") return exportModernPlaintext(directory, runEnte);
+
+	await mkdir(directory, { recursive: true, mode: 0o700 });
+	await syncLegacyAuthExportDirectory(directory, runEnte);
 	await runEnte(["export"], 60_000);
-	return readExportedSecrets();
+	const result = await readExportedSecrets();
+	if (process.platform !== "win32") await chmod(result.filePath, 0o600);
+	return result;
 }
 
 /** Read the existing export without invoking the CLI. */

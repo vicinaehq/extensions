@@ -1,8 +1,8 @@
 # Ente Auth for Vicinae
 
-A Linux-native Vicinae port of the official Ente Auth Raycast extension. It uses the authenticated [Ente CLI](https://github.com/ente-io/ente/tree/main/cli) and the standard `ente_auth.txt` export format; it does not depend on Raycast.
+A cross-platform Vicinae port of the official Ente Auth Raycast extension. It uses the authenticated [Ente CLI](https://github.com/ente-io/ente/tree/main/cli) and the standard `ente_auth.txt` export format; it does not depend on Raycast.
 
-The port is independently implemented from the MIT-licensed Raycast extension by `chkpwd` and retains the useful workflows while adapting them to Vicinae and Linux.
+The port is independently implemented from the MIT-licensed Raycast extension by `chkpwd` and retains the useful workflows while adapting them to Vicinae on Linux, macOS, and Windows.
 
 ## Features
 
@@ -21,19 +21,23 @@ The port is independently implemented from the MIT-licensed Raycast extension by
 
 ## Requirements
 
-- Linux.
-- The Ente CLI installed and authenticated for the `auth` app.
-- An Ente CLI account configured with an export directory.
+- Linux, macOS 14.4+ on Apple Silicon with Vicinae 0.23.0+, or Windows with Vicinae 0.29.0+.
+- Ente CLI 0.3.x (legacy) or 0.4.x and newer, authenticated for the `auth` app.
+- A private export directory writable by the current user (default `~/Documents/ente`).
 
-Install and authenticate the CLI first:
+Install and authenticate the CLI first (pick the commands for your version):
 
 ```bash
-ente account add
-# choose: auth
-ente account list
+# Ente CLI 0.4.x and newer
+ente --version
+ente account login --app auth
+
+# Ente CLI 0.3.x
+ente version
+ente account add  # choose auth, then log in
 ```
 
-The extension uses the `ExportDir` shown by `ente account list`. If the configured Vicinae preference differs, the extension updates the Ente Auth account's export directory before running `ente export`.
+**Version handling is automatic.** With CLI 0.3.x the extension updates the Auth account's `ExportDir` when needed, then runs `ente export`. With CLI 0.4.x and newer it runs `ente auth export --plaintext` to a private temporary file and safely replaces the local `ente_auth.txt` after validating it. Existing exports remain available if a modern export fails. You do not need to switch Ente CLI versions to use the extension.
 
 ## Install from a checkout
 
@@ -44,36 +48,38 @@ npm test
 npm run build
 ```
 
-Vicinae installs the build under:
+On Linux, Vicinae installs the build under:
 
 ```text
 ~/.local/share/vicinae/extensions/ente-auth
 ```
 
-If Vicinae cannot find `ente`, set **Ente CLI path** to its absolute path. Set **Ente CLI export directory** only when you do not want the default `~/Documents/ente`.
+The default **Ente CLI path** (`ente`) searches the current `PATH` and standard installation locations, including Apple Silicon Homebrew (`/opt/homebrew/bin/ente`), Intel Homebrew (`/usr/local/bin/ente`), and per-user installations. If automatic discovery fails, set **Ente CLI path** to the absolute executable path returned by `command -v ente`. Set **Ente CLI export directory** if you do not want the default `~/Documents/ente`, or if macOS requests Documents-folder access. The extension never stores seeds in Vicinae LocalStorage. On Windows, protect the export directory with your user account's filesystem permissions.
+
+Keyboard shortcuts use **Ctrl+Shift** on Linux and Windows, and **Cmd+Shift** on macOS. The native paste action relies on Vicinae's clipboard and focus-handling support; verify it on your desktop environment before relying on it for sign-in.
 
 ## Commands
 
 - **Get Ente Auth TOTP** — reads the existing export, searches accounts, and copies or pastes codes.
-- **Import Ente Auth Secrets** — runs `ente export`, validates the resulting file, and makes it available to the search command.
-- **Export Ente Auth Secrets** — runs `ente export` and reports the resulting file.
+- **Import Ente Auth Secrets** — exports with the selected CLI version, validates the resulting file, and makes it available to the search command.
+- **Export Ente Auth Secrets** — exports with the selected CLI version and reports the resulting file.
 - **Delete Ente Auth Export** — permanently removes the local `ente_auth.txt` after confirmation.
 
 The **Primary action** preference matches Raycast: it can put **Paste current code** or **Copy current code** on Enter. Vicinae closes its launcher before invoking `Clipboard.paste`, allowing focus to return to the previously active application without requiring a `ydotool` dependency.
 
-Keyboard shortcuts:
+Keyboard shortcuts (Ctrl on Linux/Windows, Cmd on macOS):
 
 - Enter — Paste current code (default primary action)
-- Ctrl+Shift+C — Copy current code
-- Ctrl+Shift+N — Copy next code
-- Ctrl+Shift+P — Paste next code
-- Ctrl+Shift+D — View details
-- Ctrl+Shift+O — Open the notes URL
-- Ctrl+Shift+E — Refresh the export
-- Ctrl+Shift+R — Refresh service icons
-- Ctrl+Shift+L — Reload the export after an error
-- Ctrl+Shift+Y — Retry a failed export deletion
-- Ctrl+Shift+G — Open the Ente CLI guide
+- Primary+Shift+C — Copy current code
+- Primary+Shift+N — Copy next code
+- Primary+Shift+P — Paste next code
+- Primary+Shift+D — View details
+- Primary+Shift+O — Open the notes URL
+- Primary+Shift+E — Refresh the export
+- Primary+Shift+R — Refresh service icons
+- Primary+Shift+L — Reload the export after an error
+- Primary+Shift+Y — Retry a failed export deletion
+- Primary+Shift+G — Open the Ente CLI guide
 
 ## Privacy
 

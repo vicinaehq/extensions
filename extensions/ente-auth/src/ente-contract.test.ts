@@ -67,6 +67,24 @@ void test("generates deterministic current and next codes", () => {
 	assert.equal(snapshot.remaining, 10);
 });
 
+// RFC 6238 SHA-256 reference secret (32 bytes), encoded in Base32.
+// At Unix time 59s, the RFC SHA-256 8-digit value is 46119246 (6-digit suffix 119246).
+void test("preserves myGov SHA-256 settings and generates the correct current and next TOTP", () => {
+	const myGov =
+		"otpauth://totp/myGov?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA&issuer=myGov+%28ATO%29&algorithm=SHA256&digits=6&period=30";
+	const [secret] = parseSecrets([myGov]);
+	assert.ok(secret);
+	assert.equal(secret.issuer, "myGov (ATO)");
+	assert.equal(secret.algorithm, "SHA256");
+	assert.equal(secret.digits, 6);
+	assert.equal(secret.period, 30);
+
+	const snapshot = snapshotSecret(secret, 59_000);
+	assert.equal(snapshot.current, "119246");
+	assert.equal(snapshot.next, "882438");
+	assert.equal(snapshot.remaining, 1);
+});
+
 void test("parses multiple Ente accounts and selects auth metadata", () => {
 	const accounts = parseEnteAccounts(
 		`Configured accounts: 2\n====================================\nEmail: one@example.com\nApp: auth\nExportDir: /home/one/ente\n====================================\nEmail: two@example.com\nApp: photos\nExportDir: /home/two/photos`,
