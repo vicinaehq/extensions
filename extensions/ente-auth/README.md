@@ -54,7 +54,7 @@ On Linux, Vicinae installs the build under:
 ~/.local/share/vicinae/extensions/ente-auth
 ```
 
-If Vicinae cannot find `ente`, set **Ente CLI path** to its absolute path. This is especially useful on macOS because GUI apps may not inherit the Terminal `PATH` (for example, use `/opt/homebrew/bin/ente` or `$HOME/.local/opt/ente-cli/bin/ente`, with the home directory expanded). Set **Ente CLI export directory** if you do not want the default `~/Documents/ente`, or if macOS requests Documents-folder access. The extension never stores seeds in Vicinae LocalStorage. On Windows, protect the export directory with your user account's filesystem permissions.
+The default **Ente CLI path** (`ente`) searches the current `PATH` and standard installation locations, including Apple Silicon Homebrew (`/opt/homebrew/bin/ente`), Intel Homebrew (`/usr/local/bin/ente`), and per-user installations. If automatic discovery fails, set **Ente CLI path** to the absolute executable path returned by `command -v ente`. Set **Ente CLI export directory** if you do not want the default `~/Documents/ente`, or if macOS requests Documents-folder access. The extension never stores seeds in Vicinae LocalStorage. On Windows, protect the export directory with your user account's filesystem permissions.
 
 Keyboard shortcuts use **Ctrl+Shift** on Linux and Windows, and **Cmd+Shift** on macOS. The native paste action relies on Vicinae's clipboard and focus-handling support; verify it on your desktop environment before relying on it for sign-in.
 

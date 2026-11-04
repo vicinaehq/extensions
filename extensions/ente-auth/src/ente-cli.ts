@@ -10,6 +10,7 @@ import {
 	parseSecrets,
 } from "./ente-contract";
 
+import { resolveEnteCliPath } from "./ente-cli-path";
 import {
 	detectCliGeneration,
 	exportModernPlaintext,
@@ -30,7 +31,7 @@ function preferences(): EntePreferences {
 
 function cliPath(): string {
 	const configured = expandConfiguredPath(preferences().cliPath, os.homedir());
-	return configured || "ente";
+	return resolveEnteCliPath(configured);
 }
 
 function exportDirectory(): string {

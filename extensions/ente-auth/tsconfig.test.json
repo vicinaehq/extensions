@@ -12,6 +12,8 @@
     "src/ente-contract.ts",
     "src/ente-contract.test.ts",
     "src/ente-cli-compat.ts",
-    "src/ente-cli-compat.test.ts"
+    "src/ente-cli-compat.test.ts",
+    "src/ente-cli-path.ts",
+    "src/ente-cli-path.test.ts"
   ]
 }
