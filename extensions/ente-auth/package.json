@@ -8,7 +8,7 @@
   "contributors": ["chkpwd"],
   "categories": ["Security"],
   "license": "MIT",
-  "platforms": ["Linux"],
+  "platforms": ["Linux", "macOS", "Windows"],
   "commands": [
     {
       "name": "get-totp",
@@ -21,7 +21,7 @@
     {
       "name": "import-secrets",
       "title": "Import Ente Auth Secrets",
-      "subtitle": "ente export",
+      "subtitle": "ente",
       "description": "Export the authenticated Ente Auth account and validate its local export file.",
       "icon": "extension_icon.png",
       "mode": "view"
@@ -29,7 +29,7 @@
     {
       "name": "export-secrets",
       "title": "Export Ente Auth Secrets",
-      "subtitle": "ente export",
+      "subtitle": "ente",
       "description": "Create ente_auth.txt in the configured Ente CLI export directory.",
       "icon": "extension_icon.png",
       "mode": "view"
@@ -109,7 +109,7 @@
     "build": "vici build",
     "dev": "vici develop",
     "lint": "vici lint",
-    "test": "node -e \"require('node:fs').rmSync('.test-build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test .test-build/ente-contract.test.js",
+    "test": "node -e \"require('node:fs').rmSync('.test-build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test .test-build/ente-contract.test.js .test-build/ente-cli-compat.test.js",
     "format": "biome format --write src"
   },
   "dependencies": {
