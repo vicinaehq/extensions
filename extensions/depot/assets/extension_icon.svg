@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Depot package">
+  <rect width="512" height="512" rx="112" fill="#E95420"/>
+  <path d="M256 86 402 166v180L256 426 110 346V166z" fill="#fff" opacity=".96"/>
+  <path d="m110 166 146 82 146-82M256 248v178" fill="none" stroke="#E95420" stroke-linejoin="round" stroke-width="30"/>
+  <path d="m177 124 146 82" fill="none" stroke="#E95420" stroke-linecap="round" stroke-width="30"/>
+</svg>
