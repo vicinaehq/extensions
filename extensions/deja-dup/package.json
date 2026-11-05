@@ -1,0 +1,145 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "deja-dup",
+  "title": "Déjà Dup Backups",
+  "description": "Browse, search and restore files from your Déjà Dup (restic) backups",
+  "categories": [
+    "System"
+  ],
+  "license": "MIT",
+  "platforms": [
+    "Linux"
+  ],
+  "author": "samvoelzke",
+  "contributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "browse-backup",
+      "title": "Browse Backup",
+      "subtitle": "Déjà Dup",
+      "description": "Browse snapshots and restore individual files from your backup",
+      "mode": "view"
+    },
+    {
+      "name": "search-files",
+      "title": "Search Backup Files",
+      "subtitle": "Déjà Dup",
+      "description": "Search for files across your backup snapshots",
+      "mode": "view"
+    },
+    {
+      "name": "backup-now",
+      "title": "Back Up Now",
+      "subtitle": "Déjà Dup",
+      "description": "Start a backup immediately",
+      "keywords": [
+        "backup",
+        "take backup",
+        "run backup"
+      ],
+      "mode": "no-view"
+    },
+    {
+      "name": "backup-status",
+      "title": "Backup Status",
+      "subtitle": "Déjà Dup",
+      "description": "See the last backup, destination, schedule and included paths",
+      "keywords": [
+        "backup",
+        "status"
+      ],
+      "mode": "view"
+    },
+    {
+      "name": "index-latest",
+      "title": "Refresh Search Index",
+      "subtitle": "Déjà Dup",
+      "description": "Keep the latest backup indexed for instant browsing and search",
+      "mode": "no-view",
+      "interval": "6h"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "dejaDupFlavor",
+      "title": "Déjà Dup Installation",
+      "description": "How Déjà Dup is installed. Auto-detects by default; override if detection is wrong or you use a custom setup.",
+      "type": "dropdown",
+      "required": false,
+      "default": "auto",
+      "data": [
+        {
+          "title": "Auto-detect",
+          "value": "auto"
+        },
+        {
+          "title": "Native (system package)",
+          "value": "native"
+        },
+        {
+          "title": "Flatpak",
+          "value": "flatpak"
+        },
+        {
+          "title": "Snap",
+          "value": "snap"
+        }
+      ]
+    },
+    {
+      "name": "backupPassword",
+      "title": "Backup Password",
+      "description": "Leave empty to read it from the keyring automatically. Set it only if the extension cannot find it (e.g. a Flatpak install, or a custom keyring).",
+      "type": "password",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "autoIndex",
+      "title": "Automatic Indexing",
+      "label": "Keep the latest backup indexed in the background",
+      "description": "When on, a new backup is indexed automatically in the background (downloads the file listing metadata over the network — scales with file count) so the first browse/search is instant. When off, you build the index on demand.",
+      "type": "checkbox",
+      "required": false,
+      "default": false
+    },
+    {
+      "name": "resticPath",
+      "title": "restic Binary",
+      "description": "Path to the restic executable (leave as 'restic' to use PATH). Ignored for Flatpak installs, which use their bundled restic.",
+      "type": "textfield",
+      "required": false,
+      "default": "restic"
+    },
+    {
+      "name": "rclonePath",
+      "title": "rclone Binary",
+      "description": "Path to the rclone executable (leave as 'rclone' to use PATH)",
+      "type": "textfield",
+      "required": false,
+      "default": "rclone"
+    },
+    {
+      "name": "cacheDir",
+      "title": "restic Cache Directory",
+      "description": "Leave empty to reuse Déjà Dup's cache at ~/.cache/deja-dup/restic",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.9.2"
+  }
+}
