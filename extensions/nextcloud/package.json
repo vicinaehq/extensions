@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "vicinae-nextcloud",
+  "title": "Nextcloud",
+  "description": "Search files, contacts, calendar events, and mail in your Nextcloud instance",
+  "icon": "command-icon.png",
+  "author": "nachtschatt3n",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "search-nextcloud",
+      "title": "Search Nextcloud",
+      "description": "Search files, contacts, calendar events, and mail",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "url",
+      "type": "textfield",
+      "title": "Nextcloud URL",
+      "description": "Your Nextcloud instance URL (e.g., https://nextcloud.example.com)",
+      "placeholder": "https://nextcloud.example.com",
+      "required": true
+    },
+    {
+      "name": "username",
+      "type": "textfield",
+      "title": "Username",
+      "description": "Your Nextcloud username",
+      "placeholder": "admin",
+      "required": true
+    },
+    {
+      "name": "token",
+      "type": "password",
+      "title": "App Token",
+      "description": "Your Nextcloud App Token (Settings > Security > App passwords)",
+      "placeholder": "xxxx-xxxx-xxxx-xxxx",
+      "required": true
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "^0.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.8.10",
+    "@types/react": "18.2.27",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  }
+}
