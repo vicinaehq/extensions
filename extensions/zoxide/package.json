@@ -1,0 +1,160 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "zoxide",
+  "title": "Zoxide",
+  "description": "Fuzzy-jump to your frecent directories. Open in terminal, editor, or any program you wire up.",
+  "license": "MIT",
+  "author": "oxysoft",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension-icon.png",
+  "categories": [
+    "Productivity",
+    "Developer Tools"
+  ],
+  "commands": [
+    {
+      "mode": "view",
+      "name": "search-directories",
+      "title": "Search Directories",
+      "subtitle": "zoxide",
+      "description": "Fuzzy-search frecent directories from zoxide"
+    },
+    {
+      "mode": "no-view",
+      "name": "add-directory",
+      "title": "Add Directory",
+      "subtitle": "zoxide",
+      "description": "Add a path to zoxide's database",
+      "arguments": [
+        {
+          "name": "path",
+          "placeholder": "/absolute/path",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "terminal",
+      "title": "Terminal Emulator",
+      "description": "Terminal command to spawn (e.g. kitty, alacritty, wezterm, foot, gnome-terminal). Leave blank to autodetect.",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "kitty"
+    },
+    {
+      "name": "editor",
+      "title": "Editor Command",
+      "description": "Editor command bound to ctrl+e. Set to '-' to disable the editor action entirely.",
+      "type": "textfield",
+      "required": false,
+      "default": "code",
+      "placeholder": "code"
+    },
+    {
+      "name": "fileManager",
+      "title": "File Manager Command",
+      "description": "File manager command bound to ctrl+f.",
+      "type": "textfield",
+      "required": false,
+      "default": "xdg-open",
+      "placeholder": "xdg-open"
+    },
+    {
+      "name": "program1Cmd",
+      "title": "Program 1 Command",
+      "description": "Custom program slot 1 — leave blank to disable. Bound to ctrl+1.",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "idea"
+    },
+    {
+      "name": "program1Label",
+      "title": "Program 1 Label",
+      "description": "Display label for program 1. Falls back to the command name if blank.",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "IntelliJ IDEA"
+    },
+    {
+      "name": "program2Cmd",
+      "title": "Program 2 Command",
+      "description": "Custom program slot 2 — leave blank to disable. Bound to ctrl+2.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "program2Label",
+      "title": "Program 2 Label",
+      "description": "Display label for program 2. Falls back to the command name if blank.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "program3Cmd",
+      "title": "Program 3 Command",
+      "description": "Custom program slot 3 — leave blank to disable. Bound to ctrl+3.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "program3Label",
+      "title": "Program 3 Label",
+      "description": "Display label for program 3. Falls back to the command name if blank.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "program4Cmd",
+      "title": "Program 4 Command",
+      "description": "Custom program slot 4 — leave blank to disable. Bound to ctrl+4.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "program4Label",
+      "title": "Program 4 Label",
+      "description": "Display label for program 4. Falls back to the command name if blank.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "program5Cmd",
+      "title": "Program 5 Command",
+      "description": "Custom program slot 5 — leave blank to disable. Bound to ctrl+5.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "program5Label",
+      "title": "Program 5 Label",
+      "description": "Display label for program 5. Falls back to the command name if blank.",
+      "type": "textfield",
+      "required": false
+    },
+    {
+      "name": "extraPath",
+      "title": "Extra PATH",
+      "description": "Colon-delimited PATH prefix used to locate the zoxide binary (e.g. /home/me/.local/bin).",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "/home/me/.local/bin"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.20.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0"
+  }
+}
