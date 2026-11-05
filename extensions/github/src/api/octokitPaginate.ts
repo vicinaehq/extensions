@@ -1,6 +1,6 @@
 import type { RequestInterface } from "@octokit/types";
 import { RequestError } from "@octokit/request-error";
-import { octokit } from "./githubClient";
+import { getOctokit } from "./githubClient";
 import { showToast, Toast } from "@vicinae/api";
 
 export const octokitPaginate = async <R extends RequestInterface>(
@@ -8,6 +8,7 @@ export const octokitPaginate = async <R extends RequestInterface>(
   parameters?: Parameters<R>[0],
 ) => {
   try {
+    const octokit = getOctokit();
     const rest = await octokit.paginate(request, parameters);
     return rest;
   } catch (error) {

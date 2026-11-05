@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { RequestError } from "@octokit/request-error";
-import { octokit } from "../api/githubClient";
+import { getOctokit } from "../api/githubClient";
 import { Repository, WorkflowRun } from "../types";
 import { useEffect } from "react";
 import { showToast, Toast } from "@vicinae/api";
@@ -11,6 +11,7 @@ export const useGetWorkflows = (repo: Repository | null) => {
     queryKey: ["githubWorkflowRuns", repo?.id],
     queryFn: async () => {
       if (!repo) return defaultValue;
+      const octokit = getOctokit();
       const [owner, repoName] = repo.full_name.split("/");
       try {
         const response = await octokit.actions.listWorkflowRunsForRepo({

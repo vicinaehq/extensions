@@ -14,6 +14,7 @@ import { useGetWorkflowRunJobs } from "./hooks/useGetWorkflowRunJobs";
 import { useGetWorkflows } from "./hooks/useGetWorkflows";
 import { persister, queryClient } from "./queryClient";
 import type { Repository, WorkflowJob, WorkflowRun } from "./types";
+import { GitHubAuthentication } from "./components/GitHubAuthentication";
 
 function PullRequests() {
   return (
@@ -21,7 +22,9 @@ function PullRequests() {
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Command />
+      <GitHubAuthentication>
+        <Command />
+      </GitHubAuthentication>
     </PersistQueryClientProvider>
   );
 }
