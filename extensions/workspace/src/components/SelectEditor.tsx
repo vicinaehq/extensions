@@ -64,7 +64,7 @@ export default function SelectEditor({ onReset, onSelect }: SelectEditorProps) {
           actions={
             <ActionPanel>
               <ActionPanel.Section title="Default">
-                <Action onAction={handleReset} title="Reset to Default" />
+                <Action icon={Icon.ArrowCounterClockwise} onAction={handleReset} title="Reset to Default" />
               </ActionPanel.Section>
             </ActionPanel>
           }

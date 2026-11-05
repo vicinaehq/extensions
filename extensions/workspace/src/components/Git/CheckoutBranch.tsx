@@ -32,9 +32,9 @@ export default function CheckoutBranch({ onBranchChanged, project }: CheckoutBra
     }
 
     const toast = await showToast({ style: Toast.Style.Animated, title: `Checking out ${branch}...` });
-    const success = await checkoutGitBranch(project.fullPath, branch);
+    const result = await checkoutGitBranch(project.fullPath, branch);
 
-    if (success) {
+    if (result.ok) {
       toast.style = Toast.Style.Success;
       toast.title = `Checked out ${branch}`;
       if (onBranchChanged) onBranchChanged();
@@ -42,7 +42,7 @@ export default function CheckoutBranch({ onBranchChanged, project }: CheckoutBra
     } else {
       toast.style = Toast.Style.Failure;
       toast.title = "Checkout failed";
-      toast.message = "Check for uncommitted changes.";
+      toast.message = result.message;
     }
   };
 
@@ -63,6 +63,9 @@ export default function CheckoutBranch({ onBranchChanged, project }: CheckoutBra
           title="Couldn't Load Branches"
         />
       )}
+      {!error && !isLoading && (branches?.length ?? 0) === 0 && (
+        <List.EmptyView description="This repository has no local branches." title="No Local Branches" />
+      )}
       {(branches ?? []).map((branch) => {
         const isCurrent = branch === currentBranch;
         return (
@@ -73,7 +76,7 @@ export default function CheckoutBranch({ onBranchChanged, project }: CheckoutBra
                 {!isCurrent && (
                   <Action icon={Icon.ArrowRight} onAction={() => handleCheckout(branch)} title="Checkout Branch" />
                 )}
-                <Action.CopyToClipboard content={branch} title="Copy Branch Name" />
+                <Action.CopyToClipboard content={branch} icon={Icon.CopyClipboard} title="Copy Branch Name" />
               </ActionPanel>
             }
             icon={Icon.Shuffle}
