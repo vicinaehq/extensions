@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "live-tennis",
+  "title": "Tennis Score Snapshots",
+  "description": "Browse tennis score snapshots from Live Tennis API, refreshed at most every 15 minutes with a free API key.",
+  "categories": [
+    "Fun",
+    "Data"
+  ],
+  "license": "MIT",
+  "author": "bensynapse",
+  "icon": "tennis.svg",
+  "commands": [
+    {
+      "name": "scores",
+      "title": "Tennis Score Snapshots",
+      "description": "Browse cached in-play tennis scores and their update times",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "apiKey",
+      "title": "Live Tennis API Key",
+      "description": "Use a dedicated free key from livetennisapi.com. Scores refresh at most every 15 minutes; no paid plan is required.",
+      "type": "password",
+      "required": true
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.29.0",
+    "proper-lockfile": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/proper-lockfile": "^4.1.4",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3"
+  }
+}
