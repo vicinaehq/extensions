@@ -46,8 +46,29 @@ describe("events", () => {
       const end = new Date(2024, 0, 17, 0, 0, 0); // 48 hours
 
       describe("when checking if all-day", () => {
-        it("then returns false (must be exactly 24 hours)", () => {
+        it("then returns true", () => {
+          expect(isAllDayEvent(start, end)).toBe(true);
+        });
+      });
+    });
+
+    describe("given a multi-day event with a non-midnight end", () => {
+      const start = new Date(2024, 0, 15, 0, 0, 0);
+      const end = new Date(2024, 0, 17, 9, 30, 0);
+
+      describe("when checking if all-day", () => {
+        it("then returns false", () => {
           expect(isAllDayEvent(start, end)).toBe(false);
+        });
+      });
+    });
+
+    describe("given a zero-length event at midnight", () => {
+      const start = new Date(2024, 0, 15, 0, 0, 0);
+
+      describe("when checking if all-day", () => {
+        it("then returns false", () => {
+          expect(isAllDayEvent(start, start)).toBe(false);
         });
       });
     });

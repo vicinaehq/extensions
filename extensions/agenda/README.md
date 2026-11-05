@@ -1,6 +1,6 @@
 # Agenda
 
-A [Vicinae](https://github.com/vicinaehq/vicinae) extension to view calendar events from iCal URLs in a clean agenda format.
+A [Vicinae](https://github.com/vicinaehq/vicinae) extension to view calendar events from iCal URLs, local `.ics` directories and the macOS Calendar in a clean agenda format.
 
 ## Features
 
@@ -15,6 +15,7 @@ A [Vicinae](https://github.com/vicinaehq/vicinae) extension to view calendar eve
 - **Recurring events support**: Automatically expands recurring events (RRULE)
 - **Real-time updates**: Automatically detects calendar changes within 2 seconds
 - **Persistent settings**: Remembers your last selected calendar filter
+- **macOS Calendar integration (opt-in)**: Read events directly from the calendars configured in the macOS Calendar app, including iCloud, Google and Exchange accounts
 
 ## Setup
 
@@ -41,6 +42,19 @@ A [Vicinae](https://github.com/vicinaehq/vicinae) extension to view calendar eve
 ## Preferences
 
 - **Refresh Interval**: How often to update calendar data (5-60 minutes)
+
+## macOS Calendar (macOS only)
+
+On macOS you can read events directly from the Calendar app instead of, or in addition to, iCal feeds. This uses Apple's EventKit, so any account already set up in Calendar (iCloud, Google, Exchange, and others) works automatically.
+
+This is off by default and requires an explicit opt-in:
+
+1. Open **Manage Calendars**.
+2. Under **macOS Calendar**, choose **Enable macOS Calendar**.
+3. On the consent screen, choose **Allow macOS Calendar Access**. macOS then asks for permission; approve it once for Vicinae.
+4. Select one or more calendars to show in Agenda.
+
+Agenda only reads the calendars you select. Events are fetched locally through macOS, cached on your machine, and never sent anywhere. Choosing **Disable macOS Calendar Access** stops reading macOS calendars while remembering your selection. If access is later revoked, re-enable Agenda under **System Settings → Privacy & Security → Calendars**.
 
 ## Development
 
