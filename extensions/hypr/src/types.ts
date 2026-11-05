@@ -36,7 +36,7 @@ export type HyprMonitor = {
 };
 
 export type HyprWorkspace = {
-  id: number;
+  id?: number;
   name: string;
   monitor: string;
   monitorID: number;

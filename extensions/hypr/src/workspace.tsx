@@ -65,7 +65,7 @@ export default function Workspaces() {
                 isShowingDetail
                   ? []
                   : [
-                      ...(workspace.id === activeWorkspace?.id
+                      ...(workspace.name === activeWorkspace?.name
                         ? [{ tag: { value: 'Current', color: Color.Blue } }]
                         : []),
                       ...(workspace.hasfullscreen
@@ -110,10 +110,12 @@ export default function Workspaces() {
                     title="Copy Workspace Name"
                     content={workspace.name}
                   />
-                  <Action.CopyToClipboard
-                    title="Copy Workspace ID"
-                    content={workspace.id.toString()}
-                  />
+                  {workspace.id !== undefined ? (
+                    <Action.CopyToClipboard
+                      title="Copy Workspace ID"
+                      content={workspace.id.toString()}
+                    />
+                  ) : null}
                   <Action.CopyToClipboard
                     title="Copy Monitor"
                     content={workspace.monitor}
@@ -134,7 +136,7 @@ export default function Workspaces() {
                       />
                       <List.Item.Detail.Metadata.Label
                         title="ID"
-                        text={workspace.id.toString()}
+                        text={workspace.id?.toString() ?? '-'}
                       />
                       <List.Item.Detail.Metadata.Label
                         title="Monitor"
@@ -151,11 +153,11 @@ export default function Workspaces() {
                           />
                         </List.Item.Detail.Metadata.TagList>
                       ) : null}
-                      {workspace.id === activeWorkspace?.id ||
+                      {workspace.name === activeWorkspace?.name ||
                       workspace.hasfullscreen ||
                       workspace.ispersistent ? (
                         <List.Item.Detail.Metadata.TagList title="State">
-                          {workspace.id === activeWorkspace?.id ? (
+                          {workspace.name === activeWorkspace?.name ? (
                             <List.Item.Detail.Metadata.TagList.Item
                               text="Current"
                               color={Color.Blue}
@@ -204,7 +206,7 @@ function getWorkspaceDispatchArg(workspace: HyprWorkspace) {
     return workspace.name;
   }
 
-  if (workspace.name && workspace.name !== workspace.id.toString()) {
+  if (workspace.id === undefined || workspace.name !== workspace.id.toString()) {
     return `name:${workspace.name}`;
   }
 
