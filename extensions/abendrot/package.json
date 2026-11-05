@@ -1,0 +1,101 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "abendrot",
+  "title": "Abendrot",
+  "description": "Control the Abendrot screen-warmth app: read status, set warmth, toggle warming, and reveal true color.",
+  "icon": "abendrot-icon.png",
+  "author": "mlazzarotto",
+  "contributors": [],
+  "categories": ["System"],
+  "keywords": ["abendrot", "warmth", "warm", "blue light", "night shift", "f.lux", "sunset"],
+  "license": "MIT",
+  "platforms": ["macOS"],
+  "commands": [
+    {
+      "name": "status",
+      "title": "Abendrot Status",
+      "subtitle": "Abendrot",
+      "description": "Show live Abendrot state: warmth, schedule, displays, and excluded apps",
+      "mode": "view"
+    },
+    {
+      "name": "set-warmth",
+      "title": "Set Warmth",
+      "subtitle": "Abendrot",
+      "description": "Set global warmth as a strength (0.0-1.0) or a Kelvin target (500-6500)",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "warmth",
+          "placeholder": "0.8 or 3000",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "enable",
+      "title": "Enable Warming",
+      "subtitle": "Abendrot",
+      "description": "Turn Abendrot warming on",
+      "mode": "no-view"
+    },
+    {
+      "name": "disable",
+      "title": "Disable Warming",
+      "subtitle": "Abendrot",
+      "description": "Turn Abendrot warming off",
+      "mode": "no-view"
+    },
+    {
+      "name": "toggle",
+      "title": "Toggle Warming",
+      "subtitle": "Abendrot",
+      "description": "Switch Abendrot warming on or off based on the current state",
+      "mode": "no-view"
+    },
+    {
+      "name": "reveal",
+      "title": "Reveal True Color",
+      "subtitle": "Abendrot",
+      "description": "Momentary true-color peek that drops warmth for a few seconds, then eases back",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "hold",
+          "placeholder": "Hold seconds (0-300, default 3)",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "toggle-cozy",
+      "title": "Toggle Cozy Mode",
+      "subtitle": "Abendrot",
+      "description": "Switch Abendrot cozy mode (expanded warmth) on or off",
+      "mode": "no-view"
+    },
+    {
+      "name": "quit-app",
+      "title": "Quit Abendrot",
+      "subtitle": "Abendrot",
+      "description": "Quit the Abendrot menu-bar app gracefully",
+      "mode": "no-view"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "test": "node --test src/lib/*.test.ts"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.27.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "@types/react": "^19.2.17",
+    "typescript": "^5.9.3"
+  }
+}
