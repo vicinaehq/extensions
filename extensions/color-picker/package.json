@@ -1,0 +1,208 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "color-picker",
+  "title": "Color Picker",
+  "description": "Pick, organize, and convert colors on Linux",
+  "icon": "icon.png",
+  "author": "manuelcontrera",
+  "pastContributors": [
+    "thomas"
+  ],
+  "categories": [
+    "Design Tools",
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "platforms": [
+    "Linux"
+  ],
+  "commands": [
+    {
+      "name": "pick-color",
+      "title": "Pick Color",
+      "description": "Pick a color on your desktop",
+      "mode": "no-view",
+      "icon": "icon.png",
+      "preferences": [
+        {
+          "name": "showColorName",
+          "title": "Show color name after picking",
+          "description": "Show the name of the picked color after picking",
+          "type": "checkbox",
+          "label": "Show",
+          "default": false,
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "organize-colors",
+      "title": "Organize Colors",
+      "description": "Organize and manage your picked colors",
+      "mode": "view",
+      "icon": "icon.png",
+      "preferences": [
+        {
+          "name": "primaryAction",
+          "title": "Primary Action",
+          "description": "The primary action to perform on a selected color",
+          "type": "dropdown",
+          "default": "copy",
+          "required": false,
+          "data": [
+            {
+              "title": "Copy to Clipboard",
+              "value": "copy"
+            },
+            {
+              "title": "Paste to Active App",
+              "value": "paste"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "favorite-colors",
+      "title": "Favorite Colors",
+      "description": "View and use your favorite colors",
+      "mode": "view",
+      "icon": "icon.png"
+    },
+    {
+      "name": "convert-color",
+      "title": "Convert Color",
+      "description": "Convert any color to a different format",
+      "mode": "view",
+      "icon": "icon.png",
+      "arguments": [
+        {
+          "name": "text",
+          "type": "text",
+          "required": false,
+          "placeholder": "#FF6363"
+        }
+      ]
+    },
+    {
+      "name": "color-names",
+      "title": "Color Names",
+      "description": "Search and identify colors by name",
+      "mode": "view",
+      "icon": "icon.png",
+      "preferences": [
+        {
+          "type": "dropdown",
+          "name": "colorNamesPerGroup",
+          "required": false,
+          "title": "Color Names Per Group",
+          "description": "The number of color names to display per group",
+          "default": "5",
+          "data": [
+            {
+              "title": "5",
+              "value": "5"
+            },
+            {
+              "title": "10",
+              "value": "10"
+            },
+            {
+              "title": "25",
+              "value": "25"
+            },
+            {
+              "title": "All",
+              "value": "Infinity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "color-wheel",
+      "title": "Color Wheel Reference",
+      "description": "Display a color wheel reference and pick colors from screen",
+      "mode": "view",
+      "icon": "icon.png"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "colorFormat",
+      "title": "Color Format",
+      "description": "The color format to use when copying/pasting colors",
+      "type": "dropdown",
+      "default": "hex",
+      "required": false,
+      "data": [
+        {
+          "title": "HEX - #FF6363",
+          "value": "hex"
+        },
+        {
+          "title": "HEX Lower Case - #ff6363",
+          "value": "hex-lower-case"
+        },
+        {
+          "title": "HEX No Prefix - FF6363",
+          "value": "hex-no-prefix"
+        },
+        {
+          "title": "RGB - rgb(255 99 99 / 100%)",
+          "value": "rgb"
+        },
+        {
+          "title": "RGB % - rgb(100% 38% 38% / 100%)",
+          "value": "rgb-percentage"
+        },
+        {
+          "title": "RGBA - rgba(255, 99, 99, 1)",
+          "value": "rgba"
+        },
+        {
+          "title": "RGBA % - rgba(100%, 39%, 39%, 1)",
+          "value": "rgba-percentage"
+        },
+        {
+          "title": "HSLA - hsla(0, 100%, 69%, 1)",
+          "value": "hsla"
+        },
+        {
+          "title": "HSVA - color(hsv 43.082 81.145 100)",
+          "value": "hsva"
+        },
+        {
+          "title": "OKLCH - oklch(0.6987 0.1902 23.468)",
+          "value": "oklch"
+        },
+        {
+          "title": "LCH - lch(63.127 68.676 28.723)",
+          "value": "lch"
+        },
+        {
+          "title": "P3 - color(display-p3 0.9248 0.428 0.4078)",
+          "value": "p3"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.29.0",
+    "color-namer": "^1.4.0",
+    "colorjs.io": "^0.5.1",
+    "lodash": "^4.17.23"
+  },
+  "devDependencies": {
+    "@types/color-namer": "^1.3.3",
+    "@types/lodash": "^4.17.23",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.8.0"
+  }
+}
