@@ -1,0 +1,49 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "nix-search",
+  "title": "Nix Search",
+  "description": "Search Nixpkgs packages using the search.nixos.org index",
+  "categories": ["Developer Tools", "System"],
+  "platforms": ["Linux", "macOS"],
+  "license": "MIT",
+  "author": "bilal",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "assets/extension_icon.png",
+  "commands": [
+    {
+      "name": "nix-search",
+      "title": "Search Nix Packages",
+      "subtitle": "search.nixos.org",
+      "description": "Search packages from nixpkgs and inspect their metadata",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "channel",
+      "title": "NixOS channel",
+      "description": "Choose which nixpkgs channel to search",
+      "type": "dropdown",
+      "default": "unstable",
+      "required": false,
+      "data": [
+        { "title": "Stable (current release)", "value": "stable" },
+        { "title": "Unstable", "value": "unstable" }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.29.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
