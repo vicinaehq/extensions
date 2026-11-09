@@ -51,7 +51,7 @@ export function variantInfo(variant: BraveVariant): BraveVariantInfo {
 
 export function dataDirForVariant(variant: BraveVariant): string {
 	const custom = preferences.profile_dir?.trim();
-	return path.join(homedir(), custom ?? path.join(".config", variantInfo(variant).dataDir));
+	return path.join(homedir(), custom || path.join(".config", variantInfo(variant).dataDir));
 }
 
 export function findOnPath(candidate: string): string | undefined {
