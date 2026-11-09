@@ -471,6 +471,10 @@ function packageUrl(name: string, channel: string) {
 	return `https://search.nixos.org/packages?channel=${encodeURIComponent(channel)}&query=${encodeURIComponent(name)}`;
 }
 
+function packageRef(name: string, channel: string) {
+	return `github:NixOS/nixpkgs/nixos-${channel}#${name}`;
+}
+
 function safeHomepage(homepage?: string) {
 	if (!homepage) return undefined;
 	try {
@@ -485,6 +489,7 @@ function safeHomepage(homepage?: string) {
 
 function PackageItem({ pkg, channel }: { pkg: Package; channel: string }) {
 	const name = pkg.package_attr_name;
+	const ref = packageRef(name, channel);
 	const homepage = safeHomepage(pkg.package_homepage?.[0]);
 	const programs = pkg.package_programs ?? [];
 	const platforms = pkg.package_platforms ?? [];
@@ -565,19 +570,19 @@ function PackageItem({ pkg, channel }: { pkg: Package; channel: string }) {
 						<Action.RunInTerminal
 							title="Install with nix profile"
 							icon={Icon.Download}
-							args={["nix", "profile", "install", `nixpkgs#${name}`]}
+							args={["nix", "profile", "install", ref]}
 							options={{ hold: true, title: `Install ${name}` }}
 						/>
 						<Action.RunInTerminal
 							title="Run once with nix run"
 							icon={Icon.Terminal}
-							args={["nix", "run", `nixpkgs#${name}`]}
+							args={["nix", "run", ref]}
 							options={{ hold: true, title: `Run ${name}` }}
 						/>
 						<Action.RunInTerminal
 							title="Enter temporary shell"
 							icon={Icon.Terminal}
-							args={["nix", "shell", `nixpkgs#${name}`]}
+							args={["nix", "shell", ref]}
 							options={{ hold: true, title: `Shell: ${name}` }}
 						/>
 					</ActionPanel.Section>
@@ -588,11 +593,11 @@ function PackageItem({ pkg, channel }: { pkg: Package; channel: string }) {
 						/>
 						<Action.CopyToClipboard
 							title="Copy profile install command"
-							content={`nix profile install nixpkgs#${name}`}
+							content={`nix profile install ${ref}`}
 						/>
 						<Action.CopyToClipboard
-							title="Copy nix-shell command"
-							content={`nix-shell -p ${name}`}
+							title="Copy temporary shell command"
+							content={`nix shell ${ref}`}
 						/>
 						{homepage && (
 							<Action.OpenInBrowser title="Open homepage" url={homepage} />
