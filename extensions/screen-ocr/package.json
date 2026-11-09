@@ -1,0 +1,153 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "screen-ocr",
+  "title": "Screen OCR",
+  "description": "Select an area of the screen, recognize the text with Tesseract and copy it to the clipboard. Works on GNOME Wayland via the XDG screenshot portal.",
+  "icon": "extension-icon.png",
+  "author": "eliasthecactus",
+  "contributors": [],
+  "pastContributors": [],
+  "categories": [
+    "Productivity",
+    "Developer Tools"
+  ],
+  "keywords": [
+    "ocr",
+    "text",
+    "screenshot",
+    "tesseract",
+    "recognize",
+    "qr",
+    "barcode"
+  ],
+  "platforms": [
+    "Linux"
+  ],
+  "license": "MIT",
+  "version": "1.1.1",
+  "commands": [
+    {
+      "name": "recognize-text",
+      "title": "Recognize Text",
+      "subtitle": "Screen OCR",
+      "description": "Select an area of the screen and copy the recognized text",
+      "mode": "no-view",
+      "keywords": [
+        "ocr",
+        "area",
+        "select",
+        "copy text"
+      ]
+    },
+    {
+      "name": "recognize-text-clipboard",
+      "title": "Recognize Text from Clipboard",
+      "subtitle": "Screen OCR",
+      "description": "Run OCR on the image in the clipboard (e.g. after Print Screen) and copy the text",
+      "mode": "no-view",
+      "keywords": [
+        "ocr",
+        "clipboard",
+        "print screen",
+        "image"
+      ]
+    },
+    {
+      "name": "recognize-text-fullscreen",
+      "title": "Recognize Text Fullscreen",
+      "subtitle": "Screen OCR",
+      "description": "Capture the whole screen and copy the recognized text",
+      "mode": "no-view",
+      "keywords": [
+        "ocr",
+        "fullscreen",
+        "screen"
+      ]
+    },
+    {
+      "name": "detect-barcode",
+      "title": "Detect Barcode / QR Code",
+      "subtitle": "Screen OCR",
+      "description": "Select an area of the screen and copy the decoded QR code or barcode",
+      "mode": "no-view",
+      "keywords": [
+        "qr",
+        "barcode",
+        "scan",
+        "zbar"
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "language",
+      "type": "textfield",
+      "title": "Languages",
+      "description": "Tesseract language codes joined with '+', e.g. 'eng', 'eng+deu', 'deu+fra+ita'. Each needs its package (sudo apt install tesseract-ocr-deu).",
+      "required": false,
+      "default": "eng",
+      "placeholder": "eng+deu"
+    },
+    {
+      "name": "keepLineBreaks",
+      "type": "checkbox",
+      "title": "Line Breaks",
+      "label": "Keep line breaks from the image",
+      "description": "When off, lines in the same paragraph are joined with spaces.",
+      "required": false,
+      "default": true
+    },
+    {
+      "name": "captureMethod",
+      "type": "dropdown",
+      "title": "Capture Method",
+      "description": "How screenshots are taken. Auto uses the XDG desktop portal (GNOME's screenshot UI) and falls back to gnome-screenshot if the portal fails.",
+      "required": false,
+      "default": "auto",
+      "data": [
+        {
+          "title": "Auto",
+          "value": "auto"
+        },
+        {
+          "title": "XDG Desktop Portal",
+          "value": "portal"
+        },
+        {
+          "title": "gnome-screenshot",
+          "value": "gnome-screenshot"
+        }
+      ]
+    },
+    {
+      "name": "upscale",
+      "type": "checkbox",
+      "title": "Upscale",
+      "label": "Upscale small captures before OCR (needs ImageMagick)",
+      "description": "Tesseract is much more accurate on screen text when the image is enlarged 2x. Skipped if ImageMagick is not installed.",
+      "required": false,
+      "default": true
+    },
+    {
+      "name": "keepScreenshot",
+      "type": "checkbox",
+      "title": "Screenshots",
+      "label": "Keep the screenshot file",
+      "description": "The portal saves captures to your Pictures folder. When off, the file is deleted after recognition.",
+      "required": false,
+      "default": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.3"
+  }
+}
