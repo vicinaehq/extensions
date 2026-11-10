@@ -10,8 +10,6 @@ A Vicinae extension for inspecting and controlling the Umbriel Wayland composito
 
 > Everything the extension changes is **runtime-only**. It never writes to your Umbriel configuration.
 
-> Requires a running Umbriel session with the `umbriel` command available on `PATH`. The extension shows an error instead of operating when the CLI is unavailable.
-
 ## Features
 
 | Command              | What it does                                                                                                                     |

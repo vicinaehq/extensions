@@ -22,21 +22,6 @@ function layerRank(layer: string): number {
 	return LAYER_ORDER[layer] ?? 99;
 }
 
-// function layerIcon(layer: string): Icon {
-//   switch (layer) {
-//     case "background":
-//       return Icon.Desktop;
-//     case "bottom":
-//       return Icon.Layers;
-//     case "top":
-//       return Icon.AppWindowList;
-//     case "overlay":
-//       return Icon.Layers;
-//     default:
-//       return Icon.Layers;
-//   }
-// }
-
 function layerTooltip(layer: string): string {
 	switch (layer) {
 		case "background":
