@@ -1,0 +1,73 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "archseek",
+  "title": "ArchSeek",
+  "description": "Vicinae launcher extension to search the Arch Wiki/Packages/AUR",
+  "categories": [
+    "System",
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "author": "Hash-AK",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "platforms": [
+    "Linux"
+  ],
+  "commands": [
+    {
+      "name": "search-wiki",
+      "title": "Search Wiki",
+      "description": "Search the Arch Wiki from Vicinae",
+      "mode": "view"
+    },
+    {
+      "name": "search-packages",
+      "title": "Search Packages",
+      "description": "Search packages from official repositories and the AUR from Vicinae",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "aur-helper",
+      "title": "AUR Helper",
+      "description": "Path to the AUR helper that will be used to install AUR packages.",
+      "type": "textfield",
+      "default": "/usr/bin/yay",
+      "required": true
+    },
+    {
+      "name": "run-probe",
+      "title": "Run Package Database Probing",
+      "label": "Run Probe",
+      "description": "If enabled, this will probe your currently installed package list to verify if the selected package is installed or not.",
+      "type": "checkbox",
+      "default": false,
+      "required": true
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@raycast/utils": "^2.3.2",
+    "@vicinae/api": "^0.30.0",
+    "@xmldom/xmldom": "^0.9.12",
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^26.6.5",
+    "@types/turndown": "^5.0.6",
+    "typescript": "^5.9.2"
+  },
+  "overrides": {
+    "@types/react": "19.1.17"
+  }
+}
