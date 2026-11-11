@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "archseek",
   "title": "ArchSeek",
-  "description": "Vicinae launcher extension to search the Arch Wiki/Packages/AUR",
+  "description": "Search the Arch Wiki, official repositories, and AUR on Arch Linux",
   "categories": [
     "System",
     "Developer Tools"
