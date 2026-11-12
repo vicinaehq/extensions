@@ -1,0 +1,155 @@
+{
+  "name": "bang",
+  "version": "0.1.0",
+  "private": true,
+  "title": "Bang",
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "description": "Search local Bash, Zsh and Fish history, then review and run commands in a terminal",
+  "author": "professormahi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/professormahi/vicinae-bang.git"
+  },
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
+  "platforms": [
+    "Linux"
+  ],
+  "icon": "bang.svg",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vici develop",
+    "build": "vici build",
+    "lint": "vici lint",
+    "test": "node --import=tsx --test tests/*.test.ts",
+    "test:terminals": "node --import=tsx tests/manual-terminals.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "commands": [
+    {
+      "name": "bang",
+      "title": "Bang",
+      "description": "Fuzzy-search shell history, edit or run a command, and optionally set up the ! alias",
+      "mode": "view",
+      "keywords": [
+        "bang",
+        "shell",
+        "terminal",
+        "history",
+        "command",
+        "fuzzy"
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "reviewBeforeRun",
+      "type": "checkbox",
+      "title": "Command Review",
+      "label": "Open the editor before running a command",
+      "description": "Disable to make Run in Terminal the primary action. The confirmation dialog is configured separately; editing remains available.",
+      "required": false,
+      "default": true
+    },
+    {
+      "name": "confirmBeforeRun",
+      "type": "checkbox",
+      "title": "Execution Confirmation",
+      "label": "Confirm before running a command",
+      "description": "Disable to skip the final Run confirmation. If editor review is also disabled, pressing Run/Enter launches immediately with your full user privileges. Terminal-close approval and sensitive-copy confirmation are separate.",
+      "required": false,
+      "default": true
+    },
+    {
+      "name": "saveHistory",
+      "type": "checkbox",
+      "title": "Save Executed Commands",
+      "label": "Add executed commands to the configured shell history",
+      "description": "Save new and repeated commands after the shell exits, including failed commands. This writes full command text (possibly secrets) to History Path. Disable for private commands.",
+      "required": false,
+      "default": true
+    },
+    {
+      "name": "shell",
+      "type": "dropdown",
+      "title": "Shell",
+      "description": "History format and execution shell. Auto uses SHELL, falling back to Bash.",
+      "required": false,
+      "default": "auto",
+      "data": [
+        {
+          "title": "Auto",
+          "value": "auto"
+        },
+        {
+          "title": "Bash",
+          "value": "bash"
+        },
+        {
+          "title": "Zsh",
+          "value": "zsh"
+        },
+        {
+          "title": "Fish",
+          "value": "fish"
+        }
+      ]
+    },
+    {
+      "name": "historyPath",
+      "type": "textfield",
+      "title": "History Path",
+      "description": "Optional absolute history path or ~/path. No shell expansion is performed.",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "shellPath",
+      "type": "textfield",
+      "title": "Shell Executable",
+      "description": "Optional absolute executable path for the selected shell. Otherwise uses SHELL for auto or /bin/bash, /bin/zsh, /usr/bin/fish.",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "maxItems",
+      "type": "textfield",
+      "title": "Maximum History Items",
+      "description": "Unique commands retained from the bounded history snapshot (1–50000).",
+      "required": false,
+      "default": "10000"
+    },
+    {
+      "name": "workingDirectory",
+      "type": "textfield",
+      "title": "Working Directory",
+      "description": "Absolute directory or ~/path used for execution; defaults to your home directory.",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "hold",
+      "type": "checkbox",
+      "title": "Terminal",
+      "label": "Wait for Enter before closing the terminal",
+      "description": "The runner waits for your approval after the command exits, even for fast or failed commands. Does not depend on terminal-emulator hold support.",
+      "required": false,
+      "default": true
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "0.30.0",
+    "jsonc-parser": "^3.3.1",
+    "react": "19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "19.1.17",
+    "@types/react-test-renderer": "19.1.0",
+    "react-test-renderer": "19.1.1",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0"
+  }
+}
