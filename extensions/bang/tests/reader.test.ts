@@ -1,0 +1,32 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+import { MAX_HISTORY_BYTES, historyError, readHistory } from "../src/lib/reader";
+
+test("async reader: missing, empty, unreadable, directory, FIFO, bounded huge snapshot and reload", async t => {
+  const dir = await mkdtemp(path.join(process.env.TMPDIR || tmpdir(), "bang-reader-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const file = path.join(dir, "history");
+  await assert.rejects(readHistory(file, "bash", 10), { code: "ENOENT" });
+  assert.match(historyError({ code: "ENOENT" }), /not found/);
+  await writeFile(file, "");
+  assert.deepEqual((await readHistory(file, "bash", 10)).entries, []);
+  await assert.rejects(readHistory(dir, "bash", 10));
+  const fifo = path.join(dir, "fifo");
+  execFileSync("mkfifo", [fifo]);
+  await assert.rejects(readHistory(fifo, "bash", 10), { code: "NOT_FILE" });
+  await chmod(file, 0);
+  if (process.getuid?.() !== 0) await assert.rejects(readHistory(file, "bash", 10), { code: "EACCES" });
+  assert.match(historyError({ code: "EACCES" }), /permissions/);
+  await chmod(file, 0o600);
+  await writeFile(file, "x".repeat(MAX_HISTORY_BYTES + 100) + "\n#1700000000\necho latest\n");
+  const huge = await readHistory(file, "bash", 10);
+  assert.deepEqual(huge.entries.map(item => item.command), ["echo latest"]);
+  assert.match(huge.notices.join(), /Large history/);
+  await writeFile(file, "pwd\n");
+  assert.equal((await readHistory(file, "bash", 10)).entries[0].command, "pwd");
+  assert.doesNotMatch(historyError(new Error("sensitive command")), /sensitive command/);
+});
