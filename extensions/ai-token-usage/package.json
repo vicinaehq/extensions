@@ -1,0 +1,75 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "ai-token-usage",
+	"title": "AI Token Usage",
+	"description": "Token usage and cost for Claude Code, OpenCode and Codex per day, project and session, plus Claude subscription limits and OpenRouter credits. Requires tokscale.",
+	"categories": [
+		"Developer Tools"
+	],
+	"license": "MIT",
+	"author": "asm0dey",
+	"platforms": [
+		"Linux",
+		"macOS"
+	],
+	"icon": "icon.png",
+	"commands": [
+		{
+			"name": "usage",
+			"title": "AI Token Usage",
+			"subtitle": "tokscale",
+			"description": "Show token usage, cost, limits and per-project sessions.",
+			"keywords": [
+				"tmon",
+				"tokens",
+				"claude",
+				"codex",
+				"opencode",
+				"openrouter",
+				"usage",
+				"limits"
+			],
+			"mode": "view"
+		},
+		{
+			"name": "refresh",
+			"title": "Refresh AI Token Usage",
+			"subtitle": "AI Token Usage",
+			"description": "Refresh token usage and limits in the background every 5 minutes.",
+			"mode": "no-view",
+			"interval": "5m"
+		}
+	],
+	"preferences": [
+		{
+			"name": "claudeMonthlyPrice",
+			"title": "Claude Subscription Price (USD/month)",
+			"description": "Optional. What you pay for Claude per month, e.g. 100. Shows this month's Claude usage at list prices as a multiple of it.",
+			"type": "textfield",
+			"placeholder": "100",
+			"required": false
+		},
+		{
+			"name": "openrouterApiKey",
+			"title": "OpenRouter API Key",
+			"description": "Optional. Shows OpenRouter credits and key limit. Leave empty to use the OPENROUTER_API_KEY environment variable.",
+			"type": "password",
+			"required": false
+		}
+	],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"lint": "vici lint",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test test"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.30.0"
+	},
+	"devDependencies": {
+		"@types/node": "^24.9.2",
+		"@types/react": "^19.2.17",
+		"typescript": "^5.9.2"
+	}
+}
