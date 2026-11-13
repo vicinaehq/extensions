@@ -10,6 +10,7 @@ import {
 	quitHelium,
 	type HeliumTab,
 } from "./browser";
+import { activeWindow } from "./lib/window";
 import { getFavicon } from "./utils";
 
 export default function Command() {
@@ -65,6 +66,7 @@ export default function Command() {
 									await closeMainWindow();
 									try {
 										await activateTab(tab.id);
+										await activeWindow();
 									} catch (e) {
 										await showToast({
 											style: Toast.Style.Failure,
