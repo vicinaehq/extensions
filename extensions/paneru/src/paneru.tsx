@@ -54,18 +54,9 @@ function CommandItem({ command }: { command: PaneruCommand }) {
 						/>
 					)}
 					<ActionPanel.Section>
-						<Action.CopyToClipboard
-							title="Copy Shell Command"
-							content={shellCommand(argvHint)}
-							shortcut={{ modifiers: ["cmd"], key: "c" }}
-						/>
-						<Action.CopyToClipboard
-							title="Copy Paneru Binding Name"
-							content={bindingKey(
-								command.numberArg ? [...command.argv, "1"] : command.argv,
-							)}
-							shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-						/>
+						{/* Numbered commands only get copy actions in NumberPicker,
+						    once the <placeholder> is resolved to a real number. */}
+						{!command.numberArg && <CopyActions argv={command.argv} />}
 						<Action
 							title="Open Extension Preferences"
 							icon={Icon.Cog}
@@ -75,6 +66,23 @@ function CommandItem({ command }: { command: PaneruCommand }) {
 				</ActionPanel>
 			}
 		/>
+	);
+}
+
+function CopyActions({ argv }: { argv: string[] }) {
+	return (
+		<>
+			<Action.CopyToClipboard
+				title="Copy Shell Command"
+				content={shellCommand(argv)}
+				shortcut={{ modifiers: ["cmd"], key: "c" }}
+			/>
+			<Action.CopyToClipboard
+				title="Copy Paneru Binding Name"
+				content={bindingKey(argv)}
+				shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+			/>
+		</>
 	);
 }
 
@@ -94,23 +102,29 @@ function NumberPicker({ command }: { command: PaneruCommand }) {
 		>
 			{numbers
 				.filter((n) => !typed || String(n).startsWith(String(typed)))
-				.map((n) => (
-					<List.Item
-						key={n}
-						title={`${label} ${n}`}
-						icon={Icon.Hashtag}
-						accessories={[{ tag: shellCommand([...command.argv, String(n)]) }]}
-						actions={
-							<ActionPanel>
-								<Action
-									title={`${command.title.replace(/…$/, "")} ${n}`}
-									icon={Icon[command.icon]}
-									onAction={() => runCommand(command, n)}
-								/>
-							</ActionPanel>
-						}
-					/>
-				))}
+				.map((n) => {
+					const argv = [...command.argv, String(n)];
+					return (
+						<List.Item
+							key={n}
+							title={`${label} ${n}`}
+							icon={Icon.Hashtag}
+							accessories={[{ tag: argv.join(" ") }]}
+							actions={
+								<ActionPanel>
+									<Action
+										title={`${command.title.replace(/…$/, "")} ${n}`}
+										icon={Icon[command.icon]}
+										onAction={() => runCommand(command, n)}
+									/>
+									<ActionPanel.Section>
+										<CopyActions argv={argv} />
+									</ActionPanel.Section>
+								</ActionPanel>
+							}
+						/>
+					);
+				})}
 		</List>
 	);
 }
