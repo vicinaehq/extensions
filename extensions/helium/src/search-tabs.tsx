@@ -66,7 +66,13 @@ export default function Command() {
 									await closeMainWindow();
 									try {
 										await activateTab(tab.id);
-										// Target the window that owns the activated tab.
+if (!(await activeWindow(tab.title))) {
+	await showToast({
+		style: Toast.Style.Failure,
+		title: "Tab switched, but Helium could not be focused",
+		message: "Your desktop may not support automatic window focusing.",
+	});
+}
 										await activeWindow(tab.title);
 									} catch (e) {
 										await showToast({
