@@ -10,6 +10,7 @@ import {
 	quitHelium,
 	type HeliumTab,
 } from "./browser";
+import { activeWindow } from "./lib/window";
 import { getFavicon } from "./utils";
 
 export default function Command() {
@@ -65,6 +66,13 @@ export default function Command() {
 									await closeMainWindow();
 									try {
 										await activateTab(tab.id);
+										if (!(await activeWindow(tab.title))) {
+											await showToast({
+												style: Toast.Style.Failure,
+												title: "Tab switched, but Helium could not be focused",
+												message: "Your desktop may not support automatic window focusing.",
+											});
+										}
 									} catch (e) {
 										await showToast({
 											style: Toast.Style.Failure,
