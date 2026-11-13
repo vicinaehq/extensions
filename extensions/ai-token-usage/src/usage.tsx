@@ -141,9 +141,11 @@ function clock(ms: number): string {
 }
 
 function staleNote(report: LimitsReport): string {
-	if (!report.available || !report.stale) return "";
+	if (!report.available) return "";
+	const warning = report.warning ? `\n\n> **Partly unavailable:** ${report.warning}.` : "";
+	if (!report.stale) return warning;
 	const retry = report.retryAfter ? ` Next try at ${clock(report.retryAfter)}.` : "";
-	return `\n\n> **Values from ${clock(report.stale.asOf)}.** Latest fetch failed: ${report.stale.reason}.${retry}`;
+	return `\n\n> **Values from ${clock(report.stale.asOf)}.** Latest fetch failed: ${report.stale.reason}.${retry}${warning}`;
 }
 
 function limitsMetadata(report: Extract<LimitsReport, { available: true }>, fetchedAt: number) {
@@ -170,6 +172,7 @@ function LimitRows({ limits, mine, actions }: { limits: LimitsSnapshot; mine?: S
 									...(report.stale
 										? [{ text: { value: `as of ${clock(report.stale.asOf)}`, color: Color.Orange }, tooltip: report.stale.reason }]
 										: []),
+									...(report.warning ? [{ icon: { source: Icon.Warning, tintColor: Color.Orange }, tooltip: report.warning }] : []),
 									{ tag: { value: `${w.usedPercent}%`, color: usedColor(w.usedPercent) } },
 									...(w === shareWindow(report) && mine ? [{ text: `you ${formatCost(mine.today)} today` }] : []),
 									{ text: w.amount ? `${formatCost(w.amount.total - w.amount.used)} left` : (formatReset(w) ?? "") },

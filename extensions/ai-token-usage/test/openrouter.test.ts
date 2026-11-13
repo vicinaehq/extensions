@@ -42,6 +42,9 @@ test("credits and monthly key limit", async () => {
 test("key without a limit shows only credits; one failing call does not hide the other", async () => {
 	const r = await fetchOpenRouterLimits("sk-test", fake({ "/credits": { status: 200, data: CREDITS }, "/key": { status: 500 } }));
 	expect(r?.available && r.windows.map((w) => w.label)).toEqual(["Credits"]);
+	expect(r?.available && r.warning).toBe("key limit and spend unavailable: HTTP 500");
+	const ok = await fetchOpenRouterLimits("sk-test", fake({ "/credits": { status: 200, data: CREDITS }, "/key": { status: 200, data: KEY } }));
+	expect(ok?.available && ok.warning).toBeUndefined();
 	expect(keyWindow({ limit: null })).toBeNull();
 	expect(creditsWindow({ total_credits: 0, total_usage: 0 })).toBeNull();
 });

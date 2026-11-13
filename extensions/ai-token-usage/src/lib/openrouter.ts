@@ -76,7 +76,15 @@ export async function fetchOpenRouterLimits(key: string | undefined, fetchFn: Fe
 		keyInfo.status === "fulfilled" ? keyWindow(keyInfo.value as RawKey) : null,
 	].filter((w): w is LimitWindow => w !== null);
 	const spend = keyInfo.status === "fulfilled" ? keySpend(keyInfo.value as RawKey) : undefined;
-	if (windows.length > 0) return { provider: "OpenRouter", available: true, source: "openrouter.ai API", windows, spend };
-	const failure = [credits, keyInfo].find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
-	return { provider: "OpenRouter", available: false, reason: failure ? String(failure.reason?.message ?? failure.reason) : "no credit data" };
+	const reason = (r: PromiseRejectedResult) => String(r.reason?.message ?? r.reason);
+	const failures = [
+		credits.status === "rejected" ? `credit balance unavailable: ${reason(credits)}` : null,
+		keyInfo.status === "rejected" ? `key limit and spend unavailable: ${reason(keyInfo)}` : null,
+	].filter((f): f is string => f !== null);
+	if (windows.length > 0) {
+		const warning = failures.length > 0 ? failures.join("; ") : undefined;
+		return { provider: "OpenRouter", available: true, source: "openrouter.ai API", windows, spend, warning };
+	}
+	const reasons = [credits, keyInfo].flatMap((r) => (r.status === "rejected" ? [reason(r)] : []));
+	return { provider: "OpenRouter", available: false, reason: [...new Set(reasons)].join("; ") || "no credit data" };
 }

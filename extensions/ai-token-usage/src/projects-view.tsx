@@ -98,7 +98,15 @@ export function ProjectsView() {
 					actions={<ActionPanel>{refreshAction}</ActionPanel>}
 				/>
 			)}
-			{snapshot && (
+			{snapshot && snapshot.projects.length === 0 && (
+				<List.EmptyView
+					icon={Icon.Folder}
+					title="No sessions this month"
+					description="Claude Code, Codex and OpenCode have no usage recorded since the 1st."
+					actions={<ActionPanel>{refreshAction}</ActionPanel>}
+				/>
+			)}
+			{snapshot && snapshot.projects.length > 0 && (
 				<List.Section title="This Month" subtitle={`Updated ${formatAge(Date.now() - snapshot.fetchedAt)}`}>
 					{snapshot.projects.map((p) => (
 						<List.Item

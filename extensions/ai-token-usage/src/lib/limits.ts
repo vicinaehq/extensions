@@ -17,6 +17,7 @@ export type LimitsReport =
 			windows: LimitWindow[];
 			spend?: { today: number; week: number; month: number }; // USD, provider's own periods
 			stale?: { reason: string; asOf: number }; // last good values kept after a failed fetch
+			warning?: string; // part of the data failed to load (e.g. one of two API calls)
 			retryAfter?: number;
 		}
 	| { provider: string; available: false; reason: string; retryAfter?: number };
