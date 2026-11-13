@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <!-- Window body: near-black with a faint purple haze behind the letter -->
+    <radialGradient id="haze" cx="256" cy="300" r="230" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2a0b4a"/>
+      <stop offset="0.55" stop-color="#12061f"/>
+      <stop offset="1" stop-color="#050307"/>
+    </radialGradient>
+    <linearGradient id="titlebar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e1e20"/>
+      <stop offset="1" stop-color="#141416"/>
+    </linearGradient>
+    <linearGradient id="border" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a5a60"/>
+      <stop offset="1" stop-color="#4b2d6e"/>
+    </linearGradient>
+    <linearGradient id="letter" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b65cff"/>
+      <stop offset="1" stop-color="#9a2cf5"/>
+    </linearGradient>
+    <!-- Neon glow: a wide soft halo plus a tight bright one under the glyph -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="22" result="wideBlur"/>
+      <feFlood flood-color="#9d2cff" flood-opacity="0.85"/>
+      <feComposite in2="wideBlur" operator="in" result="wide"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="tightBlur"/>
+      <feFlood flood-color="#c27bff" flood-opacity="0.9"/>
+      <feComposite in2="tightBlur" operator="in" result="tight"/>
+      <feMerge>
+        <feMergeNode in="wide"/>
+        <feMergeNode in="tight"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="window">
+      <rect x="16" y="16" width="480" height="480" rx="88"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#window)">
+    <rect x="16" y="16" width="480" height="480" fill="url(#haze)"/>
+    <!-- Title bar -->
+    <rect x="16" y="16" width="480" height="92" fill="url(#titlebar)"/>
+    <rect x="16" y="107" width="480" height="2" fill="#2c2c30"/>
+  </g>
+
+  <!-- Traffic lights -->
+  <circle cx="84" cy="62" r="19" fill="#ff3b30"/>
+  <circle cx="140" cy="62" r="19" fill="#ffc400"/>
+  <circle cx="196" cy="62" r="19" fill="#1fbf2a"/>
+
+  <!-- Window border -->
+  <rect x="17.5" y="17.5" width="477" height="477" rx="86.5" fill="none" stroke="url(#border)" stroke-width="3"/>
+
+  <!-- Geometric "P": stem + bowl, with the counter cut out via even-odd -->
+  <path filter="url(#glow)" fill="url(#letter)" fill-rule="evenodd"
+        d="M172 168 H286 A76 76 0 0 1 286 320 H226 V432 H172 Z
+           M226 216 H284 A28 28 0 0 1 284 272 H226 Z"/>
+</svg>
