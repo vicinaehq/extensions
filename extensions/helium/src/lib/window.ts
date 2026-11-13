@@ -28,6 +28,41 @@ function isHeliumWindow(appId: string | undefined, title: string | undefined): b
 	return /helium|net\.imput\.helium/i.test(appId ?? "") || /helium$/i.test((title ?? "").trim());
 }
 
+/**
+ * Pick the Helium window that belongs to a tab. Chromium names a window after
+ * its active tab (`GitHub - Helium`), so an explicit title selects the right
+ * window when several Helium windows are open. Without a match we return
+ * nothing rather than raising an unrelated window.
+ */
+function findWindow<T>(
+	windows: T[],
+	title: string | undefined,
+	getTitle: (window: T) => string | undefined,
+	isPreferred: (window: T) => boolean,
+): T | undefined {
+	const wanted = title?.trim().toLowerCase();
+	if (!wanted) return windows.find(isPreferred) ?? windows[0];
+
+	const exact = windows.filter((window) => {
+		const name = (getTitle(window) ?? "").trim().toLowerCase();
+		return name === wanted || name === `${wanted} - helium`;
+	});
+	if (exact.length > 0) return exact.find(isPreferred) ?? exact[0];
+
+	const prefixed = windows.filter((window) =>
+		(getTitle(window) ?? "").trim().toLowerCase().startsWith(`${wanted} - `),
+	);
+	return prefixed.find(isPreferred) ?? prefixed[0];
+}
+
+function delay(milliseconds: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function escapeRegExp(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function runCommand(command: string, args: string[]): Promise<string> {
 	return new Promise((resolve, reject) => {
 		execFile(command, args, { timeout: 3000, maxBuffer: 1024 * 1024 }, (error, stdout) => {
@@ -42,7 +77,7 @@ function runCommand(command: string, args: string[]): Promise<string> {
  * desktops and avoids spawning compositor-specific tools. KDE support is
  * limited, so the native fallbacks below still matter.
  */
-async function focusViaWindowManagement(): Promise<boolean> {
+async function focusViaWindowManagement(title?: string): Promise<boolean> {
 	try {
 		const windows = await WindowManagement.getWindows();
 		const matches = windows.filter((window) =>
@@ -51,7 +86,12 @@ async function focusViaWindowManagement(): Promise<boolean> {
 				window.title,
 			),
 		);
-		const target = matches.find((window) => window.active) ?? matches[0];
+		const target = findWindow(
+			matches,
+			title,
+			(window) => window.title,
+			(window) => window.active,
+		);
 		if (!target) return false;
 
 		return await target.focus();
@@ -68,19 +108,21 @@ type NiriWindow = {
 	focus_timestamp?: { secs: number; nanos: number };
 };
 
-async function focusNiriWindow(): Promise<boolean> {
+async function focusNiriWindow(title?: string): Promise<boolean> {
 	const windows = JSON.parse(await runCommand("niri", ["msg", "--json", "windows"])) as NiriWindow[];
-	const matches = windows.filter((window) => isHeliumWindow(window.app_id, window.title));
-	if (matches.length === 0) return false;
-
-	// Prefer the already-focused window, then the most recently focused one.
-	const target =
-		matches.find((window) => window.is_focused) ??
-		matches.sort((a, b) => {
+	const matches = windows
+		.filter((window) => isHeliumWindow(window.app_id, window.title))
+		.sort((a, b) => {
 			const at = a.focus_timestamp ? a.focus_timestamp.secs * 1e9 + a.focus_timestamp.nanos : 0;
 			const bt = b.focus_timestamp ? b.focus_timestamp.secs * 1e9 + b.focus_timestamp.nanos : 0;
 			return bt - at;
-		})[0];
+		});
+	const target = findWindow(
+		matches,
+		title,
+		(window) => window.title,
+		(window) => window.is_focused,
+	);
 	if (!target) return false;
 
 	await runCommand("niri", ["msg", "action", "focus-window", "--id", String(target.id)]);
@@ -94,13 +136,17 @@ type HyprlandClient = {
 	focusHistoryID?: number;
 };
 
-async function focusHyprlandWindow(): Promise<boolean> {
+async function focusHyprlandWindow(title?: string): Promise<boolean> {
 	const clients = JSON.parse(await runCommand("hyprctl", ["clients", "-j"])) as HyprlandClient[];
-	const matches = clients.filter((client) => isHeliumWindow(client.class, client.title));
-	if (matches.length === 0) return false;
-
-	matches.sort((a, b) => (a.focusHistoryID ?? Infinity) - (b.focusHistoryID ?? Infinity));
-	const target = matches[0];
+	const matches = clients
+		.filter((client) => isHeliumWindow(client.class, client.title))
+		.sort((a, b) => (a.focusHistoryID ?? Infinity) - (b.focusHistoryID ?? Infinity));
+	const target = findWindow(
+		matches,
+		title,
+		(client) => client.title,
+		() => false,
+	);
 	if (!target) return false;
 
 	await runCommand("hyprctl", ["dispatch", "focuswindow", `address:${target.address}`]);
@@ -127,7 +173,7 @@ function collectTreeNodes(node: SwayNode, output: SwayNode[] = []): SwayNode[] {
 }
 
 /** Sway and i3 share the same tree JSON and criteria syntax. */
-async function focusSwayWindow(command: "swaymsg" | "i3-msg"): Promise<boolean> {
+async function focusSwayWindow(command: "swaymsg" | "i3-msg", title?: string): Promise<boolean> {
 	const parsed = JSON.parse(await runCommand(command, ["-t", "get_tree"])) as SwayNode | SwayNode[];
 	const roots = Array.isArray(parsed) ? parsed : [parsed];
 	const nodes = roots.flatMap((root) => collectTreeNodes(root));
@@ -140,7 +186,12 @@ async function focusSwayWindow(command: "swaymsg" | "i3-msg"): Promise<boolean> 
 			node.name ?? node.window_properties?.title,
 		);
 	});
-	const target = matches.find((node) => node.focused) ?? matches[0];
+	const target = findWindow(
+		matches,
+		title,
+		(node) => node.name ?? node.window_properties?.title,
+		(node) => node.focused === true,
+	);
 	if (target?.id === undefined) return false;
 
 	await runCommand(command, [`[con_id=${target.id}]`, "focus"]);
@@ -148,13 +199,26 @@ async function focusSwayWindow(command: "swaymsg" | "i3-msg"): Promise<boolean> 
 }
 
 /** kdotool is the KWin Wayland equivalent of xdotool; it is not installed by default. */
-async function focusKdeWindow(): Promise<boolean> {
+async function focusKdeWindow(title?: string): Promise<boolean> {
 	try {
 		const ids = (await runCommand("kdotool", ["search", "--class", "helium"]))
 			.split("\n")
 			.filter((id) => id.trim() !== "");
-		const [id] = ids;
-		if (id) {
+
+		for (const id of ids) {
+			if (title?.trim()) {
+				const name = await runCommand("kdotool", ["getwindowname", id]);
+				const wanted = title.trim().toLowerCase();
+				const windowName = name.trim().toLowerCase();
+				if (
+					windowName !== wanted &&
+					windowName !== `${wanted} - helium` &&
+					!windowName.startsWith(`${wanted} - `)
+				) {
+					continue;
+				}
+			}
+
 			await runCommand("kdotool", ["windowactivate", id]);
 			return true;
 		}
@@ -170,14 +234,25 @@ async function focusKdeWindow(): Promise<boolean> {
  * unless unsafe mode is on. `activeWindow` then falls back to the X11 tools,
  * which still work for Helium running under XWayland.
  */
-const GNOME_ACTIVATE_SCRIPT =
-	"(() => {" +
-	' const win = global.get_window_actors().map((a) => a.meta_window)' +
-	'  .find((w) => ((w.get_wm_class() ?? "") + ":" + (w.get_title() ?? "")).toLowerCase().includes("helium"));' +
-	" if (!win) return false; win.activate(global.get_current_time()); return true;" +
-	"})()";
+function gnomeActivateScript(title?: string): string {
+	// JSON.stringify keeps page-controlled titles from becoming executable code.
+	const wanted = title?.trim() ? JSON.stringify(title.trim().toLowerCase()) : "null";
+	return `(() => {
+	const wanted = ${wanted};
+	const win = global.get_window_actors().map((a) => a.meta_window).find((w) => {
+		const name = (w.get_title() ?? "").toLowerCase();
+		const cls = (w.get_wm_class() ?? "").toLowerCase();
+		if (!cls.includes("helium") && !name.includes("helium")) return false;
+		if (wanted === null) return true;
+		return name === wanted || name === wanted + " - helium" || name.startsWith(wanted + " - ");
+	});
+	if (!win) return false;
+	win.activate(global.get_current_time());
+	return true;
+})()`;
+}
 
-async function focusGnomeWindow(): Promise<boolean> {
+async function focusGnomeWindow(title?: string): Promise<boolean> {
 	try {
 		const output = await runCommand("gdbus", [
 			"call",
@@ -188,7 +263,7 @@ async function focusGnomeWindow(): Promise<boolean> {
 			"/org/gnome/Shell",
 			"--method",
 			"org.gnome.Shell.Eval",
-			GNOME_ACTIVATE_SCRIPT,
+			gnomeActivateScript(title),
 		]);
 		const match = /^\(true, '(.*)'\)$/.exec(output.trim());
 		if (match?.[1] === "true") return true;
@@ -199,7 +274,41 @@ async function focusGnomeWindow(): Promise<boolean> {
 	return false;
 }
 
-async function focusWithX11Tools(): Promise<boolean> {
+async function focusWithX11Tools(title?: string): Promise<boolean> {
+	if (title?.trim()) {
+		// xdotool can combine the Helium class with a title regex.
+		try {
+			const ids = (
+				await runCommand("xdotool", [
+					"search",
+					"--class",
+					"helium",
+					"--name",
+					escapeRegExp(`${title.trim()} - Helium`),
+				])
+			)
+				.split("\n")
+				.filter((id) => id.trim() !== "");
+			const [id] = ids;
+			if (id) {
+				await runCommand("xdotool", ["windowactivate", id]);
+				return true;
+			}
+		} catch {
+			// no matching window or xdotool unavailable
+		}
+
+		// wmctrl matches the window title as a substring.
+		try {
+			await runCommand("wmctrl", ["-a", `${title.trim()} - Helium`]);
+			return true;
+		} catch {
+			// no matching window or wmctrl unavailable
+		}
+
+		return false;
+	}
+
 	for (const args of [
 		["-x", "-a", "helium"],
 		["-a", "Helium"],
@@ -228,37 +337,46 @@ async function focusWithX11Tools(): Promise<boolean> {
 	return false;
 }
 
+async function focusNative(title?: string): Promise<boolean> {
+	switch (detectWindowManager()) {
+		case "niri":
+			return focusNiriWindow(title).catch(() => false);
+		case "hyprland":
+			return focusHyprlandWindow(title).catch(() => false);
+		case "sway":
+			return focusSwayWindow("swaymsg", title).catch(() => false);
+		case "i3":
+			return focusSwayWindow("i3-msg", title).catch(() => false);
+		case "kde":
+			return focusKdeWindow(title).catch(() => false);
+		case "gnome":
+			return focusGnomeWindow(title).catch(() => false);
+		default:
+			return false;
+	}
+}
+
 /**
  * Bring the Helium window to the foreground. Wayland clients cannot raise
  * themselves, so this asks Vicinae's window management service first and then
  * falls back to the running compositor's own interface: niri, Hyprland,
  * sway/i3, KDE (kdotool) and GNOME are handled natively, with `wmctrl` and
- * `xdotool` as a generic X11 fallback. Returns false when no Helium window was
- * found or the desktop is unsupported.
+ * `xdotool` as a generic X11 fallback.
+ *
+ * Pass the selected tab's title to target the window that owns that tab when
+ * several Helium windows are open. Title updates can lag a moment behind tab
+ * activation, so title-based lookups are retried briefly.
  */
-export async function activeWindow(): Promise<boolean> {
-	if (await focusViaWindowManagement()) return true;
+export async function activeWindow(title?: string): Promise<boolean> {
+	const attempts = title?.trim() ? 5 : 1;
 
-	switch (detectWindowManager()) {
-		case "niri":
-			if (await focusNiriWindow().catch(() => false)) return true;
-			break;
-		case "hyprland":
-			if (await focusHyprlandWindow().catch(() => false)) return true;
-			break;
-		case "sway":
-			if (await focusSwayWindow("swaymsg").catch(() => false)) return true;
-			break;
-		case "i3":
-			if (await focusSwayWindow("i3-msg").catch(() => false)) return true;
-			break;
-		case "kde":
-			if (await focusKdeWindow().catch(() => false)) return true;
-			break;
-		case "gnome":
-			if (await focusGnomeWindow().catch(() => false)) return true;
-			break;
+	for (let attempt = 0; attempt < attempts; attempt += 1) {
+		if (attempt > 0) await delay(100);
+
+		if (await focusViaWindowManagement(title)) return true;
+		if (await focusNative(title)) return true;
+		if (await focusWithX11Tools(title).catch(() => false)) return true;
 	}
 
-	return focusWithX11Tools().catch(() => false);
+	return false;
 }

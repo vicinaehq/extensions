@@ -66,7 +66,8 @@ export default function Command() {
 									await closeMainWindow();
 									try {
 										await activateTab(tab.id);
-										await activeWindow();
+										// Target the window that owns the activated tab.
+										await activeWindow(tab.title);
 									} catch (e) {
 										await showToast({
 											style: Toast.Style.Failure,
