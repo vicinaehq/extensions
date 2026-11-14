@@ -35,6 +35,16 @@ type AgentEntry = {
   waitingFor?: string;
 };
 
+type Discovery<T> = {
+  value: T;
+  error?: string;
+};
+
+export type AgentSessionList = {
+  sessions: AgentSession[];
+  errors: string[];
+};
+
 type Pane = Pick<
   AgentSession,
   "paneId" | "windowId" | "tmuxSession" | "windowIndex" | "windowName" | "paneIndex" | "windowPanes"
@@ -51,31 +61,63 @@ const PANE_FORMAT = [
   "#{window_name}",
 ].join("\t");
 
-async function listAgents(): Promise<AgentEntry[]> {
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function isMissingExecutable(error: unknown): boolean {
+  return /ENOENT|not found/.test(errorMessage(error));
+}
+
+function isClaudeStatus(value: unknown): value is ClaudeStatus {
+  return value === "busy" || value === "waiting" || value === "idle";
+}
+
+function isAgentEntry(value: unknown): value is AgentEntry {
+  if (value === null || typeof value !== "object") {
+    return false;
+  }
+  const entry = value as Record<string, unknown>;
+  return (
+    typeof entry.cwd === "string" &&
+    typeof entry.startedAt === "number" &&
+    (entry.pid === undefined || (typeof entry.pid === "number" && Number.isInteger(entry.pid))) &&
+    (entry.name === undefined || typeof entry.name === "string") &&
+    (entry.status === undefined || isClaudeStatus(entry.status)) &&
+    (entry.waitingFor === undefined || typeof entry.waitingFor === "string")
+  );
+}
+
+async function listAgents(): Promise<Discovery<AgentEntry[]>> {
   try {
-    return JSON.parse(await run("claude", ["agents", "--json"])) as AgentEntry[];
-  } catch {
-    // Agent discovery is optional: an unavailable or malfunctioning Claude CLI
-    // must not hide sessions supplied by other tools.
-    return [];
+    const parsed: unknown = JSON.parse(await run("claude", ["agents", "--json"]));
+    if (!Array.isArray(parsed) || !parsed.every(isAgentEntry)) {
+      throw new Error("Claude Code returned an invalid session list");
+    }
+    return { value: parsed };
+  } catch (error) {
+    if (isMissingExecutable(error)) {
+      return { value: [] };
+    }
+    return { value: [], error: `Could not read Claude Code sessions: ${errorMessage(error)}` };
   }
 }
 
-async function listCodexPids(): Promise<number[]> {
+async function listCodexPids(): Promise<Discovery<number[]>> {
   try {
     const uid = process.getuid?.();
     const args = uid === undefined ? ["-eo", "pid=,comm="] : ["-u", String(uid), "-o", "pid=,comm="];
     const output = await run("ps", args);
-    return output
+    return {
+      value: output
       .split("\n")
       .map((line) => line.trim().split(/\s+/, 2))
       .filter((parts) => parts[1] === "codex")
       .map(([pid]) => Number(pid))
-      .filter((pid) => Number.isInteger(pid) && pid > 1);
-  } catch {
-    // Codex discovery is optional, too. In particular, do not fail the Claude
-    // list if process inspection is unavailable.
-    return [];
+      .filter((pid) => Number.isInteger(pid) && pid > 1),
+    };
+  } catch (error) {
+    return { value: [], error: `Could not inspect running Codex processes: ${errorMessage(error)}` };
   }
 }
 
@@ -136,8 +178,10 @@ async function owningPane(pid: number, panes: Map<number, Pane>, claudePids: Set
   return undefined;
 }
 
-export async function listAgentSessions(): Promise<AgentSession[]> {
-  const [agents, panes, codexPids] = await Promise.all([listAgents(), listPanesByPid(), listCodexPids()]);
+export async function listAgentSessions(): Promise<AgentSessionList> {
+  const [claude, panes, codex] = await Promise.all([listAgents(), listPanesByPid(), listCodexPids()]);
+  const agents = claude.value;
+  const codexPids = codex.value;
   const claudePids = new Set(agents.flatMap((agent) => (agent.pid === undefined ? [] : [agent.pid])));
 
   const claudeSessions = await Promise.all(
@@ -178,7 +222,8 @@ export async function listAgentSessions(): Promise<AgentSession[]> {
     }),
   );
 
-  return [...claudeSessions, ...codexSessions]
+  const sessions = [...claudeSessions, ...codexSessions]
     .filter((session): session is AgentSession => session !== undefined)
     .sort((a, b) => b.lastActivity - a.lastActivity);
+  return { sessions, errors: [claude.error, codex.error].filter((error): error is string => error !== undefined) };
 }

@@ -66,7 +66,7 @@ function watchSessionRecords(onChange: () => void): FSWatcher | undefined {
 
 function useClaudeSessions() {
   const [sessions, setSessions] = useState<AgentSession[]>();
-  const [error, setError] = useState<string>();
+  const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
     let disposed = false;
@@ -81,15 +81,16 @@ function useClaudeSessions() {
       }
       inFlight = true;
       listAgentSessions()
-        .then((next) => {
+        .then(({ sessions: next, errors: nextErrors }) => {
           if (!disposed) {
             setSessions(next);
-            setError(undefined);
+            setErrors(nextErrors);
           }
         })
         .catch((reason) => {
           if (!disposed) {
-            setError(errorMessage(reason));
+            setSessions(undefined);
+            setErrors([errorMessage(reason)]);
           }
         })
         .finally(() => {
@@ -118,7 +119,7 @@ function useClaudeSessions() {
     };
   }, []);
 
-  return { sessions, error };
+  return { sessions, errors };
 }
 
 async function switchTo(session: AgentSession) {
@@ -155,12 +156,14 @@ function SessionItem({ session }: { session: AgentSession }) {
 }
 
 export default function ClaudeSessions() {
-  const { sessions, error } = useClaudeSessions();
+  const { sessions, errors } = useClaudeSessions();
+  const hasErrors = errors.length > 0;
+  const errorDescription = errors.join(" ");
 
   return (
-    <List isLoading={sessions === undefined && !error} searchBarPlaceholder="Search Claude Code sessions in tmux">
-      {error ? (
-        <List.EmptyView icon={Icon.Warning} title="Could not list Claude Code sessions" description={error} />
+    <List isLoading={sessions === undefined && !hasErrors} searchBarPlaceholder="Search Claude Code and Codex sessions in tmux">
+      {hasErrors && (sessions ?? []).length === 0 ? (
+        <List.EmptyView icon={Icon.Warning} title="Could not list coding agent sessions" description={errorDescription} />
       ) : (
         <List.EmptyView
           icon={Icon.Terminal}
@@ -168,6 +171,11 @@ export default function ClaudeSessions() {
           description="Sessions appear here as soon as either agent starts in a tmux pane."
         />
       )}
+      {hasErrors && (sessions ?? []).length > 0 ? (
+        <List.Section title="Some sessions could not be refreshed">
+          <List.Item id="discovery-error" title="Agent discovery failed" subtitle={errorDescription} icon={Icon.Warning} />
+        </List.Section>
+      ) : null}
       {GROUPS.map(({ group, title }) => {
         const members = (sessions ?? []).filter((session) => groupOf(session) === group);
         return members.length === 0 ? null : (
