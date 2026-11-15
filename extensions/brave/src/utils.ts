@@ -70,7 +70,7 @@ export function isVariantInstalled(variant: BraveVariant): boolean {
 	const dir = dataDirForVariant(variant);
 	if (existsSync(path.join(dir, "Bookmarks")) || existsSync(path.join(dir, "History"))) return true;
 	return variantInfo(variant).binaries.some((b) => findOnPath(b) !== undefined);
-}
+	if (getBraveProfiles(variant).profiles.length > 0) return true;
 
 export function isBraveRunning(variant: BraveVariant): boolean {
 	return existsSync(path.join(dataDirForVariant(variant), "SingletonLock"));
