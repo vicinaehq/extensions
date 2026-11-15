@@ -1,5 +1,6 @@
 import { getPreferenceValues } from "@vicinae/api";
 import { execFile } from "node:child_process";
+import { delimiter, dirname, isAbsolute } from "node:path";
 import { promisify } from "node:util";
 
 interface Preferences {
@@ -41,8 +42,15 @@ export async function runRbw(
   options?: { timeout?: number },
 ): Promise<string> {
   const { rbwPath } = getPreferenceValues<Preferences>();
+  const binary = rbwPath.trim() ?? "rbw";
+  const env = { ...process.env };
+  if (isAbsolute(binary)) {
+    // rbw starts rbw-agent by name; GUI apps may not have this directory in PATH.
+    env.PATH = [dirname(binary), env.PATH].filter(Boolean).join(delimiter);
+  }
   try {
-    const { stdout } = await execFileAsync(rbwPath.trim() ?? "rbw", args, {
+    const { stdout } = await execFileAsync(binary, args, {
+      env,
       maxBuffer: 4 * 1024 * 1024,
       encoding: "utf-8",
       timeout: options?.timeout ?? 15_000,

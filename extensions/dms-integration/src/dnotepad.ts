@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
-/** Toggles the DMS notepad via IPC */
+/** Toggles the Dux Shell notepad via IPC */
 export default async function launchSettings() {
   const toast = await showToast(Toast.Style.Animated, "Opening notes...");
 

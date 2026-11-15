@@ -22,7 +22,7 @@ async function postAndEnsureSuccess(endpoint: string) {
   }
 }
 
-/** Triggers quick/full indexing through the DMS backend based on the selected command argument. */
+/** Triggers quick/full indexing through the Dux Shell backend based on the selected command argument. */
 export default async function dsearchIndex(
   props: LaunchProps<{ arguments: Arguments }>,
 ) {

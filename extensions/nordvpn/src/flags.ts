@@ -1,0 +1,26 @@
+// nordvpn country name (lowercase) → ISO 3166-1 alpha-2
+export const COUNTRY_CODES: Record<string, string> = {
+  afghanistan: "AF", albania: "AL", algeria: "DZ", andorra: "AD", angola: "AO", antigua_and_barbuda: "AG",
+  argentina: "AR", armenia: "AM", australia: "AU", austria: "AT", azerbaijan: "AZ", bahamas: "BS", bahrain: "BH",
+  bangladesh: "BD", barbados: "BB", belgium: "BE", belize: "BZ", benin: "BJ", bermuda: "BM", bhutan: "BT",
+  bolivia: "BO", bosnia_and_herzegovina: "BA", botswana: "BW", brazil: "BR", brunei_darussalam: "BN", bulgaria: "BG",
+  burkina_faso: "BF", cambodia: "KH", canada: "CA", cape_verde: "CV", cayman_islands: "KY", chad: "TD", chile: "CL",
+  colombia: "CO", comoros: "KM", costa_rica: "CR", croatia: "HR", cyprus: "CY", czech_republic: "CZ", denmark: "DK",
+  dominican_republic: "DO", ecuador: "EC", egypt: "EG", el_salvador: "SV", estonia: "EE", ethiopia: "ET", fiji: "FJ",
+  finland: "FI", france: "FR", gambia: "GM", georgia: "GE", germany: "DE", ghana: "GH", greece: "GR",
+  greenland: "GL", guam: "GU", guatemala: "GT", guyana: "GY", honduras: "HN", hong_kong: "HK", hungary: "HU",
+  iceland: "IS", india: "IN", indonesia: "ID", iraq: "IQ", ireland: "IE", isle_of_man: "IM", israel: "IL",
+  italy: "IT", jamaica: "JM", japan: "JP", jersey: "JE", jordan: "JO", kazakhstan: "KZ", kenya: "KE", kuwait: "KW",
+  kyrgyzstan: "KG", lao_peoples_democratic_republic: "LA", latvia: "LV", lebanon: "LB", liberia: "LR",
+  libyan_arab_jamahiriya: "LY", liechtenstein: "LI", lithuania: "LT", luxembourg: "LU", madagascar: "MG",
+  malawi: "MW", malaysia: "MY", maldives: "MV", malta: "MT", mauritania: "MR", mauritius: "MU", mexico: "MX",
+  moldova: "MD", monaco: "MC", mongolia: "MN", montenegro: "ME", morocco: "MA", mozambique: "MZ", myanmar: "MM",
+  nepal: "NP", netherlands: "NL", new_zealand: "NZ", nigeria: "NG", north_macedonia: "MK", norway: "NO",
+  pakistan: "PK", panama: "PA", papua_new_guinea: "PG", paraguay: "PY", peru: "PE", philippines: "PH", poland: "PL",
+  portugal: "PT", puerto_rico: "PR", qatar: "QA", romania: "RO", saint_lucia: "LC", senegal: "SN", serbia: "RS",
+  seychelles: "SC", sierra_leone: "SL", singapore: "SG", slovakia: "SK", slovenia: "SI", somalia: "SO",
+  south_africa: "ZA", south_korea: "KR", spain: "ES", sri_lanka: "LK", suriname: "SR", sweden: "SE",
+  switzerland: "CH", taiwan: "TW", tajikistan: "TJ", tanzania: "TZ", thailand: "TH", trinidad_and_tobago: "TT",
+  tunisia: "TN", turkey: "TR", ukraine: "UA", united_arab_emirates: "AE", united_kingdom: "GB", united_states: "US",
+  uruguay: "UY", uzbekistan: "UZ", venezuela: "VE", vietnam: "VN", yemen: "YE", zambia: "ZM"
+};

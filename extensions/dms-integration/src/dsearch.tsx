@@ -35,7 +35,7 @@ async function loadHits(
   return prettifyData(rawHits);
 }
 
-/** Renders the interactive DMS file search list command. */
+/** Renders the interactive Dux Shell file search list command. */
 export default function ControlledList(
   props: LaunchProps<{ arguments: Arguments }>,
 ) {

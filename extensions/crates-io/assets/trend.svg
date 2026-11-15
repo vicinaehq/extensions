@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+  <g fill="currentColor">
+    <path d="M14 13V20H10V13" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M22 6V20H18V6" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M6 17V20H2V17" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M20 4.01V4" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M12 11.01V11" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M4 15.01V15" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M10 7L9.99994 3H6" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="square" fill="none"/>
+    <path d="M8 5.00012L8 5.01012" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M6 7.00012L6 7.01012" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M4 9.00012L4 9.01012" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M2 10.99L2 11" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+  </g>
+</svg>

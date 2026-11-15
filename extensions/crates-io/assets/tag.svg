@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+  <g fill="currentColor">
+    <path d="M14 2.00006L5.99999 2.00003" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M8 10.01L8 9.99999" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M6 16.01L6 16" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M8 18.01L8 18" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M10 20.01L10 20" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M12 22.01L12 22" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M14 20.01L14 20" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M16 18.01L16 18" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M18 16.01L18 16" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M20 14.01L20 14" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M18 12.01L18 12" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M22 10.01L22 9.99999" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M20 8.00999L20 7.99999" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M18 6.00999L18 5.99999" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M16 4.00999L16 3.99999" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M16 10.01L16 9.99999" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M14 8.00999L14 7.99999" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+    <path d="M4 14V6H12" stroke="currentColor" stroke-width="2" stroke-linecap="square" fill="none"/>
+  </g>
+</svg>

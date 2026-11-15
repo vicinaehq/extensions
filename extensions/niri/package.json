@@ -50,6 +50,13 @@
       "mode": "view"
     },
     {
+      "name": "keybinds",
+      "title": "Keybinds",
+      "subtitle": "Show configured keybinds",
+      "description": "Browse the keybinds declared in the niri config",
+      "mode": "view"
+    },
+    {
       "name": "pick-color",
       "title": "Pick Color",
       "subtitle": "Pick a color from screen",

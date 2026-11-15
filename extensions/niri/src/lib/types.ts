@@ -1,3 +1,23 @@
+export interface Keybind {
+  /** Key combination exactly as written in the config, e.g. `Mod+Shift+Slash`. */
+  combo: string;
+  modifiers: string[];
+  key: string;
+  action: string;
+  args: string[];
+  overlayTitle: string | null;
+  /** Set through `hotkey-overlay-title=null`. */
+  hiddenFromOverlay: boolean;
+  repeat: boolean;
+  cooldownMs: number | null;
+  allowWhenLocked: boolean;
+  allowInhibiting: boolean;
+  /** Config file the bind was declared in, which may be an included file. */
+  source: string;
+  line: number;
+  text: string;
+}
+
 export interface Layer {
   namespace: string;
   output: string;
