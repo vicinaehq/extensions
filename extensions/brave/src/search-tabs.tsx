@@ -130,9 +130,10 @@ function DebugSetupActions({ variant, onDone }: { variant: NonNullable<ReturnTyp
 			await closeMainWindow();
 			await showToast({
 				style: Toast.Style.Success,
-				title: "Debugging enabled",
-				message: `Flag written to ${flagsPath}; ${name} is restarting`,
-			});
+			const wasRunning = isBraveRunning(variant);
+			const restarted = await quitBrave(variant);
+			if (wasRunning && !restarted) throw new Error(`Could not stop ${name}; close it manually and retry`);
+			launchBrave(variant, restarted ? ["--restore-last-session"] : []);
 		} catch (e) {
 			await showToast({
 				style: Toast.Style.Failure,
