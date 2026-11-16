@@ -174,28 +174,27 @@ describe("scanHeroic", () => {
     expect(result.hiddenInLauncher.has("heroic:gog:7")).toBe(true);
   });
 
-  it("warns about an unreadable library cache, but still keeps every installed game's art", () => {
+  it("lists a game it has no title for under its app name when the library cache is unreadable", () => {
     const home = makeTempDir();
     const root = makeHeroicConfig(flatpakHeroic(home), { thirdParty: [["ubi-game", "Windows"]] });
     writeFile(join(root, "store_cache/legendary_library.json"), "{half-writ");
     const result = scanHeroic({ home });
-    expect(result.games).toEqual([]); // the third-party game has no title without the library
+    expect(result.games).toMatchObject([{ id: "heroic:legendary:ubi-game", title: "ubi-game", launchUri: heroicLaunchUri("legendary", "ubi-game") }]);
     expect(result.complete).toBe(true); // the installed lists were read, so pruning is safe
-    expect(result.warnings).toEqual([expect.stringContaining("Epic library"), expect.stringContaining("Skipped Heroic game ubi-game")]);
+    expect(result.warnings).toEqual([expect.stringContaining("Epic library")]);
     expect(scanLaunchers({ home }).installedHeroicGames).toEqual([{ runner: "legendary", appName: "ubi-game" }]);
 
     writeFile(join(root, "store_cache/legendary_library.json"), JSON.stringify({ library: [{ app_name: "ubi-game", title: "Ubi" }] }));
     expect(scanHeroic({ home })).toMatchObject({ complete: true, games: [{ title: "Ubi" }] });
   });
 
-  it("warns about an installed game it can't name, and keeps it installed so its art isn't pruned", () => {
+  it("lists a game it has no title for under its app name when the library cache is missing", () => {
     // No legendary_library.json at all (e.g. never refreshed, or cleared on logout): nothing is unreadable.
     const home = makeTempDir();
     makeHeroicConfig(flatpakHeroic(home), { legendaryInstalled: epicGame(), thirdParty: [["ubi-game", "Windows"]] });
     const result = scanHeroic({ home });
-    expect(result.games.map((g) => g.title)).toEqual(["The Long Dark"]);
-    expect(result.complete).toBe(true);
-    expect(result.warnings).toEqual([expect.stringContaining("Skipped Heroic game ubi-game (legendary)")]);
+    expect(result.games.map((g) => g.title).sort()).toEqual(["The Long Dark", "ubi-game"]);
+    expect(result).toMatchObject({ complete: true, warnings: [] });
     expect(scanLaunchers({ home }).installedHeroicGames).toEqual([
       { runner: "legendary", appName: EPIC_ID },
       { runner: "legendary", appName: "ubi-game" },
