@@ -12,6 +12,9 @@
     "games",
     "steam",
     "lutris",
+    "heroic",
+    "epic",
+    "gog",
     "launcher",
     "proton"
   ],
@@ -33,7 +36,10 @@
         "play",
         "launch",
         "steam",
-        "lutris"
+        "lutris",
+        "heroic",
+        "epic",
+        "gog"
       ],
       "preferences": [
         {
