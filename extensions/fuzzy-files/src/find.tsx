@@ -28,6 +28,14 @@ const MIME = (mime: string): keyof typeof Icon => {
   return 'Document'
 }
 
+// goldfish speaks an unframed protocol: `q:<query>\n` in, up to 10 newline
+// terminated paths out, and nothing at all when no file matches. Responses are
+// therefore delimited by an idle gap, and searches are serialized so that a
+// chunk can't be attributed to the query that did not produce it.
+const MAX_RESULTS = 10
+const RESPONSE_IDLE_MS = 50
+const NO_RESULT_MS = 1000
+
 let depsInstalled = true
 function Finder() {
   const process = spawn('gf', {
@@ -48,22 +56,76 @@ function Finder() {
 
   const exit = () => writer.write(encoder.encode(`c:Exit`))
 
-  const search = async (query: string) => new Promise<File[]>((resolve, reject) => {
-    writer.write(encoder.encode(`q:${query}\n`))
+  let tail = ''
+  let lines: string[] = []
+  let inFlight: { resolve: (files: File[] | null) => void } | null = null
+  let queued: { query: string; resolve: (files: File[] | null) => void } | null = null
+  let idleTimer: ReturnType<typeof setTimeout> | undefined
+  let emptyTimer: ReturnType<typeof setTimeout> | undefined
 
-    const onData = (res: Uint8Array) => {
-      reader.off('data', onData)
-
-      const [_, ...lines] = decoder.decode(res).split('\n').filter(line => line.trim())
-      return Promise.all(lines
-        .map(async (path, id) => {
-          const name = path.split('/').pop() || path
-          const mime = getMimeTypeSync(path)
-          return { id, path, name, mime, data: null, info: lstatSync(path) }
-        })).then(resolve).catch(reject)
+  const toFiles = (paths: string[]): File[] => {
+    const files: File[] = []
+    for (const path of paths) {
+      try {
+        const name = path.split('/').pop() || path
+        const mime = getMimeTypeSync(path)
+        files.push({ id: files.length, path, name, mime, info: lstatSync(path) })
+      } catch {
+        // the path may be gone by the time we stat it
+      }
     }
-    reader.once('data', onData)
+    return files
+  }
+
+  const finish = () => {
+    if (!inFlight) return
+    const { resolve } = inFlight
+    const paths = lines
+    inFlight = null
+    lines = []
+    tail = ''
+    clearTimeout(idleTimer)
+    clearTimeout(emptyTimer)
+    // a newer query is already waiting: this answer is stale, keep the current view
+    resolve(queued ? null : toFiles(paths))
+    pump()
+  }
+
+  const pump = () => {
+    if (inFlight || !queued) return
+    const { query, resolve } = queued
+    queued = null
+    inFlight = { resolve }
+    writer.write(encoder.encode(`q:${query}\n`))
+    emptyTimer = setTimeout(finish, NO_RESULT_MS)
+  }
+
+  reader.on('data', (chunk: Uint8Array) => {
+    if (!inFlight) return
+
+    tail += decoder.decode(chunk, { stream: true })
+
+    const parts = tail.split('\n')
+    tail = parts.pop() ?? ''
+    lines.push(...parts.filter(line => line.trim()))
+
+    clearTimeout(idleTimer)
+    clearTimeout(emptyTimer)
+
+    if (lines.length >= MAX_RESULTS) {
+      finish()
+      return
+    }
+
+    idleTimer = setTimeout(finish, RESPONSE_IDLE_MS)
   })
+
+  const search = (query: string) =>
+    new Promise<File[] | null>(resolve => {
+      queued?.resolve(null)
+      queued = { query, resolve }
+      pump()
+    })
 
   return { search, exit }
 }
@@ -103,7 +165,9 @@ Build or download a copy from [https://github.com/sameoldlab/goldfish](https://g
       searchText={searchText}
       onSearchTextChange={query => {
         setSearchText(query)
-        finder.search(query).then(setResults)
+        finder.search(query).then(files => {
+          if (files) setResults(files)
+        })
       }}
       searchBarPlaceholder={'Search files'}
     >
