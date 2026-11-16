@@ -1,7 +1,7 @@
 import { symlinkSync, utimesSync } from "node:fs";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { isTool, readLibraryFolders, scanSteamInstall } from "../src/lib/steam/library";
+import { isTool, readLibraryFolders, readManifests, scanSteamInstall } from "../src/lib/steam/library";
 import { writeAppinfo } from "./fixtures/appinfo-writer";
 import { libraryFolders, localConfig, makeTempDir, manifest, writeFile } from "./fixtures/fake-steam";
 
@@ -56,16 +56,20 @@ describe("scanSteamInstall", () => {
   });
 
   it("reads all library folders including the root", () => {
-    expect(readLibraryFolders(root)).toEqual([root, extraLib, "/nonexistent/library"]);
+    expect(readLibraryFolders(root)).toEqual({ paths: [root, extraLib, "/nonexistent/library"] });
   });
 
   it("returns installed games only, with tools filtered", () => {
     const { games, warnings, installedAppids, complete } = scanSteamInstall({ root, kind: "native" });
     expect(games.map((g) => g.steam?.appid).sort()).toEqual([100, 200]);
-    expect(warnings).toEqual(["Steam library folder not found (drive not mounted?): /nonexistent/library"]);
-    // Tools and apps mid-download/update (300: StateFlags 1026, no FullyInstalled bit) aren't listed but are
-    // still on disk, so their cached art must survive pruning. The missing library makes the scan partial.
-    expect(installedAppids.sort((a, b) => a - b)).toEqual([100, 200, 300, 1493710]);
+    expect(warnings).toEqual([
+      expect.stringMatching(/^Couldn't read Steam app manifest .*appmanifest_400\.acf: /),
+      "Steam library folder not found (drive not mounted?): /nonexistent/library",
+    ]);
+    // Tools, apps mid-download/update (300: StateFlags 1026, no FullyInstalled bit) and manifests that can't
+    // be read (400) are still on disk, so their cached art must survive pruning. The missing
+    // library makes the scan partial. appmanifest_bad.acf has no appid in its name, so it's ignored.
+    expect(installedAppids.sort((a, b) => a - b)).toEqual([100, 200, 300, 400, 1493710]);
     expect(complete).toBe(false);
   });
 
@@ -136,12 +140,68 @@ describe("library folders", () => {
     expect(result.warnings).toContain(`Steam library folder not found (drive not mounted?): ${unmounted}`);
   });
 
+  it("counts an unreadable library list as an incomplete scan, still listing the Steam root's games", () => {
+    const root = makeTempDir();
+    writeFile(join(root, "steamapps/libraryfolders.vdf"), '"libraryfolders"\n{\n\t"0"\n\t{\n\t\t"path" "'); // half-written
+    writeFile(join(root, "steamapps/appmanifest_1.acf"), manifest({ appid: 1, name: "One", installdir: "One" }));
+    const result = scanSteamInstall({ root, kind: "native" });
+    expect(result.games.map((g) => g.title)).toEqual(["One"]);
+    expect(result.complete).toBe(false);
+    expect(result.warnings).toContainEqual(expect.stringMatching(/^Couldn't read Steam's library folder list .*libraryfolders\.vdf/));
+  });
+
+  it("falls back to config/libraryfolders.vdf when the steamapps one is unreadable, but still flags the scan", () => {
+    const root = makeTempDir();
+    const lib = makeTempDir();
+    writeFile(join(root, "steamapps/libraryfolders.vdf"), "{broken");
+    writeFile(join(root, "config/libraryfolders.vdf"), libraryFolders([root, lib]));
+    writeFile(join(lib, "steamapps/appmanifest_1.acf"), manifest({ appid: 1, name: "Elsewhere", installdir: "E" }));
+    const result = scanSteamInstall({ root, kind: "native" });
+    expect(result.games.map((g) => g.title)).toEqual(["Elsewhere"]);
+    expect(result.complete).toBe(false);
+    expect(result.warnings).toContainEqual(expect.stringContaining(`using ${join(root, "config/libraryfolders.vdf")}`));
+  });
+
+  it("counts a library list with no libraryfolders section (e.g. truncated) as unreadable", () => {
+    const root = makeTempDir();
+    writeFile(join(root, "steamapps/libraryfolders.vdf"), "");
+    writeFile(join(root, "steamapps/appmanifest_1.acf"), manifest({ appid: 1, name: "One", installdir: "One" }));
+    const result = scanSteamInstall({ root, kind: "native" });
+    expect(result.complete).toBe(false);
+    expect(result.warnings).toContainEqual(expect.stringContaining('no "libraryfolders" section'));
+  });
+
+  it("is complete without any library list: the Steam root is the only library", () => {
+    const root = makeTempDir();
+    writeFile(join(root, "steamapps/appmanifest_1.acf"), manifest({ appid: 1, name: "One", installdir: "One" }));
+    const result = scanSteamInstall({ root, kind: "native" });
+    expect(result.complete).toBe(true);
+    expect(result.warnings.filter((w) => w.includes("library folder list"))).toEqual([]);
+  });
+
+  it("keeps an app with an unreadable manifest installed, so its cached art isn't pruned", () => {
+    const root = makeTempDir();
+    writeFile(join(root, "steamapps/libraryfolders.vdf"), libraryFolders([root]));
+    writeFile(join(root, "steamapps/appmanifest_1.acf"), manifest({ appid: 1, name: "One", installdir: "One" }));
+    writeFile(join(root, "steamapps/appmanifest_2.acf"), '"AppState"\n{\n\t"appid" "2"'); // half-written
+    writeFile(join(root, "steamapps/appmanifest_3.acf"), '"AppState"\n{\n\t"appid" "3"\n\t"installdir" "Three"\n}\n'); // no name yet
+    const result = scanSteamInstall({ root, kind: "native" });
+    expect(result.games.map((g) => g.title)).toEqual(["One"]);
+    expect(result.installedAppids.sort()).toEqual([1, 2, 3]);
+    expect(result.complete).toBe(true);
+    // Only the unreadable one is warned about: a manifest without a name is a state Steam writes itself.
+    expect(result.warnings.filter((w) => w.includes("manifest"))).toEqual([
+      expect.stringMatching(new RegExp(`^Couldn't read Steam app manifest ${join(root, "steamapps/appmanifest_2.acf")}: `)),
+    ]);
+    expect(readManifests(root).otherAppids.sort()).toEqual([2, 3]);
+  });
+
   it("de-duplicates library folders listed through a symlink", () => {
     const root = makeTempDir();
     const link = join(makeTempDir(), "steam-link");
     symlinkSync(root, link);
     writeFile(join(root, "steamapps/libraryfolders.vdf"), libraryFolders([link, root]));
-    expect(readLibraryFolders(root)).toEqual([root]);
+    expect(readLibraryFolders(root).paths).toEqual([root]);
   });
 });
 

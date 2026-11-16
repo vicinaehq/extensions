@@ -11,7 +11,15 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, isAbsolute, join } from "node:path";
-import { acronyms, type Game, type GameArtwork, type GameCollection, heroicGameId, type LauncherScan } from "../games";
+import {
+  acronyms,
+  type Game,
+  type GameArtwork,
+  type GameCollection,
+  heroicGameId,
+  type HeroicRef,
+  type LauncherScan,
+} from "../games";
 import { findHeroicInstalls, type HeroicInstall } from "./paths";
 
 export interface HeroicScanOptions {
@@ -23,6 +31,11 @@ export interface HeroicScanOptions {
 
 export interface HeroicLauncherScan extends LauncherScan {
   launcher: "heroic";
+  /**
+   * Every game in Heroic's installed lists, including any left out of `games` (e.g. one with no
+   * known title), so their cached art survives pruning.
+   */
+  installed: HeroicRef[];
 }
 
 interface StoreInfo {
@@ -74,7 +87,7 @@ const ART_FIELDS = ["art_square", "art_cover", "art_background", "art_logo", "ar
 
 class Reader {
   readonly warnings: string[] = [];
-  /** False once a file the installed games depend on (an installed list, or a store's library cache) couldn't be read. */
+  /** False once an installed-games list (what decides which games' cached art is kept) couldn't be read. */
   complete = true;
 
   constructor(private readonly root: string) {}
@@ -114,19 +127,17 @@ function libraryEntries(value: unknown, key: string): unknown[] {
 
 /**
  * Titles and art URLs from Heroic's per-store library caches, keyed by "<runner>:<appName>". They're
- * the only source of some games' titles (e.g. third-party Epic installs), so an unreadable one makes
- * the scan incomplete, keeping those games' cached art from being pruned.
+ * the only source of some games' titles (e.g. third-party Epic installs), so a game may be left out
+ * without them, but the scan stays complete: which games' art is kept comes from the installed lists.
  * Sideloaded apps have no separate cache: their library (already read) is the installed list too.
  */
-function readLibraries(r: Reader, sideloaded: unknown, installedRunners: ReadonlySet<string>): Map<string, LibraryEntry> {
-  // Only a store with installed games depends on its cache; a stale one for an unused store doesn't count.
-  const read = (runner: string, file: string, what: string, key: string) =>
-    libraryEntries(r.json(`store_cache/${file}`, what, installedRunners.has(runner)), key);
+function readLibraries(r: Reader, sideloaded: unknown): Map<string, LibraryEntry> {
+  const read = (file: string, what: string, key: string) => libraryEntries(r.json(`store_cache/${file}`, what, false), key);
   const sources: [runner: string, entries: unknown[]][] = [
-    ["legendary", read("legendary", "legendary_library.json", "Epic library", "library")],
-    ["gog", read("gog", "gog_library.json", "GOG library", "games")],
-    ["nile", read("nile", "nile_library.json", "Amazon library", "library")],
-    ["zoom", read("zoom", "zoom_library.json", "ZOOM library", "games")],
+    ["legendary", read("legendary_library.json", "Epic library", "library")],
+    ["gog", read("gog_library.json", "GOG library", "games")],
+    ["nile", read("nile_library.json", "Amazon library", "library")],
+    ["zoom", read("zoom_library.json", "ZOOM library", "games")],
     ["sideload", libraryEntries(sideloaded, "games")],
   ];
   const map = new Map<string, LibraryEntry>();
@@ -366,15 +377,22 @@ function scanInstall(install: HeroicInstall) {
   const r = new Reader(install.configDir);
   const sideloaded = r.json("sideload_apps/library.json", "sideloaded apps", true);
   const installed = readInstalled(r, sideloaded);
-  const libraries = readLibraries(r, sideloaded, new Set(installed.map((e) => e.runner)));
+  const libraries = readLibraries(r, sideloaded);
   const play = readPlayData(r);
   const games: Game[] = [];
   for (const entry of installed) {
     const game = toGame(install.configDir, entry, libraries.get(`${entry.runner}:${entry.appName}`), play.get(entry.appName));
     if (game) games.push(game);
+    else r.warnings.push(`Skipped Heroic game ${entry.appName} (${entry.runner}): neither its installed list nor its library cache has a title.`);
   }
   const state = readLibraryState(r);
-  return { games, ...state, warnings: r.warnings, complete: r.complete };
+  return {
+    games,
+    installed: installed.map(({ runner, appName }) => ({ runner, appName })),
+    ...state,
+    warnings: r.warnings,
+    complete: r.complete,
+  };
 }
 
 /**
@@ -388,6 +406,7 @@ export function scanHeroic(options: HeroicScanOptions = {}): HeroicLauncherScan 
     found: Boolean(install),
     sources: [],
     games: [],
+    installed: [],
     collections: [],
     hiddenInLauncher: new Set(),
     hiddenListComplete: Boolean(install),
@@ -409,6 +428,7 @@ export function scanHeroic(options: HeroicScanOptions = {}): HeroicLauncherScan 
   result.sources.push(`Heroic (${install.kind}): ${install.configDir}`);
   const scanned = scanInstall(install);
   result.games = scanned.games;
+  result.installed = scanned.installed;
   result.collections = scanned.collections;
   result.hiddenInLauncher = scanned.hidden;
   // Hidden entries come from store/config.json alone (see readLibraryState), not from the installed lists.

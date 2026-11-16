@@ -94,7 +94,7 @@ hidden category, Heroic's hidden list). The extension never writes to a launcher
 - Unhiding a game the launcher hides shows it here only; the launcher keeps hiding it. The toast says so.
 - Hiding it again here restores the launcher's choice.
 - Hiding a game installed in several launchers hides every copy, so it stays hidden whichever launcher is preferred,
-  and even if you later turn off Merge Duplicates.
+  and even if you later turn off Merge Duplicates. With Merge Duplicates off, hiding a game hides only that launcher's copy.
 
 Hidden games are listed under **Hidden Games** in the dropdown.
 

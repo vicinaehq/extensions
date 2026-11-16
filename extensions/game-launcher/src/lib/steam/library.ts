@@ -55,33 +55,61 @@ export interface SteamActivity {
   playtimeMinutes: number;
 }
 
-function readText(path: string): string | undefined {
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+/** A parsed VDF file, or that it doesn't exist, or why it couldn't be read or parsed. */
+type VdfRead = { doc: VdfObject } | { missing: true } | { error: string };
+
+function readVdf(path: string): VdfRead {
+  let text: string;
   try {
-    return readFileSync(path, "utf8");
-  } catch {
-    return undefined;
+    text = readFileSync(path, "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return { missing: true };
+    return { error: errorMessage(err) };
+  }
+  try {
+    return { doc: parseVdf(text) };
+  } catch (err) {
+    return { error: errorMessage(err) };
   }
 }
 
 function readVdfFile(path: string): VdfObject | undefined {
-  const text = readText(path);
-  if (text === undefined) return undefined;
-  try {
-    return parseVdf(text);
-  } catch {
-    return undefined;
-  }
+  const read = readVdf(path);
+  return "doc" in read ? read.doc : undefined;
+}
+
+export interface LibraryFolderList {
+  paths: string[];
+  /** Set when a libraryfolders.vdf exists but couldn't be used, so `paths` may be missing libraries. */
+  problem?: string;
 }
 
 /**
  * Library folder paths from libraryfolders.vdf. Handles both the current
  * format ("0" { "path" "..." }) and the pre-2021 one ("1" "/path").
- * The Steam root itself is always included.
+ * The Steam root itself is always included. A missing file just means the
+ * root is the only library; an unreadable one is reported as a problem.
  */
-export function readLibraryFolders(steamRoot: string): string[] {
-  const doc =
-    readVdfFile(join(steamRoot, "steamapps/libraryfolders.vdf")) ?? readVdfFile(join(steamRoot, "config/libraryfolders.vdf"));
-  const folders = getObject(doc, "libraryfolders");
+export function readLibraryFolders(steamRoot: string): LibraryFolderList {
+  let folders: VdfObject | undefined;
+  const problems: string[] = [];
+  let source: string | undefined;
+  for (const rel of ["steamapps/libraryfolders.vdf", "config/libraryfolders.vdf"]) {
+    const path = join(steamRoot, rel);
+    const read = readVdf(path);
+    if ("missing" in read) continue;
+    folders = "doc" in read ? getObject(read.doc, "libraryfolders") : undefined;
+    if (folders) {
+      source = path;
+      break;
+    }
+    // A truncated file can parse fine but be empty, so a missing section counts as unreadable too.
+    problems.push(`${path}: ${"error" in read ? read.error : 'no "libraryfolders" section'}`);
+  }
   const paths: string[] = [steamRoot];
   if (folders) {
     for (const [key, value] of Object.entries(folders)) {
@@ -90,18 +118,20 @@ export function readLibraryFolders(steamRoot: string): string[] {
       if (path) paths.push(path);
     }
   }
-  // Resolve symlinks before de-duplicating: on Fedora Atomic /home -> /var/home, so the same
-  // library can be listed under both spellings.
-  return [...new Set(paths.map((p) => safeRealpath(p.replace(/\/+$/, ""))))];
+  return {
+    // Resolve symlinks before de-duplicating: on Fedora Atomic /home -> /var/home, so the same
+    // library can be listed under both spellings.
+    paths: [...new Set(paths.map((p) => safeRealpath(p.replace(/\/+$/, ""))))],
+    problem: problems.length
+      ? `Couldn't read Steam's library folder list (${problems.join("; ")}); ` +
+        (source ? `using ${source}, which may be out of date.` : `only games in ${steamRoot} are listed.`)
+      : undefined,
+  };
 }
 
-export function parseManifest(text: string, libraryPath: string): SteamManifest | undefined {
-  let doc: VdfObject;
-  try {
-    doc = parseVdf(text);
-  } catch {
-    return undefined;
-  }
+
+/** A manifest's fields, or undefined if it lacks an appid, name or install folder. */
+function manifestFrom(doc: VdfObject, libraryPath: string): SteamManifest | undefined {
   const state = getObject(doc, "AppState");
   const appid = getNumber(state, "appid");
   const name = getString(state, "name");
@@ -118,22 +148,48 @@ export function parseManifest(text: string, libraryPath: string): SteamManifest 
   };
 }
 
-export function readManifests(libraryPath: string): SteamManifest[] {
+export interface ManifestScan {
+  /** Readable, complete manifests. */
+  manifests: SteamManifest[];
+  /**
+   * Apps with a manifest file that isn't in `manifests` (unreadable, or missing a name or install
+   * folder), by the appid in its file name. They're still installed, so their cached art is kept.
+   */
+  otherAppids: number[];
+  /** Manifests that couldn't be read or parsed. */
+  warnings: string[];
+  /** Set when the steamapps folder exists but couldn't be listed. */
+  problem?: string;
+}
+
+export function readManifests(libraryPath: string): ManifestScan {
   const steamapps = join(libraryPath, "steamapps");
+  const result: ManifestScan = { manifests: [], otherAppids: [], warnings: [] };
   let entries: string[];
   try {
     entries = readdirSync(steamapps);
-  } catch {
-    return [];
+  } catch (err) {
+    // No steamapps/ is fine (see scanSteamInstall); one that can't be listed isn't.
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+      result.problem = `Couldn't list Steam library folder ${steamapps}: ${errorMessage(err)}`;
+    }
+    return result;
   }
-  const out: SteamManifest[] = [];
   for (const entry of entries) {
-    if (!/^appmanifest_\d+\.acf$/.test(entry)) continue;
-    const text = readText(join(steamapps, entry));
-    const manifest = text === undefined ? undefined : parseManifest(text, libraryPath);
-    if (manifest) out.push(manifest);
+    const m = /^appmanifest_(\d+)\.acf$/.exec(entry);
+    if (!m) continue;
+    const path = join(steamapps, entry);
+    const read = readVdf(path);
+    if ("missing" in read) continue; // deleted since the listing (e.g. an uninstall)
+    const manifest = "doc" in read ? manifestFrom(read.doc, libraryPath) : undefined;
+    if (manifest) {
+      result.manifests.push(manifest);
+      continue;
+    }
+    result.otherAppids.push(Number(m[1]));
+    if ("error" in read) result.warnings.push(`Couldn't read Steam app manifest ${path}: ${read.error}`);
   }
-  return out;
+  return result;
 }
 
 export function userDataDirs(steamRoot: string): string[] {
@@ -222,7 +278,12 @@ export function scanSteamInstall(install: SteamInstall, options: ScanOptions = {
   // bit). They aren't listed, but they are installed: their cached art and appinfo must survive pruning.
   const onDisk = new Set<number>();
   let complete = true;
-  for (const lib of readLibraryFolders(install.root)) {
+  const libraries = readLibraryFolders(install.root);
+  if (libraries.problem) {
+    warnings.push(libraries.problem);
+    complete = false;
+  }
+  for (const lib of libraries.paths) {
     // Check steamapps/, not the folder itself: an unmounted drive often leaves an empty mount point behind.
     // The Steam root is exempt: it may legitimately have no steamapps/ when every game is on other drives.
     if (lib !== install.root && !existsSync(join(lib, "steamapps"))) {
@@ -230,7 +291,14 @@ export function scanSteamInstall(install: SteamInstall, options: ScanOptions = {
       complete = false;
       continue;
     }
-    for (const m of readManifests(lib)) {
+    const scanned = readManifests(lib);
+    if (scanned.problem) {
+      warnings.push(scanned.problem);
+      complete = false;
+    }
+    warnings.push(...scanned.warnings);
+    for (const appid of scanned.otherAppids) onDisk.add(appid);
+    for (const m of scanned.manifests) {
       onDisk.add(m.appid);
       if ((m.stateFlags & STATE_FULLY_INSTALLED) === 0) continue;
       // The same app can appear in two libraries mid-move; keep the first seen.

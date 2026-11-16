@@ -179,7 +179,7 @@ export function scanLaunchers(options: Omit<LibraryOptions, "launcherPriority" |
       );
     } else if (launcher === "heroic") {
       const heroic = scanHeroic({ heroicPath: options.heroicPath, home: options.home });
-      if (heroic.complete) installedHeroicGames = heroic.games.map((g) => ({ runner: g.heroic!.runner, appName: g.heroic!.appName }));
+      if (heroic.complete) installedHeroicGames = heroic.installed;
       launchers.push(heroic);
     }
   }

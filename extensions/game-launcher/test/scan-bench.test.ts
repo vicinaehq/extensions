@@ -86,9 +86,9 @@ describe.runIf(process.env.BENCH === "1")("scan benchmark", () => {
     const store = AppInfoStore.memory();
     scanSteamInstall(install, { appInfo: store });
     const warm = avg(() => scanSteamInstall(install, { appInfo: store }));
-    const ids = new Set(readLibraryFolders(root).flatMap(readManifests).map((m) => m.appid));
+    const ids = new Set(readLibraryFolders(root).paths.flatMap((l) => readManifests(l).manifests).map((m) => m.appid));
     const phases = {
-      manifests: avg(() => readLibraryFolders(root).flatMap(readManifests)),
+      manifests: avg(() => readLibraryFolders(root).paths.flatMap((l) => readManifests(l).manifests)),
       appinfo: avg(() => readAppInfo(root, ids)),
       "appinfo (read only)": avg(() => readFileSync(join(root, "appcache/appinfo.vdf"))),
       localconfig: avg(() => readActivity(root)),
