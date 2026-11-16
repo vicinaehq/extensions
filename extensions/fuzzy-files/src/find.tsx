@@ -161,6 +161,7 @@ const finder = Finder()
 export default function ListDetail(): JSX.Element {
   const [results, setResults] = useState<File[]>([])
   const [searchText, setSearchText] = useState<string>('')
+  const [loading, setLoading] = useState(false)
   if (!depsInstalled) {
     return (
       <Detail navigationTitle='Files' markdown={`
@@ -178,11 +179,18 @@ Build or download a copy from [https://github.com/sameoldlab/goldfish](https://g
   return (
     <List
       isShowingDetail
+      isLoading={loading}
       searchText={searchText}
       onSearchTextChange={query => {
         setSearchText(query)
+        setLoading(true)
         finder.search(query).then(files => {
-          if (files) setResults(files)
+          // null means a newer query superseded this one; keep the pending
+          // indicator up until the latest query settles
+          if (files) {
+            setResults(files)
+            setLoading(false)
+          }
         })
       }}
       searchBarPlaceholder={'Search files'}
