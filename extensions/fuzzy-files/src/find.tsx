@@ -54,7 +54,10 @@ function Finder() {
   const encoder = new TextEncoder()
   const decoder = new TextDecoder()
 
-  const exit = () => writer.write(encoder.encode(`c:Exit`))
+  const exit = () => {
+    clearTimeout(pumpTimer)
+    writer.write(encoder.encode(`c:Exit`))
+  }
 
   let tail = ''
   let lines: string[] = []
@@ -62,6 +65,7 @@ function Finder() {
   let queued: { query: string; resolve: (files: File[] | null) => void } | null = null
   let idleTimer: ReturnType<typeof setTimeout> | undefined
   let emptyTimer: ReturnType<typeof setTimeout> | undefined
+  let pumpTimer: ReturnType<typeof setTimeout> | undefined
 
   const toFiles = (paths: string[]): File[] => {
     const files: File[] = []
@@ -88,10 +92,14 @@ function Finder() {
     clearTimeout(emptyTimer)
     // a newer query is already waiting: this answer is stale, keep the current view
     resolve(queued ? null : toFiles(paths))
-    pump()
+    // drain before pumping: a timeout close doesn't mean gf finished writing,
+    // so wait for a silent idle window before sending the next query
+    clearTimeout(pumpTimer)
+    pumpTimer = setTimeout(pump, RESPONSE_IDLE_MS)
   }
 
   const pump = () => {
+    pumpTimer = undefined
     if (inFlight || !queued) return
     const { query, resolve } = queued
     queued = null
@@ -101,7 +109,13 @@ function Finder() {
   }
 
   reader.on('data', (chunk: Uint8Array) => {
-    if (!inFlight) return
+    if (!inFlight) {
+      // draining between responses: these bytes belong to the closed answer,
+      // drop them and push the next send back until the stream is silent
+      clearTimeout(pumpTimer)
+      pumpTimer = setTimeout(pump, RESPONSE_IDLE_MS)
+      return
+    }
 
     tail += decoder.decode(chunk, { stream: true })
 
@@ -124,7 +138,9 @@ function Finder() {
     new Promise<File[] | null>(resolve => {
       queued?.resolve(null)
       queued = { query, resolve }
-      pump()
+      // a pending pumpTimer means the last response is still draining; let it
+      // fire rather than writing into a stream that may not be silent yet
+      if (pumpTimer === undefined) pump()
     })
 
   return { search, exit }
