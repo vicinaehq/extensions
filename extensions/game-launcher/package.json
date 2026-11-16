@@ -1,0 +1,259 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "game-launcher",
+  "version": "1.0.0",
+  "title": "Game Launcher",
+  "description": "Search and launch your installed games from Steam, Lutris and Heroic.",
+  "categories": [
+    "Applications",
+    "Fun"
+  ],
+  "keywords": [
+    "games",
+    "steam",
+    "lutris",
+    "launcher",
+    "proton"
+  ],
+  "license": "MIT",
+  "author": "DavidSeptimus",
+  "platforms": [
+    "Linux"
+  ],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "search-games",
+      "title": "Search Games",
+      "subtitle": "Game Launcher",
+      "description": "Search your installed games and launch them, most recently played first.",
+      "mode": "view",
+      "keywords": [
+        "gl",
+        "play",
+        "launch",
+        "steam",
+        "lutris"
+      ],
+      "preferences": [
+        {
+          "name": "layout",
+          "title": "Layout",
+          "description": "Show games as an artwork grid or a list.",
+          "type": "dropdown",
+          "required": false,
+          "default": "grid",
+          "data": [
+            {
+              "title": "Grid",
+              "value": "grid"
+            },
+            {
+              "title": "List",
+              "value": "list"
+            },
+            {
+              "title": "List with Details",
+              "value": "list-detail"
+            }
+          ]
+        },
+        {
+          "name": "artwork",
+          "title": "Grid Artwork",
+          "description": "Which artwork the grid shows.",
+          "type": "dropdown",
+          "required": false,
+          "default": "cover",
+          "data": [
+            {
+              "title": "Cover",
+              "value": "cover"
+            },
+            {
+              "title": "Banner",
+              "value": "banner"
+            },
+            {
+              "title": "Hero",
+              "value": "hero"
+            },
+            {
+              "title": "Logo",
+              "value": "logo"
+            }
+          ]
+        },
+        {
+          "name": "gridSize",
+          "title": "Games per Row",
+          "description": "How many games fit in a grid row. Auto picks a size that suits the artwork.",
+          "type": "dropdown",
+          "required": false,
+          "default": "auto",
+          "data": [
+            {
+              "title": "Auto",
+              "value": "auto"
+            },
+            {
+              "title": "2",
+              "value": "2"
+            },
+            {
+              "title": "3",
+              "value": "3"
+            },
+            {
+              "title": "4",
+              "value": "4"
+            },
+            {
+              "title": "5",
+              "value": "5"
+            },
+            {
+              "title": "6",
+              "value": "6"
+            },
+            {
+              "title": "7",
+              "value": "7"
+            },
+            {
+              "title": "8",
+              "value": "8"
+            }
+          ]
+        },
+        {
+          "name": "labels",
+          "title": "Grid Labels",
+          "description": "Text shown under each game in the grid.",
+          "type": "dropdown",
+          "required": false,
+          "default": "full",
+          "data": [
+            {
+              "title": "Title and Last Played",
+              "value": "full"
+            },
+            {
+              "title": "Title Only",
+              "value": "title"
+            },
+            {
+              "title": "None",
+              "value": "none"
+            }
+          ]
+        },
+        {
+          "name": "downloadArtwork",
+          "title": "Download High-Quality Artwork",
+          "label": "Download High-Quality Artwork",
+          "description": "Download higher-resolution covers, banners and icons where available, instead of the low-resolution copies launchers keep locally. Downloads are kept on disk.",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        }
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "enableSteam",
+      "title": "Steam",
+      "label": "Steam",
+      "description": "Show games installed through Steam.",
+      "type": "checkbox",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "enableLutris",
+      "title": "Lutris",
+      "label": "Lutris",
+      "description": "Show games installed through Lutris.",
+      "type": "checkbox",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "enableHeroic",
+      "title": "Heroic",
+      "label": "Heroic",
+      "description": "Show games installed through Heroic.",
+      "type": "checkbox",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "hideDuplicates",
+      "title": "Merge Duplicates",
+      "label": "Merge Duplicates",
+      "description": "Show a game installed in several launchers as one entry. Choose which launcher opens it with the Launcher Priority action.",
+      "type": "checkbox",
+      "default": true,
+      "required": false
+    },
+    {
+      "name": "steamPath",
+      "title": "Steam Folder",
+      "description": "Only use the Steam install in this folder. Leave empty to find it automatically.",
+      "type": "directory",
+      "required": false
+    },
+    {
+      "name": "includeNonGames",
+      "title": "Show Steam Tools",
+      "label": "Show Steam Tools",
+      "description": "Also list Proton, the Steam Linux Runtime and other non-game Steam apps.",
+      "type": "checkbox",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "lutrisPath",
+      "title": "Lutris Folder",
+      "description": "Only use the Lutris data folder at this path (the one containing pga.db). Leave empty to find it automatically.",
+      "type": "directory",
+      "required": false
+    },
+    {
+      "name": "includeStoreClients",
+      "title": "Show Lutris Store Clients",
+      "label": "Show Lutris Store Clients",
+      "description": "Also list the store apps Lutris installs to run games, such as the Epic Games Store and Battle.net.",
+      "type": "checkbox",
+      "default": false,
+      "required": false
+    },
+    {
+      "name": "heroicPath",
+      "title": "Heroic Folder",
+      "description": "Only use the Heroic config folder at this path (the one containing config.json). Leave empty to find it automatically.",
+      "type": "directory",
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "19.1.17",
+    "react": "19.1.1",
+    "typescript": "5.9.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}
