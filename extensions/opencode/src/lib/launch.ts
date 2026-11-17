@@ -26,10 +26,19 @@ async function isV2Binary(name: string): Promise<boolean> {
  * are probed on PATH, then the official installer's `~/.opencode/bin` (it only
  * adds that folder to the shell PATH, which a launcher does not see), and
  * verified to be a V2 build.
+ *
+ * On Windows the `opencode2` there and npm's PATH entries are `.cmd` shims,
+ * which cannot be spawned directly, so the real `opencode.exe` is probed too:
+ * `~/.opencode/bin/opencode` and the one inside npm's global package.
  */
 export async function resolveOpenCodeBinary(configured?: string): Promise<string> {
-  const installed = join(homedir(), ".opencode", "bin", "opencode2");
-  for (const candidate of configured ? [configured] : ["opencode2", "opencode", installed]) {
+  const bin = join(homedir(), ".opencode", "bin");
+  const candidates = ["opencode2", "opencode", join(bin, "opencode2"), join(bin, "opencode")];
+  const appData = process.env["APPDATA"];
+  if (process.platform === "win32" && appData) {
+    candidates.push(join(appData, "npm", "node_modules", "@opencode", "cli", "bin", "opencode.exe"));
+  }
+  for (const candidate of configured ? [configured] : candidates) {
     if (await isV2Binary(candidate)) return candidate;
   }
   if (configured) {
