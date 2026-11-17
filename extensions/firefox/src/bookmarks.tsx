@@ -37,7 +37,7 @@ function getFirefoxFolders(db: Database) {
 function getFirefoxBookmarks(db: Database) {
   const bookmarks = [];
   const statement = db.prepare(
-    `SELECT substr(moz_places.url, 1, CASE WHEN instr(moz_places.url, '?') > 0 AND instr(moz_places.url, '#') > 0 THEN min(instr(moz_places.url, '?'), instr(moz_places.url, '#')) - 1 WHEN instr(moz_places.url, '?') > 0 THEN instr(moz_places.url, '?') - 1 WHEN instr(moz_places.url, '#') > 0 THEN instr(moz_places.url, '#') - 1 ELSE length(moz_places.url) END) AS normalizedUrl, moz_places.url AS urlString, moz_bookmarks.title AS title, MAX(moz_bookmarks.dateAdded) AS dateAdded, GROUP_CONCAT(moz_bookmarks.parent) AS parentIds FROM moz_bookmarks LEFT JOIN moz_places ON moz_bookmarks.fk = moz_places.id WHERE moz_bookmarks.type = 1 AND moz_bookmarks.title IS NOT NULL AND moz_places.url IS NOT NULL GROUP BY normalizedUrl;`,
+    `SELECT substr(moz_places.url, 1, CASE WHEN instr(moz_places.url, '?') > 0 AND instr(moz_places.url, '#') > 0 THEN min(instr(moz_places.url, '?'), instr(moz_places.url, '#')) - 1 WHEN instr(moz_places.url, '?') > 0 THEN instr(moz_places.url, '?') - 1 WHEN instr(moz_places.url, '#') > 0 THEN instr(moz_places.url, '#') - 1 ELSE length(moz_places.url) END) AS normalizedUrl, moz_places.url AS urlString, moz_bookmarks.title AS title, MAX(moz_bookmarks.dateAdded) AS dateAdded, MAX(COALESCE(moz_places.frecency, 0)) AS frecency, GROUP_CONCAT(moz_bookmarks.parent) AS parentIds FROM moz_bookmarks LEFT JOIN moz_places ON moz_bookmarks.fk = moz_places.id WHERE moz_bookmarks.type = 1 AND moz_bookmarks.title IS NOT NULL AND moz_places.url IS NOT NULL GROUP BY normalizedUrl;`,
   );
   while (statement.step()) {
     const row = statement.getAsObject();
@@ -54,6 +54,7 @@ type Bookmark = {
   folder: string;
   domain: string;
   dateAdded: number;
+  frecency: number;
 };
 type Folder = { id: string; icon: string; title: string };
 
@@ -203,10 +204,11 @@ export default function Command() {
             folder: folderNames,
             domain,
             dateAdded: typeof bookmark.dateAdded === "number" ? bookmark.dateAdded : 0,
+            frecency: typeof bookmark.frecency === "number" ? bookmark.frecency : 0,
           };
         });
-        // Sort by dateAdded descending (most recent first)
-        bookmarks.sort((a, b) => b.dateAdded - a.dateAdded);
+        // Firefox's own recency/frequency score, dateAdded to break ties
+        bookmarks.sort((a, b) => b.frecency - a.frecency || b.dateAdded - a.dateAdded);
         setBookmarks(bookmarks);
 
         try {
