@@ -2,6 +2,7 @@ import { Action, ActionPanel, Alert, Color, confirmAlert, Icon, List, showToast,
 import path from "path";
 import { useState } from "react";
 
+import { useUsageStats } from "@/hooks/useUsageStats";
 import {
   formatInstalledSince,
   projectDisplayName,
@@ -54,7 +55,6 @@ export default function StatsSettings({
                   gitRepoCount={gitRepoCount}
                   onClearUsage={clearStats}
                   projectCount={projectCount}
-                  snapshot={snapshot}
                   workspaceCount={workspaceCount}
                 />
               }
@@ -101,13 +101,17 @@ export default function StatsSettings({
   );
 }
 
+/**
+ * Pushed views must subscribe via useUsageStats() directly: a snapshot prop is frozen at push time,
+ * so clearing statistics from this view would leave the old numbers on screen.
+ */
 function StatsDetailView({
   gitRepoCount,
   onClearUsage,
   projectCount,
-  snapshot,
   workspaceCount,
-}: StatsSettingsProps) {
+}: Omit<StatsSettingsProps, "snapshot">) {
+  const { snapshot } = useUsageStats();
   const [period, setPeriod] = useState<UsagePeriod>("week");
   const ranked = snapshot.topProjects[period];
   const opens = snapshot.opensInPeriod[period];
