@@ -47,7 +47,7 @@ PDF Tools provides a frictionless file selection experience across all operating
 
 PDF Tools relies on lightweight system tools for cryptographic operations and image processing.
 
-### 1. `qpdf` (Required for merge, protect, unlock, split)
+### 1. `qpdf` (Required for merge, protect, unlock, split, watermark)
 - **Linux (Ubuntu/Debian)**: `sudo apt install qpdf`
 - **Linux (Arch/Manjaro)**: `sudo pacman -S qpdf`
 - **Linux (Fedora)**: `sudo dnf install qpdf`
