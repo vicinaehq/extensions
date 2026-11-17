@@ -3,7 +3,7 @@ import { WorkspaceProvider } from "@/hooks/useWorkspace";
 
 export default function Command() {
   return (
-    <WorkspaceProvider discover={false}>
+    <WorkspaceProvider>
       <Settings />
     </WorkspaceProvider>
   );

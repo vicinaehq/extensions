@@ -1,10 +1,9 @@
 import { LocalStorage } from "@vicinae/api";
-import { readdir } from "fs/promises";
-import path from "path";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Project } from "@/types";
 import { STORAGE_KEY_PROJECTS_CACHE } from "@/utils/constants";
+import { type ScanOptions, scanWorkspaceProjects } from "@/utils/discovery";
 import { getGitStatus, isGitAvailable, isGitRepo } from "@/utils/git";
 
 const GIT_CONCURRENCY = 16;
@@ -18,18 +17,29 @@ type ProjectsCache = {
 let memoryCache: ProjectsCache | null = null;
 
 type WorkspaceScan = {
-  ok: boolean;
+  complete: boolean;
   projects: Project[];
   workspacePath: string;
 };
 
-export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean, ready: boolean, enabled = true) {
+export function useProjectDiscovery(
+  workspaces: string[],
+  showGitStatus: boolean,
+  ready: boolean,
+  scanOptions: ScanOptions,
+  showStashCount = false,
+  enabled = true,
+) {
   const [projects, setProjects] = useState<Project[]>(() => memoryCache?.projects ?? []);
   const [cachedWorkspaces, setCachedWorkspaces] = useState<string[]>(() => memoryCache?.workspaces ?? []);
   const [isLoading, setIsLoading] = useState(() => memoryCache == null);
   const [hasScanned, setHasScanned] = useState(false);
   const [scannedWorkspaceRoots, setScannedWorkspaceRoots] = useState<string[]>([]);
   const [version, setVersion] = useState(0);
+  const showGitStatusRef = useRef(showGitStatus);
+  const showStashCountRef = useRef(showStashCount);
+  showGitStatusRef.current = showGitStatus;
+  showStashCountRef.current = showStashCount;
 
   useEffect(() => {
     if (!enabled || memoryCache) {
@@ -73,24 +83,31 @@ export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean
     }
 
     async function refresh() {
-      const scans = await Promise.all(workspaces.map(scanWorkspace));
+      const scans = await Promise.all(workspaces.map((workspacePath) => scanWorkspace(workspacePath, scanOptions)));
       if (cancelled) {
         return;
       }
 
       const previous = memoryCache?.projects ?? [];
-      const scannedRoots = scans.filter((scan) => scan.ok).map((scan) => scan.workspacePath);
-      const listed = scans.flatMap((scan) =>
-        scan.ok ? scan.projects : previous.filter((project) => project.parentFolder === scan.workspacePath),
-      );
+      const scannedRoots = scans.filter((scan) => scan.complete).map((scan) => scan.workspacePath);
+      const listed = scans.flatMap((scan) => {
+        if (scan.complete) {
+          return scan.projects;
+        }
+        // Truncated scans still list what was found, but failed scans keep the previous set.
+        if (scan.projects.length > 0) {
+          return scan.projects;
+        }
+        return previous.filter((project) => project.parentFolder === scan.workspacePath);
+      });
 
       const previousByPath = new Map((memoryCache?.projects ?? []).map((project) => [project.fullPath, project]));
       const listedWithStaleGit = listed.map((project) => {
-        const previous = previousByPath.get(project.fullPath);
+        const previousProject = previousByPath.get(project.fullPath);
         return {
           ...project,
-          gitStatus: showGitStatus ? previous?.gitStatus : undefined,
-          isGitRepo: previous?.isGitRepo ?? previous?.gitStatus != null,
+          gitStatus: showGitStatus ? previousProject?.gitStatus : undefined,
+          isGitRepo: previousProject?.isGitRepo ?? previousProject?.gitStatus != null,
         };
       });
 
@@ -114,7 +131,7 @@ export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean
           ...(await Promise.all(
             chunk.map(async (project) => {
               if (showGitStatus) {
-                const gitStatus = await getGitStatus(project.fullPath);
+                const gitStatus = await getGitStatus(project.fullPath, { includeStash: showStashCount });
                 return { ...project, gitStatus, isGitRepo: gitStatus != null };
               }
 
@@ -135,10 +152,60 @@ export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean
     return () => {
       cancelled = true;
     };
-  }, [enabled, ready, showGitStatus, version, workspaces]);
+  }, [
+    enabled,
+    ready,
+    scanOptions.ignorePatterns,
+    scanOptions.includeNested,
+    scanOptions.requireMarkers,
+    scanOptions.scanDepth,
+    showGitStatus,
+    showStashCount,
+    version,
+    workspaces,
+  ]);
 
   const loadData = useCallback(async () => {
     setVersion((current) => current + 1);
+  }, []);
+
+  const refreshProjectGit = useCallback(async (projectPath: string) => {
+    const current = memoryCache?.projects ?? [];
+    const index = current.findIndex((project) => project.fullPath === projectPath);
+    if (index === -1) {
+      return;
+    }
+
+    const showStatus = showGitStatusRef.current;
+    const includeStash = showStashCountRef.current;
+    let nextProject: Project;
+
+    if (showStatus) {
+      const gitStatus = await getGitStatus(projectPath, { includeStash });
+      nextProject = {
+        ...current[index],
+        gitStatus,
+        isGitRepo: gitStatus != null,
+      };
+    } else {
+      nextProject = {
+        ...current[index],
+        gitStatus: undefined,
+        isGitRepo: await isGitRepo(projectPath),
+      };
+    }
+
+    const nextProjects = current.slice();
+    nextProjects[index] = nextProject;
+    remember(
+      {
+        projects: nextProjects,
+        showGitStatus: memoryCache?.showGitStatus ?? showStatus,
+        workspaces: memoryCache?.workspaces ?? [],
+      },
+      setProjects,
+      setCachedWorkspaces,
+    );
   }, []);
 
   return {
@@ -147,6 +214,7 @@ export function useProjectDiscovery(workspaces: string[], showGitStatus: boolean
     isLoading,
     loadData,
     projects,
+    refreshProjectGit,
     scannedWorkspaceRoots,
   };
 }
@@ -174,23 +242,11 @@ function persist(cache: ProjectsCache) {
   void LocalStorage.setItem(STORAGE_KEY_PROJECTS_CACHE, JSON.stringify(cache));
 }
 
-async function scanWorkspace(workspacePath: string): Promise<WorkspaceScan> {
+async function scanWorkspace(workspacePath: string, options: ScanOptions): Promise<WorkspaceScan> {
   try {
-    const entries = await readdir(workspacePath, { withFileTypes: true });
-
-    return {
-      ok: true,
-      projects: entries
-        .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((entry) => ({
-          fullPath: path.join(workspacePath, entry.name),
-          name: entry.name,
-          parentFolder: workspacePath,
-        })),
-      workspacePath,
-    };
+    const { projects, truncated } = await scanWorkspaceProjects(workspacePath, options);
+    return { complete: !truncated, projects, workspacePath };
   } catch {
-    return { ok: false, projects: [], workspacePath };
+    return { complete: false, projects: [], workspacePath };
   }
 }

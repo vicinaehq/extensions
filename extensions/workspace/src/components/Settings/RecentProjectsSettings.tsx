@@ -19,6 +19,7 @@ export default function RecentProjectsSettings({
         <ActionPanel>
           <ActionPanel.Section title="Recent Projects">
             <Action
+              icon={showRecentProjects ? Icon.EyeDisabled : Icon.Eye}
               onAction={() => updateShowRecentProjects(!showRecentProjects)}
               title={showRecentProjects ? "Disable Recent Projects" : "Enable Recent Projects"}
             />
@@ -26,6 +27,7 @@ export default function RecentProjectsSettings({
           <ActionPanel.Section title="Count">
             {[3, 5, 7, 10].map((count) => (
               <Action
+                icon={count === recentProjectsCount ? Icon.CheckCircle : Icon.Circle}
                 key={count}
                 onAction={() => updateRecentProjectsCount(count)}
                 title={`Show ${count} Recent Projects`}

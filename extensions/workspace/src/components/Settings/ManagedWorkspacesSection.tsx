@@ -166,9 +166,14 @@ export default function ManagedWorkspacesSection({
                   />
                 </ActionPanel.Section>
                 <ActionPanel.Section title="Copy">
-                  <Action.CopyToClipboard content={path.basename(workspace)} title="Copy Workspace Name" />
+                  <Action.CopyToClipboard
+                    content={path.basename(workspace)}
+                    icon={Icon.CopyClipboard}
+                    title="Copy Workspace Name"
+                  />
                   <Action.CopyToClipboard
                     content={workspace}
+                    icon={Icon.CopyClipboard}
                     shortcut={{ key: "c", modifiers: ["cmd", "shift"] }}
                     title="Copy Workspace Path"
                   />
@@ -198,7 +203,7 @@ export default function ManagedWorkspacesSection({
         actions={
           <ActionPanel>
             <ActionPanel.Section title="Workspace">
-              <Action.Push target={<AddWorkspaceForm onDone={loadData} />} title="Add Workspace" />
+              <Action.Push icon={Icon.Plus} target={<AddWorkspaceForm onDone={loadData} />} title="Add Workspace" />
             </ActionPanel.Section>
           </ActionPanel>
         }

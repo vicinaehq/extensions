@@ -24,6 +24,10 @@ export function useRecentProjects() {
   const updateRecentProjectsCount = async (count: number): Promise<void> => setRecentProjectsCount(count);
 
   const togglePinProject = async (projectPath: string): Promise<void> => {
+    if (!pinnedHydrated || !recentHydrated) {
+      return;
+    }
+
     let newPinned: string[];
     if (pinnedProjects.includes(projectPath)) {
       newPinned = pinnedProjects.filter((p: string) => p !== projectPath);
@@ -40,6 +44,10 @@ export function useRecentProjects() {
   };
 
   const reorderPinnedProject = async (projectPath: string, direction: "down" | "up"): Promise<void> => {
+    if (!pinnedHydrated) {
+      return;
+    }
+
     const from = pinnedProjects.indexOf(projectPath);
     if (from === -1) return;
 
@@ -54,6 +62,10 @@ export function useRecentProjects() {
   };
 
   const recordProjectOpen = async (projectPath: string): Promise<void> => {
+    if (!recentHydrated || !pinnedHydrated) {
+      return;
+    }
+
     if (pinnedProjects.includes(projectPath)) {
       return;
     }
