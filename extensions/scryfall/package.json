@@ -1,0 +1,58 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "scryfall",
+  "title": "Scryfall",
+  "description": "Search Magic: The Gathering cards on Scryfall by name or search syntax",
+  "icon": "icon.png",
+  "categories": ["Web", "Fun"],
+  "keywords": ["scryfall", "magic", "mtg", "cards", "search"],
+  "license": "MIT",
+  "author": "untraceablez",
+  "contributors": [],
+  "platforms": ["Linux"],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "commands": [
+    {
+      "name": "scry",
+      "title": "Search Scryfall",
+      "description": "Search Magic: The Gathering cards by name or Scryfall syntax",
+      "mode": "view",
+      "keywords": ["scry", "mtg", "magic"]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "resultLimit",
+      "type": "dropdown",
+      "title": "Results Shown",
+      "description": "Number of cards listed before the link to the full Scryfall results",
+      "required": false,
+      "default": "8",
+      "data": [
+        { "title": "5", "value": "5" },
+        { "title": "8", "value": "8" },
+        { "title": "10", "value": "10" },
+        { "title": "15", "value": "15" }
+      ]
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "^0.29.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "19.3.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "@vicinae/api": {
+      "react": "19.3.0"
+    }
+  }
+}
