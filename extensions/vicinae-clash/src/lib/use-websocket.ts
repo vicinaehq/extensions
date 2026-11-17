@@ -9,13 +9,19 @@ type WebSocketState<T> = {
   error: string | undefined;
 };
 
-export function useWebSocketJson<T>(endpoint: string, params: Record<string, string> = {}): WebSocketState<T> {
+export function useWebSocketJson<T>(
+  endpoint: string,
+  params: Record<string, string> = {},
+  onMessage?: (data: T) => void,
+): WebSocketState<T> {
   const [data, setData] = useState<T>();
   const [isConnecting, setIsConnecting] = useState(true);
   const [error, setError] = useState<string>();
   const socketRef = useRef<WebSocket | undefined>(undefined);
   const retryRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const attemptsRef = useRef(0);
+  const onMessageRef = useRef(onMessage);
+  onMessageRef.current = onMessage;
   const paramsKey = JSON.stringify(params);
 
   const connect = useCallback(async () => {
@@ -31,12 +37,16 @@ export function useWebSocketJson<T>(endpoint: string, params: Record<string, str
       });
       socket.on("message", (message) => {
         if (socketRef.current !== socket) return;
+        let next: T;
         try {
-          setData(JSON.parse(message.toString()) as T);
-          setError(undefined);
+          next = JSON.parse(message.toString()) as T;
         } catch (parseError) {
           setError(`Invalid response: ${errorMessage(parseError)}`);
+          return;
         }
+        setData(next);
+        setError(undefined);
+        onMessageRef.current?.(next);
       });
       socket.on("error", (socketError) => setError(errorMessage(socketError)));
       socket.on("close", () => {

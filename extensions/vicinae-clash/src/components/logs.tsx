@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Color, Detail, Icon, List } from "@vicinae/api";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { formatTime } from "../lib/format";
 import { useWebSocketJson } from "../lib/use-websocket";
 import type { LogEntry, LogLevel } from "../types";
@@ -18,13 +18,9 @@ export default function Logs() {
   const [level, setLevel] = useState<LogLevel>("info");
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [searchText, setSearchText] = useState("");
-  const stream = useWebSocketJson<LogMessage>("/logs", { level });
-
-  useEffect(() => {
-    const next = stream.data;
-    if (!next) return;
-    setLogs((current) => [{ ...next, time: formatTime() }, ...current].slice(0, 500));
-  }, [stream.data]);
+  const stream = useWebSocketJson<LogMessage>("/logs", { level }, (next) =>
+    setLogs((current) => [{ ...next, time: formatTime() }, ...current].slice(0, 500)),
+  );
 
   const filtered = useMemo(() => {
     const query = searchText.toLocaleLowerCase();
