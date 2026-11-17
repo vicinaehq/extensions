@@ -159,10 +159,14 @@ function Finder() {
 
 const readData = (file: File) => {
   let data
-  if (file.mime?.startsWith('image')) {
-    data = readFileSync(file.path)
-  } else if (file.mime?.startsWith('text')) {
-    data = readFileSync(file.path, 'utf8')
+  try {
+    if (file.mime?.startsWith('image')) {
+      data = readFileSync(file.path)
+    } else if (file.mime?.startsWith('text')) {
+      data = readFileSync(file.path, 'utf8')
+    }
+  } catch {
+    // the file may be gone since it was listed
   }
   return data
 }
@@ -227,7 +231,7 @@ Build or download a copy from [https://github.com/sameoldlab/goldfish](https://g
                     <List.Item.Detail.Metadata.Label title='Permissions' text={fmtPerms(file.info.mode)} />
                   </List.Item.Detail.Metadata>
                 }
-                markdown={file.mime?.startsWith('text') ? readFileSync(file.path, 'utf8') : undefined}
+                markdown={file.mime?.startsWith('text') ? readData(file) as string : undefined}
               />
             }
             actions={
