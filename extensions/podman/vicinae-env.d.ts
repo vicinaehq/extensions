@@ -6,7 +6,8 @@
  */
 
 type ExtensionPreferences = {
-  
+  /** Default Connection - Podman system connection to use on first launch (see `podman system connection list`). Leave empty to use podman's default. */
+	"defaultConnection": string;
 }
 
 declare type Preferences = ExtensionPreferences

@@ -5,6 +5,69 @@ import { PODMAN_REGEX, ContainerStatus } from "./patterns";
 
 const execAsync = promisify(exec);
 
+export type PodmanConnection = {
+  name: string;
+  uri: string;
+  isDefault: boolean;
+  isMachine: boolean;
+};
+
+// Whether `connection` (""/unset = podman's default) targets the local podman socket.
+// For the default, plain `podman` resolves CONTAINER_HOST, then CONTAINER_CONNECTION, and is
+// always remote on macOS (podman machine). On Linux the connection marked as default is only
+// used with --remote, so plain `podman` stays on the local socket.
+export function isLocalTarget(connection: string, connections: PodmanConnection[]): boolean {
+  const isLocalConnection = (name: string) => {
+    const c = connections.find((c) => c.name === name);
+    return Boolean(c && !c.isMachine && c.uri.startsWith("unix://"));
+  };
+  if (connection) return isLocalConnection(connection);
+  if (process.platform === "darwin") return false;
+  // An explicit host override is never the socket `sudo podman` would use
+  if (process.env.CONTAINER_HOST) return false;
+  if (process.env.CONTAINER_CONNECTION) {
+    return isLocalConnection(process.env.CONTAINER_CONNECTION);
+  }
+  return true;
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+// Build a podman command for `connection` ("" = podman's default).
+// `sudo` only applies to the default connection; named connections carry their own identity.
+export function podmanCmd(connection: string, args: string, sudo: boolean = false): string {
+  if (connection) {
+    return `podman --connection ${shellQuote(connection)} ${args}`;
+  }
+  return sudo ? `sudo -n podman ${args}` : `podman ${args}`;
+}
+
+// List connections configured via `podman system connection add` / `podman machine`
+export async function listConnections(): Promise<PodmanConnection[]> {
+  try {
+    const { stdout } = await execAsync("podman system connection list --format json");
+    const data = JSON.parse(stdout.trim() || "[]");
+    return (Array.isArray(data) ? data : [data])
+      .filter((c: any) => c && c.Name)
+      .map((c: any) => ({
+        name: c.Name,
+        uri: c.URI || "",
+        isDefault: Boolean(c.Default),
+        isMachine: Boolean(c.IsMachine),
+      }));
+  } catch (error) {
+    console.error("Could not list podman connections:", error);
+    await showToast({
+      style: Toast.Style.Failure,
+      title: "Failed to list Podman connections",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    return [];
+  }
+}
+
 export type Container = {
   id: string;
   image: string;
@@ -16,6 +79,7 @@ export type Container = {
   icon: string;
   state: string;
   isSystem: boolean;
+  connection: string;
 };
 
 export type Image = {
@@ -26,6 +90,7 @@ export type Image = {
   created: string;
   size: string;
   icon: string;
+  connection: string;
 };
 
 // Parse podman ps JSON output
@@ -78,6 +143,7 @@ export function parseContainerFromJson(containerJson: any): Container | null {
       names: names.trim(),
       state,
       isSystem: false, // Default to user container
+      connection: "", // Set by listContainers
       icon: "", // Will be set by getContainerIcon
     };
   } catch (error) {
@@ -88,6 +154,7 @@ export function parseContainerFromJson(containerJson: any): Container | null {
 
 // Get list of containers
 export async function listContainers(
+  connection: string,
   showAll: boolean = true,
   showSystem: boolean = false
 ): Promise<Container[]> {
@@ -95,7 +162,7 @@ export async function listContainers(
     const containers: Container[] = [];
 
     // Get user containers first
-    const userCommand = showAll ? "podman ps -a --format json" : "podman ps --format json";
+    const userCommand = podmanCmd(connection, showAll ? "ps -a --format json" : "ps --format json");
     try {
       const { stdout: userStdout } = await execAsync(userCommand, {
         maxBuffer: 10 * 1024 * 1024 // 10MB buffer
@@ -107,17 +174,19 @@ export async function listContainers(
       for (const containerJson of userContainerArray) {
         const container = parseContainerFromJson(containerJson);
         if (container) {
-          containers.push(container);
+          containers.push({ ...container, connection });
         }
       }
     } catch (userError) {
+      // A named connection has nothing else to show: surface the failure (e.g. unreachable host)
+      if (connection) throw userError;
       console.log("Could not get user containers:", userError);
     }
 
-    // Try to get system containers if enabled (requires sudo)
-    if (showSystem) {
+    // Try to get system containers if enabled (requires sudo, local only)
+    if (showSystem && !connection) {
       try {
-        const systemCommand = showAll ? "sudo -n podman ps -a --format json" : "sudo -n podman ps --format json";
+        const systemCommand = podmanCmd(connection, showAll ? "ps -a --format json" : "ps --format json", true);
         const { stdout: systemStdout } = await execAsync(systemCommand, {
           maxBuffer: 10 * 1024 * 1024, // 10MB buffer
           timeout: 5000 // 5 second timeout for sudo
@@ -129,7 +198,7 @@ export async function listContainers(
         for (const containerJson of systemContainerArray) {
           const container = parseContainerFromJson(containerJson);
           if (container) {
-            containers.push({ ...container, isSystem: true });
+            containers.push({ ...container, isSystem: true, connection });
           }
         }
       } catch (systemError) {
@@ -155,14 +224,14 @@ export async function listContainers(
 }
 
 // Control container actions
-export async function startContainer(containerId: string): Promise<void> {
+export async function startContainer(connection: string, containerId: string): Promise<void> {
   try {
     await showToast({
       style: Toast.Style.Animated,
       title: `Starting container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman start ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(connection, `start ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning starting ${containerId}:`, stderr);
@@ -184,14 +253,14 @@ export async function startContainer(containerId: string): Promise<void> {
   }
 }
 
-export async function stopContainer(containerId: string): Promise<void> {
+export async function stopContainer(connection: string, containerId: string): Promise<void> {
   try {
     await showToast({
       style: Toast.Style.Animated,
       title: `Stopping container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman stop ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(connection, `stop ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning stopping ${containerId}:`, stderr);
@@ -213,14 +282,14 @@ export async function stopContainer(containerId: string): Promise<void> {
   }
 }
 
-export async function restartContainer(containerId: string): Promise<void> {
+export async function restartContainer(connection: string, containerId: string): Promise<void> {
   try {
     await showToast({
       style: Toast.Style.Animated,
       title: `Restarting container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman restart ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(connection, `restart ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning restarting ${containerId}:`, stderr);
@@ -242,14 +311,14 @@ export async function restartContainer(containerId: string): Promise<void> {
   }
 }
 
-export async function pauseContainer(containerId: string): Promise<void> {
+export async function pauseContainer(connection: string, containerId: string): Promise<void> {
   try {
     await showToast({
       style: Toast.Style.Animated,
       title: `Pausing container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman pause ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(connection, `pause ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning pausing ${containerId}:`, stderr);
@@ -271,14 +340,14 @@ export async function pauseContainer(containerId: string): Promise<void> {
   }
 }
 
-export async function unpauseContainer(containerId: string): Promise<void> {
+export async function unpauseContainer(connection: string, containerId: string): Promise<void> {
   try {
     await showToast({
       style: Toast.Style.Animated,
       title: `Unpausing container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman unpause ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(connection, `unpause ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning unpausing ${containerId}:`, stderr);
@@ -300,7 +369,7 @@ export async function unpauseContainer(containerId: string): Promise<void> {
   }
 }
 
-export async function removeContainer(containerId: string, force: boolean = false): Promise<void> {
+export async function removeContainer(connection: string, containerId: string, force: boolean = false): Promise<void> {
   try {
     await showToast({
       style: Toast.Style.Animated,
@@ -308,7 +377,7 @@ export async function removeContainer(containerId: string, force: boolean = fals
     });
 
     const forceFlag = force ? "--force" : "";
-    const { stderr } = await execAsync(`podman rm ${forceFlag} ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(connection, `rm ${forceFlag} ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning removing ${containerId}:`, stderr);
@@ -332,15 +401,14 @@ export async function removeContainer(containerId: string, force: boolean = fals
 
 // Get container logs
 export async function getContainerLogs(
+  connection: string,
   containerId: string,
   lines: number = 50,
   isSystem: boolean = false
 ): Promise<string> {
   try {
     // Use sudo for system containers
-    const command = isSystem
-      ? `sudo -n podman logs --tail ${lines} ${containerId}`
-      : `podman logs --tail ${lines} ${containerId}`;
+    const command = podmanCmd(connection, `logs --tail ${lines} ${containerId}`, isSystem);
 
     // Use larger buffer size to handle large log outputs
     const { stdout } = await execAsync(command, {
@@ -358,12 +426,10 @@ export async function getContainerLogs(
 }
 
 // Get container details
-export async function getContainerInspect(containerId: string, isSystem: boolean = false): Promise<string> {
+export async function getContainerInspect(connection: string, containerId: string, isSystem: boolean = false): Promise<string> {
   try {
     // Use sudo for system containers
-    const command = isSystem
-      ? `sudo -n podman inspect ${containerId}`
-      : `podman inspect ${containerId}`;
+    const command = podmanCmd(connection, `inspect ${containerId}`, isSystem);
 
     const { stdout } = await execAsync(command, {
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer
@@ -429,6 +495,7 @@ export function parseImageFromJson(imageJson: any): Image | null {
       created: created || "",
       size: size || "",
       icon: "", // Will be set by getImageIcon
+      connection: "", // Set by listImages
     };
   } catch (error) {
     console.error("Error parsing image JSON:", error);
@@ -437,9 +504,9 @@ export function parseImageFromJson(imageJson: any): Image | null {
 }
 
 // Get list of images
-export async function listImages(): Promise<Image[]> {
+export async function listImages(connection: string): Promise<Image[]> {
   try {
-    const { stdout } = await execAsync("podman images --format json", {
+    const { stdout } = await execAsync(podmanCmd(connection, "images --format json"), {
       maxBuffer: 10 * 1024 * 1024 // 10MB buffer
     });
 
@@ -450,7 +517,7 @@ export async function listImages(): Promise<Image[]> {
     for (const imageJson of imageArray) {
       const image = parseImageFromJson(imageJson);
       if (image) {
-        images.push(image);
+        images.push({ ...image, connection });
       }
     }
 
@@ -467,14 +534,14 @@ export async function listImages(): Promise<Image[]> {
 }
 
 // Pull an image
-export async function pullImage(imageName: string): Promise<void> {
+export async function pullImage(connection: string, imageName: string): Promise<void> {
   try {
     await showToast({
       style: Toast.Style.Animated,
       title: `Pulling image ${imageName}...`,
     });
 
-    const { stderr } = await execAsync(`podman pull ${imageName}`);
+    const { stderr } = await execAsync(podmanCmd(connection, `pull ${imageName}`));
 
     if (stderr) {
       console.warn(`Warning pulling ${imageName}:`, stderr);
@@ -497,7 +564,7 @@ export async function pullImage(imageName: string): Promise<void> {
 }
 
 // Remove an image
-export async function removeImage(imageId: string, force: boolean = false): Promise<void> {
+export async function removeImage(connection: string, imageId: string, force: boolean = false): Promise<void> {
   try {
     await showToast({
       style: Toast.Style.Animated,
@@ -505,7 +572,7 @@ export async function removeImage(imageId: string, force: boolean = false): Prom
     });
 
     const forceFlag = force ? "--force" : "";
-    const { stderr } = await execAsync(`podman rmi ${forceFlag} ${imageId}`);
+    const { stderr } = await execAsync(podmanCmd(connection, `rmi ${forceFlag} ${imageId}`));
 
     if (stderr) {
       console.warn(`Warning removing ${imageId}:`, stderr);
@@ -528,9 +595,9 @@ export async function removeImage(imageId: string, force: boolean = false): Prom
 }
 
 // Get image details
-export async function getImageInspect(imageId: string): Promise<string> {
+export async function getImageInspect(connection: string, imageId: string): Promise<string> {
   try {
-    const { stdout } = await execAsync(`podman inspect ${imageId}`, {
+    const { stdout } = await execAsync(podmanCmd(connection, `inspect ${imageId}`), {
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer
     });
     return stdout;

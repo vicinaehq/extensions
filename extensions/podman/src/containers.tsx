@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
 import {
   Action,
   ActionPanel,
@@ -24,15 +24,16 @@ import {
   ContainerStatus,
 } from "./patterns";
 import type { Container } from "./podman";
+import { ConnectionSubmenu, connectionLabel, useConnection } from "./connection";
 
 // Custom hook for managing containers
-function useContainers(showSystem: boolean = false) {
+function useContainers(showSystem: boolean, connection: string, ready: boolean) {
   const [containers, setContainers] = useState<Container[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchContainers = useCallback(async (): Promise<Container[]> => {
     try {
-      const containers = await listContainers(true, showSystem);
+      const containers = await listContainers(connection, true, showSystem);
 
       // Add icons to containers
       return containers.map((container) => ({
@@ -47,18 +48,33 @@ function useContainers(showSystem: boolean = false) {
       console.error(error);
       return [];
     }
-  }, [showSystem]);
+  }, [showSystem, connection]);
+
+  // Only the latest request may update state, so a slow response from a
+  // previous connection can never be shown under (or acted on via) the new one.
+  // Callbacks captured for a previous connection (e.g. an action's refresh
+  // finishing after a switch) are ignored entirely.
+  const requestId = useRef(0);
+  const currentConnection = useRef(connection);
+  currentConnection.current = connection;
 
   const refreshContainers = useCallback(async () => {
+    if (connection !== currentConnection.current) return;
+    const id = ++requestId.current;
     setLoading(true);
     const newContainers = await fetchContainers();
+    if (id !== requestId.current || connection !== currentConnection.current) {
+      return;
+    }
     setContainers(newContainers);
     setLoading(false);
-  }, [fetchContainers]);
+  }, [fetchContainers, connection]);
 
   useEffect(() => {
+    if (!ready) return;
+    setContainers([]);
     refreshContainers();
-  }, [refreshContainers]);
+  }, [refreshContainers, ready]);
 
   return { containers, loading, refreshContainers };
 }
@@ -69,23 +85,29 @@ function ContainerDetail({ container }: { container: Container }) {
   const [inspectLoading, setInspectLoading] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchInspect = async () => {
       setInspectLoading(true);
+      let result: string;
       try {
-        const containerInspect = await getContainerInspect(
+        result = await getContainerInspect(
+          container.connection,
           container.id,
           container.isSystem
         );
-        setInspect(containerInspect);
       } catch {
-        setInspect("Failed to load inspect data");
-      } finally {
-        setInspectLoading(false);
+        result = "Failed to load inspect data";
       }
+      if (cancelled) return;
+      setInspect(result);
+      setInspectLoading(false);
     };
 
     fetchInspect();
-  }, [container.id, container.isSystem]);
+    return () => {
+      cancelled = true;
+    };
+  }, [container.connection, container.id, container.isSystem]);
 
   const content = inspectLoading
     ? "Loading inspect data..."
@@ -147,22 +169,22 @@ function createContainerActionHandler(
     try {
       switch (action) {
         case "start":
-          await startContainer(container.id);
+          await startContainer(container.connection, container.id);
           break;
         case "stop":
-          await stopContainer(container.id);
+          await stopContainer(container.connection, container.id);
           break;
         case "restart":
-          await restartContainer(container.id);
+          await restartContainer(container.connection, container.id);
           break;
         case "pause":
-          await pauseContainer(container.id);
+          await pauseContainer(container.connection, container.id);
           break;
         case "unpause":
-          await unpauseContainer(container.id);
+          await unpauseContainer(container.connection, container.id);
           break;
         case "remove":
-          await removeContainer(container.id);
+          await removeContainer(container.connection, container.id);
           break;
         default:
           console.error(`Unknown action: ${action}`);
@@ -191,11 +213,13 @@ function ContainerListItem({
   showingDetail,
   refreshContainers,
   toggleDetails,
+  connectionMenu,
 }: {
   container: Container;
   showingDetail: boolean;
   refreshContainers: () => Promise<void>;
   toggleDetails: () => void;
+  connectionMenu: ReactNode;
 }) {
   const tintColor = getContainerColor(container.status);
 
@@ -317,6 +341,15 @@ function ContainerListItem({
               />
             </>
            )}
+          <ActionPanel.Section>
+            <Action
+              title="Refresh"
+              icon={Icon.ArrowClockwise}
+              shortcut={{ modifiers: ["ctrl"], key: "f" }}
+              onAction={refreshContainers}
+            />
+            {connectionMenu}
+          </ActionPanel.Section>
          </ActionPanel>
       }
     />
@@ -337,10 +370,31 @@ export default function Containers() {
   const [showingDetail, setShowingDetail] = useState(false);
   const [filter, setFilter] = useState<ContainerFilter>("all");
 
-  // Determine if we should show system containers based on filter
-  const showSystem = filter === "all" || filter === "system";
+  const { connections, connection, setConnection, ready, allowSystem } =
+    useConnection();
 
-  const { containers, loading, refreshContainers } = useContainers(showSystem);
+  // The system filter disappears for non-local targets; don't leave it selected
+  useEffect(() => {
+    if (!allowSystem && filter === "system") setFilter("all");
+  }, [allowSystem, filter]);
+
+  // Determine if we should show system containers based on filter (local only)
+  const showSystem = allowSystem && (filter === "all" || filter === "system");
+
+  const { containers, loading, refreshContainers } = useContainers(
+    showSystem,
+    connection,
+    ready
+  );
+
+  const connectionMenu = (
+    <ConnectionSubmenu
+      connections={connections}
+      connection={connection}
+      onSelect={setConnection}
+    />
+  );
+  const navigationTitle = `Containers — ${connectionLabel(connection)}`;
 
   const toggleDetails = useCallback(() => {
     setShowingDetail(!showingDetail);
@@ -372,11 +426,11 @@ export default function Containers() {
 
   if (containers.length === 0 && !loading) {
     return (
-      <List>
+      <List navigationTitle={navigationTitle}>
         <List.EmptyView
           icon={Icon.Box}
           title="No Containers Found"
-          description="No Podman containers available. Create a container to get started."
+          description={`No Podman containers available on ${connectionLabel(connection)}.`}
           actions={
             <ActionPanel>
               <Action
@@ -384,6 +438,7 @@ export default function Containers() {
                 icon={Icon.ArrowClockwise}
                 onAction={refreshContainers}
               />
+              {connectionMenu}
             </ActionPanel>
           }
         />
@@ -394,6 +449,7 @@ export default function Containers() {
   return (
     <List
       isLoading={loading}
+      navigationTitle={navigationTitle}
       searchBarPlaceholder="Search containers..."
       isShowingDetail={showingDetail}
     >
@@ -413,11 +469,13 @@ export default function Containers() {
             title="User Containers"
             icon={Icon.Person}
           />
-          <List.Dropdown.Item
-            value="system"
-            title="System Containers"
-            icon={Icon.Gear}
-          />
+          {allowSystem && (
+            <List.Dropdown.Item
+              value="system"
+              title="System Containers"
+              icon={Icon.Gear}
+            />
+          )}
           <List.Dropdown.Item
             value="running"
             title="Running"
@@ -438,6 +496,7 @@ export default function Containers() {
           showingDetail={showingDetail}
           refreshContainers={refreshContainers}
           toggleDetails={toggleDetails}
+          connectionMenu={connectionMenu}
         />
       ))}
     </List>

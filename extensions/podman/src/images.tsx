@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
 import {
   Action,
   ActionPanel,
@@ -15,15 +15,16 @@ import {
 } from "./podman";
 import { getImageIcon } from "./patterns";
 import type { Image } from "./podman";
+import { ConnectionSubmenu, connectionLabel, useConnection } from "./connection";
 
 // Custom hook for managing images
-function useImages() {
+function useImages(connection: string, ready: boolean) {
   const [images, setImages] = useState<Image[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchImages = useCallback(async (): Promise<Image[]> => {
     try {
-      const images = await listImages();
+      const images = await listImages(connection);
 
       // Add icons to images
       return images.map((image) => ({
@@ -38,18 +39,33 @@ function useImages() {
       console.error(error);
       return [];
     }
-  }, []);
+  }, [connection]);
+
+  // Only the latest request may update state, so a slow response from a
+  // previous connection can never be shown under (or acted on via) the new one.
+  // Callbacks captured for a previous connection (e.g. an action's refresh
+  // finishing after a switch) are ignored entirely.
+  const requestId = useRef(0);
+  const currentConnection = useRef(connection);
+  currentConnection.current = connection;
 
   const refreshImages = useCallback(async () => {
+    if (connection !== currentConnection.current) return;
+    const id = ++requestId.current;
     setLoading(true);
     const newImages = await fetchImages();
+    if (id !== requestId.current || connection !== currentConnection.current) {
+      return;
+    }
     setImages(newImages);
     setLoading(false);
-  }, [fetchImages]);
+  }, [fetchImages, connection]);
 
   useEffect(() => {
+    if (!ready) return;
+    setImages([]);
     refreshImages();
-  }, [refreshImages]);
+  }, [refreshImages, ready]);
 
   return { images, loading, refreshImages };
 }
@@ -60,20 +76,25 @@ function ImageDetail({ image }: { image: Image }) {
   const [inspectLoading, setInspectLoading] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchInspect = async () => {
       setInspectLoading(true);
+      let result: string;
       try {
-        const imageInspect = await getImageInspect(image.id);
-        setInspect(imageInspect);
+        result = await getImageInspect(image.connection, image.id);
       } catch {
-        setInspect("Failed to load inspect data");
-      } finally {
-        setInspectLoading(false);
+        result = "Failed to load inspect data";
       }
+      if (cancelled) return;
+      setInspect(result);
+      setInspectLoading(false);
     };
 
     fetchInspect();
-  }, [image.id]);
+    return () => {
+      cancelled = true;
+    };
+  }, [image.connection, image.id]);
 
   const content = inspectLoading
     ? "Loading inspect data..."
@@ -122,7 +143,7 @@ function createImageActionHandler(
     try {
       switch (action) {
         case "remove":
-          await removeImage(image.id, true); // Always force remove
+          await removeImage(image.connection, image.id, true); // Always force remove
           break;
         default:
           console.error(`Unknown action: ${action}`);
@@ -149,11 +170,13 @@ function ImageListItem({
   showingDetail,
   refreshImages,
   toggleDetails,
+  connectionMenu,
 }: {
   image: Image;
   showingDetail: boolean;
   refreshImages: () => Promise<void>;
   toggleDetails: () => void;
+  connectionMenu: ReactNode;
 }) {
   return (
     <List.Item
@@ -191,6 +214,15 @@ function ImageListItem({
               refreshImages
             )}
           />
+          <ActionPanel.Section>
+            <Action
+              title="Refresh"
+              icon={Icon.ArrowClockwise}
+              shortcut={{ modifiers: ["ctrl"], key: "f" }}
+              onAction={refreshImages}
+            />
+            {connectionMenu}
+          </ActionPanel.Section>
         </ActionPanel>
       }
     />
@@ -202,7 +234,17 @@ export default function Images() {
   const [showingDetail, setShowingDetail] = useState(false);
   const [searchText, setSearchText] = useState("");
 
-  const { images, loading, refreshImages } = useImages();
+  const { connections, connection, setConnection, ready } = useConnection();
+  const { images, loading, refreshImages } = useImages(connection, ready);
+
+  const connectionMenu = (
+    <ConnectionSubmenu
+      connections={connections}
+      connection={connection}
+      onSelect={setConnection}
+    />
+  );
+  const navigationTitle = `Images — ${connectionLabel(connection)}`;
 
   const toggleDetails = useCallback(() => {
     setShowingDetail(!showingDetail);
@@ -219,11 +261,11 @@ export default function Images() {
 
   if (images.length === 0 && !loading) {
     return (
-      <List>
+      <List navigationTitle={navigationTitle}>
         <List.EmptyView
           icon={Icon.Image}
           title="No Images Found"
-          description="No Podman images available. Pull an image to get started."
+          description={`No Podman images available on ${connectionLabel(connection)}.`}
           actions={
             <ActionPanel>
               <Action
@@ -231,6 +273,7 @@ export default function Images() {
                 icon={Icon.ArrowClockwise}
                 onAction={refreshImages}
               />
+              {connectionMenu}
             </ActionPanel>
           }
         />
@@ -241,6 +284,7 @@ export default function Images() {
   return (
     <List
       isLoading={loading}
+      navigationTitle={navigationTitle}
       searchBarPlaceholder="Search images..."
       isShowingDetail={showingDetail}
       onSearchTextChange={setSearchText}
@@ -252,6 +296,7 @@ export default function Images() {
           showingDetail={showingDetail}
           refreshImages={refreshImages}
           toggleDetails={toggleDetails}
+          connectionMenu={connectionMenu}
         />
       ))}
     </List>
