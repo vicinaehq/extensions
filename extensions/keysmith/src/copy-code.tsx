@@ -200,7 +200,8 @@ function AccountList({
             <List.Item
               key={item.account.id}
               title={item.account.issuer || item.account.account}
-              subtitle={item.account.account}
+              // Without an issuer the title already is the account name.
+              subtitle={item.account.issuer ? item.account.account : undefined}
               icon={Icon.Key}
               accessories={
                 item.account.type === "totp"
