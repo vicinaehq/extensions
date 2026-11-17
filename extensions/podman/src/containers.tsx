@@ -52,16 +52,23 @@ function useContainers(showSystem: boolean, connection: string, ready: boolean) 
 
   // Only the latest request may update state, so a slow response from a
   // previous connection can never be shown under (or acted on via) the new one.
+  // Callbacks captured for a previous connection (e.g. an action's refresh
+  // finishing after a switch) are ignored entirely.
   const requestId = useRef(0);
+  const currentConnection = useRef(connection);
+  currentConnection.current = connection;
 
   const refreshContainers = useCallback(async () => {
+    if (connection !== currentConnection.current) return;
     const id = ++requestId.current;
     setLoading(true);
     const newContainers = await fetchContainers();
-    if (id !== requestId.current) return;
+    if (id !== requestId.current || connection !== currentConnection.current) {
+      return;
+    }
     setContainers(newContainers);
     setLoading(false);
-  }, [fetchContainers]);
+  }, [fetchContainers, connection]);
 
   useEffect(() => {
     if (!ready) return;

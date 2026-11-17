@@ -13,19 +13,22 @@ export type PodmanConnection = {
 };
 
 // Whether `connection` (""/unset = podman's default) targets the local podman socket.
-// Plain `podman` follows CONTAINER_HOST / CONTAINER_CONNECTION and the connection marked
-// as default, and is always remote on macOS (podman machine), so only treat it as local
-// when none of those apply.
+// For the default, plain `podman` resolves CONTAINER_HOST, then CONTAINER_CONNECTION, then
+// the connection marked as default, and is always remote on macOS (podman machine).
 export function isLocalTarget(connection: string, connections: PodmanConnection[]): boolean {
-  const target = connection
-    ? connections.find((c) => c.name === connection)
-    : connections.find((c) => c.isDefault);
-  if (target) {
-    return !target.isMachine && target.uri.startsWith("unix://");
-  }
-  if (connection) return false;
+  const isLocalConnection = (name: string) => {
+    const c = connections.find((c) => c.name === name);
+    return Boolean(c && !c.isMachine && c.uri.startsWith("unix://"));
+  };
+  if (connection) return isLocalConnection(connection);
   if (process.platform === "darwin") return false;
-  return !process.env.CONTAINER_HOST && !process.env.CONTAINER_CONNECTION;
+  // An explicit host override is never the socket `sudo podman` would use
+  if (process.env.CONTAINER_HOST) return false;
+  if (process.env.CONTAINER_CONNECTION) {
+    return isLocalConnection(process.env.CONTAINER_CONNECTION);
+  }
+  const marked = connections.find((c) => c.isDefault);
+  return marked ? isLocalConnection(marked.name) : true;
 }
 
 function shellQuote(value: string): string {
