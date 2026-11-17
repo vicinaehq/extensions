@@ -132,6 +132,17 @@ export function getUniqueFilePath(outputDir: string, safeFilename: string): stri
 }
 
 /**
+ * Picks the collision suffix (e.g. " (1)") once per split, so that all parts of a
+ * re-run share it ("[part 1] (1)", "[part 2] (1)", ...) instead of only the parts
+ * whose names already existed.
+ */
+function getSplitRunSuffix(dir: string, baseName: string, suffix: string): string {
+  const firstPart = path.basename(getUniqueFilePath(dir, `${baseName} [${suffix} 1].pdf`));
+  const match = firstPart.match(/ \(\d+\)\.pdf$/);
+  return match ? match[0].slice(0, -".pdf".length) : "";
+}
+
+/**
  * Merge multiple PDF files into one without overwriting existing files.
  */
 export async function mergePDFs(filePaths: string[], outputFilename: string): Promise<string> {
@@ -204,11 +215,12 @@ export async function splitByPageCount(
   const baseName = path.basename(filePath, ext);
 
   const outputFiles: string[] = [];
+  const runSuffix = getSplitRunSuffix(dir, baseName, suffix);
   let partNumber = 1;
 
   for (let start = 1; start <= totalPages; start += pageCount) {
     const stop = Math.min(start + pageCount - 1, totalPages);
-    const outName = `${baseName} [${suffix} ${partNumber}].pdf`;
+    const outName = `${baseName} [${suffix} ${partNumber}]${runSuffix}.pdf`;
     const outPath = getUniqueFilePath(dir, outName);
 
     await runQpdf([filePath, "--pages", filePath, `${start}-${stop}`, "--", outPath]);
@@ -235,6 +247,7 @@ export async function splitByFileSize(
   const baseName = path.basename(filePath, ext);
 
   const outputFiles: string[] = [];
+  const runSuffix = getSplitRunSuffix(dir, baseName, suffix);
   const tempPath = path.join(dir, `.temp_split_${Date.now()}.pdf`);
 
   let start = 1;
@@ -251,7 +264,7 @@ export async function splitByFileSize(
       const singlePageSize = fs.statSync(tempPath).size;
 
       if (singlePageSize >= maxSizeBytes || start === totalPages) {
-        const outName = `${baseName} [${suffix} ${partNumber}].pdf`;
+        const outName = `${baseName} [${suffix} ${partNumber}]${runSuffix}.pdf`;
         const outPath = getUniqueFilePath(dir, outName);
         fs.renameSync(tempPath, outPath);
         outputFiles.push(outPath);
@@ -274,7 +287,7 @@ export async function splitByFileSize(
         }
       }
 
-      const outName = `${baseName} [${suffix} ${partNumber}].pdf`;
+      const outName = `${baseName} [${suffix} ${partNumber}]${runSuffix}.pdf`;
       const outPath = getUniqueFilePath(dir, outName);
       await runQpdf([filePath, "--pages", filePath, `${start}-${bestStop}`, "--", outPath]);
 
