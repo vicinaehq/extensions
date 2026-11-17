@@ -7,8 +7,8 @@ import {
   getPreferenceValues,
 } from "@vicinae/api";
 import {
+  isLocalTarget,
   listConnections,
-  setActiveConnection,
   type PodmanConnection,
 } from "./podman";
 
@@ -32,20 +32,21 @@ export function useConnection() {
         typeof stored === "string"
           ? stored
           : (getPreferenceValues<Preferences>().defaultConnection || "").trim();
-      setActiveConnection(initial);
+      setConnections(await listConnections());
       setConnectionState(initial);
       setReady(true);
-      setConnections(await listConnections());
     })();
   }, []);
 
   const setConnection = useCallback((name: string) => {
-    setActiveConnection(name);
     setConnectionState(name);
     LocalStorage.setItem(STORAGE_KEY, name);
   }, []);
 
-  return { connections, connection, setConnection, ready };
+  // sudo system containers are only meaningful when plain `podman` hits the local socket
+  const allowSystem = connection === "" && isLocalTarget("", connections);
+
+  return { connections, connection, setConnection, ready, allowSystem };
 }
 
 export function connectionLabel(connection: string): string {

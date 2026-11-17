@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, type ReactNode } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
 import {
   Action,
   ActionPanel,
@@ -24,7 +24,7 @@ function useImages(connection: string, ready: boolean) {
 
   const fetchImages = useCallback(async (): Promise<Image[]> => {
     try {
-      const images = await listImages();
+      const images = await listImages(connection);
 
       // Add icons to images
       return images.map((image) => ({
@@ -41,15 +41,23 @@ function useImages(connection: string, ready: boolean) {
     }
   }, [connection]);
 
+  // Only the latest request may update state, so a slow response from a
+  // previous connection can never be shown under (or acted on via) the new one.
+  const requestId = useRef(0);
+
   const refreshImages = useCallback(async () => {
+    const id = ++requestId.current;
     setLoading(true);
     const newImages = await fetchImages();
+    if (id !== requestId.current) return;
     setImages(newImages);
     setLoading(false);
   }, [fetchImages]);
 
   useEffect(() => {
-    if (ready) refreshImages();
+    if (!ready) return;
+    setImages([]);
+    refreshImages();
   }, [refreshImages, ready]);
 
   return { images, loading, refreshImages };
@@ -61,20 +69,25 @@ function ImageDetail({ image }: { image: Image }) {
   const [inspectLoading, setInspectLoading] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchInspect = async () => {
       setInspectLoading(true);
+      let result: string;
       try {
-        const imageInspect = await getImageInspect(image.id);
-        setInspect(imageInspect);
+        result = await getImageInspect(image.connection, image.id);
       } catch {
-        setInspect("Failed to load inspect data");
-      } finally {
-        setInspectLoading(false);
+        result = "Failed to load inspect data";
       }
+      if (cancelled) return;
+      setInspect(result);
+      setInspectLoading(false);
     };
 
     fetchInspect();
-  }, [image.id]);
+    return () => {
+      cancelled = true;
+    };
+  }, [image.connection, image.id]);
 
   const content = inspectLoading
     ? "Loading inspect data..."
@@ -123,7 +136,7 @@ function createImageActionHandler(
     try {
       switch (action) {
         case "remove":
-          await removeImage(image.id, true); // Always force remove
+          await removeImage(image.connection, image.id, true); // Always force remove
           break;
         default:
           console.error(`Unknown action: ${action}`);

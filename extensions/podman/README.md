@@ -16,7 +16,7 @@ A Vicinae extension for managing Podman containers and images on Linux and macOS
 
 ## Requirements
 
-- Linux system with Podman installed
+- Linux or macOS system with Podman installed
 - Appropriate permissions to manage containers (may require sudo for some operations)
 
 ## Remote Connections
@@ -31,7 +31,7 @@ podman system connection list
 - Open the action panel → **Switch Connection** to pick a connection. The selection is remembered and shared between the Containers and Images commands.
 - **Default Connection** runs plain `podman`, i.e. the local socket or whichever connection Podman marks as default.
 - Set the **Default Connection** preference to choose which connection is used on first launch.
-- System (sudo) containers are only listed for the local default connection; to manage a remote rootful instance, add a connection pointing at its root socket.
+- System (sudo) containers are only listed when the default connection is the local socket; to manage a remote rootful instance, add a connection pointing at its root socket.
 
 ## Usage
 

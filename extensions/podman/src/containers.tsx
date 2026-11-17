@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, type ReactNode } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
 import {
   Action,
   ActionPanel,
@@ -33,7 +33,7 @@ function useContainers(showSystem: boolean, connection: string, ready: boolean) 
 
   const fetchContainers = useCallback(async (): Promise<Container[]> => {
     try {
-      const containers = await listContainers(true, showSystem);
+      const containers = await listContainers(connection, true, showSystem);
 
       // Add icons to containers
       return containers.map((container) => ({
@@ -50,15 +50,23 @@ function useContainers(showSystem: boolean, connection: string, ready: boolean) 
     }
   }, [showSystem, connection]);
 
+  // Only the latest request may update state, so a slow response from a
+  // previous connection can never be shown under (or acted on via) the new one.
+  const requestId = useRef(0);
+
   const refreshContainers = useCallback(async () => {
+    const id = ++requestId.current;
     setLoading(true);
     const newContainers = await fetchContainers();
+    if (id !== requestId.current) return;
     setContainers(newContainers);
     setLoading(false);
   }, [fetchContainers]);
 
   useEffect(() => {
-    if (ready) refreshContainers();
+    if (!ready) return;
+    setContainers([]);
+    refreshContainers();
   }, [refreshContainers, ready]);
 
   return { containers, loading, refreshContainers };
@@ -70,23 +78,29 @@ function ContainerDetail({ container }: { container: Container }) {
   const [inspectLoading, setInspectLoading] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchInspect = async () => {
       setInspectLoading(true);
+      let result: string;
       try {
-        const containerInspect = await getContainerInspect(
+        result = await getContainerInspect(
+          container.connection,
           container.id,
           container.isSystem
         );
-        setInspect(containerInspect);
       } catch {
-        setInspect("Failed to load inspect data");
-      } finally {
-        setInspectLoading(false);
+        result = "Failed to load inspect data";
       }
+      if (cancelled) return;
+      setInspect(result);
+      setInspectLoading(false);
     };
 
     fetchInspect();
-  }, [container.id, container.isSystem]);
+    return () => {
+      cancelled = true;
+    };
+  }, [container.connection, container.id, container.isSystem]);
 
   const content = inspectLoading
     ? "Loading inspect data..."
@@ -148,22 +162,22 @@ function createContainerActionHandler(
     try {
       switch (action) {
         case "start":
-          await startContainer(container.id);
+          await startContainer(container.connection, container.id);
           break;
         case "stop":
-          await stopContainer(container.id);
+          await stopContainer(container.connection, container.id);
           break;
         case "restart":
-          await restartContainer(container.id);
+          await restartContainer(container.connection, container.id);
           break;
         case "pause":
-          await pauseContainer(container.id);
+          await pauseContainer(container.connection, container.id);
           break;
         case "unpause":
-          await unpauseContainer(container.id);
+          await unpauseContainer(container.connection, container.id);
           break;
         case "remove":
-          await removeContainer(container.id);
+          await removeContainer(container.connection, container.id);
           break;
         default:
           console.error(`Unknown action: ${action}`);
@@ -349,11 +363,16 @@ export default function Containers() {
   const [showingDetail, setShowingDetail] = useState(false);
   const [filter, setFilter] = useState<ContainerFilter>("all");
 
-  const { connections, connection, setConnection, ready } = useConnection();
-  const isRemote = connection !== "";
+  const { connections, connection, setConnection, ready, allowSystem } =
+    useConnection();
+
+  // The system filter disappears for non-local targets; don't leave it selected
+  useEffect(() => {
+    if (!allowSystem && filter === "system") setFilter("all");
+  }, [allowSystem, filter]);
 
   // Determine if we should show system containers based on filter (local only)
-  const showSystem = !isRemote && (filter === "all" || filter === "system");
+  const showSystem = allowSystem && (filter === "all" || filter === "system");
 
   const { containers, loading, refreshContainers } = useContainers(
     showSystem,
@@ -443,7 +462,7 @@ export default function Containers() {
             title="User Containers"
             icon={Icon.Person}
           />
-          {!isRemote && (
+          {allowSystem && (
             <List.Dropdown.Item
               value="system"
               title="System Containers"
