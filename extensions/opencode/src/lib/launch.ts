@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { promisify } from "node:util";
 import { runInTerminal } from "@vicinae/api";
 import { OpenCodeError } from "./opencode/errors";
@@ -21,10 +23,13 @@ async function isV2Binary(name: string): Promise<boolean> {
  * Resolve the OpenCode V2 executable used to open the TUI.
  *
  * An explicitly configured path wins; otherwise `opencode2` then `opencode`
- * are probed on PATH and verified to be a V2 build.
+ * are probed on PATH, then the official installer's `~/.opencode/bin` (it only
+ * adds that folder to the shell PATH, which a launcher does not see), and
+ * verified to be a V2 build.
  */
 export async function resolveOpenCodeBinary(configured?: string): Promise<string> {
-  for (const candidate of configured ? [configured] : ["opencode2", "opencode"]) {
+  const installed = join(homedir(), ".opencode", "bin", "opencode2");
+  for (const candidate of configured ? [configured] : ["opencode2", "opencode", installed]) {
     if (await isV2Binary(candidate)) return candidate;
   }
   if (configured) {

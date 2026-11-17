@@ -55,7 +55,7 @@ The extension talks to an OpenCode V2 server using the official `@opencode/clien
 | Server URL | *(auto-discover)* | Explicit OpenCode server endpoint, e.g. `http://127.0.0.1:49374`. Leave empty for local discovery. |
 | Server Username | `opencode` | HTTP basic auth username for a configured server. |
 | Server Password | *(empty)* | HTTP basic auth password for a configured server. |
-| OpenCode Executable | *(auto-detect)* | OpenCode V2 executable used to open sessions. Auto-detects `opencode2` or `opencode` on PATH and verifies it is a V2 build. |
+| OpenCode Executable | *(auto-detect)* | OpenCode V2 executable used to open sessions. Auto-detects `opencode2` or `opencode` on PATH, then `~/.opencode/bin/opencode2` (where the official installer puts it), and verifies it is a V2 build. |
 
 ## Development commands
 
