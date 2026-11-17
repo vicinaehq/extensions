@@ -10,7 +10,8 @@ import { relativeTime } from "../lib/time";
 const GLOBAL_DIRECTORY = "/";
 
 export function basename(directory: string): string {
-  const parts = directory.split("/").filter(Boolean);
+  // Windows paths from the server use backslashes.
+  const parts = directory.split(process.platform === "win32" ? /[\\/]/ : "/").filter(Boolean);
   return parts[parts.length - 1] ?? directory;
 }
 
