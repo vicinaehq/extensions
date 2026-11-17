@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
+import { getUniqueFilePath } from "./qpdf";
 
 const execFileAsync = promisify(execFile);
 
@@ -136,7 +137,7 @@ export async function convertImagesToPDF(
   const safeFilename = outputFilename.toLowerCase().endsWith(".pdf")
     ? outputFilename
     : `${outputFilename}.pdf`;
-  const outputPath = path.join(targetDir, safeFilename);
+  const outputPath = getUniqueFilePath(targetDir, safeFilename);
 
   // 3. Resolve python executable across platforms
   const pythonCmd = await getPythonExecutable();
