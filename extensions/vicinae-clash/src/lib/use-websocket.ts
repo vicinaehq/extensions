@@ -30,6 +30,7 @@ export function useWebSocketJson<T>(endpoint: string, params: Record<string, str
         setIsConnecting(false);
       });
       socket.on("message", (message) => {
+        if (socketRef.current !== socket) return;
         try {
           setData(JSON.parse(message.toString()) as T);
           setError(undefined);
