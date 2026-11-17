@@ -1,7 +1,7 @@
 import { Toast, closeMainWindow, showToast } from "@vicinae/api";
 import { useState } from "react";
 import z from "zod";
-import { octokit } from "../api/githubClient";
+import { getOctokit } from "../api/githubClient";
 import { Assignee, Label, Repository } from "../types";
 
 export const useIssueForm = () => {
@@ -36,6 +36,7 @@ export const useIssueForm = () => {
       "Creating issue...",
     );
     try {
+      const octokit = getOctokit();
       await octokit.issues.create({
         owner,
         repo: repoName,

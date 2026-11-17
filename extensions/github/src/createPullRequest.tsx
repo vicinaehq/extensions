@@ -8,6 +8,7 @@ import { usePullRequestForm } from "./hooks/usePullRequestForm";
 import { persister, queryClient } from "./queryClient";
 import { useGetIssues } from "./hooks/useGetIssues";
 import { useGetAssignees } from "./hooks/useGetAssignees";
+import { GitHubAuthentication } from "./components/GitHubAuthentication";
 
 function CreatePullRequest() {
   return (
@@ -15,7 +16,9 @@ function CreatePullRequest() {
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Command />
+      <GitHubAuthentication>
+        <Command />
+      </GitHubAuthentication>
     </PersistQueryClientProvider>
   );
 }

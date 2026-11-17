@@ -14,6 +14,7 @@ import { issueDropdownItems } from "./config";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useGetIssues } from "./hooks/useGetIssues";
 import { useGetMyRepos } from "./hooks/useGetRepos";
+import { GitHubAuthentication } from "./components/GitHubAuthentication";
 
 function Issues() {
   return (
@@ -21,7 +22,9 @@ function Issues() {
       client={queryClient}
       persistOptions={{ persister }}
     >
-      <Command />
+      <GitHubAuthentication>
+        <Command />
+      </GitHubAuthentication>
     </PersistQueryClientProvider>
   );
 }

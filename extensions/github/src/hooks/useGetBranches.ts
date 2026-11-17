@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { octokit } from "../api/githubClient";
+import { getOctokit } from "../api/githubClient";
 import { Branch, Repository } from "../types";
 import { octokitPaginate } from "../api/octokitPaginate";
 
@@ -9,6 +9,7 @@ export const useGetBranches = (repo: Repository | null) => {
     queryKey: ["githubBranches", repo?.id],
     queryFn: async () => {
       if (!repo) return defaultValue;
+      const octokit = getOctokit();
       const [owner, repoName] = repo.full_name.split("/");
       const branches = await octokitPaginate(octokit.repos.listBranches, {
         owner,

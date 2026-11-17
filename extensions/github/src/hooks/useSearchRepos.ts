@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { octokit } from "../api/githubClient";
+import { getOctokit } from "../api/githubClient";
 import { GitHubPreferencesMinimal } from "../types";
 import { getPreferenceValues, showToast, Toast } from "@vicinae/api";
 import { RequestError } from "@octokit/request-error";
@@ -11,6 +11,7 @@ export const useSearchRepos = (query: string, enabled = false) => {
     queryKey: ["githubRepos", query],
     queryFn: async () => {
       try {
+        const octokit = getOctokit();
         const response = await octokit.search.repos({
           q: query,
           sort: "updated",
