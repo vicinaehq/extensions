@@ -173,6 +173,23 @@ async function decodeBarcode(image: string): Promise<string> {
   }
 }
 
+/** Requested Tesseract languages whose language data is not installed. */
+async function missingLanguages(languages: string[]): Promise<string[]> {
+  try {
+    const { stdout } = await run("tesseract", ["--list-langs"], { env: ENV, timeout: 10_000 });
+    // The first line is a header ("List of available languages in ...").
+    const installed = stdout
+      .split("\n")
+      .slice(1)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (installed.length === 0) return [];
+    return languages.filter((lang) => !installed.includes(lang));
+  } catch {
+    return [];
+  }
+}
+
 function missingDependencies(task: "text" | "barcode", method: CaptureMethod, source: Source): string[] {
   const missing: string[] = [];
   if (task === "text" && !which("tesseract")) missing.push("tesseract-ocr");
@@ -216,6 +233,19 @@ export async function runOcr(options: { mode: Mode; task: "text" | "barcode"; so
     return;
   }
 
+  // Tesseract fails with an unclear error when no requested language is installed,
+  // and silently skips the missing ones otherwise.
+  const languages = language.split("+").map((lang) => lang.trim()).filter(Boolean);
+  const missingLangs = options.task === "text" ? await missingLanguages(languages) : [];
+  if (missingLangs.length > 0 && missingLangs.length === languages.length) {
+    await showToast({
+      style: Toast.Style.Failure,
+      title: `Missing language data: ${missingLangs.join(", ")}`,
+      message: `sudo apt install ${missingLangs.map((lang) => `tesseract-ocr-${lang}`).join(" ")}`,
+    });
+    return;
+  }
+
   // Hide the launcher so it does not end up in the screenshot.
   await closeMainWindow();
   if (source === "screen") await sleep(300);
@@ -247,7 +277,8 @@ export async function runOcr(options: { mode: Mode; task: "text" | "barcode"; so
       return;
     }
     await Clipboard.copy(text);
-    await showHUD(`Copied ${text.length} characters`);
+    const note = missingLangs.length > 0 ? ` (${missingLangs.join(", ")} not installed)` : "";
+    await showHUD(`Copied ${text.length} characters${note}`);
   } catch (error) {
     if (error instanceof CancelledError) return;
     const message = error instanceof Error ? error.message : String(error);
