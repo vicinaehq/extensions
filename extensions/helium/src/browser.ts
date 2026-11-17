@@ -225,11 +225,26 @@ async function cdpFetch(pathname: string, init?: RequestInit): Promise<Response>
 	return response;
 }
 
+/** Chromium HTML-escapes target titles in `/json/list`; undo it so titles match the page and window title. */
+function decodeHtmlEntities(value: string): string {
+	return value
+		.replace(/&lt;/g, "<")
+		.replace(/&gt;/g, ">")
+		.replace(/&quot;/g, '"')
+		.replace(/&#39;/g, "'")
+		.replace(/&amp;/g, "&");
+}
+
 export async function listTabs(): Promise<HeliumTab[]> {
 	const targets = (await (await cdpFetch("/json/list")).json()) as CdpTarget[];
 	return targets
 		.filter((target) => target.type === "page")
-		.map((target) => ({ id: target.id, title: target.title, url: target.url, faviconUrl: target.faviconUrl }));
+		.map((target) => ({
+			id: target.id,
+			title: decodeHtmlEntities(target.title),
+			url: target.url,
+			faviconUrl: target.faviconUrl,
+		}));
 }
 
 /** Focus the tab; Chromium also raises the window that contains it. */

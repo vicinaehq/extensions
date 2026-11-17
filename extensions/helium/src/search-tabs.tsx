@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, List, closeMainWindow, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, closeMainWindow, showHUD, showToast, Toast } from "@vicinae/api";
 import { useCallback, useEffect, useState } from "react";
 import {
 	activateTab,
@@ -10,6 +10,7 @@ import {
 	quitHelium,
 	type HeliumTab,
 } from "./browser";
+import { activeWindow } from "./lib/window";
 import { getFavicon } from "./utils";
 
 export default function Command() {
@@ -65,6 +66,14 @@ export default function Command() {
 									await closeMainWindow();
 									try {
 										await activateTab(tab.id);
+										// Pages can retitle themselves (e.g. unread counters) after the list loaded.
+										const current = (await listTabs().catch(() => [] as HeliumTab[])).find(
+											(candidate) => candidate.id === tab.id,
+										);
+										if (!(await activeWindow(current?.title ?? tab.title))) {
+											// The launcher is already closed, so a toast would never be seen.
+											await showHUD("Tab switched, but Helium could not be focused");
+										}
 									} catch (e) {
 										await showToast({
 											style: Toast.Style.Failure,
