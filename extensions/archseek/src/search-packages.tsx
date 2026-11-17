@@ -212,10 +212,10 @@ function useSearchPackage(searchTerm: string, source: string){
     }
 
     const {data:AURData,error:AURError,isLoading:AURIsLoading,revalidate:AURRevalidate} = useFetch<AURSearchResult>(`https://aur.archlinux.org/rpc/v5/search/${encodeURIComponent(searchTerm)}`,{execute:doWeExecuteAUR,async onError(error){await showToast({style:Toast.Style.Failure,title:"Failed to fetch the search results",message:String(error)})}})
-    // set to blank if no results
-    searchResults.AURResults = AURData?.results ?? [] 
+    // set to blank if no results (or if the AUR is filtered out, so its previous results aren't shown)
+    searchResults.AURResults = doWeExecuteAUR ? (AURData?.results ?? []) : [] 
     const {data:OfficialData,error:OfficialError,isLoading:OfficialIsLoading,revalidate:OfficialRevalidate} = useFetch<PackageSearchResult>(`https://archlinux.org/packages/search/json/?q=${encodeURIComponent(searchTerm)}`,{execute:doWeExecuteOfficial,async onError(error){await showToast({style:Toast.Style.Failure,title:"Failed to fetch the search results",message:String(error)})}})
-    searchResults.officialResults = OfficialData?.results ?? []
+    searchResults.officialResults = doWeExecuteOfficial ? (OfficialData?.results ?? []) : []
     return {
         searchResults,
         AURIsLoading,
