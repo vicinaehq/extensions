@@ -46,11 +46,13 @@ export async function searchCards(query: string, signal: AbortSignal): Promise<S
   if (response.status === 404) return { cards: [], total: 0 };
 
   const body = (await response.json().catch(() => undefined)) as
-    | { data?: Card[]; total_cards?: number; details?: string }
+    | { data?: Card[]; total_cards?: number; details?: string; warnings?: string[] }
     | undefined;
 
   if (!response.ok) {
-    throw new ScryfallError(body?.details ?? `Scryfall returned HTTP ${response.status}`);
+    // Scryfall explains ignored terms in `warnings`, `details` alone only says that they were ignored.
+    const message = [body?.details, ...(body?.warnings ?? [])].filter(Boolean).join(" ");
+    throw new ScryfallError(message || `Scryfall returned HTTP ${response.status}`);
   }
   return { cards: body?.data ?? [], total: body?.total_cards ?? body?.data?.length ?? 0 };
 }
