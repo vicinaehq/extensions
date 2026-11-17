@@ -18,6 +18,7 @@ import {
 } from 'react';
 import { DOMParser } from '@xmldom/xmldom'
 import { useFetch,useExec } from '@raycast/utils'
+import { accessSync, constants, statSync } from 'fs'
 interface Preferences {
     "aur-helper": string;
     "run-probe": boolean;
@@ -394,6 +395,23 @@ function ReadPKGBUILDDiffs({packageName} : {packageName:string|null} ){
         } />
     )
 }
+// Check that the configured AUR helper exists and is executable (a bare name like "paru" is looked up in PATH)
+function isAurHelperAvailable(helper: string){
+    const command = helper.trim().split(/\s+/)[0] ?? ""
+    if (command.length == 0) return false
+    const candidates = command.includes("/") ? [command] : (process.env.PATH ?? "").split(":").filter(Boolean).map((dir) => `${dir}/${command}`)
+    return candidates.some((candidate) => {
+        try {
+            accessSync(candidate, constants.X_OK)
+            return statSync(candidate).isFile()
+        } catch {
+            return false
+        }
+    })
+}
+async function showAurHelperMissingToast(){
+    await showToast({style:Toast.Style.Failure,title:`${prefs["aur-helper"]} not found`,message:`Set the "AUR Helper" preference to the path of your AUR helper (yay, paru, ...)`})
+}
 // formatBytes taken from https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
 function formatBytes(bytes: number){
     if (!bytes)return "0 Bytes"
@@ -456,6 +474,7 @@ export default function ArchSeek(){
     }
     const {AURPackageInfo,isLoading:AURPackageInfoIsLoading,revalidate:AURPackageInfoRevalidate} = useGetMoreAURInfo(selectedAUR)
     const {revalidate:probingRevalidate,isLoading:probingIsLoading,version:probedVersion,installed:ProbedInstalled} = useProbeDB(selectedPackage)
+    const aurHelperAvailable = isAurHelperAvailable(prefs["aur-helper"])
     return(
         <List throttle={true} isLoading={AURIsLoading||OfficialIsLoading||AURPackageInfoIsLoading} onSearchTextChange={setQuery} isShowingDetail searchBarPlaceholder="Enter a search term to start" onSelectionChange={(id) => setSelectedId(id)} searchBarAccessory={
         <List.Dropdown tooltip="Source" value={sourceDropdown} onChange={setSourceDropdown}>
@@ -494,7 +513,11 @@ export default function ArchSeek(){
                 ]} actions={
                     <ActionPanel>
                         <Action.CopyToClipboard title="Copy AUR package name" content={AURPackage.Name} icon={Icon.CopyClipboard}/>
+                        {aurHelperAvailable ? (
                         <Action.RunInTerminal title="Install package" args={["/bin/bash","-c",`set -x;${[prefs["aur-helper"]]} -S --needed ${AURPackage.Name}`]} options={{hold:true}} />
+                        ) : (
+                        <Action title="Install package" onAction={showAurHelperMissingToast} icon={Icon.Terminal}/>
+                        )}
                         <Action.OpenInBrowser title="Open package in the browser" url={`https://aur.archlinux.org/packages/${AURPackage.Name}`} icon="extension_icon.png" shortcut={Keyboard.Shortcut.Common.Open}/>
                         <Action.Push title="View PKGBUILD" target={<ReadPKGBUILD packageName={AURPackage.PackageBase} />} icon={Icon.NewDocument} shortcut={{key:"v",modifiers:["cmd","shift"]}}/>
                         <Action.Push title="View PKGBUILD changes" target={<ReadPKGBUILDDiffs packageName={AURPackage.PackageBase} />} icon={Icon.Clock} shortcut={{key: "d",modifiers:["cmd","shift"]}}/>
