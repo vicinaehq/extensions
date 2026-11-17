@@ -28,6 +28,14 @@ const MIME = (mime: string): keyof typeof Icon => {
   return 'Document'
 }
 
+// goldfish speaks an unframed protocol: `q:<query>\n` in, up to 10 newline
+// terminated paths out, and nothing at all when no file matches. Responses are
+// therefore delimited by an idle gap, and searches are serialized so that a
+// chunk can't be attributed to the query that did not produce it.
+const MAX_RESULTS = 10
+const RESPONSE_IDLE_MS = 50
+const NO_RESULT_MS = 1000
+
 let depsInstalled = true
 function Finder() {
   const process = spawn('gf', {
@@ -46,34 +54,119 @@ function Finder() {
   const encoder = new TextEncoder()
   const decoder = new TextDecoder()
 
-  const exit = () => writer.write(encoder.encode(`c:Exit`))
+  const exit = () => {
+    clearTimeout(pumpTimer)
+    writer.write(encoder.encode(`c:Exit`))
+  }
 
-  const search = async (query: string) => new Promise<File[]>((resolve, reject) => {
-    writer.write(encoder.encode(`q:${query}\n`))
+  let tail = ''
+  let lines: string[] = []
+  let inFlight: { resolve: (files: File[] | null) => void } | null = null
+  let queued: { query: string; resolve: (files: File[] | null) => void } | null = null
+  let idleTimer: ReturnType<typeof setTimeout> | undefined
+  let emptyTimer: ReturnType<typeof setTimeout> | undefined
+  let pumpTimer: ReturnType<typeof setTimeout> | undefined
+  // gf skips a query equal to the last one it received and stays silent, so a
+  // repeat (e.g. a typo undone while the first answer was in flight) is
+  // answered from the paths gf returned for it
+  let lastQuery = ''
+  let lastPaths: string[] = []
 
-    const onData = (res: Uint8Array) => {
-      reader.off('data', onData)
-
-      const [_, ...lines] = decoder.decode(res).split('\n').filter(line => line.trim())
-      return Promise.all(lines
-        .map(async (path, id) => {
-          const name = path.split('/').pop() || path
-          const mime = getMimeTypeSync(path)
-          return { id, path, name, mime, data: null, info: lstatSync(path) }
-        })).then(resolve).catch(reject)
+  const toFiles = (paths: string[]): File[] => {
+    const files: File[] = []
+    for (const path of paths) {
+      try {
+        const name = path.split('/').pop() || path
+        const mime = getMimeTypeSync(path)
+        files.push({ id: files.length, path, name, mime, info: lstatSync(path) })
+      } catch {
+        // the path may be gone by the time we stat it
+      }
     }
-    reader.once('data', onData)
+    return files
+  }
+
+  const finish = () => {
+    if (!inFlight) return
+    const { resolve } = inFlight
+    const paths = lines
+    inFlight = null
+    lastPaths = paths
+    lines = []
+    tail = ''
+    clearTimeout(idleTimer)
+    clearTimeout(emptyTimer)
+    // a newer query is already waiting: this answer is stale, keep the current view
+    resolve(queued ? null : toFiles(paths))
+    // drain before pumping: a timeout close doesn't mean gf finished writing,
+    // so wait for a silent idle window before sending the next query
+    clearTimeout(pumpTimer)
+    pumpTimer = setTimeout(pump, RESPONSE_IDLE_MS)
+  }
+
+  const pump = () => {
+    pumpTimer = undefined
+    if (inFlight || !queued) return
+    const { query, resolve } = queued
+    queued = null
+    if (query === lastQuery) {
+      resolve(toFiles(lastPaths))
+      return
+    }
+    lastQuery = query
+    inFlight = { resolve }
+    writer.write(encoder.encode(`q:${query}\n`))
+    emptyTimer = setTimeout(finish, NO_RESULT_MS)
+  }
+
+  reader.on('data', (chunk: Uint8Array) => {
+    if (!inFlight) {
+      // draining between responses: these bytes belong to the closed answer,
+      // drop them and push the next send back until the stream is silent
+      clearTimeout(pumpTimer)
+      pumpTimer = setTimeout(pump, RESPONSE_IDLE_MS)
+      return
+    }
+
+    tail += decoder.decode(chunk, { stream: true })
+
+    const parts = tail.split('\n')
+    tail = parts.pop() ?? ''
+    lines.push(...parts.filter(line => line.trim()))
+
+    clearTimeout(idleTimer)
+    clearTimeout(emptyTimer)
+
+    if (lines.length >= MAX_RESULTS) {
+      finish()
+      return
+    }
+
+    idleTimer = setTimeout(finish, RESPONSE_IDLE_MS)
   })
+
+  const search = (query: string) =>
+    new Promise<File[] | null>(resolve => {
+      queued?.resolve(null)
+      queued = { query, resolve }
+      // a pending pumpTimer means the last response is still draining; let it
+      // fire rather than writing into a stream that may not be silent yet
+      if (pumpTimer === undefined) pump()
+    })
 
   return { search, exit }
 }
 
 const readData = (file: File) => {
   let data
-  if (file.mime?.startsWith('image')) {
-    data = readFileSync(file.path)
-  } else if (file.mime?.startsWith('text')) {
-    data = readFileSync(file.path, 'utf8')
+  try {
+    if (file.mime?.startsWith('image')) {
+      data = readFileSync(file.path)
+    } else if (file.mime?.startsWith('text')) {
+      data = readFileSync(file.path, 'utf8')
+    }
+  } catch {
+    // the file may be gone since it was listed
   }
   return data
 }
@@ -83,6 +176,7 @@ const finder = Finder()
 export default function ListDetail(): JSX.Element {
   const [results, setResults] = useState<File[]>([])
   const [searchText, setSearchText] = useState<string>('')
+  const [loading, setLoading] = useState(false)
   if (!depsInstalled) {
     return (
       <Detail navigationTitle='Files' markdown={`
@@ -100,10 +194,19 @@ Build or download a copy from [https://github.com/sameoldlab/goldfish](https://g
   return (
     <List
       isShowingDetail
+      isLoading={loading}
       searchText={searchText}
       onSearchTextChange={query => {
         setSearchText(query)
-        finder.search(query).then(setResults)
+        setLoading(true)
+        finder.search(query).then(files => {
+          // null means a newer query superseded this one; keep the pending
+          // indicator up until the latest query settles
+          if (files) {
+            setResults(files)
+            setLoading(false)
+          }
+        })
       }}
       searchBarPlaceholder={'Search files'}
     >
@@ -128,7 +231,7 @@ Build or download a copy from [https://github.com/sameoldlab/goldfish](https://g
                     <List.Item.Detail.Metadata.Label title='Permissions' text={fmtPerms(file.info.mode)} />
                   </List.Item.Detail.Metadata>
                 }
-                markdown={file.mime?.startsWith('text') ? readFileSync(file.path, 'utf8') : undefined}
+                markdown={file.mime?.startsWith('text') ? readData(file) as string : undefined}
               />
             }
             actions={
