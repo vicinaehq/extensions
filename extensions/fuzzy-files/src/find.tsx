@@ -66,6 +66,11 @@ function Finder() {
   let idleTimer: ReturnType<typeof setTimeout> | undefined
   let emptyTimer: ReturnType<typeof setTimeout> | undefined
   let pumpTimer: ReturnType<typeof setTimeout> | undefined
+  // gf skips a query equal to the last one it received and stays silent, so a
+  // repeat (e.g. a typo undone while the first answer was in flight) is
+  // answered from the paths gf returned for it
+  let lastQuery = ''
+  let lastPaths: string[] = []
 
   const toFiles = (paths: string[]): File[] => {
     const files: File[] = []
@@ -86,6 +91,7 @@ function Finder() {
     const { resolve } = inFlight
     const paths = lines
     inFlight = null
+    lastPaths = paths
     lines = []
     tail = ''
     clearTimeout(idleTimer)
@@ -103,6 +109,11 @@ function Finder() {
     if (inFlight || !queued) return
     const { query, resolve } = queued
     queued = null
+    if (query === lastQuery) {
+      resolve(toFiles(lastPaths))
+      return
+    }
+    lastQuery = query
     inFlight = { resolve }
     writer.write(encoder.encode(`q:${query}\n`))
     emptyTimer = setTimeout(finish, NO_RESULT_MS)
