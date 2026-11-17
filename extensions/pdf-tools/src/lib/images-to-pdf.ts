@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
+import { pillowInstallHint } from "./install-hints";
 import { getUniqueFilePath } from "./qpdf";
 
 const execFileAsync = promisify(execFile);
@@ -97,12 +98,12 @@ function explainPythonError(err: any): Error {
   const errorDetails = err.stderr || err.message || String(err);
   if (errorDetails.includes("No module named 'PIL'") || errorDetails.includes("No module named PIL")) {
     return new Error(
-      "Pillow (PIL) is not installed. Please install it using 'pip install Pillow' to enable image conversion."
+      `Pillow (PIL) is not installed. Please install it using ${pillowInstallHint()} to enable image conversion.`
     );
   }
   if (errorDetails.includes("ENOENT") || errorDetails.includes("not found")) {
     return new Error(
-      "Python is not installed or not found in PATH. Please install Python and Pillow ('pip install Pillow')."
+      `Python is not installed or not found in PATH. Please install Python and Pillow (${pillowInstallHint()}).`
     );
   }
   return new Error(`Failed to convert images to PDF: ${errorDetails}`);

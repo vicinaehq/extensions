@@ -52,14 +52,16 @@ PDF Tools relies on lightweight system tools for cryptographic operations and im
 - **Linux (Arch/Manjaro)**: `sudo pacman -S qpdf`
 - **Linux (Fedora)**: `sudo dnf install qpdf`
 - **macOS**: `brew install qpdf`
-- **Windows**: `winget install qpdf` (or `choco install qpdf`)
+- **Windows**: `winget install QPDF.QPDF` (or `choco install qpdf`). The winget installer does not add qpdf to your `PATH`: add its `bin` folder (e.g. `C:\Program Files\qpdf 12.4.2\bin`) yourself.
 
 ### 2. Python & Pillow (Required for `images-to-pdf`)
 - Ensure Python is installed on your system.
 - Install Pillow:
-  ```bash
-  pip install Pillow
-  ```
+  - **Linux (Ubuntu/Debian)**: `sudo apt install python3-pil`
+  - **Linux (Arch/Manjaro)**: `sudo pacman -S python-pillow`
+  - **Linux (Fedora)**: `sudo dnf install python3-pillow`
+  - **macOS**: `pip install Pillow`
+  - **Windows**: `python -m pip install Pillow`
 
 ---
 

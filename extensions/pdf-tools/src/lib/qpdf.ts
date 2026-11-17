@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
+import { qpdfInstallHint } from "./install-hints";
 
 const execFileAsync = promisify(execFile);
 
@@ -28,7 +29,7 @@ function sanitizeError(err: any, sensitive: string[] = []): string {
     err.code === 127 ||
     err.code === "ENOENT"
   ) {
-    return "qpdf is not installed or not found in PATH. Please install qpdf ('sudo apt install qpdf' on Linux, 'brew install qpdf' on macOS, or 'winget install qpdf' on Windows).";
+    return `qpdf is not installed or not found in PATH. Please install qpdf (${qpdfInstallHint()}).`;
   }
 
   // Redact any sensitive passwords or arguments
