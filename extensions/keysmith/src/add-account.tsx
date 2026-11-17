@@ -267,7 +267,7 @@ function AddAccountForm({ configPath, session }: { configPath: string; session: 
         canChooseDirectories={false}
         onChange={handleQrFile}
       />
-      <Form.Description text="Tip: press Cmd+Shift+S or pick Scan QR from Screen to select a QR code on screen with Spectacle." />
+      <Form.Description text="Tip: press Ctrl+Shift+S or pick Scan QR from Screen to select a QR code on screen with Spectacle." />
       <Form.Separator />
       <Form.TextField
         id="issuer"
