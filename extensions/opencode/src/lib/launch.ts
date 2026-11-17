@@ -84,6 +84,11 @@ export function buildResumeCommand(sessionID: string, directory: string | undefi
 
 /** Open a terminal window whose working directory is `directory`. */
 export async function openTerminalAt(directory: string): Promise<void> {
+  if (process.platform === "win32") {
+    // No POSIX `sh` or $SHELL on Windows: open cmd in the directory instead.
+    await runInTerminal(["cmd", "/k", "cd", "/d", directory], { hold: true });
+    return;
+  }
   const command = `cd -- ${posixQuote(directory)} && exec "$SHELL"`;
   await runInTerminal(["sh", "-c", command], { hold: true });
 }
