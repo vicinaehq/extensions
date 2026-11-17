@@ -1,0 +1,19 @@
+node_modules/
+dist/
+*.log
+.env
+.env.*
+!.env.example
+vicinae-env.d.ts
+
+# Local settings, configuration backups and development debris.
+settings.json
+*.bang-backup-*
+*.bang-alias.lock
+*.bang-*.tmp
+.bash_history
+.zsh_history
+fish_history
+coverage/
+*.tsbuildinfo
+.DS_Store

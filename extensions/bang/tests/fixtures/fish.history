@@ -1,0 +1,10 @@
+- cmd: docker compose up -d
+  when: 1700000000
+- cmd: for item in one two\n  printf '%s\\n' "$item"\nend
+  when: 1700000001
+  paths:
+    - /synthetic/path
+- cmd: printf 'café 日本語\\n'
+  when: 1700000002
+- cmd: docker compose up -d
+  when: 1700000003

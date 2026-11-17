@@ -1,0 +1,10 @@
+#1700000000
+docker compose up -d
+#1700000001
+for item in one two; do
+  printf '%s\n' "$item"
+done
+#1700000002
+printf 'café 日本語\n'
+#1700000003
+docker compose up -d
