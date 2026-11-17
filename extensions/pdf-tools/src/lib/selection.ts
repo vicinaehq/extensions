@@ -75,7 +75,7 @@ async function getClipboardFiles(allowedExtensions: string[]): Promise<string[]>
   if (process.platform === "win32") {
     try {
       const { stdout } = await execAsync(
-        'powershell.exe -NoProfile -NonInteractive -Command "Get-Clipboard -Format FileDropList"'
+        'powershell.exe -NoProfile -NonInteractive -Command "Get-Clipboard -Format FileDropList | ForEach-Object { $_.FullName }"'
       );
       if (stdout) {
         for (const line of stdout.split(/\r?\n/)) {
