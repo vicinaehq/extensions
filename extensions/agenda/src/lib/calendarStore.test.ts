@@ -63,9 +63,13 @@ describe("calendars store", () => {
     const getSpy = vi
       .spyOn(Cache.prototype, "get")
       .mockReturnValue(JSON.stringify(sample));
+    const removeSpy = vi.spyOn(Cache.prototype, "remove");
 
     expect(expectOk(getCalendars())).toEqual(sample);
     expect(existsSync(file)).toBe(true);
+    // The legacy key is dropped once the file exists, so the import is one-shot.
+    expect(removeSpy).toHaveBeenCalledWith("calendars");
+    removeSpy.mockRestore();
 
     // Subsequent reads come from the file (or the mtime cache), independent of the legacy cache.
     getSpy.mockReturnValue(undefined);

@@ -135,7 +135,16 @@ export const getCalendars = (): LoadCalendarsResult => {
 
   // First run after upgrade: import from the legacy Cache store once, then persist to file.
   const migrated = migrateFromCache();
-  if (migrated.length > 0) writeCalendars(migrated);
+  if (migrated.length > 0) {
+    writeCalendars(migrated);
+    // Only after the file was written: drop the legacy key so a later missing
+    // or corrupt calendars.json doesn't re-import the stale Cache copy.
+    try {
+      new Cache().remove(LEGACY_CACHE_KEY);
+    } catch (error) {
+      console.error("Failed to remove legacy calendars Cache key:", error);
+    }
+  }
   const result: LoadCalendarsResult = { ok: true, calendars: migrated };
   lastReadKey = `${filePath}|missing`;
   lastReadResult = result;

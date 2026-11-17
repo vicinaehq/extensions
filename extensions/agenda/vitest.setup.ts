@@ -6,6 +6,9 @@ vi.mock("@vicinae/api", () => ({
       return undefined;
     }
     set() {}
+    remove() {
+      return false;
+    }
   },
   environment: { supportPath: `/tmp/agenda-test-${process.pid}` },
   Color: {
