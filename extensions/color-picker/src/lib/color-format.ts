@@ -23,13 +23,13 @@ export function formatColor(_color: HistoryColor, format?: ColorFormatType) {
       return color.to("srgb").toString({ format: "hex" }).replace("#", "");
     }
     case "rgb": {
-      return color.to("srgb").toString({ format: "rgb_number" });
+      return toRgb255(color).toString({ format: "rgb_number" });
     }
     case "rgb-percentage": {
       return color.to("srgb").toString({ format: "rgb" });
     }
     case "rgba": {
-      return color.to("srgb").toString({ format: "rgba_number" });
+      return toRgb255(color).toString({ format: "rgba_number" });
     }
     case "rgba-percentage": {
       return color.to("srgb").toString({ format: "rgba" });
@@ -46,10 +46,23 @@ export function formatColor(_color: HistoryColor, format?: ColorFormatType) {
     case "lch": {
       const lchColor = color.to("lch");
       const [l, c, h] = lchColor.coords;
-      return `lch(${l.toFixed(2)}% ${c} ${h})`;
+      return `lch(${l.toFixed(2)}% ${roundCoord(c)} ${roundCoord(h)})`;
     }
     case "p3": {
       return color.to("p3").toString({ format: "p3" });
     }
   }
+}
+
+/** sRGB color with each channel rounded to a whole 0-255 value, like the HEX output. */
+function toRgb255(color: any) {
+  const srgb = color.to("srgb");
+  srgb.coords = srgb.coords.map((c: number) => Math.round(c * 255) / 255);
+  return srgb;
+}
+
+/** Same precision colorjs uses for the other formats; a missing hue is "none" in CSS. */
+function roundCoord(value: number | null) {
+  if (value === null || Number.isNaN(value)) return "none";
+  return String(Number(value.toPrecision(5)));
 }
