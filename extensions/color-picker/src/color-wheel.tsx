@@ -1,4 +1,6 @@
-import { Action, ActionPanel, Clipboard, closeMainWindow, Detail, popToRoot, showHUD } from "@vicinae/api";
+import { Action, ActionPanel, Clipboard, closeMainWindow, Detail, environment, popToRoot, showHUD } from "@vicinae/api";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { useEffect, useRef } from "react";
 import { addToHistory } from "./lib/history";
 import type { Color } from "./lib/types";
@@ -10,7 +12,7 @@ const COLOR_WHEEL_MARKDOWN = `
 
 A reference RGB color wheel spectrum. Use the desktop screen picker to sample colors directly from the wheel or anywhere on your screen.
 
-![RGB Color Wheel](rgb-color-wheel.png)
+![RGB Color Wheel](${pathToFileURL(path.join(environment.assetsPath, "rgb-color-wheel.png")).href})
 `;
 
 export default function Command() {
