@@ -37,9 +37,15 @@ export async function resolveOpenCodeBinary(configured?: string): Promise<string
   throw new OpenCodeError("not-installed", "OpenCode V2 executable not found.");
 }
 
-/** Open the OpenCode TUI resumed at a specific session. */
+/**
+ * Open the OpenCode TUI resumed at a specific session.
+ *
+ * Uses the short `-s` flag: Qt terminals such as Konsole treat a `--session`
+ * argument as their own session-restore option, even after `-e`, and never
+ * show a window.
+ */
 export async function openSessionInTUI(binary: string, sessionID: string, directory?: string): Promise<void> {
-  const args = directory ? [binary, "--session", sessionID, directory] : [binary, "--session", sessionID];
+  const args = directory ? [binary, "-s", sessionID, directory] : [binary, "-s", sessionID];
   await runInTerminal(args, { hold: true });
 }
 

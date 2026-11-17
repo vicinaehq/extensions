@@ -80,7 +80,7 @@ describe("launch", () => {
   test("resume opens the TUI at the session", async () => {
     stubs.spawnedCommands = [];
     await openSessionInTUI("/usr/bin/opencode", "ses_abc", "/tmp/project");
-    expect(stubs.spawnedCommands[0]).toEqual(["/usr/bin/opencode", "--session", "ses_abc", "/tmp/project"]);
+    expect(stubs.spawnedCommands[0]).toEqual(["/usr/bin/opencode", "-s", "ses_abc", "/tmp/project"]);
   });
 
   test("open TUI works without a directory", async () => {
