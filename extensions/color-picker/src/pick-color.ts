@@ -36,7 +36,7 @@ export default async function Command() {
         const colors = colorNamer(formattedColor);
         const colorsByDistance = getColorByProximity(colors);
         const firstColorName = colorsByDistance[0]?.name;
-        await showHUD(`Copied color ${formattedColor} (${firstColorName}) to clipboard`);
+        await showHUD(`Copied ${formattedColor} (${firstColorName})`);
       } catch {
         await showHUD(`Copied color ${formattedColor} to clipboard`);
       }

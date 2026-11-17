@@ -30,7 +30,7 @@ Quick access to all colors pinned as favorites in Organize Colors.
 Universal color conversion tool. Pass any color format (or enter one in the search bar) to immediately get conversions in all major formats with one-click copy.
 
 ### `color-names` - Color Names
-Search and identify colors by their descriptive names using the `color-namer` palette.
+Find the descriptive names of a HEX color using the `color-namer` palettes.
 
 ### `color-wheel` - Color Wheel Reference
 Displays an RGB spectrum color wheel reference with quick access to the desktop screen picker.

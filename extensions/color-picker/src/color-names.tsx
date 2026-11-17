@@ -41,7 +41,7 @@ export default function ColorNames() {
     <List
       isLoading={isSearching}
       onSearchTextChange={setSearchString}
-      searchBarPlaceholder="Search HEX (#00ff00, #ff6363...)"
+      searchBarPlaceholder="Enter a HEX color to name (#00ff00, #ff6363...)"
       searchBarAccessory={
         <List.Dropdown
           tooltip="Sort colors by"
@@ -69,7 +69,10 @@ export default function ColorNames() {
           ))
         )
       ) : (
-        <List.EmptyView title={searchString ? "No colors found" : "Search for a color"} />
+        <List.EmptyView
+          title={searchString ? "No colors found" : "Search for a color"}
+          description="Enter a HEX color, e.g. #FF6363 or 008080."
+        />
       )}
     </List>
   );

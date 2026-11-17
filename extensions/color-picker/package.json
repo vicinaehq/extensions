@@ -87,7 +87,7 @@
     {
       "name": "color-names",
       "title": "Color Names",
-      "description": "Search and identify colors by name",
+      "description": "Find the names of a HEX color",
       "mode": "view",
       "icon": "icon.png",
       "preferences": [
