@@ -30,6 +30,7 @@ export default function Overview() {
   const [isSystemLoading, setIsSystemLoading] = useState(true);
   const trafficData = traffic.data ?? EMPTY_TRAFFIC;
   const connectionData = connections.data ?? EMPTY_CONNECTIONS;
+  const activeConnections = connectionData.connections?.length ?? 0;
   const error = traffic.error ?? connections.error;
 
   const loadSystem = useCallback(async () => {
@@ -104,13 +105,10 @@ export default function Overview() {
         <List.Item
           icon={Icon.FullSignal}
           title="Active Connections"
-          accessories={[{ text: String(connectionData.connections.length) }]}
+          accessories={[{ text: String(activeConnections) }]}
           actions={
             <ActionPanel>
-              <Action.CopyToClipboard
-                title="Copy Connection Count"
-                content={String(connectionData.connections.length)}
-              />
+              <Action.CopyToClipboard title="Copy Connection Count" content={String(activeConnections)} />
             </ActionPanel>
           }
         />

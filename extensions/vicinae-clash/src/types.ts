@@ -33,7 +33,7 @@ export type Connections = {
   downloadTotal: number;
   uploadTotal: number;
   memory?: number;
-  connections: Connection[];
+  connections: Connection[] | null;
 };
 
 export type LogLevel = "debug" | "info" | "warning" | "error";
