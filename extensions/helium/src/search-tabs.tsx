@@ -66,7 +66,11 @@ export default function Command() {
 									await closeMainWindow();
 									try {
 										await activateTab(tab.id);
-										if (!(await activeWindow(tab.title))) {
+										// Pages can retitle themselves (e.g. unread counters) after the list loaded.
+										const current = (await listTabs().catch(() => [] as HeliumTab[])).find(
+											(candidate) => candidate.id === tab.id,
+										);
+										if (!(await activeWindow(current?.title ?? tab.title))) {
 											// The launcher is already closed, so a toast would never be seen.
 											await showHUD("Tab switched, but Helium could not be focused");
 										}
