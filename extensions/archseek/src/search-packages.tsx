@@ -443,14 +443,17 @@ function formatTime(dateTime: string){
     }
     return "just now"
 }
+function officialItemId(officialPackage: PackageDescription){
+    return `OFF-${officialPackage.pkgname}-${officialPackage.repo}-${officialPackage.arch}`
+}
+function aurItemId(AURPackage: AURPackageDescription){
+    return `AUR-${AURPackage.ID}`
+}
 export default function ArchSeek(){
     const [query, setQuery] = useState("");
     const [sourceDropdown,setSourceDropdown] = useState("All")
+    // Item ids identify the package itself (not its position), so the selection stays valid when the results change
     const [selectedId, setSelectedId] = useState<string | null>(null);
-    // Make sure to reset ID if results changes
-    useEffect(() =>{
-        setSelectedId(null)
-    },[query,sourceDropdown])
 
     let selectedPackage: string| null = null
     let selectedPKGBase: string | null = null
@@ -458,14 +461,16 @@ export default function ArchSeek(){
     const {searchResults,AURIsLoading,OfficialIsLoading} = useSearchPackage(query, sourceDropdown)
     if (selectedId != null){
         if (selectedId.slice(0,4) == 'AUR-'){
-            if(Number(selectedId.slice(4)) < searchResults.AURResults.length){
-                selectedPackage = searchResults.AURResults[Number(selectedId.slice(4))].Name
-                selectedPKGBase = searchResults.AURResults[Number(selectedId.slice(4))].PackageBase
+            const selectedAURPackage = searchResults.AURResults.find((AURPackage) => aurItemId(AURPackage) == selectedId)
+            if(selectedAURPackage){
+                selectedPackage = selectedAURPackage.Name
+                selectedPKGBase = selectedAURPackage.PackageBase
                 selectedAUR = selectedPackage
             } }
             else if (selectedId.slice(0,4) == "OFF-"){
-                if(Number(selectedId.slice(4)) < searchResults.officialResults.length){
-                    selectedPackage = searchResults.officialResults[Number(selectedId.slice(4))].pkgname
+                const selectedOfficialPackage = searchResults.officialResults.find((officialPackage) => officialItemId(officialPackage) == selectedId)
+                if(selectedOfficialPackage){
+                    selectedPackage = selectedOfficialPackage.pkgname
                 }
             }
         
@@ -488,7 +493,7 @@ export default function ArchSeek(){
             ) : (
                 <>
                 {searchResults.officialResults.map((officialPackage,index) =>
-                <List.Item id={String('OFF-' + index)} title={officialPackage.pkgname} key={`${officialPackage.pkgname}-${officialPackage.repo}-${officialPackage.arch}`} icon="extension_icon.png" detail={
+                <List.Item id={officialItemId(officialPackage)} title={officialPackage.pkgname} key={`${officialPackage.pkgname}-${officialPackage.repo}-${officialPackage.arch}`} icon="extension_icon.png" detail={
                     <List.Item.Detail markdown={`# ${officialPackage.pkgname} ${officialPackage.pkgver}  \n**Architecture:** ${officialPackage.arch}  \n**Repository:** ${officialPackage.repo}  \n**Description:** ${officialPackage.pkgdesc}  \n**Upstream URL:** ${officialPackage.url}  \n**License(s):** ${Array.isArray(officialPackage.licenses) && (officialPackage.licenses?.length) > 0 ? `${officialPackage.licenses.toString()}  \n` : ""}**Maintainers:** ${officialPackage.maintainers}  \n**Package Size:** ${formatBytes(officialPackage.compressed_size)}  \n**Installed Size:** ${formatBytes(officialPackage.installed_size)}  \n**Last Packager:** ${officialPackage.packager}  \n**Build Date:** ${new Date(officialPackage.build_date).toLocaleString()}  \n**Last Updated:** ${new Date(officialPackage.last_update).toLocaleString()} ${typeof officialPackage.flag_date === 'string' && officialPackage.flag_date?.length > 0 ? `  \n<span style="color:red">_**Flagged out-of-date on:** ${new Date(officialPackage.flag_date).toLocaleDateString()}</span>_`:""} ${prefs["run-probe"] == true ? `  \n**Installed?:** ${(ProbedInstalled) ? `<span style="color:green"> Yes (${probedVersion})</span>` : '<span style="color:red"> No</span>'}`: ""}`}/>
                 } accessories={[
                     { tag: {value: `${officialPackage.repo}`,color: Color.Yellow}},
@@ -506,7 +511,7 @@ export default function ArchSeek(){
 
                 )}
                 {searchResults.AURResults.map((AURPackage,index) => 
-                <List.Item id={String('AUR-' + index)} title={AURPackage.Name} key={`${AURPackage.ID}`} icon="extension_icon.png" detail={
+                <List.Item id={aurItemId(AURPackage)} title={AURPackage.Name} key={`${AURPackage.ID}`} icon="extension_icon.png" detail={
                     <List.Item.Detail markdown={`# ${AURPackage.Name} ${AURPackage.Version}  \n**Package Base:** ${AURPackage.PackageBase}  \n**Description:** ${AURPackage.Description}  \n**Upstream URL:** ${AURPackage.URL}  \n${Array.isArray(AURPackageInfo?.Keywords) && (AURPackageInfo?.Keywords?.length) > 0 ?  `**Keywords:** ${AURPackageInfo.Keywords.toString()}  \n`: "" }${Array.isArray(AURPackageInfo?.License) && (AURPackageInfo?.License?.length) > 0 ? `**Licenses:** ${AURPackageInfo.License.toString()}  \n` : ""}${ Array.isArray(AURPackageInfo?.Conflicts) && (AURPackageInfo.Conflicts?.length) >0 ?`**Conflicts:** ${AURPackageInfo.Conflicts.toString()}  \n` : ""}${ Array.isArray(AURPackageInfo?.Provides)&& (AURPackageInfo?.Provides?.length) > 0 ? `**Provides:** ${AURPackageInfo.Provides.toString()}  \n` : ""}**Submitter:** ${AURPackageInfo?.Submitter}  \n**Maintainers:** ${AURPackage.Maintainer}${Array.isArray(AURPackageInfo.CoMaintainers)&&(AURPackageInfo.CoMaintainers?.length) >0 ? ` (${AURPackageInfo.CoMaintainers.toString()})` : ""}  \n**Votes:** ${AURPackage.NumVotes}  \n**Popularity:** ${AURPackage.Popularity}  \n**First Submitted:** ${new Date(AURPackage.FirstSubmitted * 1000).toLocaleString()}  \n**Last Updated:** ${new Date(AURPackage.LastModified * 1000).toLocaleString()} (${formatTime(String(new Date(AURPackage.LastModified * 1000)))}) ${(typeof AURPackageInfo.OutOfDate === 'number') ? `  \n<span style="color:red">_**Flagged out-of-date**(${new Date(AURPackageInfo.OutOfDate * 1000).toLocaleDateString()})</span>_` : ""}${prefs["run-probe"] == true ? `  \n**Installed? :** ${(ProbedInstalled ? `<span style="color:green"> Yes (${probedVersion})</span>` : '<span style="color:red"> No</span>')}`: ""}`}/>
                 } accessories={[
                     { tag: { value: "AUR", color: Color.Green}}
