@@ -115,7 +115,7 @@ export function GameActions(props: {
             title="View on ProtonDB"
             icon={Icon.Gauge}
             url={`https://www.protondb.com/app/${appid}`}
-            shortcut={{ modifiers: ["ctrl"], key: "p" }}
+            shortcut={{ modifiers: ["ctrl", "shift"], key: "d" }}
           />
           <Action.CopyToClipboard
             title="Copy App ID"

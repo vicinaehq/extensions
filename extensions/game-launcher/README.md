@@ -64,7 +64,7 @@ running yet (e.g. Steam), it starts first and then launches the game. You can gi
 | Show in Steam Library | Ctrl+L | Steam games. |
 | Open Install Folder | Ctrl+O | |
 | Open Store Page | Ctrl+S | Steam games, opens in the Steam client. |
-| View on ProtonDB | Ctrl+P | Steam games, opens in your browser. |
+| View on ProtonDB | Ctrl+Shift+D | Steam games, opens in your browser. |
 | Copy App ID | Ctrl+Shift+C | Steam games. |
 | Show / Hide Details | Ctrl+D | List layout only. |
 | Hide Game / Unhide Game | Ctrl+H | See [Hiding games](#hiding-games). |
