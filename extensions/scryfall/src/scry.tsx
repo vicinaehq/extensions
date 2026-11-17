@@ -154,7 +154,7 @@ export default function Command() {
         <List.Section title="More">
           <List.Item
             icon={Icon.Globe01}
-            title={`See all ${result.total} results on Scryfall`}
+            title={`See all ${result.total} ${result.total === 1 ? "result" : "results"} on Scryfall`}
             actions={
               <ActionPanel>
                 <Action.OpenInBrowser title="Open Scryfall Search" url={searchUrl(q)} />
