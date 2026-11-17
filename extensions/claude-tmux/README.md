@@ -14,7 +14,8 @@ to the selected pane and focuses its terminal window in Hyprland or i3.
   never read or scanned; closed sessions add no file I/O or list-processing cost.
 - **Pane mapping** walks each Claude Code or Codex process's parent chain (`/proc/<pid>/stat`) up to a
   `#{pane_pid}` from `tmux list-panes -a`. Window names are only displayed, never matched. A Claude
-  process nested inside another one (e.g. `claude -p` run from a Bash tool call) is skipped.
+  process nested inside another one (e.g. `claude -p` run from a Bash tool call) is skipped, and so is a
+  Codex process nested inside another one (e.g. the `codex app-server` helpers Codex starts).
 - **Refresh**: the list re-reads on every change in `~/.claude/sessions` (Claude Code rewrites a
   per-process record there on each status change) and polls every 10 s as a fallback, which also
   picks up Codex processes and tmux-only changes such as window renames.

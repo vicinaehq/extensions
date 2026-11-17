@@ -165,9 +165,9 @@ async function lastStatusChange(pid: number): Promise<number | undefined> {
   }
 }
 
-async function owningPane(pid: number, panes: Map<number, Pane>, claudePids: Set<number>): Promise<Pane | undefined> {
+async function owningPane(pid: number, panes: Map<number, Pane>, agentPids: Set<number>): Promise<Pane | undefined> {
   for await (const ancestor of ancestry(pid)) {
-    if (ancestor !== pid && claudePids.has(ancestor)) {
+    if (ancestor !== pid && agentPids.has(ancestor)) {
       return undefined;
     }
     const pane = panes.get(ancestor);
@@ -206,9 +206,10 @@ export async function listAgentSessions(): Promise<AgentSessionList> {
     }),
   );
 
+  const codexPidSet = new Set(codexPids);
   const codexSessions = await Promise.all(
     codexPids.map(async (pid): Promise<AgentSession | undefined> => {
-      const [pane, cwd] = await Promise.all([owningPane(pid, panes, new Set<number>()), cwdOf(pid)]);
+      const [pane, cwd] = await Promise.all([owningPane(pid, panes, codexPidSet), cwdOf(pid)]);
       if (!pane || !cwd) {
         return undefined;
       }
