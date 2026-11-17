@@ -2,12 +2,17 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-function serializeHistoryRecord(command, shell, timestamp) {
+function serializeHistoryRecord(command, shell, timestamp, bashTimestamps = true) {
   if (shell === "bash") {
     // Bash reserves timestamp-looking lines as entry delimiters. Refuse to
     // save an ambiguous record rather than split it into runnable fragments.
     if (/^#\d+$/m.test(command)) throw new Error("Ambiguous Bash history record");
-    return Buffer.from(`#${timestamp}\n${command}\n`, "utf8");
+    if (bashTimestamps) return Buffer.from(`#${timestamp}\n${command}\n`, "utf8");
+    // Untimestamped history only keeps physical lines and backslash continuations.
+    if (command.includes("\n") || (command.match(/\\+$/)?.[0].length ?? 0) % 2 === 1) {
+      throw new Error("Ambiguous Bash history record");
+    }
+    return Buffer.from(`${command}\n`, "utf8");
   }
   if (shell === "fish") {
     const escaped = command.replace(/\\/g, "\\\\").replace(/\n/g, "\\n");
@@ -28,9 +33,19 @@ function serializeHistoryRecord(command, shell, timestamp) {
   return Buffer.from(bytes);
 }
 
+// Match an existing Bash file's format: Bash without HISTTIMEFORMAT appends plain
+// lines, which would otherwise be read as part of a timestamped record Bang wrote.
+function bashUsesTimestamps(fd, size) {
+  if (!size) return true;
+  const length = Math.min(size, 4 * 1024 * 1024);
+  const buffer = Buffer.alloc(length);
+  const read = fs.readSync(fd, buffer, 0, length, size - length);
+  return /^#\d{9,}\r?$/m.test(buffer.subarray(0, read).toString("utf8"));
+}
+
 function appendHistory(history, command, timestamp = Math.floor(Date.now() / 1000)) {
   if (!history || typeof history.path !== "string" || !path.isAbsolute(history.path)) throw new Error("Invalid history path");
-  const record = serializeHistoryRecord(command, history.shell, timestamp);
+  let record = serializeHistoryRecord(command, history.shell, timestamp);
   // Never truncate, rewrite, chmod an existing file, or follow a FIFO/device.
   // O_APPEND + one write avoids offset races between Bang's own appends.
   const fd = fs.openSync(history.path, fs.constants.O_RDWR | fs.constants.O_CREAT | fs.constants.O_APPEND | fs.constants.O_NONBLOCK | fs.constants.O_NOCTTY, 0o600);
@@ -41,6 +56,7 @@ function appendHistory(history, command, timestamp = Math.floor(Date.now() / 100
       const last = Buffer.alloc(1);
       if (fs.readSync(fd, last, 0, 1, stat.size - 1) !== 1 || last[0] !== 10) throw new Error("History has an unfinished record");
     }
+    if (history.shell === "bash" && !bashUsesTimestamps(fd, stat.size)) record = serializeHistoryRecord(command, "bash", timestamp, false);
     if (fs.writeSync(fd, record) !== record.length) throw new Error("Incomplete history write");
     fs.fsyncSync(fd);
   } finally {

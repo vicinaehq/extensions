@@ -72,3 +72,18 @@ test("Bash's timestamp-enabled history reader accepts the saved multiline record
   const result = execFileSync("bash", ["--noprofile", "--norc", "-c", 'HISTTIMEFORMAT=; history -c; history -r "$1"; history -p "!!"', "bang-test", file], { encoding: "utf8", env: { HOME: directory, PATH: process.env.PATH } });
   assert.equal(result, command + "\n");
 });
+
+test("Bash: appends stay untimestamped in untimestamped history so later Bash lines stay separate", async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), "bang-history-plain-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const file = path.join(directory, "history");
+  await writeFile(file, "pwd\n");
+  appendHistory({ path: file, shell: "bash" }, "echo from-bang", 1700000000);
+  // Bash without HISTTIMEFORMAT keeps appending plain lines afterwards.
+  await writeFile(file, "echo from-bash\n", { flag: "a" });
+  assert.equal(await readFile(file, "utf8"), "pwd\necho from-bang\necho from-bash\n");
+  assert.deepEqual((await readHistory(file, "bash", 100)).entries.map(item => item.command), ["echo from-bash", "echo from-bang", "pwd"]);
+  assert.throws(() => appendHistory({ path: file, shell: "bash" }, "printf one\nprintf two", 1700000001));
+  assert.throws(() => appendHistory({ path: file, shell: "bash" }, "echo \\", 1700000001));
+  assert.equal(await readFile(file, "utf8"), "pwd\necho from-bang\necho from-bash\n");
+});
