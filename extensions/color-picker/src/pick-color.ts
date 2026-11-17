@@ -33,15 +33,15 @@ export default async function Command() {
 
     if (showColorName) {
       try {
-        const colors = colorNamer(formattedColor);
+        const colors = colorNamer(getFormattedColor(pickedColor, "hex"));
         const colorsByDistance = getColorByProximity(colors);
         const firstColorName = colorsByDistance[0]?.name;
         await showHUD(`Copied ${formattedColor} (${firstColorName})`);
       } catch {
-        await showHUD(`Copied color ${formattedColor} to clipboard`);
+        await showHUD(`Copied ${formattedColor}`);
       }
     } else {
-      await showHUD(`Copied color ${formattedColor} to clipboard`);
+      await showHUD(`Copied ${formattedColor}`);
     }
   } catch (e: any) {
     if (e instanceof PickerTimeoutError) {

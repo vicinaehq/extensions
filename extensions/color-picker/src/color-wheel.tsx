@@ -33,7 +33,7 @@ export default function Command() {
       }
 
       await Clipboard.copy(formattedColor);
-      await showHUD(`Copied color ${formattedColor} to clipboard`);
+      await showHUD(`Copied ${formattedColor}`);
       await closeMainWindow();
       await popToRoot();
     } catch (e) {
