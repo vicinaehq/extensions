@@ -7,6 +7,9 @@
     "Data",
     "Security"
   ],
+  "platforms": [
+    "Linux"
+  ],
   "license": "MIT",
   "author": "atybdot",
   "contributors": [],
