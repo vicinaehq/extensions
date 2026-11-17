@@ -1,9 +1,64 @@
 import { exec } from "child_process";
+import { accessSync, constants, statSync } from "fs";
+import { homedir } from "os";
+import { delimiter, join } from "path";
 import { promisify } from "util";
-import { Toast, showToast } from "@vicinae/api";
+import { Toast, getPreferenceValues, showToast } from "@vicinae/api";
 import { PODMAN_REGEX, ContainerStatus } from "./patterns";
 
 const execAsync = promisify(exec);
+
+// GUI launchers often start with a minimal PATH (e.g. /usr/bin:/bin on macOS), which misses
+// Homebrew, the official macOS installer and other common install locations.
+const EXTRA_BIN_DIRS = [
+  "/opt/homebrew/bin",
+  "/usr/local/bin",
+  "/opt/podman/bin",
+  "/home/linuxbrew/.linuxbrew/bin",
+  join(homedir(), ".local/bin"),
+  "/usr/bin",
+  "/bin",
+];
+
+function isExecutable(path: string): boolean {
+  try {
+    accessSync(path, constants.X_OK);
+    return statSync(path).isFile();
+  } catch {
+    return false;
+  }
+}
+
+// Make helpers podman may spawn (ssh, credential helpers) resolvable too
+const pathDirs = (process.env.PATH || "").split(delimiter).filter(Boolean);
+process.env.PATH = [...pathDirs, ...EXTRA_BIN_DIRS.filter((d) => !pathDirs.includes(d))].join(delimiter);
+
+let podmanBinary: string | undefined;
+
+export class PodmanNotFoundError extends Error {}
+
+// The podman executable: the "Podman Binary" preference if set, otherwise the first `podman`
+// found on PATH or in a common install location.
+export function getPodmanBinary(): string {
+  const configured = (getPreferenceValues<{ podmanPath?: string }>().podmanPath || "").trim();
+  if (configured) {
+    const path = configured.replace(/^~(?=\/|$)/, homedir());
+    if (!isExecutable(path)) {
+      throw new PodmanNotFoundError(`Podman binary "${path}" does not exist or is not executable. Check the Podman Binary preference.`);
+    }
+    return path;
+  }
+  if (podmanBinary) return podmanBinary;
+
+  const found = (process.env.PATH || "")
+    .split(delimiter)
+    .map((dir) => join(dir, "podman"))
+    .find(isExecutable);
+  if (!found) {
+    throw new PodmanNotFoundError("Could not find podman. Install it or set the Podman Binary preference.");
+  }
+  return (podmanBinary = found);
+}
 
 export type PodmanConnection = {
   name: string;
@@ -38,16 +93,17 @@ function shellQuote(value: string): string {
 // Build a podman command for `connection` ("" = podman's default).
 // `sudo` only applies to the default connection; named connections carry their own identity.
 export function podmanCmd(connection: string, args: string, sudo: boolean = false): string {
+  const podman = shellQuote(getPodmanBinary());
   if (connection) {
-    return `podman --connection ${shellQuote(connection)} ${args}`;
+    return `${podman} --connection ${shellQuote(connection)} ${args}`;
   }
-  return sudo ? `sudo -n podman ${args}` : `podman ${args}`;
+  return sudo ? `sudo -n ${podman} ${args}` : `${podman} ${args}`;
 }
 
 // List connections configured via `podman system connection add` / `podman machine`
 export async function listConnections(): Promise<PodmanConnection[]> {
   try {
-    const { stdout } = await execAsync("podman system connection list --format json");
+    const { stdout } = await execAsync(podmanCmd("", "system connection list --format json"));
     const data = JSON.parse(stdout.trim() || "[]");
     return (Array.isArray(data) ? data : [data])
       .filter((c: any) => c && c.Name)
@@ -180,6 +236,8 @@ export async function listContainers(
     } catch (userError) {
       // A named connection has nothing else to show: surface the failure (e.g. unreachable host)
       if (connection) throw userError;
+      // Same when podman itself can't be run: nothing will work, so don't hide it
+      if (userError instanceof PodmanNotFoundError) throw userError;
       console.log("Could not get user containers:", userError);
     }
 

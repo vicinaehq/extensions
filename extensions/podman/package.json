@@ -35,6 +35,15 @@
       "title": "Default Connection",
       "description": "Podman system connection to use on first launch (see `podman system connection list`). Leave empty to use podman's default.",
       "placeholder": "podman-machine-default"
+    },
+    {
+      "name": "podmanPath",
+      "type": "textfield",
+      "required": false,
+      "default": "",
+      "title": "Podman Binary",
+      "description": "Path to the podman executable. Leave empty to search PATH and common install locations (Homebrew, /opt/podman/bin, /usr/local/bin).",
+      "placeholder": "/opt/homebrew/bin/podman"
     }
   ],
   "scripts": {
