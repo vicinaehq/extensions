@@ -22,6 +22,12 @@ import { UnsupportedPlatform } from "./components/unsupported-platform";
 import { VaultSettings } from "./components/vault-settings";
 import { createHmac } from "crypto";
 
+/**
+ * The unlock form sets its own navigation title, and Vicinae keeps showing it
+ * after the form is replaced, so the unlocked views set the command title back.
+ */
+const TITLE = "Search OTP Codes";
+
 type CodeItem = {
   account: KeysmithAccount;
   code: string;
@@ -134,7 +140,7 @@ function AccountList({
 
   if (error) {
     return (
-      <List>
+      <List navigationTitle={TITLE}>
         <List.EmptyView
           icon={Icon.Warning}
           title="Could not read Keysmith"
@@ -160,12 +166,12 @@ function AccountList({
   }
 
   if (loading) {
-    return <List isLoading />;
+    return <List isLoading navigationTitle={TITLE} />;
   }
 
   if (items.length === 0) {
     return (
-      <List searchBarPlaceholder="Search Keysmith accounts...">
+      <List navigationTitle={TITLE} searchBarPlaceholder="Search Keysmith accounts...">
         <List.EmptyView
           icon={Icon.Key}
           title="No OTP Accounts"
@@ -190,7 +196,7 @@ function AccountList({
   }
 
   return (
-    <List searchBarPlaceholder="Search Keysmith accounts...">
+    <List navigationTitle={TITLE} searchBarPlaceholder="Search Keysmith accounts...">
       <List.Section
         title={`OTP Codes (${items.length})`}
         subtitle="Type the account or issuer name to filter."

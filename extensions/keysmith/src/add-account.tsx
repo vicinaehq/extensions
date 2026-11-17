@@ -30,6 +30,12 @@ import { UnsupportedPlatform } from "./components/unsupported-platform";
 
 const execFileAsync = promisify(execFile);
 
+/**
+ * The unlock form sets its own navigation title, and Vicinae keeps showing it
+ * after the form is replaced, so the unlocked views set the command title back.
+ */
+const TITLE = "Add Account";
+
 type AccountFields = {
   account: string;
   issuer: string;
@@ -247,6 +253,7 @@ function AddAccountForm({ configPath, session }: { configPath: string; session: 
 
   return (
     <Form
+      navigationTitle={TITLE}
       actions={
         <ActionPanel>
           <Action.SubmitForm title="Add Account" icon={Icon.Plus} onSubmit={handleSubmit} />
@@ -355,7 +362,7 @@ export default function AddAccount() {
       // The password could not be checked against any account. Writing here
       // would risk an entry Keysmith can never open.
       return (
-        <List>
+        <List navigationTitle={TITLE}>
           <List.EmptyView
             icon={Icon.Warning}
             title="Vault could not be verified"
