@@ -293,7 +293,9 @@ export async function addKeysmithAccount(
   const id = `{${randomUUID()}}`;
   const saved: Record<string, string> = {
     account: account.account,
-    issuer: account.issuer ?? "",
+    // Keysmith hides an account whose issuer is present but empty, so the key
+    // is only written when there is an issuer.
+    ...(account.issuer ? { issuer: account.issuer } : {}),
     type: account.type,
     hash: account.hash ?? "Sha1",
     pinLength: String(account.pinLength ?? 6),
