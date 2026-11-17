@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, List, closeMainWindow, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, Icon, List, closeMainWindow, showHUD, showToast, Toast } from "@vicinae/api";
 import { useCallback, useEffect, useState } from "react";
 import {
 	activateTab,
@@ -67,11 +67,8 @@ export default function Command() {
 									try {
 										await activateTab(tab.id);
 										if (!(await activeWindow(tab.title))) {
-											await showToast({
-												style: Toast.Style.Failure,
-												title: "Tab switched, but Helium could not be focused",
-												message: "Your desktop may not support automatic window focusing.",
-											});
+											// The launcher is already closed, so a toast would never be seen.
+											await showHUD("Tab switched, but Helium could not be focused");
 										}
 									} catch (e) {
 										await showToast({
