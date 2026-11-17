@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { addToHistory } from "./lib/history";
 import type { Color } from "./lib/types";
 import { getFormattedColor } from "./lib/utils";
-import { pickScreenColor } from "./native/picker";
+import { PickerTimeoutError, pickScreenColor } from "./native/picker";
 
 const COLOR_WHEEL_MARKDOWN = `
 # Color Wheel Reference
@@ -37,6 +37,10 @@ export default function Command() {
       await closeMainWindow();
       await popToRoot();
     } catch (e) {
+      if (e instanceof PickerTimeoutError) {
+        await showHUD("Color picker timed out, no color picked");
+        return;
+      }
       console.error(e);
       await showHUD("❌ Failed picking color");
     }

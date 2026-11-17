@@ -3,7 +3,7 @@ import colorNamer from "color-namer";
 import { addToHistory } from "./lib/history";
 import type { Color, PickColorPreferences } from "./lib/types";
 import { getColorByProximity, getFormattedColor } from "./lib/utils";
-import { pickScreenColor } from "./native/picker";
+import { PickerTimeoutError, pickScreenColor } from "./native/picker";
 
 export default async function Command() {
   let showColorName = false;
@@ -44,6 +44,10 @@ export default async function Command() {
       await showHUD(`Copied color ${formattedColor} to clipboard`);
     }
   } catch (e: any) {
+    if (e instanceof PickerTimeoutError) {
+      await showHUD("Color picker timed out, no color picked");
+      return;
+    }
     console.error("Pick color error:", e);
     await showHUD("❌ Failed picking color");
   }

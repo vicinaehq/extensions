@@ -7,6 +7,14 @@ import type { Color } from "../lib/types";
 
 const execFileAsync = promisify(execFile);
 
+/** The picker ended without a color and without the user cancelling (e.g. the portal timed out). */
+export class PickerTimeoutError extends Error {
+  constructor() {
+    super("The color picker timed out before a color was picked");
+    this.name = "PickerTimeoutError";
+  }
+}
+
 export async function pickScreenColor(): Promise<Color | null> {
   const platform = process.platform;
 
@@ -54,6 +62,9 @@ export async function pickScreenColor(): Promise<Color | null> {
     if (err.code === 1 || err.exitCode === 1) {
       // User cancelled
       return null;
+    }
+    if (err.code === 3 || err.exitCode === 3) {
+      throw new PickerTimeoutError();
     }
     console.error("Error executing color picker:", err);
     throw err;
