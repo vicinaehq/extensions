@@ -196,7 +196,7 @@ function WorkspaceCommand() {
           title="No Projects Match Filter"
         />
       )}
-      {workspaces.length > 0 && hasVisibleProjects && (
+      {workspaces.length > 0 && hasVisibleProjects && (filter === "all" || filteredCount > 0) && (
         <List.EmptyView actions={listActions} description="Try a different search." title="No Matching Projects" />
       )}
     </List>
