@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
 import { Clipboard } from "@vicinae/api";
-import { hideMainWindow } from "./feedback";
+import { hideMainWindow, reportIgnoredFiles } from "./feedback";
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
@@ -17,7 +17,11 @@ export interface SelectionOptions {
   filterName?: string;
 }
 
-function cleanFilePath(rawPath: string, allowedExtensions: string[] = [".pdf"]): string | null {
+function cleanFilePath(
+  rawPath: string,
+  allowedExtensions: string[] = [".pdf"],
+  ignored?: Set<string>
+): string | null {
   let cleaned = rawPath.trim();
   if (!cleaned) return null;
 
@@ -35,10 +39,17 @@ function cleanFilePath(rawPath: string, allowedExtensions: string[] = [".pdf"]):
   if (hasAllowedExt && fs.existsSync(cleaned)) {
     return path.resolve(cleaned);
   }
+  // Remember existing files that were skipped because of their type, to tell the user
+  if (ignored && path.isAbsolute(cleaned) && fs.existsSync(cleaned)) {
+    ignored.add(path.resolve(cleaned));
+  }
   return null;
 }
 
-async function getClipboardFiles(allowedExtensions: string[]): Promise<string[]> {
+async function getClipboardFiles(
+  allowedExtensions: string[],
+  ignored: Set<string>
+): Promise<string[]> {
   const found = new Set<string>();
 
   // 1. Try Linux Wayland wl-paste (text/uri-list and x-special/gnome-copied-files)
@@ -47,7 +58,7 @@ async function getClipboardFiles(allowedExtensions: string[]): Promise<string[]>
       const { stdout } = await execAsync("wl-paste -t text/uri-list 2>/dev/null || true");
       if (stdout) {
         for (const line of stdout.split(/\r?\n/)) {
-          const cleaned = cleanFilePath(line, allowedExtensions);
+          const cleaned = cleanFilePath(line, allowedExtensions, ignored);
           if (cleaned) found.add(cleaned);
         }
       }
@@ -62,7 +73,7 @@ async function getClipboardFiles(allowedExtensions: string[]): Promise<string[]>
       if (stdout) {
         for (const line of stdout.split(/\r?\n/)) {
           if (line.startsWith("copy") || line.startsWith("cut")) continue;
-          const cleaned = cleanFilePath(line, allowedExtensions);
+          const cleaned = cleanFilePath(line, allowedExtensions, ignored);
           if (cleaned) found.add(cleaned);
         }
       }
@@ -79,7 +90,7 @@ async function getClipboardFiles(allowedExtensions: string[]): Promise<string[]>
       );
       if (stdout) {
         for (const line of stdout.split(/\r?\n/)) {
-          const cleaned = cleanFilePath(line, allowedExtensions);
+          const cleaned = cleanFilePath(line, allowedExtensions, ignored);
           if (cleaned) found.add(cleaned);
         }
       }
@@ -93,7 +104,7 @@ async function getClipboardFiles(allowedExtensions: string[]): Promise<string[]>
     const text = await Clipboard.readText();
     if (text) {
       for (const line of text.split(/\r?\n/)) {
-        const cleaned = cleanFilePath(line, allowedExtensions);
+        const cleaned = cleanFilePath(line, allowedExtensions, ignored);
         if (cleaned) found.add(cleaned);
       }
     }
@@ -104,7 +115,10 @@ async function getClipboardFiles(allowedExtensions: string[]): Promise<string[]>
   return Array.from(found);
 }
 
-async function getMacOSFinderSelection(allowedExtensions: string[]): Promise<string[]> {
+async function getMacOSFinderSelection(
+  allowedExtensions: string[],
+  ignored: Set<string>
+): Promise<string[]> {
   try {
     const script = `
       tell application "Finder"
@@ -120,7 +134,7 @@ async function getMacOSFinderSelection(allowedExtensions: string[]): Promise<str
     if (!stdout) return [];
     return stdout
       .split(",")
-      .map((s) => cleanFilePath(s.trim(), allowedExtensions))
+      .map((s) => cleanFilePath(s.trim(), allowedExtensions, ignored))
       .filter((s): s is string => s !== null);
   } catch {
     return [];
@@ -307,15 +321,19 @@ export async function getSelectedOrPickedFiles(options: SelectionOptions = {}): 
 
   // 1. Try macOS Finder selection first if on macOS
   if (process.platform === "darwin") {
-    const finderFiles = await getMacOSFinderSelection(allowedExtensions);
+    const finderIgnored = new Set<string>();
+    const finderFiles = await getMacOSFinderSelection(allowedExtensions, finderIgnored);
     if (finderFiles.length >= minFiles) {
+      reportIgnoredFiles([...finderIgnored]);
       return finderFiles;
     }
   }
 
   // 2. Try clipboard (Nautilus copy, copied paths)
-  const clipboardFiles = await getClipboardFiles(allowedExtensions);
+  const clipboardIgnored = new Set<string>();
+  const clipboardFiles = await getClipboardFiles(allowedExtensions, clipboardIgnored);
   if (clipboardFiles.length >= minFiles) {
+    reportIgnoredFiles([...clipboardIgnored]);
     return clipboardFiles;
   }
 
