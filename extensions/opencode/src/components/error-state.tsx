@@ -24,14 +24,17 @@ export function OpenCodeErrorView(props: {
     try {
       const binary = await resolveOpenCodeBinary(props.config.openCodePath);
       await startOpenCodeService(binary);
+      // Hide the progress toast before showing the result: hiding it afterwards
+      // also removes the result toast, so the user never sees what happened.
+      await toast.hide();
       await showToast({ style: Toast.Style.Success, title: "OpenCode started" });
       props.onRetry?.();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to start OpenCode.";
+      await toast.hide();
       await showToast({ style: Toast.Style.Failure, title: "Failed to start OpenCode", message });
     } finally {
       setStarting(false);
-      void toast.hide();
     }
   };
 
