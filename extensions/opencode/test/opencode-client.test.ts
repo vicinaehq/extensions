@@ -187,6 +187,18 @@ describe("OpenCode client adapter", () => {
     expect([...waiting].sort()).toEqual(["ses_a", "ses_b"]);
   });
 
+  test("pending permissions are asked for in every session directory", async () => {
+    const { service, requests } = makeService(({ url }) =>
+      url.includes("/api/permission/request")
+        ? jsonResponse({ data: url.includes("alpha") ? [{ sessionID: "ses_a" }] : [{ sessionID: "ses_b" }] })
+        : jsonResponse({}, 404),
+    );
+    const waiting = await service.pendingPermissions(["/work/alpha", "/work/beta", "/work/alpha"]);
+    expect(requests).toHaveLength(2);
+    expect(decodeURIComponent(requests[0]?.url ?? "")).toContain("/work/alpha");
+    expect([...waiting].sort()).toEqual(["ses_a", "ses_b"]);
+  });
+
   test("pending forms map every form to its session", async () => {
     const { service, requests } = makeService(({ url }) =>
       url.includes("/api/form")

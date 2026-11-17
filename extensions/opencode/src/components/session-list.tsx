@@ -247,6 +247,7 @@ export function SessionListView(props: {
     async (targetQuery: string, signal?: AbortSignal) => {
       setIsLoading(true);
       try {
+        let loaded: readonly SessionInfo[];
         if (targetQuery.length >= SEARCH_MIN_LENGTH) {
           const page = await service.sessions({
             limit: SEARCH_PAGE_SIZE,
@@ -254,6 +255,7 @@ export function SessionListView(props: {
             ...(props.projectID ? { projectID: props.projectID } : {}),
           });
           if (signal?.aborted) return;
+          loaded = page.data;
           setSessions(page.data);
           setCursor(undefined);
           setSearchActive(true);
@@ -263,14 +265,16 @@ export function SessionListView(props: {
             ...(props.projectID ? { projectID: props.projectID } : {}),
           });
           if (signal?.aborted) return;
+          loaded = page.data;
           setSessions(page.data);
           setCursor(page.next ?? undefined);
           setSearchActive(false);
         }
+        const directories = loaded.flatMap((session) => (session.location?.directory ? [session.location.directory] : []));
         const [activeMap, permissions, forms] = await Promise.all([
           service.activeSessions().catch(() => ({})),
-          service.pendingPermissions().catch(() => new Set<string>()),
-          service.pendingForms().catch(() => new Set<string>()),
+          service.pendingPermissions(directories).catch(() => new Set<string>()),
+          service.pendingForms(directories).catch(() => new Set<string>()),
         ]);
         if (signal?.aborted) return;
         setActive(activeMap);

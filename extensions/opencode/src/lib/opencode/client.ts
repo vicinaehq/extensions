@@ -58,8 +58,10 @@ export interface OpenCodeService {
   switchModel(sessionID: string, model: ModelRef): Promise<void>;
   vcs(directory: string): Promise<VcsInfo | null>;
   messages(sessionID: string): Promise<SessionMessageInfo[]>;
-  pendingPermissions(): Promise<Set<string>>;
-  pendingForms(): Promise<Set<string>>;
+  /** Sessions blocked on a permission request, in the given session directories. */
+  pendingPermissions(directories?: readonly string[]): Promise<Set<string>>;
+  /** Sessions blocked on a question form, in the given session directories. */
+  pendingForms(directories?: readonly string[]): Promise<Set<string>>;
   events(signal?: AbortSignal): AsyncIterable<V2Event>;
 }
 
@@ -111,6 +113,15 @@ async function call<T>(
   } catch (error) {
     throw mapOpenCodeError(error, failedStatus);
   }
+}
+
+/**
+ * Pending permission requests and forms are scoped to a location: without one
+ * the server only reports its own working directory. Ask once per directory.
+ */
+function locationsFor(directories?: readonly string[]): ({ directory: string } | undefined)[] {
+  const unique = [...new Set(directories ?? [])];
+  return unique.length > 0 ? unique.map((directory) => ({ directory })) : [undefined];
 }
 
 export function createOpenCodeService(
@@ -208,14 +219,22 @@ export function createOpenCodeService(
 
     messages: (sessionID) => invoke((client, options) => client.session.context({ sessionID }, options)),
 
-    pendingPermissions: async () => {
-      const out = await invoke((client, options) => client.permission.request.list(undefined, options));
-      return new Set(out.data.map((request) => request.sessionID));
+    pendingPermissions: async (directories) => {
+      const pages = await Promise.all(
+        locationsFor(directories).map((location) =>
+          invoke((client, options) => client.permission.request.list(location ? { location } : undefined, options)),
+        ),
+      );
+      return new Set(pages.flatMap((out) => out.data.map((request) => request.sessionID)));
     },
 
-    pendingForms: async () => {
-      const out = await invoke((client, options) => client.form.list(undefined, options));
-      return new Set(out.data.map((form) => form.sessionID));
+    pendingForms: async (directories) => {
+      const pages = await Promise.all(
+        locationsFor(directories).map((location) =>
+          invoke((client, options) => client.form.list(location ? { location } : undefined, options)),
+        ),
+      );
+      return new Set(pages.flatMap((out) => out.data.map((form) => form.sessionID)));
     },
 
     events: (signal) =>
