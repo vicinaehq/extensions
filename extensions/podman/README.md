@@ -1,6 +1,6 @@
 # Podman Containers Extension
 
-A Vicinae extension for managing Podman containers and images on Linux systems.
+A Vicinae extension for managing Podman containers and images on Linux and macOS, locally or on remote hosts.
 
 ## Features
 
@@ -11,12 +11,27 @@ A Vicinae extension for managing Podman containers and images on Linux systems.
 - **Inspection**: View detailed container and image configuration and metadata
 - **Filtering**: Filter containers by status (All, Running, Stopped, Paused)
 - **Search**: Search through containers and images by name or ID
+- **Remote Connections**: Switch between any `podman system connection` (SSH hosts, Podman machines)
 - **Visual Indicators**: Color-coded status icons and status accessories
 
 ## Requirements
 
 - Linux system with Podman installed
 - Appropriate permissions to manage containers (may require sudo for some operations)
+
+## Remote Connections
+
+The extension can target any connection configured with Podman:
+
+```sh
+podman system connection add myserver ssh://user@host/run/user/1000/podman/podman.sock
+podman system connection list
+```
+
+- Open the action panel → **Switch Connection** to pick a connection. The selection is remembered and shared between the Containers and Images commands.
+- **Default Connection** runs plain `podman`, i.e. the local socket or whichever connection Podman marks as default.
+- Set the **Default Connection** preference to choose which connection is used on first launch.
+- System (sudo) containers are only listed for the local default connection; to manage a remote rootful instance, add a connection pointing at its root socket.
 
 ## Usage
 

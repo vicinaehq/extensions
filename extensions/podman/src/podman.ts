@@ -5,6 +5,60 @@ import { PODMAN_REGEX, ContainerStatus } from "./patterns";
 
 const execAsync = promisify(exec);
 
+export type PodmanConnection = {
+  name: string;
+  uri: string;
+  isDefault: boolean;
+  isMachine: boolean;
+};
+
+// Active podman connection ("" = podman's default connection / local socket)
+let activeConnection = "";
+
+export function setActiveConnection(name: string): void {
+  activeConnection = name;
+}
+
+export function getActiveConnection(): string {
+  return activeConnection;
+}
+
+export function isRemoteConnection(): boolean {
+  return activeConnection !== "";
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+// Build a podman command for the active connection.
+// `sudo` only applies to the local socket; remote connections carry their own identity.
+export function podmanCmd(args: string, sudo: boolean = false): string {
+  if (activeConnection) {
+    return `podman --connection ${shellQuote(activeConnection)} ${args}`;
+  }
+  return sudo ? `sudo -n podman ${args}` : `podman ${args}`;
+}
+
+// List connections configured via `podman system connection add` / `podman machine`
+export async function listConnections(): Promise<PodmanConnection[]> {
+  try {
+    const { stdout } = await execAsync("podman system connection list --format json");
+    const data = JSON.parse(stdout.trim() || "[]");
+    return (Array.isArray(data) ? data : [data])
+      .filter((c: any) => c && c.Name)
+      .map((c: any) => ({
+        name: c.Name,
+        uri: c.URI || "",
+        isDefault: Boolean(c.Default),
+        isMachine: Boolean(c.IsMachine),
+      }));
+  } catch (error) {
+    console.log("Could not list podman connections:", error);
+    return [];
+  }
+}
+
 export type Container = {
   id: string;
   image: string;
@@ -95,7 +149,7 @@ export async function listContainers(
     const containers: Container[] = [];
 
     // Get user containers first
-    const userCommand = showAll ? "podman ps -a --format json" : "podman ps --format json";
+    const userCommand = podmanCmd(showAll ? "ps -a --format json" : "ps --format json");
     try {
       const { stdout: userStdout } = await execAsync(userCommand, {
         maxBuffer: 10 * 1024 * 1024 // 10MB buffer
@@ -114,10 +168,10 @@ export async function listContainers(
       console.log("Could not get user containers:", userError);
     }
 
-    // Try to get system containers if enabled (requires sudo)
-    if (showSystem) {
+    // Try to get system containers if enabled (requires sudo, local only)
+    if (showSystem && !isRemoteConnection()) {
       try {
-        const systemCommand = showAll ? "sudo -n podman ps -a --format json" : "sudo -n podman ps --format json";
+        const systemCommand = podmanCmd(showAll ? "ps -a --format json" : "ps --format json", true);
         const { stdout: systemStdout } = await execAsync(systemCommand, {
           maxBuffer: 10 * 1024 * 1024, // 10MB buffer
           timeout: 5000 // 5 second timeout for sudo
@@ -162,7 +216,7 @@ export async function startContainer(containerId: string): Promise<void> {
       title: `Starting container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman start ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(`start ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning starting ${containerId}:`, stderr);
@@ -191,7 +245,7 @@ export async function stopContainer(containerId: string): Promise<void> {
       title: `Stopping container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman stop ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(`stop ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning stopping ${containerId}:`, stderr);
@@ -220,7 +274,7 @@ export async function restartContainer(containerId: string): Promise<void> {
       title: `Restarting container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman restart ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(`restart ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning restarting ${containerId}:`, stderr);
@@ -249,7 +303,7 @@ export async function pauseContainer(containerId: string): Promise<void> {
       title: `Pausing container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman pause ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(`pause ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning pausing ${containerId}:`, stderr);
@@ -278,7 +332,7 @@ export async function unpauseContainer(containerId: string): Promise<void> {
       title: `Unpausing container ${containerId}...`,
     });
 
-    const { stderr } = await execAsync(`podman unpause ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(`unpause ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning unpausing ${containerId}:`, stderr);
@@ -308,7 +362,7 @@ export async function removeContainer(containerId: string, force: boolean = fals
     });
 
     const forceFlag = force ? "--force" : "";
-    const { stderr } = await execAsync(`podman rm ${forceFlag} ${containerId}`);
+    const { stderr } = await execAsync(podmanCmd(`rm ${forceFlag} ${containerId}`));
 
     if (stderr) {
       console.warn(`Warning removing ${containerId}:`, stderr);
@@ -338,9 +392,7 @@ export async function getContainerLogs(
 ): Promise<string> {
   try {
     // Use sudo for system containers
-    const command = isSystem
-      ? `sudo -n podman logs --tail ${lines} ${containerId}`
-      : `podman logs --tail ${lines} ${containerId}`;
+    const command = podmanCmd(`logs --tail ${lines} ${containerId}`, isSystem);
 
     // Use larger buffer size to handle large log outputs
     const { stdout } = await execAsync(command, {
@@ -361,9 +413,7 @@ export async function getContainerLogs(
 export async function getContainerInspect(containerId: string, isSystem: boolean = false): Promise<string> {
   try {
     // Use sudo for system containers
-    const command = isSystem
-      ? `sudo -n podman inspect ${containerId}`
-      : `podman inspect ${containerId}`;
+    const command = podmanCmd(`inspect ${containerId}`, isSystem);
 
     const { stdout } = await execAsync(command, {
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer
@@ -439,7 +489,7 @@ export function parseImageFromJson(imageJson: any): Image | null {
 // Get list of images
 export async function listImages(): Promise<Image[]> {
   try {
-    const { stdout } = await execAsync("podman images --format json", {
+    const { stdout } = await execAsync(podmanCmd("images --format json"), {
       maxBuffer: 10 * 1024 * 1024 // 10MB buffer
     });
 
@@ -474,7 +524,7 @@ export async function pullImage(imageName: string): Promise<void> {
       title: `Pulling image ${imageName}...`,
     });
 
-    const { stderr } = await execAsync(`podman pull ${imageName}`);
+    const { stderr } = await execAsync(podmanCmd(`pull ${imageName}`));
 
     if (stderr) {
       console.warn(`Warning pulling ${imageName}:`, stderr);
@@ -505,7 +555,7 @@ export async function removeImage(imageId: string, force: boolean = false): Prom
     });
 
     const forceFlag = force ? "--force" : "";
-    const { stderr } = await execAsync(`podman rmi ${forceFlag} ${imageId}`);
+    const { stderr } = await execAsync(podmanCmd(`rmi ${forceFlag} ${imageId}`));
 
     if (stderr) {
       console.warn(`Warning removing ${imageId}:`, stderr);
@@ -530,7 +580,7 @@ export async function removeImage(imageId: string, force: boolean = false): Prom
 // Get image details
 export async function getImageInspect(imageId: string): Promise<string> {
   try {
-    const { stdout } = await execAsync(`podman inspect ${imageId}`, {
+    const { stdout } = await execAsync(podmanCmd(`inspect ${imageId}`), {
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer
     });
     return stdout;

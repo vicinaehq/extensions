@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, type ReactNode } from "react";
 import {
   Action,
   ActionPanel,
@@ -24,9 +24,10 @@ import {
   ContainerStatus,
 } from "./patterns";
 import type { Container } from "./podman";
+import { ConnectionSubmenu, connectionLabel, useConnection } from "./connection";
 
 // Custom hook for managing containers
-function useContainers(showSystem: boolean = false) {
+function useContainers(showSystem: boolean, connection: string, ready: boolean) {
   const [containers, setContainers] = useState<Container[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +48,7 @@ function useContainers(showSystem: boolean = false) {
       console.error(error);
       return [];
     }
-  }, [showSystem]);
+  }, [showSystem, connection]);
 
   const refreshContainers = useCallback(async () => {
     setLoading(true);
@@ -57,8 +58,8 @@ function useContainers(showSystem: boolean = false) {
   }, [fetchContainers]);
 
   useEffect(() => {
-    refreshContainers();
-  }, [refreshContainers]);
+    if (ready) refreshContainers();
+  }, [refreshContainers, ready]);
 
   return { containers, loading, refreshContainers };
 }
@@ -191,11 +192,13 @@ function ContainerListItem({
   showingDetail,
   refreshContainers,
   toggleDetails,
+  connectionMenu,
 }: {
   container: Container;
   showingDetail: boolean;
   refreshContainers: () => Promise<void>;
   toggleDetails: () => void;
+  connectionMenu: ReactNode;
 }) {
   const tintColor = getContainerColor(container.status);
 
@@ -317,6 +320,15 @@ function ContainerListItem({
               />
             </>
            )}
+          <ActionPanel.Section>
+            <Action
+              title="Refresh"
+              icon={Icon.ArrowClockwise}
+              shortcut={{ modifiers: ["ctrl"], key: "f" }}
+              onAction={refreshContainers}
+            />
+            {connectionMenu}
+          </ActionPanel.Section>
          </ActionPanel>
       }
     />
@@ -337,10 +349,26 @@ export default function Containers() {
   const [showingDetail, setShowingDetail] = useState(false);
   const [filter, setFilter] = useState<ContainerFilter>("all");
 
-  // Determine if we should show system containers based on filter
-  const showSystem = filter === "all" || filter === "system";
+  const { connections, connection, setConnection, ready } = useConnection();
+  const isRemote = connection !== "";
 
-  const { containers, loading, refreshContainers } = useContainers(showSystem);
+  // Determine if we should show system containers based on filter (local only)
+  const showSystem = !isRemote && (filter === "all" || filter === "system");
+
+  const { containers, loading, refreshContainers } = useContainers(
+    showSystem,
+    connection,
+    ready
+  );
+
+  const connectionMenu = (
+    <ConnectionSubmenu
+      connections={connections}
+      connection={connection}
+      onSelect={setConnection}
+    />
+  );
+  const navigationTitle = `Containers — ${connectionLabel(connection)}`;
 
   const toggleDetails = useCallback(() => {
     setShowingDetail(!showingDetail);
@@ -372,11 +400,11 @@ export default function Containers() {
 
   if (containers.length === 0 && !loading) {
     return (
-      <List>
+      <List navigationTitle={navigationTitle}>
         <List.EmptyView
           icon={Icon.Box}
           title="No Containers Found"
-          description="No Podman containers available. Create a container to get started."
+          description={`No Podman containers available on ${connectionLabel(connection)}.`}
           actions={
             <ActionPanel>
               <Action
@@ -384,6 +412,7 @@ export default function Containers() {
                 icon={Icon.ArrowClockwise}
                 onAction={refreshContainers}
               />
+              {connectionMenu}
             </ActionPanel>
           }
         />
@@ -394,6 +423,7 @@ export default function Containers() {
   return (
     <List
       isLoading={loading}
+      navigationTitle={navigationTitle}
       searchBarPlaceholder="Search containers..."
       isShowingDetail={showingDetail}
     >
@@ -413,11 +443,13 @@ export default function Containers() {
             title="User Containers"
             icon={Icon.Person}
           />
-          <List.Dropdown.Item
-            value="system"
-            title="System Containers"
-            icon={Icon.Gear}
-          />
+          {!isRemote && (
+            <List.Dropdown.Item
+              value="system"
+              title="System Containers"
+              icon={Icon.Gear}
+            />
+          )}
           <List.Dropdown.Item
             value="running"
             title="Running"
@@ -438,6 +470,7 @@ export default function Containers() {
           showingDetail={showingDetail}
           refreshContainers={refreshContainers}
           toggleDetails={toggleDetails}
+          connectionMenu={connectionMenu}
         />
       ))}
     </List>
