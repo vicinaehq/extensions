@@ -1,11 +1,13 @@
 import * as path from "node:path";
-import { closeMainWindow, showToast, Toast } from "@vicinae/api";
-import { isPDFDocumentLocked, mergePDFs } from "./lib/qpdf";
+import { showFailure, showProgress, showSuccess } from "./lib/feedback";
+import { ensureQpdfAvailable, isPDFDocumentLocked, mergePDFs } from "./lib/qpdf";
 import { getSelectedOrPickedFiles } from "./lib/selection";
 
 export default async function Command(props: { arguments: { outputFilename: string } }) {
   try {
     const { outputFilename } = props.arguments;
+
+    await ensureQpdfAvailable();
 
     const selectedFiles = await getSelectedOrPickedFiles({
       minFiles: 2,
@@ -27,23 +29,12 @@ export default async function Command(props: { arguments: { outputFilename: stri
       }
     }
 
-    await closeMainWindow();
-
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: "Merging PDF files...",
-    });
+    await showProgress("Merging PDF files...");
 
     const outputPath = await mergePDFs(selectedFiles, outputFilename);
 
-    toast.style = Toast.Style.Success;
-    toast.title = "PDF files merged successfully";
-    toast.message = path.basename(outputPath);
+    await showSuccess("PDF files merged successfully", path.basename(outputPath));
   } catch (error: any) {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Merge failed",
-      message: error instanceof Error ? error.message : String(error),
-    });
+    await showFailure("Merge failed", error);
   }
 }

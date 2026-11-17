@@ -1,6 +1,6 @@
 import * as path from "node:path";
-import { closeMainWindow, showToast, Toast } from "@vicinae/api";
-import { isPDFDocumentLocked, protectPDF } from "./lib/qpdf";
+import { showFailure, showProgress, showSuccess } from "./lib/feedback";
+import { ensureQpdfAvailable, isPDFDocumentLocked, protectPDF } from "./lib/qpdf";
 import { getSelectedOrPickedFiles } from "./lib/selection";
 
 export default async function Command(props: { arguments: { password: string } }) {
@@ -10,6 +10,8 @@ export default async function Command(props: { arguments: { password: string } }
     if (!password) {
       throw new Error("Password cannot be empty");
     }
+
+    await ensureQpdfAvailable();
 
     const selectedFiles = await getSelectedOrPickedFiles({
       minFiles: 1,
@@ -31,26 +33,14 @@ export default async function Command(props: { arguments: { password: string } }
       }
     }
 
-    await closeMainWindow();
-
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: `Protecting ${selectedFiles.length} file(s)...`,
-    });
+    await showProgress(`Protecting ${selectedFiles.length} file(s)...`);
 
     for (const filePath of selectedFiles) {
-      toast.message = path.basename(filePath);
       await protectPDF(filePath, password);
     }
 
-    toast.style = Toast.Style.Success;
-    toast.title = `PDF file${selectedFiles.length > 1 ? "s" : ""} protected successfully`;
-    toast.message = "";
+    await showSuccess(`PDF file${selectedFiles.length > 1 ? "s" : ""} protected successfully`);
   } catch (error: any) {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Protection failed",
-      message: error instanceof Error ? error.message : String(error),
-    });
+    await showFailure("Protection failed", error);
   }
 }

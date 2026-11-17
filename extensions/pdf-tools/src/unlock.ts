@@ -1,6 +1,6 @@
 import * as path from "node:path";
-import { closeMainWindow, showToast, Toast } from "@vicinae/api";
-import { isPDFDocumentLocked, unlockPDF } from "./lib/qpdf";
+import { showFailure, showProgress, showSuccess } from "./lib/feedback";
+import { ensureQpdfAvailable, isPDFDocumentLocked, unlockPDF, verifyPassword } from "./lib/qpdf";
 import { getSelectedOrPickedFiles } from "./lib/selection";
 
 export default async function Command(props: { arguments: { password: string } }) {
@@ -10,6 +10,8 @@ export default async function Command(props: { arguments: { password: string } }
     if (!password) {
       throw new Error("Password cannot be empty");
     }
+
+    await ensureQpdfAvailable();
 
     const selectedFiles = await getSelectedOrPickedFiles({
       minFiles: 1,
@@ -29,28 +31,20 @@ export default async function Command(props: { arguments: { password: string } }
       if (!(await isPDFDocumentLocked(filePath))) {
         throw new Error(`"${path.basename(filePath)}" is not password-protected`);
       }
+
+      if (!(await verifyPassword(filePath, password))) {
+        throw new Error(`Incorrect password for "${path.basename(filePath)}"`);
+      }
     }
 
-    await closeMainWindow();
-
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: `Unlocking ${selectedFiles.length} file(s)...`,
-    });
+    await showProgress(`Unlocking ${selectedFiles.length} file(s)...`);
 
     for (const filePath of selectedFiles) {
-      toast.message = path.basename(filePath);
       await unlockPDF(filePath, password);
     }
 
-    toast.style = Toast.Style.Success;
-    toast.title = `PDF file${selectedFiles.length > 1 ? "s" : ""} unlocked successfully`;
-    toast.message = "";
+    await showSuccess(`PDF file${selectedFiles.length > 1 ? "s" : ""} unlocked successfully`);
   } catch (error: any) {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Unlock failed",
-      message: error instanceof Error ? error.message : String(error),
-    });
+    await showFailure("Unlock failed", error);
   }
 }

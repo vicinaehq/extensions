@@ -56,6 +56,13 @@ async function runQpdf(
 }
 
 /**
+ * Check that qpdf is installed, so a missing qpdf is reported before any file is touched.
+ */
+export async function ensureQpdfAvailable(): Promise<void> {
+  await runQpdf(["--version"]);
+}
+
+/**
  * Check if PDF document is locked / password protected.
  * Exit code 0 from qpdf --is-encrypted indicates file is encrypted.
  * Exit code 2 indicates file is NOT encrypted.

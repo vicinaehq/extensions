@@ -3,6 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
 import { Clipboard } from "@vicinae/api";
+import { hideMainWindow } from "./feedback";
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
@@ -299,6 +300,10 @@ end tell`;
 export async function getSelectedOrPickedFiles(options: SelectionOptions = {}): Promise<string[]> {
   const minFiles = options.minFiles ?? 1;
   const allowedExtensions = options.allowedExtensions ?? [".pdf"];
+
+  // Close the launcher first: reading the Wayland clipboard (wl-paste) clears its toasts,
+  // and a file dialog would open behind it. Results are reported with a HUD from here on.
+  await hideMainWindow();
 
   // 1. Try macOS Finder selection first if on macOS
   if (process.platform === "darwin") {

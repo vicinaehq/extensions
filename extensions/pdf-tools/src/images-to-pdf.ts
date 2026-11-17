@@ -1,6 +1,10 @@
 import * as path from "node:path";
-import { closeMainWindow, showToast, Toast } from "@vicinae/api";
-import { convertImagesToPDF, SUPPORTED_IMAGE_EXTENSIONS } from "./lib/images-to-pdf";
+import {
+  convertImagesToPDF,
+  ensureImageConversionAvailable,
+  SUPPORTED_IMAGE_EXTENSIONS,
+} from "./lib/images-to-pdf";
+import { showFailure, showProgress, showSuccess } from "./lib/feedback";
 import { getSelectedOrPickedFiles } from "./lib/selection";
 
 export default async function Command(props: { arguments: { outputFilename: string } }) {
@@ -10,6 +14,8 @@ export default async function Command(props: { arguments: { outputFilename: stri
     if (!outputFilename || !outputFilename.trim()) {
       throw new Error("Output filename cannot be empty");
     }
+
+    await ensureImageConversionAvailable();
 
     const selectedFiles = await getSelectedOrPickedFiles({
       minFiles: 1,
@@ -23,23 +29,12 @@ export default async function Command(props: { arguments: { outputFilename: stri
       throw new Error("No images have been selected");
     }
 
-    await closeMainWindow();
-
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: `Converting ${selectedFiles.length} image(s) to PDF...`,
-    });
+    await showProgress(`Converting ${selectedFiles.length} image(s) to PDF...`);
 
     const outputPath = await convertImagesToPDF(selectedFiles, outputFilename.trim());
 
-    toast.style = Toast.Style.Success;
-    toast.title = "Images converted to PDF successfully";
-    toast.message = path.basename(outputPath);
+    await showSuccess("Images converted to PDF successfully", path.basename(outputPath));
   } catch (error: any) {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Conversion failed",
-      message: error instanceof Error ? error.message : String(error),
-    });
+    await showFailure("Conversion failed", error);
   }
 }

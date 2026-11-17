@@ -1,6 +1,7 @@
 import * as path from "node:path";
-import { closeMainWindow, getPreferenceValues, showToast, Toast } from "@vicinae/api";
-import { isPDFDocumentLocked, splitByPageCount } from "./lib/qpdf";
+import { getPreferenceValues } from "@vicinae/api";
+import { showFailure, showProgress, showSuccess } from "./lib/feedback";
+import { ensureQpdfAvailable, isPDFDocumentLocked, splitByPageCount } from "./lib/qpdf";
 import { getSelectedOrPickedFiles } from "./lib/selection";
 
 interface Preferences {
@@ -14,6 +15,8 @@ export default async function Command(props: { arguments: { pageCount: string } 
     if (!Number.isInteger(pageCount) || pageCount <= 0) {
       throw new Error("A positive integer is required for page count");
     }
+
+    await ensureQpdfAvailable();
 
     const selectedFiles = await getSelectedOrPickedFiles({
       minFiles: 1,
@@ -35,8 +38,6 @@ export default async function Command(props: { arguments: { pageCount: string } 
       }
     }
 
-    await closeMainWindow();
-
     let suffix = "part";
     try {
       const preferences = getPreferenceValues<Preferences>();
@@ -47,26 +48,19 @@ export default async function Command(props: { arguments: { pageCount: string } 
       // default "part"
     }
 
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: `Splitting ${selectedFiles.length} file(s)...`,
-    });
+    await showProgress(`Splitting ${selectedFiles.length} file(s)...`);
 
     let totalParts = 0;
     for (const filePath of selectedFiles) {
-      toast.message = path.basename(filePath);
       const parts = await splitByPageCount(filePath, pageCount, suffix);
       totalParts += parts.length;
     }
 
-    toast.style = Toast.Style.Success;
-    toast.title = `PDF file${selectedFiles.length > 1 ? "s" : ""} split successfully`;
-    toast.message = `Generated ${totalParts} part(s)`;
+    await showSuccess(
+      `PDF file${selectedFiles.length > 1 ? "s" : ""} split successfully`,
+      `Generated ${totalParts} part(s)`
+    );
   } catch (error: any) {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Split failed",
-      message: error instanceof Error ? error.message : String(error),
-    });
+    await showFailure("Split failed", error);
   }
 }

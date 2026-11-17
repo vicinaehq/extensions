@@ -1,6 +1,7 @@
 import * as path from "node:path";
-import { closeMainWindow, getPreferenceValues, showToast, Toast } from "@vicinae/api";
-import { isPDFDocumentLocked } from "./lib/qpdf";
+import { getPreferenceValues } from "@vicinae/api";
+import { showFailure, showProgress, showSuccess } from "./lib/feedback";
+import { ensureQpdfAvailable, isPDFDocumentLocked } from "./lib/qpdf";
 import { getSelectedOrPickedFiles } from "./lib/selection";
 import { watermarkPDF } from "./lib/watermark";
 
@@ -32,6 +33,8 @@ export default async function Command(props: {
       // defaults
     }
 
+    await ensureQpdfAvailable();
+
     const selectedFiles = await getSelectedOrPickedFiles({
       minFiles: 1,
       multiple: true,
@@ -52,28 +55,16 @@ export default async function Command(props: {
       }
     }
 
-    await closeMainWindow();
-
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: `Watermarking ${selectedFiles.length} file(s)...`,
-    });
+    await showProgress(`Watermarking ${selectedFiles.length} file(s)...`);
 
     const parsedFontSize = fontSize ? parseInt(fontSize, 10) : 72;
 
     for (const filePath of selectedFiles) {
-      toast.message = path.basename(filePath);
       await watermarkPDF(filePath, text.trim(), transparency, rotation, parsedFontSize);
     }
 
-    toast.style = Toast.Style.Success;
-    toast.title = `PDF file${selectedFiles.length > 1 ? "s" : ""} watermarked successfully`;
-    toast.message = "";
+    await showSuccess(`PDF file${selectedFiles.length > 1 ? "s" : ""} watermarked successfully`);
   } catch (error: any) {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Watermark failed",
-      message: error instanceof Error ? error.message : String(error),
-    });
+    await showFailure("Watermark failed", error);
   }
 }

@@ -92,6 +92,34 @@ async function getPythonExecutable(): Promise<string> {
   return process.platform === "win32" ? "python" : "python3";
 }
 
+function explainPythonError(err: any): Error {
+  const errorDetails = err.stderr || err.message || String(err);
+  if (errorDetails.includes("No module named 'PIL'") || errorDetails.includes("No module named PIL")) {
+    return new Error(
+      "Pillow (PIL) is not installed. Please install it using 'pip install Pillow' to enable image conversion."
+    );
+  }
+  if (errorDetails.includes("ENOENT") || errorDetails.includes("not found")) {
+    return new Error(
+      "Python is not installed or not found in PATH. Please install Python and Pillow ('pip install Pillow')."
+    );
+  }
+  return new Error(`Failed to convert images to PDF: ${errorDetails}`);
+}
+
+/**
+ * Check that Python and Pillow are available, so missing dependencies are reported
+ * before the conversion starts.
+ */
+export async function ensureImageConversionAvailable(): Promise<void> {
+  const pythonCmd = await getPythonExecutable();
+  try {
+    await execFileAsync(pythonCmd, ["-c", "import PIL"]);
+  } catch (err: any) {
+    throw explainPythonError(err);
+  }
+}
+
 export async function convertImagesToPDF(
   imagePaths: string[],
   outputFilename: string
@@ -128,17 +156,6 @@ export async function convertImagesToPDF(
 
     return outputPath;
   } catch (err: any) {
-    const errorDetails = err.stderr || err.message || String(err);
-    if (errorDetails.includes("No module named 'PIL'") || errorDetails.includes("No module named PIL")) {
-      throw new Error(
-        "Pillow (PIL) is not installed. Please install it using 'pip install Pillow' to enable image conversion."
-      );
-    }
-    if (errorDetails.includes("ENOENT") || errorDetails.includes("not found")) {
-      throw new Error(
-        "Python is not installed or not found in PATH. Please install Python and Pillow ('pip install Pillow')."
-      );
-    }
-    throw new Error(`Failed to convert images to PDF: ${errorDetails}`);
+    throw explainPythonError(err);
   }
 }
