@@ -1,6 +1,7 @@
-import { List, LocalStorage, showToast, Toast } from "@vicinae/api";
+import { List, LocalStorage } from "@vicinae/api";
 import { useEffect, useRef, useState } from "react";
 import { ColorConvertListItem } from "./components/ColorConvert";
+import { getFormattedColor } from "./lib/utils";
 
 interface ConvertColorProps {
   arguments?: {
@@ -9,7 +10,8 @@ interface ConvertColorProps {
 }
 
 export default function ConvertColor(props: ConvertColorProps) {
-  const [colorText, setColorText] = useState<string | null>(props.arguments?.text || null);
+  const [searchText, setSearchText] = useState(props.arguments?.text ?? "");
+  const colorText = searchText.trim();
   const [lastConvertedColorFormat, setLastConvertedColorFormat] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const hasInitialized = useRef(false);
@@ -26,16 +28,11 @@ export default function ConvertColor(props: ConvertColorProps) {
       } catch {
         // ignore
       }
-
-      if (!colorText) {
-        // Default example color if no text provided
-        setColorText("#FF6363");
-      }
       setIsLoading(false);
     }
 
     getLastFormatAndText();
-  }, [colorText]);
+  }, []);
 
   const format = [
     { title: "HEX", subtitle: "#FF6363", value: "hex" },
@@ -60,24 +57,37 @@ export default function ConvertColor(props: ConvertColorProps) {
     }
   }
 
+  const isValidColor = isValidColorText(colorText);
+
   return (
     <List
       isLoading={isLoading}
+      searchText={searchText}
       searchBarPlaceholder="Enter or paste a color code (e.g. #FF6363, rgb(...))..."
-      onSearchTextChange={(text) => {
-        if (text && text.trim().length > 0) {
-          setColorText(text.trim());
-        }
-      }}
+      onSearchTextChange={setSearchText}
     >
-      {colorText &&
+      {isValidColor &&
         format.map((item) => (
           <ColorConvertListItem key={item.value} text={colorText} title={item.title} value={item.value} />
         ))}
-      <List.EmptyView
-        title="No color entered"
-        description="Type or paste any color format into the search bar above."
-      />
+      {colorText ? (
+        <List.EmptyView title="Not a valid color" description={`"${colorText}" is not a valid color.`} />
+      ) : (
+        <List.EmptyView
+          title="No color entered"
+          description="Type or paste any color format into the search bar above."
+        />
+      )}
     </List>
   );
+}
+
+function isValidColorText(text: string) {
+  if (!text) return false;
+  try {
+    getFormattedColor(text, "hex");
+    return true;
+  } catch {
+    return false;
+  }
 }

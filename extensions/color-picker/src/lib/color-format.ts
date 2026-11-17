@@ -14,13 +14,13 @@ export function formatColor(_color: HistoryColor, format?: ColorFormatType) {
   switch (format) {
     default:
     case "hex": {
-      return color.to("srgb").toString({ format: "hex" }).toUpperCase();
+      return color.to("srgb").toString({ format: "hex", collapse: false }).toUpperCase();
     }
     case "hex-lower-case": {
-      return color.to("srgb").toString({ format: "hex" }).toLowerCase();
+      return color.to("srgb").toString({ format: "hex", collapse: false }).toLowerCase();
     }
     case "hex-no-prefix": {
-      return color.to("srgb").toString({ format: "hex" }).replace("#", "");
+      return color.to("srgb").toString({ format: "hex", collapse: false }).replace("#", "");
     }
     case "rgb": {
       return toRgb255(color).toString({ format: "rgb_number" });

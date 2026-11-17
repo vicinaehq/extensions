@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Clipboard, List, LocalStorage, popToRoot, showHUD, showToast, Toast } from "@vicinae/api";
+import { Action, ActionPanel, Clipboard, List, LocalStorage, popToRoot, showHUD } from "@vicinae/api";
 import type { ColorFormatType } from "../lib/types";
 import { getFormattedColor } from "../lib/utils";
 
@@ -13,11 +13,8 @@ function getConvertedColor(text: string, format: ColorFormatType) {
     const convertedColor = getFormattedColor(text, format);
     return convertedColor;
   } catch {
-    showToast({
-      style: Toast.Style.Failure,
-      title: "Conversion failed",
-      message: `"${text}" is not a valid color.`,
-    });
+    // Invalid input is reported by the list's empty view.
+    return undefined;
   }
 }
 
