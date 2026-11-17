@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import {
+	configChanged,
 	fetchClaudeLimits,
 	fetchLimits,
 	formatReset,
@@ -101,6 +102,31 @@ test("fetchLimits does not call a provider while it backs off", async () => {
 	expect(calls).toBe(1);
 	await fetchLimits([provider], first, 1_000 + 15 * 60_000 + 1);
 	expect(calls).toBe(2);
+});
+
+test("a changed provider config (new or removed API key) is fetched despite the backoff", async () => {
+	let calls = 0;
+	let config: string | undefined = "key-a";
+	const provider: LimitsProvider = {
+		id: "openrouter",
+		name: "OpenRouter",
+		readsCredentials: true,
+		config: () => config,
+		fetch: async () => (calls++, config ? { ...bad, provider: "OpenRouter" } : null),
+	};
+	const first = await fetchLimits([provider], null, 1_000);
+	expect(first.reports[0]).toMatchObject({ available: false, config: "key-a", retryAfter: 1_000 + 15 * 60_000 });
+	expect(configChanged(first, [provider])).toBe(false);
+	await fetchLimits([provider], first, 2_000);
+	expect(calls).toBe(1); // same key: still backing off
+	config = "key-b";
+	expect(configChanged(first, [provider])).toBe(true);
+	const second = await fetchLimits([provider], first, 3_000);
+	expect(calls).toBe(2);
+	expect(second.reports[0]).toMatchObject({ config: "key-b", retryAfter: 3_000 + 15 * 60_000 });
+	config = undefined;
+	expect(configChanged(second, [provider])).toBe(true);
+	expect((await fetchLimits([provider], second, 4_000)).reports).toEqual([]);
 });
 
 test("rate limit: reason and retry time from tokscale, no claude fallback", async () => {

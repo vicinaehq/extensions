@@ -18,7 +18,7 @@ import { PROVIDERS } from "./lib/providers";
 import { ProjectsView } from "./projects-view";
 import { type SpendRow, spendChartSvg, svgDataUrl } from "./lib/spend-chart";
 import { loadLimits, loadSnapshot, saveLimits, saveSnapshot } from "./lib/cache";
-import { fetchLimits, formatReset, isFresh, nextResetBoundary, type LimitsReport, type LimitsSnapshot, type LimitWindow } from "./lib/limits";
+import { configChanged, fetchLimits, formatReset, isFresh, nextResetBoundary, type LimitsReport, type LimitsSnapshot, type LimitWindow } from "./lib/limits";
 import { checkTokscale, INSTALL_COMMAND, MIN_TOKSCALE_VERSION, type TokscaleStatus } from "./lib/tokscale";
 import {
 	fetchSnapshot,
@@ -238,7 +238,7 @@ export default function Command() {
 	// force: the user pressed Refresh; otherwise only when the cache is older than 5 min
 	const refreshLimits = useCallback(async (force: boolean) => {
 		const cached = loadLimits();
-		if (!force && isFresh(cached)) {
+		if (!force && cached && isFresh(cached) && !configChanged(cached, PROVIDERS)) {
 			setLimitsLoading(false);
 			return;
 		}

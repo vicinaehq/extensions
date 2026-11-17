@@ -19,8 +19,9 @@ export type LimitsReport =
 			stale?: { reason: string; asOf: number }; // last good values kept after a failed fetch
 			warning?: string; // part of the data failed to load (e.g. one of two API calls)
 			retryAfter?: number;
+			config?: string;
 		}
-	| { provider: string; available: false; reason: string; retryAfter?: number };
+	| { provider: string; available: false; reason: string; retryAfter?: number; config?: string };
 
 // A limits source for one tool. `readsCredentials` must be true when the
 // provider itself reads a secret (API key, login file); it is shown to the user.
@@ -28,6 +29,9 @@ export type LimitsProvider = {
 	id: string;
 	name: string;
 	readsCredentials: boolean;
+	// Fingerprint of the settings the fetch uses (never the secret itself); kept values and
+	// backoff only carry over while it stays the same, so a new or removed key is fetched at once.
+	config?: () => string | undefined;
 	fetch: () => Promise<LimitsReport | null>; // null = not configured, show nothing
 };
 
@@ -152,12 +156,14 @@ export function mergeReport(fresh: LimitsReport, previous: LimitsReport | undefi
 export async function fetchLimits(providers: LimitsProvider[], previous?: LimitsSnapshot | null, now = Date.now()): Promise<LimitsSnapshot> {
 	const results = await Promise.all(
 		providers.map(async (p): Promise<LimitsReport | null> => {
-			const prev = previous?.reports.find((r) => r.provider === p.name);
+			const config = p.config?.();
+			const prev = previous?.reports.find((r) => r.provider === p.name && r.config === config);
 			if (prev?.retryAfter && prev.retryAfter > now) return prev; // backing off
 			const fresh = await p.fetch().catch(
 				(e): LimitsReport => ({ provider: p.name, available: false, reason: e instanceof Error ? e.message : String(e) }),
 			);
-			return fresh && mergeReport(fresh, prev, previous?.fetchedAt ?? now, now);
+			const merged = fresh && mergeReport(fresh, prev, previous?.fetchedAt ?? now, now);
+			return merged && (config === undefined ? merged : { ...merged, config });
 		}),
 	);
 	return { fetchedAt: now, reports: results.filter((r): r is LimitsReport => r !== null) };
@@ -178,6 +184,11 @@ export function nextResetBoundary(snapshot: LimitsSnapshot | null): number | nul
 		}
 	}
 	return next;
+}
+
+// True when a provider's settings (e.g. its API key) differ from those `snapshot` was fetched with.
+export function configChanged(snapshot: LimitsSnapshot, providers: LimitsProvider[]): boolean {
+	return providers.some((p) => snapshot.reports.find((r) => r.provider === p.name)?.config !== p.config?.());
 }
 
 export function isFresh(snapshot: LimitsSnapshot | null, now = Date.now()): boolean {
