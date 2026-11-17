@@ -13,8 +13,9 @@ export type PodmanConnection = {
 };
 
 // Whether `connection` (""/unset = podman's default) targets the local podman socket.
-// For the default, plain `podman` resolves CONTAINER_HOST, then CONTAINER_CONNECTION, then
-// the connection marked as default, and is always remote on macOS (podman machine).
+// For the default, plain `podman` resolves CONTAINER_HOST, then CONTAINER_CONNECTION, and is
+// always remote on macOS (podman machine). On Linux the connection marked as default is only
+// used with --remote, so plain `podman` stays on the local socket.
 export function isLocalTarget(connection: string, connections: PodmanConnection[]): boolean {
   const isLocalConnection = (name: string) => {
     const c = connections.find((c) => c.name === name);
@@ -27,8 +28,7 @@ export function isLocalTarget(connection: string, connections: PodmanConnection[
   if (process.env.CONTAINER_CONNECTION) {
     return isLocalConnection(process.env.CONTAINER_CONNECTION);
   }
-  const marked = connections.find((c) => c.isDefault);
-  return marked ? isLocalConnection(marked.name) : true;
+  return true;
 }
 
 function shellQuote(value: string): string {
