@@ -6,6 +6,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Calendar } from "../lib/types";
 import { getCalendars } from "../lib/calendar";
+import type { LoadCalendarsResult } from "../lib/calendar";
 import { saveToCache, loadFromCache } from "../lib/cache";
 import {
   sortEvents,
@@ -17,6 +18,7 @@ import {
 } from "../lib/eventProcessing";
 import { CACHE_KEY } from "../lib/constants";
 import { isLocalPath, expandPath } from "../lib/localPath";
+import { toastLoadError, shouldToastLoadError } from "../lib/toastLoadError";
 
 async function fetchICSData(url: string): Promise<CalendarResponse> {
   if (isLocalPath(url)) {
@@ -46,7 +48,10 @@ async function fetchICSData(url: string): Promise<CalendarResponse> {
 }
 
 export function useCalendarData(refreshInterval: number) {
-  const [calendars, setCalendars] = useState<Calendar[]>(() => getCalendars());
+  const [loadResult] = useState<LoadCalendarsResult>(() => getCalendars());
+  const [calendars, setCalendars] = useState<Calendar[]>(
+    loadResult.ok ? loadResult.calendars : [],
+  );
   const [eventsByDate, setEventsByDate] = useState<Record<string, VEvent[]>>(
     {},
   );
@@ -55,6 +60,7 @@ export function useCalendarData(refreshInterval: number) {
   const [refetchTrigger, setRefetchTrigger] = useState<number>(0);
 
   const eventCalendarsRef = useRef(new Map<string, string>());
+  const lastToastedErrorKey = useRef<string | null>(null);
 
   const fetchCalendarData = async (forceRefresh = false) => {
     if (calendars.length === 0) {
@@ -165,6 +171,14 @@ export function useCalendarData(refreshInterval: number) {
   };
 
   useEffect(() => {
+    // Surface any initial load error, then let the poll below continue to
+    // monitor the file. `loadResult` is stable for the lifetime of the hook.
+    const initial = shouldToastLoadError(lastToastedErrorKey.current, loadResult);
+    if (initial.key !== lastToastedErrorKey.current) {
+      lastToastedErrorKey.current = initial.key;
+      if (initial.shouldToast) toastLoadError(initial.error);
+    }
+
     fetchCalendarData();
 
     const interval = setInterval(
@@ -173,11 +187,18 @@ export function useCalendarData(refreshInterval: number) {
     );
 
     const cacheCheckInterval = setInterval(() => {
-      const currentCalendars = getCalendars();
-      if (calendarsChanged(currentCalendars, calendars)) {
-        setCalendars(currentCalendars);
+      const current = getCalendars();
+      const decision = shouldToastLoadError(lastToastedErrorKey.current, current);
+      if (decision.key !== lastToastedErrorKey.current) {
+        lastToastedErrorKey.current = decision.key;
+        if (decision.shouldToast) toastLoadError(decision.error);
+      }
+      if (current.ok && calendarsChanged(current.calendars, calendars)) {
+        setCalendars(current.calendars);
         LocalStorage.removeItem(CACHE_KEY);
         setRefetchTrigger((prev) => prev + 1);
+      } else if (!current.ok) {
+        setCalendars([]);
       }
     }, 2000);
 
@@ -185,7 +206,7 @@ export function useCalendarData(refreshInterval: number) {
       clearInterval(interval);
       clearInterval(cacheCheckInterval);
     };
-  }, [refreshInterval, refetchTrigger]);
+  }, [refreshInterval, refetchTrigger, loadResult]);
 
   return {
     calendars,

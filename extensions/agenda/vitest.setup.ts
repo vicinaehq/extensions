@@ -2,9 +2,15 @@ import { vi } from "vitest";
 
 vi.mock("@vicinae/api", () => ({
   Cache: class MockCache {
-    get = vi.fn();
-    set = vi.fn();
+    get() {
+      return undefined;
+    }
+    set() {}
+    remove() {
+      return false;
+    }
   },
+  environment: { supportPath: `/tmp/agenda-test-${process.pid}` },
   Color: {
     Red: "red",
     Orange: "orange",
