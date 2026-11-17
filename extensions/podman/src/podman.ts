@@ -178,6 +178,8 @@ export async function listContainers(
         }
       }
     } catch (userError) {
+      // A named connection has nothing else to show: surface the failure (e.g. unreachable host)
+      if (connection) throw userError;
       console.log("Could not get user containers:", userError);
     }
 
