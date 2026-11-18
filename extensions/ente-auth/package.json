@@ -109,7 +109,7 @@
     "build": "vici build",
     "dev": "vici develop",
     "lint": "vici lint",
-    "test": "node -e \"require('node:fs').rmSync('.test-build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test .test-build/ente-contract.test.js .test-build/ente-cli-compat.test.js .test-build/ente-cli-path.test.js",
+    "test": "node -e \"require('node:fs').rmSync('.test-build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test .test-build/ente-contract.test.js .test-build/ente-cli-compat.test.js .test-build/ente-cli-path.test.js .test-build/totp-cache.test.js",
     "format": "biome format --write src"
   },
   "dependencies": {

@@ -14,6 +14,8 @@
     "src/ente-cli-compat.ts",
     "src/ente-cli-compat.test.ts",
     "src/ente-cli-path.ts",
-    "src/ente-cli-path.test.ts"
+    "src/ente-cli-path.test.ts",
+    "src/totp-cache.ts",
+    "src/totp-cache.test.ts"
   ]
 }

@@ -1,9 +1,7 @@
 import {
 	Action,
 	ActionPanel,
-	Clipboard,
 	Color,
-	closeMainWindow,
 	Detail,
 	getPreferenceValues,
 	Icon,
@@ -13,7 +11,7 @@ import {
 } from "@vicinae/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SHORTCUTS } from "./actions";
-import { copyCode, guardAction } from "./clipboard";
+import { copyCode, guardAction, pasteCode } from "./clipboard";
 import { readExportedSecrets } from "./ente-cli";
 import {
 	type EnteSecret,
@@ -22,6 +20,7 @@ import {
 	type TotpSnapshot,
 } from "./ente-contract";
 import { ensureIcons, faviconForNotes, getIconPath } from "./service-icons";
+import { createSnapshotCache } from "./totp-cache";
 
 type Preferences = { primaryAction?: string };
 const PURPLE = Color.Purple;
@@ -38,75 +37,64 @@ function timerColor(remaining: number): Color {
 // A full circular progress bar: the elapsed portion is dimmed, while the
 // remaining portion uses Raycast's purple/orange threshold. The whole ring
 // stays visible without putting seconds or the code in the list row.
+const progressIconCache = new Map<string, { source: string }>();
+
 function progressIcon(remaining: number, period: number): { source: string } {
+	const key = `${period}:${remaining}`;
+	const cached = progressIconCache.get(key);
+	if (cached) return cached;
 	const fraction = Math.max(0, Math.min(1, remaining / Math.max(period, 1)));
 	const color = remaining > 10 ? "#A400B6" : "#FF9800";
 	const radius = 9;
 	const circumference = 2 * Math.PI * radius;
 	const dashOffset = circumference * (1 - fraction);
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-opacity="0.28" stroke-width="2.2"/><circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 12 12)"/></svg>`;
-	return { source: `data:image/svg+xml,${encodeURIComponent(svg)}` };
+	const icon = { source: `data:image/svg+xml,${encodeURIComponent(svg)}` };
+	if (progressIconCache.size >= 256) progressIconCache.clear();
+	progressIconCache.set(key, icon);
+	return icon;
 }
 
-function serviceIcon(snapshot: TotpSnapshot) {
-	const cached = getIconPath(snapshot.serviceName);
+function serviceIcon(secret: EnteSecret) {
+	const cached = getIconPath(secret.issuer || secret.username || "Ente Auth");
 	if (cached) return { source: cached };
-	const favicon = faviconForNotes(snapshot.notes);
+	const favicon = faviconForNotes(secret.notes);
 	return favicon ? { source: favicon } : Icon.Key;
 }
 
-// Vicinae closes the launcher asynchronously. Give the host a short,
-// platform-neutral focus-settle window before requesting the native paste.
-const PASTE_FOCUS_SETTLE_DELAY_MS = 100;
-
-function waitForPasteFocus(): Promise<void> {
-	return new Promise((resolve) =>
-		setTimeout(resolve, PASTE_FOCUS_SETTLE_DELAY_MS),
-	);
-}
-
-async function pasteCode(code: string): Promise<void> {
-	await closeMainWindow();
-	await waitForPasteFocus();
-	await Clipboard.paste(code);
-}
-
 function TotpListDetail({ snapshot }: { snapshot: TotpSnapshot }) {
-	const [timestamp, setTimestamp] = useState(Date.now());
-	useEffect(() => {
-		const interval = setInterval(() => setTimestamp(Date.now()), 1000);
-		return () => clearInterval(interval);
-	}, []);
-	const current = useMemo(
-		() => snapshotSecret(snapshot, timestamp),
-		[snapshot, timestamp],
-	);
-	const url = noteUrl(current.notes);
+	const url = noteUrl(snapshot.notes);
 	return (
 		<List.Item.Detail
 			metadata={
 				<Detail.Metadata>
-					<Detail.Metadata.Label title="Current" text={current.current} />
-					<Detail.Metadata.Label title="Next" text={current.next} />
+					<Detail.Metadata.Label title="Current" text={snapshot.current} />
+					<Detail.Metadata.Label title="Next" text={snapshot.next} />
 					<Detail.Metadata.Separator />
-					<Detail.Metadata.Label title="Username" text={current.username} />
-					<Detail.Metadata.Label title="Algorithm" text={current.algorithm} />
-					<Detail.Metadata.Label title="Digits" text={String(current.digits)} />
-					<Detail.Metadata.Label title="Period" text={String(current.period)} />
+					<Detail.Metadata.Label title="Username" text={snapshot.username} />
+					<Detail.Metadata.Label title="Algorithm" text={snapshot.algorithm} />
+					<Detail.Metadata.Label
+						title="Digits"
+						text={String(snapshot.digits)}
+					/>
+					<Detail.Metadata.Label
+						title="Period"
+						text={String(snapshot.period)}
+					/>
 					<Detail.Metadata.Separator />
 					{url ? (
 						<Detail.Metadata.Link
 							title="Notes"
 							target={url}
-							text={current.notes}
+							text={snapshot.notes}
 						/>
 					) : (
-						<Detail.Metadata.Label title="Notes" text={current.notes || "—"} />
+						<Detail.Metadata.Label title="Notes" text={snapshot.notes || "—"} />
 					)}
 					<Detail.Metadata.Separator />
-					{current.tags.length > 0 && (
+					{snapshot.tags.length > 0 && (
 						<Detail.Metadata.TagList title="Tags">
-							{current.tags.map((tag) => (
+							{snapshot.tags.map((tag) => (
 								<Detail.Metadata.TagList.Item
 									key={tag}
 									text={tag}
@@ -127,9 +115,10 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 		const interval = setInterval(() => setTimestamp(Date.now()), 1000);
 		return () => clearInterval(interval);
 	}, []);
+	const cachedSnapshot = useMemo(() => createSnapshotCache(snapshotSecret), []);
 	const current = useMemo(
-		() => snapshotSecret(snapshot, timestamp),
-		[snapshot, timestamp],
+		() => cachedSnapshot(snapshot, timestamp),
+		[cachedSnapshot, snapshot, timestamp],
 	);
 	const url = noteUrl(current.notes);
 	const markdown = [
@@ -140,6 +129,8 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 	].join("\n\n");
 	const pasteIsPrimary =
 		getPreferenceValues<Preferences>().primaryAction !== "copy";
+	const liveCode = (kind: "current" | "next") =>
+		cachedSnapshot(snapshot, Date.now())[kind];
 	const copyCurrent = (
 		<Action
 			title="Copy Current Code"
@@ -147,7 +138,7 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 			shortcut={SHORTCUTS.copyCurrent}
 			onAction={() =>
 				void guardAction("Unable to copy current code", () =>
-					copyCode("Current code", current.current),
+					copyCode("Current code", liveCode("current")),
 				)
 			}
 		/>
@@ -158,7 +149,7 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 			icon={Icon.Key}
 			onAction={() =>
 				void guardAction("Unable to paste current code", () =>
-					pasteCode(current.current),
+					pasteCode(liveCode("current")),
 				)
 			}
 		/>
@@ -214,7 +205,7 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 							shortcut={SHORTCUTS.pasteNext}
 							onAction={() =>
 								void guardAction("Unable to paste next code", () =>
-									pasteCode(current.next),
+									pasteCode(liveCode("next")),
 								)
 							}
 						/>
@@ -224,7 +215,7 @@ function TotpDetail({ snapshot }: { snapshot: TotpSnapshot }) {
 							shortcut={SHORTCUTS.copyNext}
 							onAction={() =>
 								void guardAction("Unable to copy next code", () =>
-									copyCode("Next code", current.next),
+									copyCode("Next code", liveCode("next")),
 								)
 							}
 						/>
@@ -290,14 +281,26 @@ export default function Command() {
 		};
 	}, [secrets]);
 
-	const snapshots = useMemo(() => {
+	const sortedSecrets = useMemo(
+		() =>
+			[...secrets].sort((left, right) =>
+				(left.issuer || left.username || "Ente Auth").localeCompare(
+					right.issuer || right.username || "Ente Auth",
+				),
+			),
+		[secrets],
+	);
+	const cachedSnapshot = useMemo(() => createSnapshotCache(snapshotSecret), []);
+	const snapshots = useMemo(
+		() => sortedSecrets.map((secret) => cachedSnapshot(secret, timestamp)),
+		[cachedSnapshot, sortedSecrets, timestamp],
+	);
+	const serviceIcons = useMemo(() => {
 		void iconEpoch;
-		return secrets
-			.map((secret) => snapshotSecret(secret, timestamp))
-			.sort((left, right) => left.serviceName.localeCompare(right.serviceName));
-	}, [iconEpoch, secrets, timestamp]);
-	const preferredAction = getPreferenceValues<Preferences>().primaryAction;
-	const pasteIsPrimary = preferredAction !== "copy";
+		return sortedSecrets.map(serviceIcon);
+	}, [iconEpoch, sortedSecrets]);
+	const pasteIsPrimary =
+		getPreferenceValues<Preferences>().primaryAction !== "copy";
 
 	async function refreshIcons(): Promise<void> {
 		const toast = await showToast({
@@ -350,6 +353,9 @@ export default function Command() {
 				/>
 			) : (
 				snapshots.map((snapshot, index) => {
+					const sourceSecret = sortedSecrets[index] ?? snapshot;
+					const liveCode = (kind: "current" | "next") =>
+						cachedSnapshot(sourceSecret, Date.now())[kind];
 					const details = (
 						<Action.Push
 							title="View Details"
@@ -365,7 +371,7 @@ export default function Command() {
 							shortcut={SHORTCUTS.copyCurrent}
 							onAction={() =>
 								void guardAction("Unable to copy current code", () =>
-									copyCode("Current code", snapshot.current),
+									copyCode("Current code", liveCode("current")),
 								)
 							}
 						/>
@@ -376,7 +382,7 @@ export default function Command() {
 							icon={Icon.Key}
 							onAction={() =>
 								void guardAction("Unable to paste current code", () =>
-									pasteCode(snapshot.current),
+									pasteCode(liveCode("current")),
 								)
 							}
 						/>
@@ -386,7 +392,7 @@ export default function Command() {
 							key={`${snapshot.serviceName}:${snapshot.username}:${index}`}
 							title={snapshot.serviceName}
 							subtitle={snapshot.username || undefined}
-							icon={serviceIcon(snapshot)}
+							icon={serviceIcons[index] ?? Icon.Key}
 							keywords={[
 								snapshot.serviceName,
 								snapshot.username,
@@ -412,7 +418,7 @@ export default function Command() {
 											shortcut={SHORTCUTS.pasteNext}
 											onAction={() =>
 												void guardAction("Unable to paste next code", () =>
-													pasteCode(snapshot.next),
+													pasteCode(liveCode("next")),
 												)
 											}
 										/>
@@ -422,7 +428,7 @@ export default function Command() {
 											shortcut={SHORTCUTS.copyNext}
 											onAction={() =>
 												void guardAction("Unable to copy next code", () =>
-													copyCode("Next code", snapshot.next),
+													copyCode("Next code", liveCode("next")),
 												)
 											}
 										/>
