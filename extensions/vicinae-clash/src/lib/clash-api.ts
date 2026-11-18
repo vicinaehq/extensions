@@ -1,3 +1,4 @@
+import { STATUS_CODES } from "node:http";
 import type { Backend, ClashProxy, Config, Mode, Rule, Version } from "../types";
 import { getCurrentBackend } from "./backends";
 
@@ -34,9 +35,14 @@ export async function requestBackend<T>(backend: Backend, endpoint: string, init
     let detail = "";
     try {
       detail = (await response.text()).trim();
+      const body: unknown = JSON.parse(detail);
+      if (body && typeof body === "object" && "message" in body && typeof body.message === "string") {
+        detail = body.message.trim();
+      }
     } catch {
-      // Ignore an unreadable error body.
+      // Keep plain-text errors, or fall back to the HTTP status if the body cannot be read.
     }
+    detail ||= response.statusText || STATUS_CODES[response.status] || "";
     throw new Error(`Clash API ${response.status}${detail ? `: ${detail}` : ""}`);
   }
   if (response.status === 204) return undefined as T;
