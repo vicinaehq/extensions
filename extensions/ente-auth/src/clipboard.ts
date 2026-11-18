@@ -16,6 +16,16 @@ export type ClipboardPreferences = {
 
 let copyGeneration = 0;
 
+// Let Vicinae's launcher finish closing and the target regain keyboard focus
+// before asking the native paste service to inject the code.
+const PASTE_FOCUS_SETTLE_DELAY_MS = 100;
+
+function waitForPasteFocus(): Promise<void> {
+	return new Promise((resolve) =>
+		setTimeout(resolve, PASTE_FOCUS_SETTLE_DELAY_MS),
+	);
+}
+
 async function setCodeOnClipboard(code: string): Promise<ClipboardPreferences> {
 	await Clipboard.copy(code, { concealed: true });
 	const generation = ++copyGeneration;
@@ -75,6 +85,7 @@ export async function pasteCode(code: string): Promise<void> {
 		} catch {
 			// Do not block pasting when the original window can no longer be focused.
 		}
+		await waitForPasteFocus();
 		await Clipboard.paste(code);
 	} catch {
 		await showToast({
