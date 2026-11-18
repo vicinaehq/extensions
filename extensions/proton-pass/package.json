@@ -1,0 +1,206 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "proton-pass",
+  "title": "Proton Pass",
+  "description": "Search and manage Proton Pass items, generate passwords, and retrieve TOTP codes through pass-cli.",
+  "icon": "extension_icon.png",
+  "author": "Arduoi",
+  "categories": ["Security", "Productivity"],
+  "license": "MIT",
+  "platforms": ["Linux"],
+  "commands": [
+    {
+      "name": "search-items",
+      "title": "Search Proton Pass Items",
+      "subtitle": "pass-cli",
+      "description": "Search all Proton Pass items and copy or paste credentials.",
+      "icon": "extension_icon.png",
+      "mode": "view"
+    },
+    {
+      "name": "list-vaults",
+      "title": "List Proton Pass Vaults",
+      "subtitle": "pass-cli",
+      "description": "View Proton Pass vaults and browse their items.",
+      "icon": "extension_icon.png",
+      "mode": "view"
+    },
+    {
+      "name": "generate-password",
+      "title": "Generate Proton Pass Password",
+      "subtitle": "pass-cli",
+      "description": "Generate a configurable random password or passphrase through pass-cli.",
+      "icon": "extension_icon.png",
+      "mode": "view"
+    },
+    {
+      "name": "get-totp",
+      "title": "Get Proton Pass TOTP Code",
+      "subtitle": "pass-cli",
+      "description": "List Proton Pass items, choose one, and copy or paste its current TOTP code.",
+      "icon": "extension_icon.png",
+      "mode": "view"
+    },
+    {
+      "name": "login",
+      "title": "Login to Proton Pass",
+      "subtitle": "pass-cli",
+      "description": "Check or start the local Proton Pass CLI session.",
+      "icon": "extension_icon.png",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "cliPath",
+      "type": "textfield",
+      "required": false,
+      "title": "pass-cli path",
+      "description": "Path to pass-cli, or leave as pass-cli to use PATH.",
+      "default": "pass-cli"
+    },
+    {
+      "name": "keyProvider",
+      "type": "dropdown",
+      "required": false,
+      "title": "Key provider",
+      "description": "Where pass-cli stores its encryption key (PROTON_PASS_KEY_PROVIDER). Leave on environment default unless you need to change it.",
+      "default": "default",
+      "data": [
+        { "title": "Environment default", "value": "default" },
+        { "title": "Filesystem", "value": "fs" },
+        { "title": "Keyring", "value": "keyring" },
+        { "title": "Environment variable", "value": "env" }
+      ]
+    },
+    {
+      "name": "linuxKeyring",
+      "type": "dropdown",
+      "required": false,
+      "title": "Linux keyring backend",
+      "description": "Linux only: which keyring pass-cli uses (PROTON_PASS_LINUX_KEYRING). Ignored on other platforms.",
+      "default": "default",
+      "data": [
+        { "title": "Environment default", "value": "default" },
+        { "title": "Kernel key retention", "value": "kernel" },
+        { "title": "D-Bus Secret Service (GNOME Keyring, KWallet)", "value": "dbus" }
+      ]
+    },
+    {
+      "name": "closeAfterCopy",
+      "type": "checkbox",
+      "required": false,
+      "title": "Close after copy",
+      "label": "Close the Vicinae window after copying a value",
+      "description": "When enabled, copying shows a brief HUD and closes the launcher so you return to your previous window. Enabled by default.",
+      "default": true
+    },
+    {
+      "name": "vaultColors",
+      "type": "textfield",
+      "required": false,
+      "title": "Vault colours",
+      "description": "Optional. Vaults are coloured by role by default (owner=yellow, manager=blue, editor=green, viewer=secondary). Override individual vaults here, e.g. Personal=green, Work=#1E90FF. Colours: blue, green, magenta, orange, purple, red, yellow, or any hex like #RRGGBB. Overrides tint the vault icon and its name in the detail view.",
+      "default": ""
+    },
+    {
+      "name": "primaryActionMode",
+      "type": "dropdown",
+      "required": false,
+      "title": "Primary action",
+      "description": "Which action runs first (Enter) on non-login items in Search Proton Pass Items. Login rows always use Paste Password first.",
+      "default": "paste-password",
+      "data": [
+        { "title": "View Details", "value": "view-details" },
+        { "title": "Paste Username", "value": "paste-username" },
+        { "title": "Copy Username", "value": "copy-username" },
+        { "title": "Paste Password", "value": "paste-password" },
+        { "title": "Copy Password", "value": "copy-password" },
+        { "title": "Paste TOTP Code", "value": "paste-totp" },
+        { "title": "Copy TOTP Code", "value": "copy-totp" },
+        { "title": "Open in Browser", "value": "open-browser" }
+      ]
+    },
+    {
+      "name": "secondaryActionMode",
+      "type": "dropdown",
+      "required": false,
+      "title": "Secondary action",
+      "description": "Which action is promoted to second place on non-login items in Search Proton Pass Items. Login rows use Paste Username/Email second when available.",
+      "default": "paste-username",
+      "data": [
+        { "title": "View Details", "value": "view-details" },
+        { "title": "Paste Username", "value": "paste-username" },
+        { "title": "Copy Username", "value": "copy-username" },
+        { "title": "Paste Password", "value": "paste-password" },
+        { "title": "Copy Password", "value": "copy-password" },
+        { "title": "Paste TOTP Code", "value": "paste-totp" },
+        { "title": "Copy TOTP Code", "value": "copy-totp" },
+        { "title": "Open in Browser", "value": "open-browser" }
+      ]
+    },
+    {
+      "name": "enableBackgroundRefresh",
+      "type": "checkbox",
+      "required": false,
+      "title": "Background metadata refresh",
+      "label": "Refresh cached vault and item metadata in the background",
+      "description": "Show cached metadata immediately while refreshing stale entries.",
+      "default": true
+    },
+    {
+      "name": "cacheExpiration",
+      "type": "dropdown",
+      "required": false,
+      "title": "Metadata cache expiration",
+      "description": "How long vault and item metadata remains fresh.",
+      "default": "5",
+      "data": [
+        { "title": "5 minutes", "value": "5" },
+        { "title": "1 hour", "value": "60" },
+        { "title": "5 hours", "value": "300" },
+        { "title": "1 day", "value": "1440" },
+        { "title": "7 days", "value": "10080" }
+      ]
+    },
+    {
+      "name": "copyPasswordTransient",
+      "type": "checkbox",
+      "required": false,
+      "title": "Transient password and TOTP clipboard",
+      "label": "Clear copied passwords and TOTP codes automatically",
+      "description": "Only clears the clipboard if it still contains the copied secret.",
+      "default": true
+    },
+    {
+      "name": "clipboardClearSeconds",
+      "type": "dropdown",
+      "required": false,
+      "title": "Secret clipboard timeout",
+      "description": "How long copied passwords and TOTP codes remain in the clipboard.",
+      "default": "30",
+      "data": [
+        { "title": "15 seconds", "value": "15" },
+        { "title": "30 seconds", "value": "30" },
+        { "title": "60 seconds", "value": "60" },
+        { "title": "5 minutes", "value": "300" }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "test": "node -e \"require('node:fs').rmSync('.test-build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test .test-build/pass-cli.test.js",
+    "format": "biome format --write src"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.23.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.18",
+    "typescript": "^5.9.2"
+  }
+}
