@@ -5,15 +5,15 @@ This is an extension for the [vicinae launcher](https://github.com/vicinaehq/vic
 
 If you prefer to read the page in your browser, there's an action for that, too.  
 
-![AUR package search results](screenshots/Search-AUR-demo.png)
+![AUR package search results](screenshots/Search-AUR-demo.png)  
 _Results of an AUR Package search_  
 
 
-![Choose a commit](screenshots/commits-list.png)
+![Choose a commit](screenshots/commits-list.png)  
 _Choose a commit to see its changes in the AUR PKGBUILD Changes menu_
 
 
-![colored diffs](screenshots/colored-diffs.png)  
+![colored diffs](screenshots/colored-diffs.png)   
 _Colored diffs viewer_
 
 
@@ -34,7 +34,9 @@ This extension is made for Arch Linux/Arch based distributions. You need to have
 
 
 ## Installation
-As this extension is currently a work in progress, it is not yet published on the Vicinae extension store. If you want to run it in your system, you need to do the following:
+This extension can be installed from [the Vicinae store](https://www.vicinae.com/extensions/hash-ak/archseek).
+
+If you prefer to build it from source, you can follow these steps: 
 
 1) Make sure to have `npm` installed on your system
 2) clone this repository: 
@@ -56,7 +58,7 @@ npm run build
 5) Now in Vicinae you should see "ArchSeek"!
 
 ## AI Disclosure
-During this project, I sometimes used AI to debug/help me find solutions for bugs that were occurring. No code was directly taken from AI, thought.
+During this project, I sometimes used AI to debug/help me find solutions for bugs that were occurring. No code was directly taken from AI, though.
 
 ## License
 
