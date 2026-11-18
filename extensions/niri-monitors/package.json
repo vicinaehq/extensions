@@ -2,10 +2,14 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "niri-monitors",
   "title": "Niri Monitors",
-  "description": "Manage connected monitors, scales, rotation, power states for Niri Wayland compositor",
+  "description": "Manage Niri displays: position, scale, resolution, rotation, and power states.",
   "categories": [],
   "license": "MIT",
+  "version": "1.2.0",
   "author": "xwaleedahmad",
+  "platforms": [
+    "Linux"
+  ],
   "contributors": [],
   "pastContributors": [],
   "icon": "extension_icon.png",
