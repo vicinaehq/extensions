@@ -66,7 +66,7 @@ export type Rule = {
   size: number;
   extra?: RuleStats;
 };
-export type Mode = "rule" | "global" | "direct" | "script";
+export type Mode = "rule" | "global" | "direct";
 export type Config = {
   mode: Mode;
   "allow-lan"?: boolean;
