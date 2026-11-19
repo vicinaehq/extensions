@@ -10,6 +10,8 @@ test("exposes Depot's task-focused commands", async () => {
   assert.deepEqual(
     manifest.commands.map(({ name, title }) => ({ name, title })),
     [
+      { name: "install", title: "Depot Install" },
+      { name: "manage", title: "Depot Manage" },
       { name: "update", title: "Depot Update" },
       { name: "clean", title: "Depot Clean" },
     ],

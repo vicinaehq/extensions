@@ -5,6 +5,16 @@ export interface FlatpakRemote {
   scope: FlatpakScope;
 }
 
+export interface FlatpakSearchRecord {
+  id: string;
+  name: string;
+  description: string;
+  version?: string;
+  branch?: string;
+  remotes: string[];
+  scope: FlatpakScope;
+}
+
 export interface InstalledFlatpak {
   id: string;
   branch?: string;
@@ -52,6 +62,38 @@ export function parseFlatpakRemotesOutput(
   }
 
   return [...unique].map((name) => ({ name, scope }));
+}
+
+export function parseFlatpakSearchOutput(
+  output: string,
+  scope: FlatpakScope,
+): FlatpakSearchRecord[] {
+  const records: FlatpakSearchRecord[] = [];
+
+  for (const line of output.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+
+    const [name, description, id, version, branch, remoteList] = line.split("\t");
+    if (!id || !isValidFlatpakAppId(id)) continue;
+
+    const remotes = (remoteList ?? "")
+      .split(",")
+      .map((remote) => remote.trim())
+      .filter(isValidFlatpakRemoteName);
+    if (remotes.length === 0) continue;
+
+    records.push({
+      id,
+      name: name?.trim() || id,
+      description: description?.trim() || "No description available",
+      version: version?.trim() || undefined,
+      branch: branch?.trim() || undefined,
+      remotes,
+      scope,
+    });
+  }
+
+  return records;
 }
 
 export function parseFlatpakInstalledOutput(
@@ -139,6 +181,11 @@ export function parseFlatpakUpdatesOutput(
   return updates;
 }
 
+export function selectFlatpakRemote(remotes: readonly string[]): string | undefined {
+  return remotes.find((remote) => remote.toLowerCase() === "flathub")
+    ?? remotes[0];
+}
+
 export function sortFlatpakScopes(
   scopes: readonly FlatpakScope[],
   preferredScope: FlatpakScope,
@@ -150,6 +197,44 @@ export function sortFlatpakScopes(
   });
 }
 
+export function selectFlatpakSearchScopes(
+  remotes: readonly FlatpakRemote[],
+  preferredScope: FlatpakScope,
+): FlatpakScope[] {
+  return sortFlatpakScopes(
+    (["user", "system"] as const).filter(
+      (scope) => remotes.some((remote) => remote.scope === scope),
+    ),
+    preferredScope,
+  );
+}
+
 export function flatpakInstallKey(scope: FlatpakScope, id: string): string {
   return `${scope}:${id}`;
+}
+
+/**
+ * Keeps one record per application: the scope where it is installed, else the
+ * preferred scope. Order is preserved; ranking belongs to the caller.
+ */
+export function dedupeFlatpakSearchRecords(
+  records: readonly FlatpakSearchRecord[],
+  preferredScope: FlatpakScope,
+  installedKeys: ReadonlySet<string>,
+  limit: number,
+): FlatpakSearchRecord[] {
+  const priority = (record: FlatpakSearchRecord) =>
+    installedKeys.has(flatpakInstallKey(record.scope, record.id))
+      ? 0
+      : record.scope === preferredScope ? 1 : 2;
+  const unique = new Map<string, FlatpakSearchRecord>();
+
+  for (const record of records) {
+    const existing = unique.get(record.id);
+    if (!existing || priority(record) < priority(existing)) {
+      unique.set(record.id, record);
+    }
+  }
+
+  return [...unique.values()].slice(0, limit);
 }

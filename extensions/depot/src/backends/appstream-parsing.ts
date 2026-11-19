@@ -1,6 +1,7 @@
 import type { SoftwareItem } from "../types.ts";
 import { isValidAptPackageId } from "./apt-parsing.ts";
 import { isValidFlatpakAppId } from "./flatpak-parsing.ts";
+import { normalizeSearchText as normalize } from "../utils/search-text.ts";
 
 export interface AppStreamComponent {
   id: string;
@@ -112,6 +113,17 @@ export function enrichSoftwareItems(
   });
 }
 
+export function appStreamSearchTerm(query: string): string {
+  const normalized = normalize(query);
+  return SEARCH_ALIASES.get(normalized) ?? query.trim();
+}
+
+export function expandedSearchQueries(query: string): string[] {
+  const normalized = normalize(query);
+  const alias = SEARCH_ALIASES.get(normalized);
+  return alias ? [normalized, normalize(alias)] : [normalized];
+}
+
 function parseFields(stanza: string): Map<string, string> {
   const fields = new Map<string, string>();
   let currentField: string | undefined;
@@ -172,3 +184,10 @@ function componentPriority(component: AppStreamComponent): number {
       : 20;
   return kindPriority - Number(Boolean(component.iconPath));
 }
+
+// These aliases only expand the metadata lookup and ranking query. The original
+// query still goes to every package backend, so alternatives are never hidden.
+const SEARCH_ALIASES = new Map<string, string>([
+  ["vscode", "Visual Studio Code"],
+  ["obs", "OBS Studio"],
+]);

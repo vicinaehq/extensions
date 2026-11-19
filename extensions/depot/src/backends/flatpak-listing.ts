@@ -8,7 +8,10 @@ import {
   runProcess,
   summarizeProcessOutput,
 } from "../utils/process.ts";
-import { parseFlatpakUnusedPreview, type FlatpakCleanupItem } from "./cleanup-parsing.ts";
+import {
+  parseFlatpakUnusedPreview,
+  type FlatpakCleanupItem,
+} from "./cleanup-parsing.ts";
 import {
   ALL_SCOPES,
   FlatpakOperationError,
@@ -63,7 +66,7 @@ export async function listInstalledFlatpaks(
   return results.flat();
 }
 
-/** Installed application metadata used to label available updates. */
+/** Installed applications with presentation metadata for Update and Manage. */
 export async function listInstalledFlatpakApplications(
   executable: string,
   signal?: AbortSignal,

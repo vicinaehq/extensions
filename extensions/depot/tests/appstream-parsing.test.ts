@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  appStreamSearchTerm,
   enrichSoftwareItems,
+  expandedSearchQueries,
   parseAppStreamSearchOutput,
 } from "../src/backends/appstream-parsing.ts";
 import type { SoftwareItem } from "../src/types.ts";
@@ -123,4 +125,14 @@ test("enriches matching APT and Flatpak results without merging sources", () => 
     ["flatpak", "VLC", "/icons/flatpak-vlc.png"],
   ]);
   assert.equal(enriched[0]?.appstream?.isGuiApplication, true);
+});
+
+test("expands only documented generic aliases", () => {
+  assert.equal(appStreamSearchTerm("vscode"), "Visual Studio Code");
+  assert.equal(appStreamSearchTerm("OBS"), "OBS Studio");
+  assert.equal(appStreamSearchTerm("vlc"), "vlc");
+  assert.deepEqual(expandedSearchQueries("vscode"), [
+    "vscode",
+    "visual studio code",
+  ]);
 });

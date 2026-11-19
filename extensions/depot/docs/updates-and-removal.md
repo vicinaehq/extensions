@@ -1,4 +1,4 @@
-# Updates
+# Updates and removal
 
 ## Update review
 
@@ -25,3 +25,21 @@ available.
 AppImages are omitted from update counts unless Depot can determine updates
 from supported, trustworthy update metadata. Filename matching and web searches
 are not update mechanisms.
+
+## Removal review
+
+APT applications shown by Depot must own a visible desktop entry and must not
+be marked Essential or assigned required/important priority. Selecting Remove
+runs `apt-get --simulate --no-auto-remove remove` with the exact package ID.
+
+If APT reports that other installed packages would also be removed, Depot names
+those packages and refuses the operation. If the preview is safe, the normal
+confirmation states that no other installed packages are planned for removal.
+
+The real transaction repeats its own simulation. This second check is
+intentional: package state can change between preview and authentication. Depot
+never removes lock files, runs autoremove, or edits APT's package database.
+
+Flatpak and AppImage removal retain their existing source-specific safety:
+Flatpak removes the selected application through Flatpak, while AppImage
+removal targets only the selected file and exact Depot-owned integration files.

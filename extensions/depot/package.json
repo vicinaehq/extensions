@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "depot",
   "title": "Depot",
-  "description": "Update and clean APT and Flatpak software on Ubuntu and Debian-based Linux",
+  "description": "Manage APT, Flatpak, and local AppImage software on Ubuntu and Debian-based Linux",
   "categories": ["Applications", "System"],
   "license": "MIT",
   "platforms": ["Linux"],
@@ -11,6 +11,22 @@
   "pastContributors": [],
   "icon": "extension_icon.svg",
   "commands": [
+    {
+      "name": "install",
+      "title": "Depot Install",
+      "subtitle": "APT · Flatpak · Local",
+      "description": "Search software, install local packages, use bundles, or import a profile",
+      "keywords": ["install software", "add software", "local package", "package list", "bundle", "import profile", "deb", "apt", "flatpak", "appimage"],
+      "mode": "view"
+    },
+    {
+      "name": "manage",
+      "title": "Depot Manage",
+      "subtitle": "APT · Flatpak · AppImage",
+      "description": "Launch, inspect, remove, and export installed software",
+      "keywords": ["installed software", "applications", "launch", "manage", "remove", "uninstall", "export profile", "apt", "flatpak", "appimage"],
+      "mode": "view"
+    },
     {
       "name": "update",
       "title": "Depot Update",
@@ -32,7 +48,7 @@
     {
       "name": "aptEnabled",
       "title": "Package Sources",
-      "description": "Review and install APT updates and clean unused packages and obsolete archives",
+      "description": "Search and manage software from configured APT repositories",
       "type": "checkbox",
       "required": false,
       "default": true,
@@ -41,11 +57,51 @@
     {
       "name": "flatpakEnabled",
       "title": "",
-      "description": "Review and install Flatpak updates and clean unused runtimes when Flatpak is installed",
+      "description": "Search and manage applications from configured Flatpak remotes when Flatpak is installed",
       "type": "checkbox",
       "required": false,
       "default": true,
       "label": "Enable Flatpak"
+    },
+    {
+      "name": "flatpakScope",
+      "title": "Preferred Flatpak Scope",
+      "description": "Scope used for local Flatpak files, and preferred when an application is available in both scopes",
+      "type": "dropdown",
+      "required": false,
+      "default": "user",
+      "data": [
+        {
+          "title": "User",
+          "value": "user"
+        },
+        {
+          "title": "System",
+          "value": "system"
+        }
+      ]
+    },
+    {
+      "name": "preferredSource",
+      "title": "Preferred Source",
+      "description": "Rank this source first when equivalent APT and Flatpak results are available; alternatives remain visible",
+      "type": "dropdown",
+      "required": false,
+      "default": "all",
+      "data": [
+        {
+          "title": "Always Show All",
+          "value": "all"
+        },
+        {
+          "title": "Prefer APT",
+          "value": "apt"
+        },
+        {
+          "title": "Prefer Flatpak",
+          "value": "flatpak"
+        }
+      ]
     }
   ],
   "scripts": {

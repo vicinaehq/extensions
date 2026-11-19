@@ -1,5 +1,5 @@
-import type { FlatpakScope } from "../types.ts";
 import { isValidAptPackageId } from "./apt-parsing.ts";
+import type { FlatpakScope } from "../types.ts";
 
 export interface AptAutoremovePlan {
   packageIds: string[];
