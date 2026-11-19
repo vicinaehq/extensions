@@ -27,11 +27,6 @@ export class FlatpakOperationError extends DepotOperationError<FlatpakErrorKind>
   }
 }
 
-/** Flatpak is optional: not installed or without remotes means "no source". */
-export function isFlatpakUnavailable(error: unknown): boolean {
-  return error instanceof FlatpakOperationError && error.kind === "unavailable";
-}
-
 /** Maps a failed Flatpak command to a user-facing error kind. */
 export function classifyFlatpakFailure(error: unknown, fallback: string): Error {
   if (error instanceof FlatpakOperationError || isProcessAborted(error)) {

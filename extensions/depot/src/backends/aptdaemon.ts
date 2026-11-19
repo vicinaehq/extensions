@@ -9,10 +9,7 @@ import {
   variantValue,
 } from "dbus-native";
 import { LINUX_EXECUTABLES } from "../linux.ts";
-import type {
-  SoftwareOperationOptions,
-  SoftwareOperationStatus,
-} from "../types.ts";
+import type { SoftwareOperationOptions, SoftwareOperationStatus } from "../types.ts";
 import {
   C_LOCALE_ENV,
   ProcessExecutionError,
@@ -29,23 +26,16 @@ const SERVICE = "org.debian.apt";
 const DAEMON_PATH = "/org/debian/apt";
 const DAEMON_INTERFACE = "org.debian.apt";
 const TRANSACTION_INTERFACE = "org.debian.apt.transaction";
-const INSTALL_REMOVE_ACTION = "org.debian.apt.install-or-remove-packages";
 const UPDATE_CACHE_ACTION = "org.debian.apt.update-cache";
 const BUSY_MESSAGE = "Another package-management operation is currently running";
 
-export type AptDaemonRequest =
-  | { kind: "install-packages"; packageIds: string[] }
-  | { kind: "remove-packages"; packageIds: string[] }
-  | { kind: "refresh-cache" };
+export type AptDaemonRequest = { kind: "refresh-cache" };
 
 interface AptDaemonInterface extends DBusInterface {
-  InstallPackages(packageIds: string[]): DBusPromise<string>;
-  RemovePackages(packageIds: string[]): DBusPromise<string>;
   UpdateCache(): DBusPromise<string>;
 }
 
 interface AptDaemonTransactionInterface extends DBusInterface {
-  Simulate(): DBusPromise<void>;
   Run(): DBusPromise<void>;
   Cancel(): DBusPromise<void>;
 }
@@ -249,10 +239,6 @@ async function createTransaction(
   request: AptDaemonRequest,
 ): Promise<string> {
   switch (request.kind) {
-    case "install-packages":
-      return await daemon.InstallPackages(request.packageIds);
-    case "remove-packages":
-      return await daemon.RemovePackages(request.packageIds);
     case "refresh-cache":
       return await daemon.UpdateCache();
   }
@@ -336,13 +322,7 @@ async function runTransaction(
     reportStatus();
     if (options.signal?.aborted) requestCancellation();
 
-    if (request.kind === "refresh-cache") {
-      await preauthorize(request, options.signal ?? new AbortController().signal);
-    } else {
-      await simulateAndPreauthorize(transaction, request, options.signal);
-      const simulatedProperties = await transaction.$readAllProps();
-      assertSafeSimulation(transaction, request, simulatedProperties);
-    }
+    await preauthorize(request, options.signal ?? new AbortController().signal);
 
     if (cancellationRequested) {
       // Never start a transaction the user already asked to cancel.
@@ -371,32 +351,6 @@ async function runTransaction(
     if (subscribedToProperties) {
       await transaction.$unsubscribe("PropertyChanged", onPropertyChanged).catch(() => undefined);
     }
-  }
-}
-
-async function simulateAndPreauthorize(
-  transaction: AptDaemonTransactionInterface,
-  request: AptDaemonRequest,
-  signal?: AbortSignal,
-): Promise<void> {
-  const authorizationController = new AbortController();
-  const authorizationSignal = signal
-    ? AbortSignal.any([signal, authorizationController.signal])
-    : authorizationController.signal;
-  const simulation = transaction.Simulate().catch((error: unknown) => {
-    authorizationController.abort();
-    throw error;
-  });
-  const authorization = preauthorize(request, authorizationSignal);
-  const [simulationResult, authorizationResult] = await Promise.allSettled([
-    simulation,
-    authorization,
-  ]);
-
-  if (simulationResult.status === "rejected") throw simulationResult.reason;
-  if (authorizationResult.status === "rejected") {
-    void transaction.Cancel().catch(() => undefined);
-    throw authorizationResult.reason;
   }
 }
 
@@ -482,9 +436,6 @@ export function preauthorizationAction(
   request: AptDaemonRequest,
 ): string | undefined {
   switch (request.kind) {
-    case "install-packages":
-    case "remove-packages":
-      return INSTALL_REMOVE_ACTION;
     case "refresh-cache":
       return UPDATE_CACHE_ACTION;
   }
@@ -496,72 +447,6 @@ export function parseProcStartTime(stat: string): string | undefined {
   const fields = stat.slice(commandEnd + 1).trim().split(/\s+/);
   const startTime = fields[19];
   return startTime && /^\d+$/.test(startTime) ? startTime : undefined;
-}
-
-function assertSafeSimulation(
-  transaction: AptDaemonTransactionInterface,
-  request: AptDaemonRequest,
-  properties: Record<string, unknown>,
-): void {
-  const unexpected = findUnexpectedAptDaemonRemovals(
-    request,
-    properties.Packages,
-    properties.Dependencies,
-  );
-  if (unexpected?.length === 0) return;
-
-  void transaction.Cancel().catch(() => undefined);
-  if (!unexpected) {
-    throw new AptOperationError(
-      "unsafe",
-      "APT changes could not be verified safely",
-    );
-  }
-  throw new AptOperationError(
-    "unsafe",
-    "The operation was blocked because other software would be removed",
-    unexpected.join("\n"),
-  );
-}
-
-export function findUnexpectedAptDaemonRemovals(
-  request: AptDaemonRequest,
-  packageGroups: unknown,
-  dependencyGroups: unknown,
-): string[] | undefined {
-  const requestedRemovals = removalIds(packageGroups);
-  const dependencyRemovals = removalIds(dependencyGroups);
-  if (!requestedRemovals || !dependencyRemovals) return undefined;
-
-  const allowed = request.kind === "remove-packages"
-    ? request.packageIds.map(packageIdentityWithoutVersion)
-    : [];
-  return [...new Set([...requestedRemovals, ...dependencyRemovals])]
-    .filter((id) => !isAllowedRemoval(id, allowed));
-}
-
-function removalIds(groups: unknown): string[] | undefined {
-  if (!Array.isArray(groups)) return undefined;
-  const removals = groups[2];
-  const purges = groups[3];
-  if (!Array.isArray(removals) || !Array.isArray(purges)) return undefined;
-  if (![...removals, ...purges].every((value) => typeof value === "string")) {
-    return undefined;
-  }
-  return [...removals, ...purges].map(packageIdentityWithoutVersion);
-}
-
-function packageIdentityWithoutVersion(value: string): string {
-  return value.split("=", 1)[0] ?? value;
-}
-
-/**
- * aptdaemon reports removals in APT's naming (bare for the native
- * architecture, qualified for foreign ones), the same form Depot uses for
- * targets, so only an exact identity match is allowed.
- */
-function isAllowedRemoval(id: string, allowed: readonly string[]): boolean {
-  return allowed.includes(id);
 }
 
 function parseErrorDetails(value: unknown): AptDaemonErrorDetails {

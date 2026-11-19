@@ -37,12 +37,10 @@ simple call site.
 
 ## System integration
 
-APT repository installs, removals, and cache refreshes use the
-distribution-provided aptdaemon D-Bus API when available and retain a direct
-`pkexec` compatibility path. APT upgrades and local `.deb` files use the guarded
-direct path because aptdaemon 2.0.2 can orphan simulated upgrade transactions
-and rejects extension-staged files. Simulations must use the same arguments as
-the authenticated command (`aptSimulationArgs`), and safety-relevant
+APT cache refreshes use the distribution-provided aptdaemon D-Bus API when
+available and retain a direct `pkexec` compatibility path. APT upgrades and
+cleanup use the guarded direct path. Simulations must use the same arguments
+as the authenticated command (`aptSimulationArgs`), and safety-relevant
 simulations must reject truncated output (`requireCompleteOutput`).
 
 Compare package identities in APT's form. dpkg prints native Multi-Arch

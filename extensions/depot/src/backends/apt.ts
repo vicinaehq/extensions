@@ -1,12 +1,5 @@
-import { readdir, readFile } from "node:fs/promises";
-import { basename } from "node:path";
-import type {
-  SoftwareInstallBatchOutcome,
-  SoftwareOperationOptions,
-  SoftwareItem,
-  SoftwareUpdate,
-} from "../types.ts";
 import { LINUX_EXECUTABLES } from "../linux.ts";
+import type { SoftwareItem, SoftwareOperationOptions, SoftwareUpdate } from "../types.ts";
 import {
   C_LOCALE_ENV,
   ProcessExecutionError,
@@ -17,19 +10,28 @@ import {
 } from "../utils/process.ts";
 import { AptOperationError } from "./apt-errors.ts";
 import {
+  isConservativeRemovalCandidate,
+  parseAptMarkOutput,
+  parseDpkgInstalledMetadata,
+  toAptPackageId,
+  type AptInstalledMetadata,
+} from "./apt-installed-parsing.ts";
+import {
+  isValidAptPackageId,
+  parseAptPackageDetails,
+  parseDpkgStatusOutput,
+} from "./apt-parsing.ts";
+import {
   APT_SIMULATION_OUTPUT_LIMIT,
   aptSimulationArgs,
   requireAptExecutable,
   runAptTransaction,
 } from "./apt-transaction.ts";
 import {
-  escapeAptSearchPattern,
-  isValidAptPackageId,
-  parseAptPackageDetails,
-  parseAptSearchOutput,
-  parseDpkgStatusOutput,
-  rankAptSearchResults,
-} from "./apt-parsing.ts";
+  parseAptUpgradableOutput,
+  parseAptUpgradeSimulation,
+  selectInstallableUpdates,
+} from "./apt-update-parsing.ts";
 import {
   compareCleanupPlan,
   isPartialCachePermissionFailure,
@@ -37,26 +39,6 @@ import {
   parseAptAutoremoveSimulation,
   type AptArchiveCleanupItem,
 } from "./cleanup-parsing.ts";
-import {
-  inspectAptRemovalPlan,
-  isConservativeRemovalCandidate,
-  parseAptRemovalSimulation,
-  parseAptMarkOutput,
-  parseDpkgInstalledMetadata,
-  parseDpkgOwnershipOutput,
-  resolveInstalledAptPackageId,
-  selectManualProfilePackageIds,
-  toAptPackageId,
-  type AptInstalledMetadata,
-} from "./apt-installed-parsing.ts";
-import { parseDesktopEntry, type DesktopEntry } from "./desktop-entry.ts";
-import {
-  parseAptUpgradableOutput,
-  parseAptUpgradeSimulation,
-  selectInstallableUpdates,
-} from "./apt-update-parsing.ts";
-
-export { AptOperationError, type AptErrorKind } from "./apt-errors.ts";
 
 const {
   apt: APT,
@@ -66,19 +48,9 @@ const {
   dpkg: DPKG,
   dpkgQuery: DPKG_QUERY,
 } = LINUX_EXECUTABLES;
-const SEARCH_LIMIT = 40;
-const SEARCH_CANDIDATE_LIMIT = 800;
-const SEARCH_TIMEOUT_MS = 10_000;
 const DPKG_FORMAT = "${binary:Package}\\t${db:Status-Abbrev}\\n";
 const DPKG_METADATA_FORMAT =
   "${binary:Package}\\t${db:Status-Abbrev}\\t${Essential}\\t${Priority}\\t${Section}\\n";
-const DESKTOP_APPLICATIONS_DIRECTORY = "/usr/share/applications";
-const OWNERSHIP_BATCH_SIZE = 64;
-
-export interface AptRemovalPreview {
-  targetId: string;
-  additionalIds: string[];
-}
 
 export interface AptCleanupPreview {
   packageIds: string[];
@@ -90,66 +62,6 @@ export interface AptCleanupPreview {
 export class AptBackend {
   readonly source = "apt" as const;
   private nativeArchitecture?: Promise<string>;
-
-  async search(query: string, signal?: AbortSignal): Promise<SoftwareItem[]> {
-    await requireAptExecutable(
-      APT_CACHE,
-      "APT search is not available",
-    );
-
-    const normalizedQuery = query.trim().slice(0, 100);
-    if (normalizedQuery.length < 2) return [];
-
-    const patterns = normalizedQuery
-      .split(/\s+/)
-      .slice(0, 6)
-      .map(escapeAptSearchPattern);
-    const searchOptions = {
-      signal,
-      env: C_LOCALE_ENV,
-      maxLines: SEARCH_CANDIDATE_LIMIT,
-      maxOutputBytes: 1024 * 1024,
-      timeoutMs: SEARCH_TIMEOUT_MS,
-    };
-
-    const [nameMatches, allMatches] = await Promise.all([
-      runProcess(
-        APT_CACHE,
-        ["search", "--names-only", "--", ...patterns],
-        searchOptions,
-      ),
-      runProcess(
-        APT_CACHE,
-        ["search", "--", ...patterns],
-        searchOptions,
-      ),
-    ]);
-
-    signal?.throwIfAborted();
-
-    const ranked = rankAptSearchResults(
-      [
-        ...parseAptSearchOutput(nameMatches.stdout),
-        ...parseAptSearchOutput(allMatches.stdout),
-      ],
-      normalizedQuery,
-      SEARCH_LIMIT,
-    );
-    const installed = await this.getInstalledPackageIds(
-      ranked.map((record) => record.id),
-      signal,
-    );
-
-    signal?.throwIfAborted();
-
-    return ranked.map((record) => ({
-      id: record.id,
-      name: record.id,
-      description: record.description,
-      source: this.source,
-      installed: installed.has(record.id),
-    }));
-  }
 
   async getDetails(id: string, signal?: AbortSignal): Promise<SoftwareItem> {
     assertPackageId(id);
@@ -195,230 +107,6 @@ export class AptBackend {
     );
 
     return parseDpkgStatusOutput(result.stdout).size > 0;
-  }
-
-  async install(
-    pkg: SoftwareItem,
-    options?: SoftwareOperationOptions,
-  ): Promise<"installed" | "already-installed"> {
-    const outcome = await this.installMany([pkg], options);
-    if (outcome.missingIds.length > 0) {
-      throw new AptOperationError(
-        "not-found",
-        `${pkg.id} is not available from configured repositories or was not installed`,
-      );
-    }
-    return outcome.installedIds.includes(pkg.id)
-      ? "installed"
-      : "already-installed";
-  }
-
-  async installMany(
-    packages: readonly SoftwareItem[],
-    options?: SoftwareOperationOptions,
-  ): Promise<SoftwareInstallBatchOutcome> {
-    const unique = new Map<string, SoftwareItem>();
-    for (const pkg of packages) {
-      if (pkg.source !== this.source) {
-        throw new AptOperationError("not-found", "Invalid APT install target");
-      }
-      assertPackageId(pkg.id);
-      unique.set(pkg.id, pkg);
-    }
-    const ids = [...unique.keys()];
-    if (ids.length === 0) {
-      return { installedIds: [], alreadyInstalledIds: [], missingIds: [] };
-    }
-
-    const installedBefore = await this.getInstalledPackageIds(ids, options?.signal);
-    const alreadyInstalledIds = ids.filter((id) =>
-      Boolean(resolveInstalledAptPackageId(id, installedBefore))
-    );
-    const pendingIds = ids.filter((id) => !alreadyInstalledIds.includes(id));
-    if (pendingIds.length === 0) {
-      return { installedIds: [], alreadyInstalledIds, missingIds: [] };
-    }
-
-    // Unavailable packages are reported as missing; the rest still install.
-    const unavailableIds: string[] = [];
-    for (const batch of chunks(pendingIds, 8)) {
-      const candidates = await Promise.all(
-        batch.map((id) => this.hasCandidate(id, options?.signal)),
-      );
-      unavailableIds.push(...batch.filter((_, index) => !candidates[index]));
-    }
-    const installableIds = pendingIds.filter((id) => !unavailableIds.includes(id));
-    if (installableIds.length === 0) {
-      return { installedIds: [], alreadyInstalledIds, missingIds: unavailableIds };
-    }
-
-    const installArgs = ["--yes", "--no-remove", "install", "--", ...installableIds];
-    await runAptTransaction({
-      aptDaemonRequest: { kind: "install-packages", packageIds: installableIds },
-      directExecutable: APT_GET,
-      directArgs: installArgs,
-      simulationArgs: aptSimulationArgs(installArgs),
-      unavailableMessage: "APT installation is not available",
-      cancelledMessage: "Installation was cancelled",
-      failureMessage: "Package installation failed",
-    }, options);
-
-    const installedAfter = await this.getInstalledPackageIds(
-      installableIds,
-      options?.signal,
-    );
-    const notInstalledIds = installableIds.filter((id) =>
-      !resolveInstalledAptPackageId(id, installedAfter)
-    );
-    return {
-      installedIds: installableIds.filter((id) => !notInstalledIds.includes(id)),
-      alreadyInstalledIds,
-      missingIds: [...unavailableIds, ...notInstalledIds],
-    };
-  }
-
-  async listInstalled(signal?: AbortSignal): Promise<SoftwareItem[]> {
-    await requireAptExecutable(
-      APT_MARK,
-      "APT manual package state is not available",
-    );
-
-    const [nativeArchitecture, desktopFiles, manualResult] = await Promise.all([
-      this.getNativeArchitecture(),
-      loadDesktopEntries(signal),
-      runProcess(APT_MARK, ["showmanual"], {
-        signal,
-        env: C_LOCALE_ENV,
-        maxOutputBytes: 512 * 1024,
-      }),
-    ]);
-    const manuallyInstalled = parseAptMarkOutput(manualResult.stdout);
-    const ownership = new Map<string, string[]>();
-    for (const paths of chunks([...desktopFiles.keys()], OWNERSHIP_BATCH_SIZE)) {
-      const result = await runProcess(
-        DPKG_QUERY,
-        ["--search", "--", ...paths],
-        {
-          signal,
-          allowNonZero: true,
-          env: C_LOCALE_ENV,
-          maxOutputBytes: 512 * 1024,
-        },
-      );
-      for (const [path, owners] of parseDpkgOwnershipOutput(result.stdout)) {
-        ownership.set(
-          path,
-          owners.map((id) => toAptPackageId(id, nativeArchitecture)),
-        );
-      }
-    }
-
-    const packageEntries = new Map<
-      string,
-      { entry: DesktopEntry; filePath: string }
-    >();
-    for (const [path, owners] of ownership) {
-      const entry = desktopFiles.get(path);
-      if (!entry) continue;
-      for (const id of owners) {
-        if (manuallyInstalled.has(id) && !packageEntries.has(id)) {
-          packageEntries.set(id, { entry, filePath: path });
-        }
-      }
-    }
-
-    const metadata = await this.getInstalledMetadata(
-      [...packageEntries.keys()],
-      signal,
-    );
-    signal?.throwIfAborted();
-
-    return [...packageEntries]
-      .filter(([id]) => isConservativeRemovalCandidate(metadata.get(id)))
-      .map(([id, { entry, filePath }]) => ({
-        id,
-        name: entry.name,
-        description: entry.description,
-        source: this.source,
-        installed: true,
-        desktopEntry: {
-          id: basename(filePath),
-          filePath,
-        },
-      }))
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }
-
-  async listManualPackageIds(signal?: AbortSignal): Promise<string[]> {
-    await requireAptExecutable(
-      APT_MARK,
-      "APT manual package state is not available",
-    );
-    const result = await runProcess(APT_MARK, ["showmanual"], {
-      signal,
-      env: C_LOCALE_ENV,
-      maxOutputBytes: 512 * 1024,
-    });
-    const manualIds = parseAptMarkOutput(result.stdout);
-    const metadata = await this.getInstalledMetadata([...manualIds], signal);
-    signal?.throwIfAborted();
-    return selectManualProfilePackageIds(manualIds, metadata);
-  }
-
-  async remove(
-    pkg: SoftwareItem,
-    options?: SoftwareOperationOptions,
-  ): Promise<"removed" | "not-installed"> {
-    const targetId = await this.resolveRemovalTarget(pkg, options?.signal);
-    if (!targetId) return "not-installed";
-
-    const args = removalArgs(targetId);
-    await runAptTransaction({
-      aptDaemonRequest: { kind: "remove-packages", packageIds: [targetId] },
-      directExecutable: APT_GET,
-      directArgs: args,
-      simulationArgs: aptSimulationArgs(args),
-      validateSimulation: (output) =>
-        assertSafeRemovalSimulation(targetId, output),
-      unavailableMessage: "APT removal is not available",
-      cancelledMessage: "Removal was cancelled",
-      failureMessage: "Package removal failed",
-    }, options);
-
-    if (await this.isInstalled(targetId)) {
-      throw new AptOperationError(
-        "failed",
-        "APT finished, but the package is still installed",
-      );
-    }
-
-    return "removed";
-  }
-
-  async previewRemoval(
-    pkg: SoftwareItem,
-    signal?: AbortSignal,
-  ): Promise<AptRemovalPreview | undefined> {
-    const targetId = await this.resolveRemovalTarget(pkg, signal);
-    if (!targetId) return undefined;
-
-    let output: string;
-    try {
-      const simulation = await runProcess(
-        APT_GET,
-        aptSimulationArgs(removalArgs(targetId)),
-        {
-          signal,
-          env: C_LOCALE_ENV,
-          maxOutputBytes: APT_SIMULATION_OUTPUT_LIMIT,
-        },
-      );
-      output = requireCompleteOutput(APT_GET, simulation).stdout;
-    } catch (error) {
-      throw planError(error, "APT could not prepare this removal");
-    }
-
-    return verifiedRemovalPlan(targetId, output);
   }
 
   async previewCleanup(signal?: AbortSignal): Promise<AptCleanupPreview> {
@@ -637,29 +325,6 @@ export class AptBackend {
     }, options);
   }
 
-  private async getInstalledPackageIds(
-    ids: readonly string[],
-    signal?: AbortSignal,
-  ): Promise<Set<string>> {
-    if (ids.length === 0) return new Set();
-    const nativeArchitecture = await this.getNativeArchitecture();
-    const result = await runProcess(
-      DPKG_QUERY,
-      ["--show", `--showformat=${DPKG_FORMAT}`, "--", ...ids],
-      {
-        signal,
-        allowNonZero: true,
-        env: C_LOCALE_ENV,
-        maxOutputBytes: 128 * 1024,
-      },
-    );
-
-    return new Set(
-      [...parseDpkgStatusOutput(result.stdout)]
-        .map((id) => toAptPackageId(id, nativeArchitecture)),
-    );
-  }
-
   /**
    * dpkg reports native "Multi-Arch: same" packages as `name:arch`, while
    * apt-get, apt-mark, and apt list omit the native qualifier. Every
@@ -693,20 +358,6 @@ export class AptBackend {
     return pending;
   }
 
-  private async hasCandidate(
-    id: string,
-    signal?: AbortSignal,
-  ): Promise<boolean> {
-    const result = await runProcess(APT_CACHE, ["policy", "--", id], {
-      signal,
-      allowNonZero: true,
-      env: C_LOCALE_ENV,
-      maxOutputBytes: 128 * 1024,
-    });
-    const candidate = result.stdout.match(/^\s*Candidate:\s*(\S+)/m)?.[1];
-    return Boolean(candidate && candidate !== "(none)");
-  }
-
   private async getInstalledMetadata(
     ids: readonly string[],
     signal?: AbortSignal,
@@ -730,39 +381,6 @@ export class AptBackend {
     }
     return metadata;
   }
-
-  private async resolveRemovalTarget(
-    pkg: SoftwareItem,
-    signal?: AbortSignal,
-  ): Promise<string | undefined> {
-    assertPackageId(pkg.id);
-    await requireAptExecutable(APT_GET, "APT removal is not available");
-    if (pkg.source !== this.source) return undefined;
-
-    const installedIds = await this.getInstalledPackageIds([pkg.id], signal);
-    if (installedIds.size === 0) return undefined;
-    const targetId = resolveInstalledAptPackageId(pkg.id, installedIds);
-    if (!targetId) {
-      throw new AptOperationError(
-        "unsafe",
-        "Removal was blocked because the installed package architecture is ambiguous",
-        [...installedIds].join("\n"),
-      );
-    }
-
-    const metadata = await this.getInstalledMetadata([targetId], signal);
-    if (!isConservativeRemovalCandidate(metadata.get(targetId))) {
-      throw new AptOperationError(
-        "unsafe",
-        "This package is protected from removal",
-      );
-    }
-    return targetId;
-  }
-}
-
-function removalArgs(targetId: string): string[] {
-  return ["--yes", "--no-auto-remove", "remove", "--", targetId];
 }
 
 function assertReviewedCleanup(approvedIds: readonly string[], output: string): void {
@@ -789,63 +407,6 @@ function planError(error: unknown, message: string): unknown {
     summarizeProcessOutput([error.result.stdout, error.result.stderr]
       .filter(Boolean).join("\n")),
   );
-}
-
-function assertSafeRemovalSimulation(targetId: string, output: string): void {
-  const removalPlan = verifiedRemovalPlan(targetId, output);
-  if (removalPlan.additionalIds.length > 0) {
-    throw new AptOperationError(
-      "unsafe",
-      "Removal was blocked because other software would also be removed",
-      removalPlan.additionalIds.join("\n"),
-    );
-  }
-}
-
-function verifiedRemovalPlan(
-  targetId: string,
-  output: string,
-): AptRemovalPreview {
-  const planned = [...new Set(parseAptRemovalSimulation(output))];
-  const removalPlan = inspectAptRemovalPlan(targetId, planned);
-  if (!removalPlan.includesTarget) {
-    throw new AptOperationError(
-      "failed",
-      "APT could not prepare this removal",
-      summarizeProcessOutput(output),
-    );
-  }
-  return { targetId, additionalIds: removalPlan.additionalIds };
-}
-
-async function loadDesktopEntries(
-  signal?: AbortSignal,
-): Promise<Map<string, DesktopEntry>> {
-  const entries = new Map<string, DesktopEntry>();
-  const files = (await readdir(DESKTOP_APPLICATIONS_DIRECTORY))
-    .filter((name) => name.endsWith(".desktop"))
-    .sort();
-
-  await Promise.all(files.map(async (name) => {
-    signal?.throwIfAborted();
-    const path = `${DESKTOP_APPLICATIONS_DIRECTORY}/${name}`;
-    try {
-      const entry = parseDesktopEntry(await readFile(path, "utf8"));
-      if (entry && !entry.hidden && !entry.noDisplay) entries.set(path, entry);
-    } catch (error) {
-      console.error(`Unable to read desktop entry ${path}`, error);
-    }
-  }));
-  signal?.throwIfAborted();
-  return entries;
-}
-
-function chunks<T>(values: readonly T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let index = 0; index < values.length; index += size) {
-    result.push(values.slice(index, index + size));
-  }
-  return result;
 }
 
 function assertPackageId(id: string): void {

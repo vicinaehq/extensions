@@ -61,15 +61,3 @@ export interface SoftwareOperationOptions {
   signal?: AbortSignal;
   onStatus?: (status: SoftwareOperationStatus) => void;
 }
-
-export interface SoftwareInstallBatchOutcome {
-  installedIds: string[];
-  alreadyInstalledIds: string[];
-  /** Requested packages the backend finished without installing. */
-  missingIds: string[];
-  /**
-   * Set when one transaction failed after another had already installed
-   * software; the failed packages are listed in missingIds.
-   */
-  failure?: unknown;
-}

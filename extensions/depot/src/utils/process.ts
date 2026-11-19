@@ -224,21 +224,3 @@ function completeLines(output: string): string {
   const lastNewline = output.lastIndexOf("\n");
   return lastNewline === -1 ? "" : output.slice(0, lastNewline + 1);
 }
-
-export function launchDetachedProcess(
-  file: string,
-  args: readonly string[] = [],
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const child = spawn(file, [...args], {
-      detached: true,
-      shell: false,
-      stdio: "ignore",
-    });
-    child.once("error", reject);
-    child.once("spawn", () => {
-      child.unref();
-      resolve();
-    });
-  });
-}

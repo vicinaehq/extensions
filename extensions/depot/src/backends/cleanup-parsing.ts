@@ -1,5 +1,5 @@
-import { isValidAptPackageId } from "./apt-parsing.ts";
 import type { FlatpakScope } from "../types.ts";
+import { isValidAptPackageId } from "./apt-parsing.ts";
 
 export interface AptAutoremovePlan {
   packageIds: string[];
@@ -16,6 +16,8 @@ export interface FlatpakCleanupItem {
   id: string;
   scope: FlatpakScope;
   branch?: string;
+  /** Exact installed runtime ref, including architecture. */
+  ref?: string;
 }
 
 export function parseAptAutoremoveSimulation(

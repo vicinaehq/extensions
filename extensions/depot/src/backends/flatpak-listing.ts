@@ -8,10 +8,7 @@ import {
   runProcess,
   summarizeProcessOutput,
 } from "../utils/process.ts";
-import {
-  parseFlatpakUnusedPreview,
-  type FlatpakCleanupItem,
-} from "./cleanup-parsing.ts";
+import { parseFlatpakUnusedPreview, type FlatpakCleanupItem } from "./cleanup-parsing.ts";
 import {
   ALL_SCOPES,
   FlatpakOperationError,
@@ -66,7 +63,7 @@ export async function listInstalledFlatpaks(
   return results.flat();
 }
 
-/** Installed applications with presentation metadata for Depot Manage. */
+/** Installed application metadata used to label available updates. */
 export async function listInstalledFlatpakApplications(
   executable: string,
   signal?: AbortSignal,
@@ -152,7 +149,7 @@ export async function listFlatpakUpdateRecords(
   const failures = results.filter(
     (result): result is PromiseRejectedResult => result.status === "rejected",
   );
-  if (failures.length === results.length || (!cached && failures.length > 0)) {
+  if (failures.length > 0) {
     throw classifyFlatpakFailure(
       failures[0]?.reason,
       "Flatpak update information could not be loaded",
@@ -191,7 +188,28 @@ export async function previewFlatpakCleanup(
         summarizeProcessOutput(output),
       );
     }
-    return items;
+    if (items.length === 0) return [];
+    const installed = requireCompleteOutput(executable, await runProcess(
+      executable,
+      ["list", scopeFlag(scope), "--runtime", "--columns=ref"],
+      { signal, env: C_LOCALE_ENV, maxOutputBytes: 1024 * 1024 },
+    )).stdout.trim().split(/\r?\n/).map((ref) =>
+      ref.startsWith("runtime/") ? ref : `runtime/${ref}`
+    );
+    return items.map((item) => {
+      const matches = installed.filter((ref) => {
+        const parts = ref.split("/");
+        return parts.length === 4 && parts[0] === "runtime" &&
+          parts[1] === item.id && parts[3] === item.branch &&
+          parts.every((part) => /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(part));
+      });
+      if (matches.length !== 1) {
+        throw new FlatpakOperationError(
+          "failed", "Flatpak cleanup runtime could not be identified safely", item.id,
+        );
+      }
+      return { ...item, ref: matches[0]! };
+    });
   }));
   signal?.throwIfAborted();
   return results.flat();

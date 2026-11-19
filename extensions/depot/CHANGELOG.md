@@ -9,7 +9,7 @@ Initial release of Depot, a keyboard-first Linux software manager for Vicinae.
   phased APT updates are excluded.
 - **Depot Clean** previews unused APT packages, obsolete APT archives, and
   unused Flatpak runtimes, then purges exactly the reviewed APT packages and
-  lets APT and Flatpak remove what they mark as obsolete or unused.
+  removes only the reviewed Flatpak runtime refs after revalidation.
 - Flatpak is optional; Depot remains fully usable with APT alone.
 - Recent Actions keeps a small local history of completed and failed
   operations, including bounded diagnostic details for failures.

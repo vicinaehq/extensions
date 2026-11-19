@@ -32,7 +32,7 @@
     {
       "name": "aptEnabled",
       "title": "Package Sources",
-      "description": "Search and manage software from configured APT repositories",
+      "description": "Review and install APT updates and clean unused packages and obsolete archives",
       "type": "checkbox",
       "required": false,
       "default": true,
@@ -41,7 +41,7 @@
     {
       "name": "flatpakEnabled",
       "title": "",
-      "description": "Search and manage applications from configured Flatpak remotes when Flatpak is installed",
+      "description": "Review and install Flatpak updates and clean unused runtimes when Flatpak is installed",
       "type": "checkbox",
       "required": false,
       "default": true,

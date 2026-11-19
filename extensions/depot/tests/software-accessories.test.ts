@@ -1,29 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { SoftwareItem, SoftwareUpdate } from "../src/types.ts";
-import {
-  installAccessories,
-  removeAccessories,
-  updateAccessories,
-} from "../src/utils/software-accessories.ts";
-
-test("keeps the source badge at the right edge for install results", () => {
-  assert.deepEqual(installAccessories(aptPackage(true)), [
-    { text: "Installed" },
-    { tag: "APT" },
-  ]);
-  assert.deepEqual(installAccessories(flatpakPackage()), [
-    { text: "org.videolan.VLC" },
-    { tag: "Flatpak · flathub" },
-  ]);
-});
-
-test("keeps the source badge at the right edge for removal results", () => {
-  assert.deepEqual(removeAccessories(flatpakPackage()), [
-    { text: "org.videolan.VLC" },
-    { tag: "Flatpak · system" },
-  ]);
-});
+import { updateAccessories } from "../src/utils/software-accessories.ts";
 
 test("keeps the source badge at the right edge after update metadata", () => {
   const update: SoftwareUpdate = {

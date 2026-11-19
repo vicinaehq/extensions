@@ -14,26 +14,15 @@ Depot delegates repository package management to APT, Flatpak, and Polkit:
 - Polkit owns privileged authentication; the extension never receives or stores
   passwords. Authorization lifetime and repeated prompts are controlled by the
   system's Polkit policy; Depot does not install or modify policy rules.
-- APT repository installs, removals, and cache refreshes prefer the
-  distribution-provided, demand-activated aptdaemon D-Bus service when it is
-  installed. One connection is opened on demand for the active command and is
-  never a background service; a failed or closed connection is discarded and
-  a transaction whose daemon disappears is reported as failed rather than left
-  waiting. Systems without aptdaemon fall back to direct `pkexec` + APT. APT
-  upgrades and local `.deb` files always use that direct guarded path: aptdaemon
-  2.0.2 can leave `UpgradePackages` transactions indefinitely queued, and it
-  rejects files staged by an extension. Both paths preserve explicit arguments
-  and APT's simulation guard, and simulations use the same arguments as the
-  authenticated command.
-- Depot asks aptdaemon to simulate pending installs and removals, then validates
-  its package groups before calling `Run()`. Installs are blocked if the
-  resolver proposes any removal; removals are blocked if anything beyond the
-  selected package would be removed. Direct APT upgrades simulate first and use
-  `--no-remove --only-upgrade` in both the simulation and authenticated command.
-  Other `pkexec` fallbacks retain their direct APT simulations and removal-plan
-  validation.
+- APT metadata refreshes prefer the distribution-provided, demand-activated
+  aptdaemon D-Bus service. One connection is opened on demand for the active
+  command; failed or closed connections are discarded, and daemon loss is
+  reported as failure. Systems without aptdaemon fall back to `pkexec` + APT.
+  Package upgrades and cleanup use the direct guarded path. Upgrades simulate
+  first and use `--no-remove --only-upgrade` in both the simulation and the
+  authenticated command. Cleanup validates the exact reviewed removal set.
 - For aptdaemon transactions, Depot checks the exact documented Polkit action
-  (`install-or-remove-packages` or `update-cache`) with
+  (`update-cache`) with
   `pkcheck` while the read-only simulation runs. The check identifies the
   extension process using PID, process start time, and UID. It distinguishes a
   dismissed prompt (silent cancellation), a denial, and a missing
@@ -50,7 +39,7 @@ Depot delegates repository package management to APT, Flatpak, and Polkit:
   architecture of the same package is still blocked.
 - Only existing APT sources and Flatpak remotes are used. Depot never adds
   repositories, remotes, signing keys, or downloaded scripts.
-- Install, remove, refresh, and update operations require an explicit user
+- Cleanup, refresh, and update operations require an explicit user
   action. There are no background services or scheduled package operations.
 - APT cancellation is offered only while aptdaemon's documented `Cancellable`
   property is true and uses its `Cancel()` method. Depot never kills a package
@@ -71,9 +60,13 @@ Depot delegates repository package management to APT, Flatpak, and Polkit:
   command and requiring its removal set to equal the reviewed set; any change
   is rejected and requires a fresh review. `autoclean` runs only when the
   preview found archives APT considers obsolete.
-  Flatpak cleanup uses only its native `uninstall --unused` operation for the
-  reviewed user and system scopes and never passes `--delete-data`. AppImages
-  and application data are not cleanup targets.
+  Flatpak previews unused runtimes with a declined `uninstall --unused`,
+  resolves each to one exact installed runtime ref (including architecture),
+  and rechecks the reviewed set immediately before each scope is cleaned.
+  Changes require a fresh review. Removal uses only explicit reviewed refs
+  with `--runtime --no-related`, so it cannot expand to newly unused runtimes
+  or related extensions. It never passes `--delete-data`. AppImages and
+  application data are not cleanup targets.
 - Recent action history is limited to 25 local entries containing the action,
   displayed application name, backend identifier, source, and timestamp.
   Failed operations additionally keep a short summary and a bounded excerpt

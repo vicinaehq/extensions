@@ -11,7 +11,6 @@ import {
   classifyAptDaemonOutcome,
   classifyPkcheckExit,
   describeAptDaemonStatus,
-  findUnexpectedAptDaemonRemovals,
   parseProcStartTime,
   preauthorizationAction,
 } from "../src/backends/aptdaemon.ts";
@@ -120,16 +119,8 @@ test("classifies direct pkexec exits from pkexec(1)", () => {
   assert.equal(classifyPkexecExit(100, "E: Unable to locate package"), undefined);
 });
 
-test("pre-authorizes installs with aptdaemon's real Polkit actions", () => {
+test("pre-authorizes refreshes with aptdaemon's real Polkit action", () => {
   // Action IDs from /usr/share/polkit-1/actions/org.debian.apt.policy.
-  assert.equal(
-    preauthorizationAction({ kind: "install-packages", packageIds: ["vlc"] }),
-    "org.debian.apt.install-or-remove-packages",
-  );
-  assert.equal(
-    preauthorizationAction({ kind: "remove-packages", packageIds: ["vlc"] }),
-    "org.debian.apt.install-or-remove-packages",
-  );
   assert.equal(
     preauthorizationAction({ kind: "refresh-cache" }),
     "org.debian.apt.update-cache",
@@ -155,82 +146,6 @@ test("describes documented aptdaemon transaction phases", () => {
     "Applying package changes",
   );
   assert.equal(describeAptDaemonStatus("future-status"), "APT is working");
-});
-
-test("rejects removals introduced by an install simulation", () => {
-  assert.deepEqual(
-    findUnexpectedAptDaemonRemovals(
-      { kind: "install-packages", packageIds: ["example"] },
-      [["example"], [], [], []],
-      [[], [], ["conflicting-package=1.0"], [], [], [], []],
-    ),
-    ["conflicting-package"],
-  );
-});
-
-test("allows only the requested package in a removal simulation", () => {
-  // Targets and aptdaemon removals both use APT naming (bare = native).
-  const request = { kind: "remove-packages", packageIds: ["example"] } as const;
-  assert.deepEqual(
-    findUnexpectedAptDaemonRemovals(
-      request,
-      [[], [], ["example=1.0"], []],
-      [[], [], [], [], [], [], []],
-    ),
-    [],
-  );
-  assert.deepEqual(
-    findUnexpectedAptDaemonRemovals(
-      request,
-      [[], [], ["example=1.0"], []],
-      [[], [], ["dependent=2.0"], [], [], [], []],
-    ),
-    ["dependent"],
-  );
-});
-
-test("blocks a native removal when a foreign-architecture package is targeted", () => {
-  assert.deepEqual(
-    findUnexpectedAptDaemonRemovals(
-      { kind: "remove-packages", packageIds: ["example:i386"] },
-      [[], [], ["example:i386=1.0", "example=1.0"], []],
-      [[], [], [], [], [], [], []],
-    ),
-    ["example"],
-  );
-});
-
-test("keeps architecture-qualified removals distinct", () => {
-  assert.deepEqual(
-    findUnexpectedAptDaemonRemovals(
-      { kind: "remove-packages", packageIds: ["example"] },
-      [[], [], ["example:i386=1.0"], []],
-      [[], [], [], [], [], [], []],
-    ),
-    ["example:i386"],
-  );
-  assert.deepEqual(
-    findUnexpectedAptDaemonRemovals(
-      {
-        kind: "remove-packages",
-        packageIds: ["example:amd64", "example:i386"],
-      },
-      [[], [], ["example=1.0"], []],
-      [[], [], [], [], [], [], []],
-    ),
-    ["example"],
-  );
-});
-
-test("fails closed when aptdaemon simulation groups are malformed", () => {
-  assert.equal(
-    findUnexpectedAptDaemonRemovals(
-      { kind: "remove-packages", packageIds: ["example"] },
-      null,
-      [],
-    ),
-    undefined,
-  );
 });
 
 test("reads the race-safe process start time used for Polkit", () => {

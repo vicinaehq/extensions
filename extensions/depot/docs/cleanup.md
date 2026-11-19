@@ -30,8 +30,10 @@ and requires a fresh review. Obsolete package archives are removed with
 separate authenticated commands, so a cleanup that needs both asks for
 authentication twice.
 
-Flatpak removes only runtimes that `flatpak uninstall --unused` identifies in
-the reviewed installation scopes. APT and Flatpak remain independent, so a
+Flatpak rechecks each scope's unused-runtime set against the reviewed preview.
+If the set changed, refresh and review it again. Cleanup removes only the
+reviewed full runtime refs, including architecture, with `--no-related` so
+related extensions cannot expand the removal set. APT and Flatpak remain independent, so a
 failure in one source does not combine or rewrite the other's transaction.
 
 Depot Clean never uses Flatpak's `--delete-data`, never deletes AppImages, and

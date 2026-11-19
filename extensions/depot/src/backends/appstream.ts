@@ -4,53 +4,17 @@ import { join } from "node:path";
 import { LINUX_EXECUTABLES, userDataDirectory } from "../linux.ts";
 import { C_LOCALE_ENV, runProcess } from "../utils/process.ts";
 import {
-  appStreamSearchTerm,
   parseAppStreamSearchOutput,
   type AppStreamComponent,
 } from "./appstream-parsing.ts";
 
 const APPSTREAM_CLI = LINUX_EXECUTABLES.appstreamCli;
-const SEARCH_LIMIT = 100;
-const SEARCH_MAX_LINES = 1_200;
-const SEARCH_TIMEOUT_MS = 5_000;
 const DETAILS_TIMEOUT_MS = 3_000;
 const ICON_SIZES = ["128x128", "64x64", "48x48"] as const;
 
 export class AppStreamBackend {
   private iconDirectories?: Promise<string[]>;
   private readonly iconCache = new Map<string, string | null>();
-
-  async search(
-    query: string,
-    signal?: AbortSignal,
-  ): Promise<AppStreamComponent[]> {
-    const normalizedQuery = query.trim().slice(0, 100);
-    if (normalizedQuery.length < 2) return [];
-    await access(APPSTREAM_CLI, constants.X_OK);
-
-    const result = await runProcess(
-      APPSTREAM_CLI,
-      [
-        "search",
-        "--no-color",
-        "--",
-        appStreamSearchTerm(normalizedQuery),
-      ],
-      {
-        signal,
-        env: C_LOCALE_ENV,
-        maxLines: SEARCH_MAX_LINES,
-        maxOutputBytes: 768 * 1024,
-        timeoutMs: SEARCH_TIMEOUT_MS,
-      },
-    );
-    signal?.throwIfAborted();
-
-    return this.resolveIcons(
-      parseAppStreamSearchOutput(result.stdout, SEARCH_LIMIT, result.truncated),
-      signal,
-    );
-  }
 
   async getDetails(
     componentId: string,
