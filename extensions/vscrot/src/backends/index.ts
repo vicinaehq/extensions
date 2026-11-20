@@ -1,5 +1,6 @@
 import { grimBackend } from "./grim";
 import { grimblastBackend } from "./grimblast";
+import { grimshotBackend } from "./grimshot";
 import { x11ScrotBackend } from "./x11-scrot";
 import { maimBackend } from "./maim";
 import { flameshotBackend } from "./flameshot";
@@ -14,6 +15,7 @@ export type { CaptureBackend, CaptureMode } from "./types";
 // Priority order for auto-detection - screenshot-desktop last (native tools preferred)
 export const ALL_BACKENDS: CaptureBackend[] = [
 	grimblastBackend,
+	grimshotBackend,
 	grimBackend,
 	spectacleBackend,
 	gnomeScreenshotBackend,
@@ -34,6 +36,20 @@ export type Session = "wayland" | "x11" | "darwin" | "win32";
  * is Wayland. Backends listed here are only eligible on a wlroots compositor.
  */
 const WLROOTS_ONLY = new Set([grimBackend.id, grimblastBackend.id]);
+
+/**
+ * grimshot is a Sway helper rather than a generic wlroots grabber: window and
+ * output selection read the tree through `swaymsg`, which only answers on a
+ * running Sway session. Being installed alongside another wlroots compositor is
+ * not enough to drive those modes.
+ */
+const SWAY_ONLY = new Set([grimshotBackend.id]);
+
+const isSwayCompositor = (): boolean => {
+	if (process.env.SWAYSOCK) return true;
+	const desktop = (process.env.XDG_CURRENT_DESKTOP ?? "").toLowerCase();
+	return desktop.includes("sway");
+};
 
 const isWlrootsCompositor = (): boolean => {
 	if (
@@ -73,6 +89,7 @@ const preferredBackendForDesktop = (): string | null => {
  */
 const BACKEND_SESSIONS: Record<string, Session[]> = {
 	[grimblastBackend.id]: ["wayland"],
+	[grimshotBackend.id]: ["wayland"],
 	[grimBackend.id]: ["wayland"],
 	[spectacleBackend.id]: ["wayland", "x11"],
 	[gnomeScreenshotBackend.id]: ["wayland", "x11"],
@@ -106,6 +123,9 @@ export const detectSession = (): Session => {
 
 const isCompatible = (backend: CaptureBackend, session: Session): boolean => {
 	if (!(BACKEND_SESSIONS[backend.id] ?? []).includes(session)) return false;
+	if (session === "wayland" && SWAY_ONLY.has(backend.id)) {
+		return isSwayCompositor();
+	}
 	if (session === "wayland" && WLROOTS_ONLY.has(backend.id)) {
 		return isWlrootsCompositor();
 	}

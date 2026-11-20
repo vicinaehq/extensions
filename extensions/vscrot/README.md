@@ -13,7 +13,7 @@ The main command. Opens a list of capture modes filtered to what your active too
 **Capture modes:**
 
 | Mode | Description |
-|---|---|
+| --- | --- |
 | Capture Area | Interactive region selection |
 | Capture Window | Active or selected window |
 | Capture Monitor | A single display |
@@ -41,8 +41,9 @@ VScrot auto-detects the best available tool in priority order. You can override 
 ### Wayland
 
 | Tool | Modes | Notes | Link |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **grimblast** | area · window · monitor · full | Hyprland-native wrapper around grim. Recommended for Hyprland. | [hyprwm/contrib](https://github.com/hyprwm/contrib) |
+| **grimshot** | area · window · monitor · full | Sway-native wrapper around grim. Recommended for Sway. | [OctopusET/sway-contrib](https://github.com/OctopusET/sway-contrib) |
 | **grim** + slurp | area · window · monitor · full | Compositor-agnostic Wayland grabber. Requires `slurp` for selection and `jq` for window/monitor modes. | [grim](https://sr.ht/~emersion/grim/) · [slurp](https://github.com/emersion/slurp) |
 | **spectacle** | area · window · monitor · full | KDE screenshot tool. Works on Wayland and X11. | [spectacle](https://apps.kde.org/spectacle/) |
 | **gnome-screenshot** | area · window · full | GNOME screenshot utility. | [gnome-screenshot](https://gitlab.gnome.org/GNOME/gnome-screenshot) |
@@ -51,21 +52,21 @@ VScrot auto-detects the best available tool in priority order. You can override 
 ### X11
 
 | Tool | Modes | Notes | Link |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **maim** + slop | area · window · full | Recommended X11 tool. Requires `slop` for area selection and `xdotool` for window capture. | [maim](https://github.com/naelstrof/maim) · [slop](https://github.com/naelstrof/slop) |
 | **scrot** | area · window · full | Classic X11 capture utility. | [scrot](https://github.com/resurrecting-open-source-projects/scrot) |
 
 ### macOS
 
 | Tool | Modes | Notes | Link |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **screencapture** | area · window · full | Built-in macOS utility - no installation required. | - |
 | **screenshot-desktop** | full · monitor | npm package bundled with the extension. Uses native OS APIs on macOS and Windows. | [screenshot-desktop](https://github.com/bencevans/screenshot-desktop) |
 
 ### Windows
 
 | Tool | Modes | Notes | Link |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **screenshot-desktop** | full · monitor | npm package bundled with the extension. Uses Win32 GDI - no additional install needed. | [screenshot-desktop](https://github.com/bencevans/screenshot-desktop) |
 | **flameshot** | area · full | Available for Windows via the official installer, and the only backend offering area capture there. Must be on `PATH` — the installer does not always add it. | [flameshot.org](https://flameshot.org) |
 
@@ -79,7 +80,7 @@ After capture, the preview offers an **Annotate** action using your active annot
 - **Manual save** - the tool opens in the background; save the file yourself, then use **Refresh Preview** inside the extension.
 
 | Tool | Mode | Platform | Link |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **satty** | Auto-reload | Linux (Wayland) | [gabm/Satty](https://github.com/gabm/Satty) |
 | **swappy** | Auto-reload | Linux (Wayland) | [jtheoof/swappy](https://github.com/jtheoof/swappy) |
 | **Spectacle** | Manual save | Linux (Wayland · X11) | [spectacle](https://apps.kde.org/spectacle/) |
@@ -104,9 +105,9 @@ external clipboard tool is required on any platform.
 These are not capture tools themselves but are required by certain backends:
 
 | Dependency | Required by | Link |
-|---|---|---|
-| **slurp** | grim (area · window · monitor modes) | [slurp](https://github.com/emersion/slurp) |
-| **jq** | grim (window · monitor modes via hyprctl) | [jqlang/jq](https://github.com/jqlang/jq) |
+| --- | --- | --- |
+| **slurp** | grim (area · window · monitor modes) and grimshot (area · window modes) | [slurp](https://github.com/emersion/slurp) |
+| **jq** | grim (window · monitor modes via hyprctl) and grimshot (window · output modes via swaymsg) | [jqlang/jq](https://github.com/jqlang/jq) |
 | **slop** | maim (area selection) | [slop](https://github.com/naelstrof/slop) |
 | **xdotool** | maim (window capture) | [xdotool](https://github.com/jordansissel/xdotool) |
 | **ImageMagick** (`identify`) | Preview metadata (image dimensions) - optional | [imagemagick.org](https://imagemagick.org) |
@@ -118,7 +119,7 @@ These are not capture tools themselves but are required by certain backends:
 Preferences are the default starting point. Active tool selections made inside the extension are saved per-session via LocalStorage and override preferences.
 
 | Preference | Description | Default |
-|---|---|---|
+| --- | --- | --- |
 | **Screenshot Tool** | Capture backend. `Auto-detect` picks the first available in priority order. | `auto` |
 | **Annotation Tool** | Annotation tool. `Auto-detect` picks the first available. `None` disables annotation. | `auto` |
 | **Screenshot Path** | Base folder where screenshots are saved. | `~/Pictures/Screenshots` |

@@ -44,6 +44,20 @@ export const TOOLS_DATABASE: ToolInfo[] = [
 		},
 	},
 	{
+		id: "grimshot",
+		displayName: "grimshot",
+		description: "All-in-one capture tool for Sway (wraps grim + slurp)",
+		category: "capture",
+		checkCommand: "grimshot",
+		packages: {
+			pacman: "sudo pacman -S sway-contrib",
+			apt: "sudo apt install grimshot",
+			dnf: "sudo dnf install sway-contrib",
+		},
+		notes:
+			"Part of sway-contrib. Window and output modes also require jq and swaymsg (provided by sway).",
+	},
+	{
 		id: "grim",
 		displayName: "grim",
 		description: "Wayland image grabber - pair with slurp for area selection",
@@ -186,7 +200,7 @@ export const TOOLS_DATABASE: ToolInfo[] = [
 		id: "slurp",
 		displayName: "slurp",
 		description:
-			"Wayland region selector - required by grim for area/window/monitor capture",
+			"Wayland region selector - required by grim (area/window/monitor) and grimshot (area/window)",
 		category: "dependency",
 		checkCommand: "slurp",
 		packages: {
@@ -199,7 +213,7 @@ export const TOOLS_DATABASE: ToolInfo[] = [
 		id: "jq",
 		displayName: "jq",
 		description:
-			"JSON processor - required by grim for window/monitor selection via hyprctl",
+			"JSON processor - required by grim (window selection via hyprctl) and grimshot (window/output selection via swaymsg)",
 		category: "dependency",
 		checkCommand: "jq",
 		packages: {
