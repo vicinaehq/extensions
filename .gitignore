@@ -1,6 +1,9 @@
 # dependencies (bun install)
 node_modules
 
+# direnv users
+.direnv
+
 # output
 out
 dist
