@@ -28,6 +28,12 @@ settings and box art.
   - **Running on the host, not streamed here:** orange dot. Enter resumes it.
   - **Host busy with another app:** the other apps are shown muted. Enter explains why, and *Quit Running App &
     Start* switches apps on purpose.
+  - **Checking status…** (the status request hasn't answered yet) or **status unknown** (it failed or timed out):
+    every app gets a small gray marker and Enter is *Start Stream (Status Unknown)*. Starting is still allowed on
+    purpose: the status port can be unreachable while streaming works (VPN, or a remote address with only the stream
+    ports open), and a start never waits for the status check. A second stream from this PC is still prevented,
+    because that check reads local processes, and Moonlight itself handles a host that turns out to be busy.
+    *Retry Host Status* asks again.
 - **End Session**, which ends a stream properly: it stops the local client, quits the app on the host and refreshes.
 - **Hidden apps stay hidden**, because Moonlight's own *Hidden* flag is respected. A preference brings them back.
 - **Optional stream overrides** for resolution, frame rate, bitrate, display mode and quit-after. By default your
@@ -54,6 +60,7 @@ Open **Show Streams** (shown as *Show Streams · Moonlight* in Vicinae), type to
 | Action | Shortcut | When |
 |---|---|---|
 | Start Stream | <kbd>Enter</kbd> | the host is free |
+| Start Stream (Status Unknown) | <kbd>Enter</kbd> | the host status is still loading or couldn't be read |
 | Resume Stream | <kbd>Enter</kbd> | this app is running on the host but not streamed here |
 | Already Streaming | <kbd>Enter</kbd> | this PC is already streaming it (only shows a hint) |
 | Host Busy | <kbd>Enter</kbd> | another app is running on the host (only shows a hint) |
@@ -62,6 +69,7 @@ Open **Show Streams** (shown as *Show Streams · Moonlight* in Vicinae), type to
 | Quit Running App on Host | <kbd>Ctrl</kbd>+<kbd>Q</kbd> | always |
 | Copy Stream Command | Vicinae's *Copy* shortcut | to run or script the same stream from a terminal |
 | Refresh | Vicinae's *Refresh* shortcut | re-reads apps and host status |
+| Retry Host Status | action panel | the host status couldn't be read; asks only for the status again |
 
 ## Preferences
 
@@ -120,7 +128,7 @@ each host one unauthenticated status question, and runs the `moonlight` command 
 |---|---|---|
 | `Moonlight.conf`: `$XDG_CONFIG_HOME/Moonlight Game Streaming Project/Moonlight.conf`, or the Flatpak path `~/.var/app/com.moonlight_stream.Moonlight/config/Moonlight Game Streaming Project/Moonlight.conf` | paired hosts: name, local/manual/remote addresses with their HTTP ports, and Moonlight's cached app list as an instant fallback | **Only the `[hosts]` section is parsed.** The `[General]` section, which holds Moonlight's client certificate and private key, is skipped and never logged. |
 | `moonlight list --csv <host>` | app names, IDs, HDR support, the *Hidden* flag, box art | Box art paths point into Moonlight's own cache (`$XDG_CACHE_HOME/Moonlight Game Streaming Project/…`) and are shown as icons. Results are cached by Vicinae, so the list opens instantly next time. |
-| `GET http://<host>:<port>/serverinfo` | is the host free or busy, and which app is running (`state`, `currentgame`) | The same plain-HTTP status endpoint Moonlight polls. It doesn't need the pairing certificate. The local, manual and remote addresses are probed in parallel (each on its own port) and the first answer wins. Short timeout (3 s by default); failure means "unknown", never an error page. |
+| `GET http://<host>:<port>/serverinfo` | is the host free or busy, and which app is running (`state`, `currentgame`) | The same plain-HTTP status endpoint Moonlight polls. It doesn't need the pairing certificate. The local, manual and remote addresses are probed in parallel (each on its own port) and the first answer wins. Short timeout (3 s by default); while it runs the host shows "checking status…", and failure means "status unknown", never an error page and never "free". |
 | `/proc/*/cmdline` | is *this* PC streaming that host, and which app | Matches `moonlight … stream <host> <app>` by host name or address. |
 
 ### What it runs

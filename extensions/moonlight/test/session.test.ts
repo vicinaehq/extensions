@@ -366,6 +366,7 @@ describe("resolveHostSession / hostStatusSummary", () => {
 			undefined,
 		);
 		expect(s).toEqual({
+			status: "free",
 			runningAppId: undefined,
 			runningAppName: undefined,
 			streamingHere: false,
@@ -423,7 +424,7 @@ describe("decideAppPresentation", () => {
 			: never
 	) => decideAppPresentation(app, resolveHostSession(apps, ...args));
 
-	it("starts normally when the host is free or unknown", () => {
+	it("starts normally when the host is confirmed free", () => {
 		const start = {
 			primary: "start",
 			disabled: false,
@@ -432,7 +433,10 @@ describe("decideAppPresentation", () => {
 		expect(
 			present(desktop, { state: "free", currentGame: 0 }, undefined),
 		).toEqual(start);
-		expect(present(steam, undefined, undefined)).toEqual(start);
+		// A refresh in flight keeps showing the previous "free" answer.
+		expect(
+			present(desktop, { state: "free", currentGame: 0 }, undefined, true),
+		).toEqual(start);
 		expect(
 			present(desktop, { state: "busy", currentGame: 0 }, undefined),
 		).toEqual(start);
@@ -548,5 +552,87 @@ describe("buildLaunchCommand", () => {
 				hostIdentifiers(host),
 			),
 		).toEqual([500]);
+	});
+});
+
+describe("hostStatusSummary for unconfirmed status", () => {
+	it("says checking or unknown, and local streams take precedence", () => {
+		expect(
+			hostStatusSummary(resolveHostSession(apps, undefined, undefined, true)),
+		).toBe("checking status…");
+		expect(
+			hostStatusSummary(resolveHostSession(apps, undefined, undefined, false)),
+		).toBe("status unknown");
+		expect(
+			hostStatusSummary(
+				resolveHostSession(apps, undefined, { appName: "Desktop" }, true),
+			),
+		).toBe("streaming Desktop on this PC");
+		expect(resolveHostSession(apps, undefined, undefined, true).status).toBe(
+			"loading",
+		);
+		expect(
+			resolveHostSession(apps, { state: "busy", currentGame: 1 }, undefined)
+				.status,
+		).toBe("busy");
+	});
+});
+
+describe("host status not confirmed (CORRECTNESS-001)", () => {
+	const present = (
+		app: MoonlightApp,
+		...args: Parameters<typeof resolveHostSession> extends [unknown, ...infer R]
+			? R
+			: never
+	) => decideAppPresentation(app, resolveHostSession(apps, ...args));
+	const loading = {
+		primary: "start-unconfirmed",
+		marker: "status-loading",
+		disabled: false,
+		offerQuitAndStart: false,
+	};
+	const unknown = { ...loading, marker: "status-unknown" };
+
+	it("never treats a loading status as free, but still allows starting", () => {
+		for (const app of apps) {
+			expect(present(app, undefined, undefined, true)).toEqual(loading);
+		}
+	});
+
+	it("never treats a failed status as free, but still allows starting", () => {
+		for (const app of apps) {
+			expect(present(app, undefined, undefined, false)).toEqual(unknown);
+		}
+		// Parsed, but neither free nor busy.
+		expect(
+			present(desktop, { state: "unknown", currentGame: 0 }, undefined),
+		).toEqual(unknown);
+	});
+
+	it("still prevents a second local stream while loading or unknown", () => {
+		const local = { appName: "Desktop" };
+		for (const loadingFlag of [true, false]) {
+			expect(present(desktop, undefined, local, loadingFlag)).toEqual({
+				primary: "already-streaming",
+				marker: "streaming-here",
+				disabled: false,
+				offerQuitAndStart: false,
+			});
+			expect(present(steam, undefined, local, loadingFlag)).toEqual({
+				primary: "host-busy",
+				disabled: true,
+				offerQuitAndStart: false,
+			});
+		}
+	});
+
+	it("busy and free results are unaffected by a pending refresh", () => {
+		const busyDesktop = { state: "busy" as const, currentGame: desktop.id };
+		expect(present(desktop, busyDesktop, undefined, true).primary).toBe(
+			"resume",
+		);
+		expect(present(steam, busyDesktop, undefined, true).primary).toBe(
+			"host-busy",
+		);
 	});
 });

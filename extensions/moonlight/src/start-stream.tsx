@@ -96,10 +96,12 @@ function HostActions({
 	host,
 	session,
 	onRefresh,
+	onRetryStatus,
 }: {
 	host: MoonlightHost;
 	session?: HostSession;
 	onRefresh: () => void;
+	onRetryStatus: () => void;
 }) {
 	const handleQuit = useCallback(async () => {
 		const toast = await showToast({
@@ -177,6 +179,13 @@ function HostActions({
 				shortcut={Keyboard.Shortcut.Common.Refresh}
 				onAction={onRefresh}
 			/>
+			{session?.status === "unknown" && (
+				<Action
+					title="Retry Host Status"
+					icon={Icon.Signal3}
+					onAction={onRetryStatus}
+				/>
+			)}
 		</>
 	);
 }
@@ -192,6 +201,16 @@ function appAccessories(app: MoonlightApp, presentation: AppPresentation) {
 		accessories.push({
 			icon: { source: Icon.CircleFilled, tintColor: Color.Orange },
 			tooltip: "Running on host — Resume",
+		});
+	} else if (presentation.marker === "status-loading") {
+		accessories.push({
+			icon: { source: Icon.CircleProgress, tintColor: Color.SecondaryText },
+			tooltip: "Checking host status…",
+		});
+	} else if (presentation.marker === "status-unknown") {
+		accessories.push({
+			icon: { source: Icon.QuestionMarkCircle, tintColor: Color.SecondaryText },
+			tooltip: "Host status unknown — Moonlight will handle a busy host",
 		});
 	}
 	if (app.hdr) {
@@ -212,12 +231,14 @@ function AppItem({
 	session,
 	presentation,
 	onRefresh,
+	onRetryStatus,
 }: {
 	host: MoonlightHost;
 	app: MoonlightApp;
 	session: HostSession;
 	presentation: AppPresentation;
 	onRefresh: () => void;
+	onRetryStatus: () => void;
 }) {
 	const boxArt = resolveBoxArt(host, app);
 	const command = formatCommand(
@@ -311,6 +332,15 @@ function AppItem({
 				<Action title="Resume Stream" icon={Icon.Play} onAction={handleStart} />
 			);
 			break;
+		case "start-unconfirmed":
+			primary = (
+				<Action
+					title="Start Stream (Status Unknown)"
+					icon={Icon.Play}
+					onAction={handleStart}
+				/>
+			);
+			break;
 		default:
 			primary = (
 				<Action title="Start Stream" icon={Icon.Play} onAction={handleStart} />
@@ -352,7 +382,12 @@ function AppItem({
 						/>
 					</ActionPanel.Section>
 					<ActionPanel.Section title={host.name}>
-						<HostActions host={host} session={session} onRefresh={onRefresh} />
+						<HostActions
+							host={host}
+							session={session}
+							onRefresh={onRefresh}
+							onRetryStatus={onRetryStatus}
+						/>
 					</ActionPanel.Section>
 				</ActionPanel>
 			}
@@ -374,16 +409,19 @@ function HostSection({
 	state,
 	showHidden,
 	onRefresh,
+	onRetryStatus,
 }: {
 	host: MoonlightHost;
 	state: HostState;
 	showHidden: boolean;
 	onRefresh: () => void;
+	onRetryStatus: () => void;
 }) {
 	const session = resolveHostSession(
 		state.apps,
 		state.serverInfo,
 		state.localStream,
+		state.statusLoading,
 	);
 	const apps = visibleApps(state.apps, showHidden, session.runningAppId);
 	return (
@@ -416,6 +454,7 @@ function HostSection({
 					session={session}
 					presentation={decideAppPresentation(app, session)}
 					onRefresh={onRefresh}
+					onRetryStatus={onRetryStatus}
 				/>
 			))}
 			{!state.error && !state.refreshing && apps.length === 0 && (
@@ -433,6 +472,7 @@ function HostSection({
 								host={host}
 								session={session}
 								onRefresh={onRefresh}
+								onRetryStatus={onRetryStatus}
 							/>
 						</ActionPanel>
 					}
@@ -462,21 +502,24 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 	// so a slow, older `moonlight list` cannot overwrite a newer result.
 	const generations = useRef<Record<number, number>>({});
 
-	const refreshHost = useCallback(
+	const statusGenerations = useRef<Record<number, number>>({});
+
+	/** Re-query only serverinfo and the local stream scan for a host. */
+	const refreshStatus = useCallback(
 		async (host: MoonlightHost) => {
-			const generation = (generations.current[host.index] ?? 0) + 1;
-			generations.current[host.index] = generation;
-			const isCurrent = () => generations.current[host.index] === generation;
+			const generation = (statusGenerations.current[host.index] ?? 0) + 1;
+			statusGenerations.current[host.index] = generation;
+			const isCurrent = () =>
+				statusGenerations.current[host.index] === generation;
 			setStates((prev) => ({
 				...prev,
 				[host.index]: {
 					...(prev[host.index] ?? initialState(host)),
-					refreshing: true,
 					statusLoading: true,
 				},
 			}));
 			// Session state is fast (~3 s timeout) and independent of the app list.
-			void fetchServerInfo(host, timeout.ms).then((serverInfo) => {
+			await fetchServerInfo(host, timeout.ms).then((serverInfo) => {
 				if (!isCurrent()) return;
 				const localStream = findLocalStream(host);
 				setStates((prev) => {
@@ -492,6 +535,23 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 					};
 				});
 			});
+		},
+		[timeout.ms],
+	);
+
+	const refreshHost = useCallback(
+		async (host: MoonlightHost) => {
+			const generation = (generations.current[host.index] ?? 0) + 1;
+			generations.current[host.index] = generation;
+			const isCurrent = () => generations.current[host.index] === generation;
+			setStates((prev) => ({
+				...prev,
+				[host.index]: {
+					...(prev[host.index] ?? initialState(host)),
+					refreshing: true,
+				},
+			}));
+			void refreshStatus(host);
 			try {
 				const apps = await listApps(host.name);
 				if (!isCurrent()) return;
@@ -520,7 +580,7 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 				});
 			}
 		},
-		[timeout.ms],
+		[refreshStatus],
 	);
 
 	const refreshAll = useCallback(() => {
@@ -547,6 +607,7 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 						state={state}
 						showHidden={showHidden}
 						onRefresh={() => void refreshHost(host)}
+						onRetryStatus={() => void refreshStatus(host)}
 					/>
 				);
 			})}

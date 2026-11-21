@@ -214,7 +214,17 @@ export function visibleApps(
 	return apps.filter((a) => !a.hidden || a.id === runningAppId);
 }
 
+/**
+ * What serverinfo says about the host:
+ * - `loading`: the status request has not answered yet;
+ * - `free` / `busy`: the host answered;
+ * - `unknown`: the request failed, timed out or returned nothing usable.
+ */
+export type HostStatus = "loading" | "free" | "busy" | "unknown";
+
 export interface HostSession {
+	/** Host state as reported by serverinfo (independent of the local scan). */
+	status: HostStatus;
 	/** ID of the app running on the host, if known. */
 	runningAppId?: number;
 	/** Name of the running app, if known. */
@@ -223,6 +233,16 @@ export interface HostSession {
 	streamingHere: boolean;
 	/** Whether the host is busy (running an app or streamed from this PC). */
 	busy: boolean;
+}
+
+/** Map the last serverinfo result (and whether a request is pending) to a status. */
+export function resolveHostStatus(
+	serverInfo: ServerInfo | undefined,
+	statusLoading: boolean,
+): HostStatus {
+	if (!serverInfo) return statusLoading ? "loading" : "unknown";
+	// While refreshing, keep showing the previous answer instead of flickering.
+	return serverInfo.state;
 }
 
 /**
@@ -235,6 +255,7 @@ export function resolveHostSession(
 	apps: MoonlightApp[],
 	serverInfo: ServerInfo | undefined,
 	localStream: LocalStream | undefined,
+	statusLoading = false,
 ): HostSession {
 	let runningAppId: number | undefined;
 	if (serverInfo && serverInfo.state !== "free" && serverInfo.currentGame > 0) {
@@ -249,6 +270,7 @@ export function resolveHostSession(
 			: localStream?.appName;
 	const streamingHere = localStream !== undefined;
 	return {
+		status: resolveHostStatus(serverInfo, statusLoading),
 		runningAppId,
 		runningAppName,
 		streamingHere,
@@ -256,7 +278,7 @@ export function resolveHostSession(
 	};
 }
 
-/** One-line host status for the section subtitle, or undefined when free/unknown. */
+/** One-line host status for the section subtitle, or undefined when free. */
 export function hostStatusSummary(session: HostSession): string | undefined {
 	if (session.streamingHere) {
 		return session.runningAppName
@@ -268,12 +290,16 @@ export function hostStatusSummary(session: HostSession): string | undefined {
 			? `busy · ${session.runningAppName} running`
 			: "busy";
 	}
+	if (session.status === "loading") return "checking status…";
+	if (session.status === "unknown") return "status unknown";
 	return undefined;
 }
 
 export type PrimaryAction =
-	/** Start a new stream (host free or state unknown). */
+	/** Start a new stream (host confirmed free). */
 	| "start"
+	/** Start a new stream while the host status is loading or unknown. */
+	| "start-unconfirmed"
 	/** Resume the app running on the host (not streamed here). */
 	| "resume"
 	/** The app is already streamed by this PC: explain with a toast. */
@@ -281,11 +307,20 @@ export type PrimaryAction =
 	/** The host is busy with another app: explain with a toast. */
 	| "host-busy";
 
-export type StatusMarker = "streaming-here" | "running-on-host";
+export type StatusMarker =
+	| "streaming-here"
+	| "running-on-host"
+	/** Neutral marker: host status request still pending. */
+	| "status-loading"
+	/** Neutral marker: host status request failed. */
+	| "status-unknown";
 
 export interface AppPresentation {
 	primary: PrimaryAction;
-	/** Per-item status marker; only the running app gets one. */
+	/**
+	 * Per-item status marker. Only the running app gets a session marker;
+	 * every app gets a neutral marker while the host status is not confirmed.
+	 */
 	marker?: StatusMarker;
 	/** Render as unavailable (muted icon, no start as primary action). */
 	disabled: boolean;
@@ -296,18 +331,41 @@ export interface AppPresentation {
 /**
  * Decide how an app is rendered and which primary action it gets.
  *
- * - Host free or unknown: start normally.
+ * - This PC streams the host (local /proc scan): never offer a second
+ *   stream, whatever serverinfo says.
  * - App running on the host: "running-on-host" marker and Resume, or the
  *   "streaming-here" marker and an info toast if this PC streams it.
  * - Host busy with something else: disabled, primary action explains why.
  *   "Quit Running App & Start" is offered as a secondary action, except while
  *   this PC streams the host (that would replace the local session).
+ * - Host confirmed free: start normally.
+ * - Host status loading or unknown: start is still allowed, labelled as
+ *   unconfirmed, with a neutral marker.
+ *
+ * Store review note (CORRECTNESS-001): a loading or failed status is modelled
+ * explicitly as `loading` / `unknown` and never presented as "free". Starting
+ * is still deliberately allowed in that state: the status port (47989) can be
+ * unreachable while streaming works (VPN, or a remote address with only the
+ * stream ports forwarded), and blocking or waiting for the status would add
+ * up to the full status timeout of latency to every start. A second local
+ * stream is still prevented by the /proc check, which does not depend on
+ * serverinfo, and if the host turns out to be busy, Moonlight itself resolves
+ * that on start (it resumes the running app or asks before quitting it).
  */
 export function decideAppPresentation(
 	app: MoonlightApp,
 	session: HostSession,
 ): AppPresentation {
 	if (!session.busy) {
+		if (session.status === "loading" || session.status === "unknown") {
+			return {
+				primary: "start-unconfirmed",
+				marker:
+					session.status === "loading" ? "status-loading" : "status-unknown",
+				disabled: false,
+				offerQuitAndStart: false,
+			};
+		}
 		return { primary: "start", disabled: false, offerQuitAndStart: false };
 	}
 	if (session.runningAppId === app.id) {
