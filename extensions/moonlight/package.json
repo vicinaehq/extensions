@@ -44,6 +44,15 @@
       "default": ""
     },
     {
+      "name": "showHidden",
+      "title": "Hidden Apps",
+      "label": "Show Hidden Apps",
+      "description": "Also list apps that are marked as hidden in Moonlight",
+      "type": "checkbox",
+      "required": false,
+      "default": false
+    },
+    {
       "name": "resolution",
       "title": "Resolution",
       "description": "Stream resolution passed to moonlight stream",

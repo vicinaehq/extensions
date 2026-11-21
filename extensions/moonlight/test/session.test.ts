@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { MoonlightApp, MoonlightHost } from "../src/lib/parse";
 import {
-	decideAppAction,
+	decideAppPresentation,
 	hostIdentifiers,
+	hostStatusSummary,
+	localStreamTarget,
+	resolveHostSession,
+	selectStreamPids,
+	visibleApps,
 	isStreamProcessForHost,
 	parseServerInfo,
 	serverInfoUrl,
@@ -185,55 +190,208 @@ describe("isStreamProcessForHost", () => {
 	});
 });
 
-describe("decideAppAction", () => {
-	const free = { state: "free" as const, currentGame: 0 };
+describe("localStreamTarget", () => {
+	const ids = hostIdentifiers(host);
+	it("returns the streamed app name", () => {
+		expect(
+			localStreamTarget(
+				["moonlight", "stream", "Martins-Mac-mini.local", "Desktop"],
+				ids,
+			),
+		).toEqual({ appName: "Desktop" });
+		expect(
+			localStreamTarget(["moonlight", "stream", "192.168.0.86"], ids),
+		).toEqual({ appName: undefined });
+		expect(
+			localStreamTarget(["moonlight", "stream", "other", "Desktop"], ids),
+		).toBeUndefined();
+	});
+});
+
+describe("selectStreamPids", () => {
+	const ids = hostIdentifiers(host);
+	const procs = [
+		{
+			pid: 100,
+			argv: ["moonlight", "stream", "Martins-Mac-mini.local", "Desktop"],
+		},
+		{
+			pid: 101,
+			argv: [
+				"/usr/bin/moonlight",
+				"stream",
+				"--1080",
+				"192.168.0.86",
+				"Steam Big Picture",
+			],
+		},
+		{ pid: 102, argv: ["moonlight", "stream", "other-host", "Desktop"] },
+		{ pid: 103, argv: ["moonlight"] },
+		{
+			pid: 104,
+			argv: ["moonlight", "list", "--csv", "Martins-Mac-mini.local"],
+		},
+		{
+			pid: 105,
+			argv: ["zsh", "-c", "moonlight stream Martins-Mac-mini.local Desktop"],
+		},
+		{
+			pid: 1,
+			argv: ["moonlight", "stream", "Martins-Mac-mini.local", "Desktop"],
+		},
+		{
+			pid: 106,
+			argv: ["moonlight", "stream", "Martins-Mac-mini.local", "Desktop"],
+		},
+	];
+
+	it("selects only stream processes for this host, never self or init", () => {
+		expect(selectStreamPids(procs, ids, 106)).toEqual([100, 101]);
+		expect(selectStreamPids(procs, ids)).toEqual([100, 101, 106]);
+	});
+
+	it("selects nothing when no stream matches", () => {
+		expect(selectStreamPids(procs, ["nope"])).toEqual([]);
+		expect(selectStreamPids([], ids)).toEqual([]);
+	});
+});
+
+describe("visibleApps", () => {
+	const hiddenSteam = { ...steam, hidden: true };
+	const list = [desktop, hiddenSteam];
+
+	it("omits hidden apps by default", () => {
+		expect(visibleApps(list, false)).toEqual([desktop]);
+	});
+
+	it("shows hidden apps when enabled", () => {
+		expect(visibleApps(list, true)).toEqual(list);
+	});
+
+	it("keeps a hidden app while it is running", () => {
+		expect(visibleApps(list, false, hiddenSteam.id)).toEqual(list);
+	});
+});
+
+describe("resolveHostSession / hostStatusSummary", () => {
 	const busyDesktop = { state: "busy" as const, currentGame: desktop.id };
 
+	it("is free without server or local activity", () => {
+		const s = resolveHostSession(
+			apps,
+			{ state: "free", currentGame: 0 },
+			undefined,
+		);
+		expect(s).toEqual({
+			runningAppId: undefined,
+			runningAppName: undefined,
+			streamingHere: false,
+			busy: false,
+		});
+		expect(hostStatusSummary(s)).toBeUndefined();
+		expect(resolveHostSession(apps, undefined, undefined).busy).toBe(false);
+	});
+
+	it("reports a busy host from serverinfo", () => {
+		const s = resolveHostSession(apps, busyDesktop, undefined);
+		expect(s).toMatchObject({
+			runningAppId: desktop.id,
+			runningAppName: "Desktop",
+			busy: true,
+			streamingHere: false,
+		});
+		expect(hostStatusSummary(s)).toBe("busy · Desktop running");
+	});
+
+	it("reports a local stream, using the cmdline app when serverinfo is unknown", () => {
+		expect(
+			hostStatusSummary(
+				resolveHostSession(apps, busyDesktop, { appName: "Desktop" }),
+			),
+		).toBe("streaming Desktop on this PC");
+		const s = resolveHostSession(apps, undefined, {
+			appName: "steam big picture",
+		});
+		expect(s).toMatchObject({
+			runningAppId: steam.id,
+			runningAppName: "Steam Big Picture",
+			busy: true,
+			streamingHere: true,
+		});
+		expect(hostStatusSummary(resolveHostSession(apps, undefined, {}))).toBe(
+			"streaming on this PC",
+		);
+	});
+
+	it("names unknown running apps by ID", () => {
+		expect(
+			resolveHostSession(apps, { state: "busy", currentGame: 42 }, undefined)
+				.runningAppName,
+		).toBe("app 42");
+	});
+});
+
+describe("decideAppPresentation", () => {
+	const busyDesktop = { state: "busy" as const, currentGame: desktop.id };
+	const present = (
+		app: MoonlightApp,
+		...args: Parameters<typeof resolveHostSession> extends [unknown, ...infer R]
+			? R
+			: never
+	) => decideAppPresentation(app, resolveHostSession(apps, ...args));
+
 	it("starts normally when the host is free or unknown", () => {
-		expect(decideAppAction(desktop, apps, free, false)).toEqual({
-			kind: "start",
-		});
-		expect(decideAppAction(desktop, apps, undefined, false)).toEqual({
-			kind: "start",
-		});
+		const start = {
+			primary: "start",
+			disabled: false,
+			offerQuitAndStart: false,
+		};
 		expect(
-			decideAppAction(desktop, apps, { state: "busy", currentGame: 0 }, false),
-		).toEqual({ kind: "start" });
-	});
-
-	it("resumes the app that is running on the host", () => {
-		expect(decideAppAction(desktop, apps, busyDesktop, false)).toEqual({
-			kind: "resume",
-			runningAppName: "Desktop",
-		});
-	});
-
-	it("offers quit-and-start for other apps while the host is busy", () => {
-		expect(decideAppAction(steam, apps, busyDesktop, false)).toEqual({
-			kind: "quit-and-start",
-			runningAppName: "Desktop",
-		});
+			present(desktop, { state: "free", currentGame: 0 }, undefined),
+		).toEqual(start);
+		expect(present(steam, undefined, undefined)).toEqual(start);
 		expect(
-			decideAppAction(steam, apps, { state: "busy", currentGame: 42 }, false),
-		).toEqual({
-			kind: "quit-and-start",
-			runningAppName: "app 42",
+			present(desktop, { state: "busy", currentGame: 0 }, undefined),
+		).toEqual(start);
+	});
+
+	it("marks only the running app and offers Resume when not streamed here", () => {
+		expect(present(desktop, busyDesktop, undefined)).toEqual({
+			primary: "resume",
+			marker: "running-on-host",
+			disabled: false,
+			offerQuitAndStart: false,
+		});
+		expect(present(steam, busyDesktop, undefined)).toEqual({
+			primary: "host-busy",
+			disabled: true,
+			offerQuitAndStart: true,
 		});
 	});
 
-	it("never starts a second stream while this PC is streaming the host", () => {
-		expect(decideAppAction(desktop, apps, busyDesktop, true)).toEqual({
-			kind: "already-streaming",
-			runningAppName: "Desktop",
+	it("marks the app streamed by this PC and disables the others", () => {
+		const local = { appName: "Desktop" };
+		expect(present(desktop, busyDesktop, local)).toEqual({
+			primary: "already-streaming",
+			marker: "streaming-here",
+			disabled: false,
+			offerQuitAndStart: false,
 		});
-		expect(decideAppAction(steam, apps, busyDesktop, true).kind).toBe(
-			"already-streaming",
-		);
-		expect(decideAppAction(steam, apps, undefined, true).kind).toBe(
-			"already-streaming",
-		);
-		expect(decideAppAction(steam, apps, free, true).kind).toBe(
-			"already-streaming",
-		);
+		// Real case: only Desktop is streamed, Steam Big Picture must not get a marker.
+		expect(present(steam, busyDesktop, local)).toEqual({
+			primary: "host-busy",
+			disabled: true,
+			offerQuitAndStart: false,
+		});
+	});
+
+	it("disables every app when streaming here but the running app is unknown", () => {
+		for (const app of apps) {
+			expect(present(app, undefined, {})).toEqual({
+				primary: "host-busy",
+				disabled: true,
+				offerQuitAndStart: false,
+			});
+		}
 	});
 });

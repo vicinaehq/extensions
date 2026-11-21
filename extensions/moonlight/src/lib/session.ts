@@ -75,12 +75,62 @@ export function isStreamProcessForHost(
 	argv: string[],
 	identifiers: string[],
 ): boolean {
+	return localStreamTarget(argv, identifiers) !== undefined;
+}
+
+/** A local `moonlight stream` process for a host, with the app it streams. */
+export interface LocalStream {
+	/** App name from the command line (the argument after the host), if any. */
+	appName?: string;
+}
+
+/**
+ * Like {@link isStreamProcessForHost}, but also returns the streamed app's
+ * name (the argument following the host). Returns undefined when the process
+ * is not a stream for this host.
+ */
+export function localStreamTarget(
+	argv: string[],
+	identifiers: string[],
+): LocalStream | undefined {
 	const exe = argv[0]?.split("/").pop();
-	if (!exe || !MOONLIGHT_EXE.test(exe)) return false;
+	if (!exe || !MOONLIGHT_EXE.test(exe)) return undefined;
 	const streamIndex = argv.indexOf("stream", 1);
-	if (streamIndex < 0) return false;
+	if (streamIndex < 0) return undefined;
 	const ids = new Set(identifiers.map((i) => i.toLowerCase()));
-	return argv.slice(streamIndex + 1).some((arg) => ids.has(arg.toLowerCase()));
+	for (let i = streamIndex + 1; i < argv.length; i++) {
+		if (ids.has((argv[i] ?? "").toLowerCase())) {
+			const next = argv[i + 1];
+			return { appName: next && !next.startsWith("--") ? next : undefined };
+		}
+	}
+	return undefined;
+}
+
+export interface ProcessEntry {
+	pid: number;
+	argv: string[];
+}
+
+/**
+ * PIDs of local `moonlight stream` processes for the host, i.e. the ones to
+ * send SIGTERM to when ending the session. Our own PID and invalid PIDs are
+ * never selected.
+ */
+export function selectStreamPids(
+	processes: ProcessEntry[],
+	identifiers: string[],
+	selfPid?: number,
+): number[] {
+	return processes
+		.filter(
+			(p) =>
+				Number.isInteger(p.pid) &&
+				p.pid > 1 &&
+				p.pid !== selfPid &&
+				localStreamTarget(p.argv, identifiers) !== undefined,
+		)
+		.map((p) => p.pid);
 }
 
 /** Split raw /proc/<pid>/cmdline contents into argv. */
@@ -88,42 +138,136 @@ export function splitCmdline(raw: string): string[] {
 	return raw.split("\0").filter((part) => part !== "");
 }
 
-export type AppActionKind =
-	| "start"
-	| "resume"
-	| "quit-and-start"
-	| "already-streaming";
+// ---- Presentation decisions -------------------------------------------------
 
-export interface AppAction {
-	kind: AppActionKind;
-	/** Name of the app running on the host, if any. */
+/**
+ * Apps to show for a host. Apps flagged hidden in Moonlight are omitted unless
+ * `showHidden` is set; the app currently running on the host is always kept
+ * so the running session stays visible.
+ */
+export function visibleApps(
+	apps: MoonlightApp[],
+	showHidden: boolean,
+	runningAppId?: number,
+): MoonlightApp[] {
+	if (showHidden) return apps;
+	return apps.filter((a) => !a.hidden || a.id === runningAppId);
+}
+
+export interface HostSession {
+	/** ID of the app running on the host, if known. */
+	runningAppId?: number;
+	/** Name of the running app, if known. */
 	runningAppName?: string;
+	/** Whether this PC is streaming the host. */
+	streamingHere: boolean;
+	/** Whether the host is busy (running an app or streamed from this PC). */
+	busy: boolean;
 }
 
 /**
- * Decide which primary action an app should offer.
- *
- * - A local stream to this host is active: never start another one.
- * - The host runs this app: resume it.
- * - The host runs a different app: quit it first, then start.
- * - Otherwise (free or unknown state): start normally.
+ * Combine the serverinfo state and the local process scan into one view of
+ * the host. serverinfo is authoritative for the running app; when it is
+ * unknown, the app name from the local `moonlight stream` command line is
+ * used instead.
  */
-export function decideAppAction(
-	app: MoonlightApp,
+export function resolveHostSession(
 	apps: MoonlightApp[],
 	serverInfo: ServerInfo | undefined,
-	localStream: boolean,
-): AppAction {
-	const runningId =
-		serverInfo && serverInfo.state !== "free" ? serverInfo.currentGame : 0;
+	localStream: LocalStream | undefined,
+): HostSession {
+	let runningAppId: number | undefined;
+	if (serverInfo && serverInfo.state !== "free" && serverInfo.currentGame > 0) {
+		runningAppId = serverInfo.currentGame;
+	} else if (localStream?.appName) {
+		const wanted = localStream.appName.toLowerCase();
+		runningAppId = apps.find((a) => a.name.toLowerCase() === wanted)?.id;
+	}
 	const runningAppName =
-		runningId > 0
-			? (apps.find((a) => a.id === runningId)?.name ?? `app ${runningId}`)
-			: undefined;
+		runningAppId !== undefined
+			? (apps.find((a) => a.id === runningAppId)?.name ?? `app ${runningAppId}`)
+			: localStream?.appName;
+	const streamingHere = localStream !== undefined;
+	return {
+		runningAppId,
+		runningAppName,
+		streamingHere,
+		busy: streamingHere || runningAppId !== undefined,
+	};
+}
 
-	if (localStream) return { kind: "already-streaming", runningAppName };
-	if (runningId > 0 && runningId === app.id)
-		return { kind: "resume", runningAppName };
-	if (runningId > 0) return { kind: "quit-and-start", runningAppName };
-	return { kind: "start" };
+/** One-line host status for the section subtitle, or undefined when free/unknown. */
+export function hostStatusSummary(session: HostSession): string | undefined {
+	if (session.streamingHere) {
+		return session.runningAppName
+			? `streaming ${session.runningAppName} on this PC`
+			: "streaming on this PC";
+	}
+	if (session.busy) {
+		return session.runningAppName
+			? `busy · ${session.runningAppName} running`
+			: "busy";
+	}
+	return undefined;
+}
+
+export type PrimaryAction =
+	/** Start a new stream (host free or state unknown). */
+	| "start"
+	/** Resume the app running on the host (not streamed here). */
+	| "resume"
+	/** The app is already streamed by this PC: explain with a toast. */
+	| "already-streaming"
+	/** The host is busy with another app: explain with a toast. */
+	| "host-busy";
+
+export type StatusMarker = "streaming-here" | "running-on-host";
+
+export interface AppPresentation {
+	primary: PrimaryAction;
+	/** Per-item status marker; only the running app gets one. */
+	marker?: StatusMarker;
+	/** Render as unavailable (muted icon, no start as primary action). */
+	disabled: boolean;
+	/** Offer "Quit Running App & Start" as a secondary action. */
+	offerQuitAndStart: boolean;
+}
+
+/**
+ * Decide how an app is rendered and which primary action it gets.
+ *
+ * - Host free or unknown: start normally.
+ * - App running on the host: "running-on-host" marker and Resume, or the
+ *   "streaming-here" marker and an info toast if this PC streams it.
+ * - Host busy with something else: disabled, primary action explains why.
+ *   "Quit Running App & Start" is offered as a secondary action, except while
+ *   this PC streams the host (that would replace the local session).
+ */
+export function decideAppPresentation(
+	app: MoonlightApp,
+	session: HostSession,
+): AppPresentation {
+	if (!session.busy) {
+		return { primary: "start", disabled: false, offerQuitAndStart: false };
+	}
+	if (session.runningAppId === app.id) {
+		return session.streamingHere
+			? {
+					primary: "already-streaming",
+					marker: "streaming-here",
+					disabled: false,
+					offerQuitAndStart: false,
+				}
+			: {
+					primary: "resume",
+					marker: "running-on-host",
+					disabled: false,
+					offerQuitAndStart: false,
+				};
+	}
+	return {
+		primary: "host-busy",
+		disabled: true,
+		offerQuitAndStart: !session.streamingHere,
+	};
 }

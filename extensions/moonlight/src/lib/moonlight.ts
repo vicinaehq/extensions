@@ -26,7 +26,10 @@ import {
 } from "./prefs";
 import {
 	hostIdentifiers,
-	isStreamProcessForHost,
+	type LocalStream,
+	localStreamTarget,
+	type ProcessEntry,
+	selectStreamPids,
 	parseServerInfo,
 	type ServerInfo,
 	serverInfoUrl,
@@ -37,6 +40,7 @@ export interface Preferences extends StreamPreferences {
 	moonlightPath?: string;
 	configPath?: string;
 	serverInfoTimeout?: string;
+	showHidden?: boolean;
 }
 
 const LIST_TIMEOUT_MS = 45_000;
@@ -285,14 +289,15 @@ export async function fetchServerInfo(
  * the argument-less main process and cannot be attributed to a host, so it is
  * not detected here (the host's serverinfo still reports it as busy).
  */
-export function hasLocalStream(host: MoonlightHost): boolean {
-	const identifiers = hostIdentifiers(host);
+/** List processes whose command line mentions "stream" (Linux /proc scan). */
+function listStreamCandidates(): ProcessEntry[] {
 	let pids: string[];
 	try {
 		pids = readdirSync("/proc").filter((entry) => /^\d+$/.test(entry));
 	} catch {
-		return false;
+		return [];
 	}
+	const processes: ProcessEntry[] = [];
 	for (const pid of pids) {
 		let raw: string;
 		try {
@@ -301,7 +306,67 @@ export function hasLocalStream(host: MoonlightHost): boolean {
 			continue;
 		}
 		if (!raw.includes("stream")) continue;
-		if (isStreamProcessForHost(splitCmdline(raw), identifiers)) return true;
+		processes.push({ pid: Number(pid), argv: splitCmdline(raw) });
 	}
-	return false;
+	return processes;
+}
+
+export function findLocalStream(host: MoonlightHost): LocalStream | undefined {
+	const identifiers = hostIdentifiers(host);
+	for (const proc of listStreamCandidates()) {
+		const target = localStreamTarget(proc.argv, identifiers);
+		if (target) return target;
+	}
+	return undefined;
+}
+
+function isAlive(pid: number): boolean {
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch (error) {
+		return (error as NodeJS.ErrnoException).code === "EPERM";
+	}
+}
+
+export interface EndSessionResult {
+	/** Local stream processes that received SIGTERM. */
+	terminated: number[];
+	/** Processes still alive after the grace period (never SIGKILLed). */
+	stillRunning: number[];
+}
+
+const END_SESSION_GRACE_MS = 5_000;
+
+/**
+ * End a session cleanly: SIGTERM the local `moonlight stream` processes for
+ * the host (never SIGKILL), wait up to 5 s for them to exit, then run
+ * `moonlight quit <host>` so the app on the host ends too. Throws if the
+ * quit command fails.
+ */
+export async function endSession(
+	host: MoonlightHost,
+): Promise<EndSessionResult> {
+	const pids = selectStreamPids(
+		listStreamCandidates(),
+		hostIdentifiers(host),
+		process.pid,
+	);
+	const terminated: number[] = [];
+	for (const pid of pids) {
+		try {
+			process.kill(pid, "SIGTERM");
+			terminated.push(pid);
+		} catch {
+			// Already gone or not ours; ignore.
+		}
+	}
+	const deadline = Date.now() + END_SESSION_GRACE_MS;
+	let stillRunning = terminated.filter(isAlive);
+	while (stillRunning.length > 0 && Date.now() < deadline) {
+		await new Promise((r) => setTimeout(r, 200));
+		stillRunning = stillRunning.filter(isAlive);
+	}
+	await quitApp(host.name);
+	return { terminated, stillRunning };
 }

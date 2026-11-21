@@ -16,7 +16,9 @@ import {
 	findConfigPath,
 	getMoonlightBinary,
 	getServerInfoTimeout,
-	hasLocalStream,
+	endSession,
+	findLocalStream,
+	getPreferences,
 	listApps,
 	loadCachedApps,
 	quitApp,
@@ -33,9 +35,14 @@ import {
 	type MoonlightHost,
 } from "./lib/parse";
 import {
-	type AppAction,
-	decideAppAction,
+	type AppPresentation,
+	decideAppPresentation,
+	type HostSession,
+	hostStatusSummary,
+	type LocalStream,
+	resolveHostSession,
 	type ServerInfo,
+	visibleApps,
 } from "./lib/session";
 
 interface HostState {
@@ -45,8 +52,8 @@ interface HostState {
 	error?: string;
 	/** Host state from serverinfo; undefined while unknown. */
 	serverInfo?: ServerInfo;
-	/** Whether this PC is already running `moonlight stream` for the host. */
-	localStream: boolean;
+	/** Local `moonlight stream` process for the host, if any. */
+	localStream?: LocalStream;
 	statusLoading: boolean;
 }
 
@@ -60,19 +67,23 @@ function initialState(host: MoonlightHost): HostState {
 	return {
 		apps,
 		refreshing: true,
-		localStream: hasLocalStream(host),
+		localStream: findLocalStream(host),
 		statusLoading: true,
 	};
 }
 
-function sectionSubtitle(host: MoonlightHost, state: HostState): string {
+function sectionSubtitle(
+	host: MoonlightHost,
+	state: HostState,
+	session: HostSession,
+): string {
 	const address = host.localAddress ?? host.manualAddress ?? host.remoteAddress;
 	const parts =
 		address && address.toLowerCase() !== host.name.toLowerCase()
 			? [address]
 			: [];
-	if (state.localStream) parts.push("streaming on this PC");
-	else if (state.serverInfo?.state === "busy") parts.push("busy");
+	const status = hostStatusSummary(session);
+	if (status) parts.push(status);
 	if (state.refreshing) parts.push("refreshing…");
 	else if (state.error)
 		parts.push(
@@ -83,9 +94,11 @@ function sectionSubtitle(host: MoonlightHost, state: HostState): string {
 
 function HostActions({
 	host,
+	session,
 	onRefresh,
 }: {
 	host: MoonlightHost;
+	session?: HostSession;
 	onRefresh: () => void;
 }) {
 	const handleQuit = useCallback(async () => {
@@ -105,12 +118,44 @@ function HostActions({
 		onRefresh();
 	}, [host.name, onRefresh]);
 
+	const handleEndSession = useCallback(async () => {
+		const toast = await showToast({
+			style: Toast.Style.Animated,
+			title: `Ending session on ${host.name}…`,
+		});
+		try {
+			const result = await endSession(host);
+			if (result.stillRunning.length > 0) {
+				toast.style = Toast.Style.Failure;
+				toast.title = "Host app quit, but the local stream is still running";
+				toast.message = `Moonlight process ${result.stillRunning.join(", ")} did not exit after SIGTERM`;
+			} else {
+				toast.style = Toast.Style.Success;
+				toast.title = `Ended session on ${host.name}`;
+			}
+		} catch (error) {
+			toast.style = Toast.Style.Failure;
+			toast.title = `Failed to end session on ${host.name}`;
+			toast.message = errorMessage(error);
+		}
+		onRefresh();
+	}, [host, onRefresh]);
+
 	return (
 		<>
+			{session?.busy && (
+				<Action
+					title="End Session"
+					icon={Icon.Stop}
+					style={Action.Style.Destructive}
+					shortcut={Keyboard.Shortcut.Common.Remove}
+					onAction={handleEndSession}
+				/>
+			)}
 			<Action
 				title="Quit Running App on Host"
 				icon={Icon.XMarkCircle}
-				style="destructive"
+				style={Action.Style.Destructive}
 				shortcut={{ modifiers: ["ctrl"], key: "q" }}
 				onAction={handleQuit}
 			/>
@@ -124,19 +169,25 @@ function HostActions({
 	);
 }
 
-function appAccessories(app: MoonlightApp, action: AppAction) {
+function appAccessories(app: MoonlightApp, presentation: AppPresentation) {
 	const accessories: List.Item.Accessory[] = [];
-	if (action.kind === "already-streaming") {
+	if (presentation.marker === "streaming-here") {
 		accessories.push({
-			tag: { value: "Already streaming", color: Color.Blue },
+			icon: { source: Icon.PlayFilled, tintColor: Color.Green },
+			tooltip: "Streaming on this PC",
 		});
-	} else if (action.kind === "resume") {
-		accessories.push({ tag: { value: "Running", color: Color.Green } });
+	} else if (presentation.marker === "running-on-host") {
+		accessories.push({
+			icon: { source: Icon.CircleFilled, tintColor: Color.Orange },
+			tooltip: "Running on host — Resume",
+		});
 	}
-	if (app.hdr) accessories.push({ tag: "HDR" });
+	if (app.hdr) {
+		accessories.push({ text: { value: "HDR", color: Color.SecondaryText } });
+	}
 	if (app.hidden) {
 		accessories.push({
-			icon: Icon.EyeDisabled,
+			icon: { source: Icon.EyeDisabled, tintColor: Color.SecondaryText },
 			tooltip: "Hidden in Moonlight",
 		});
 	}
@@ -146,12 +197,14 @@ function appAccessories(app: MoonlightApp, action: AppAction) {
 function AppItem({
 	host,
 	app,
-	action,
+	session,
+	presentation,
 	onRefresh,
 }: {
 	host: MoonlightHost;
 	app: MoonlightApp;
-	action: AppAction;
+	session: HostSession;
+	presentation: AppPresentation;
 	onRefresh: () => void;
 }) {
 	const boxArt = resolveBoxArt(host, app);
@@ -159,6 +212,7 @@ function AppItem({
 		getMoonlightBinary(),
 		safeStreamArgs(host.name, app.name),
 	);
+	const runningName = session.runningAppName ?? "another app";
 
 	const handleStart = useCallback(async () => {
 		try {
@@ -181,7 +235,7 @@ function AppItem({
 	const handleQuitAndStart = useCallback(async () => {
 		const toast = await showToast({
 			style: Toast.Style.Animated,
-			title: `Quitting ${action.runningAppName ?? "running app"} on ${host.name}…`,
+			title: `Quitting ${runningName} on ${host.name}…`,
 		});
 		try {
 			await quitApp(host.name);
@@ -193,40 +247,44 @@ function AppItem({
 			return;
 		}
 		await handleStart();
-	}, [host.name, action.runningAppName, handleStart, onRefresh]);
+	}, [host.name, runningName, handleStart, onRefresh]);
 
-	const handleAlreadyStreaming = useCallback(async () => {
-		await showToast({
-			style: Toast.Style.Failure,
-			title: `Already streaming from ${host.name}`,
-			message:
-				"Moonlight is already streaming this host on this PC. Close that stream first.",
-		});
-	}, [host.name]);
+	const handleExplain = useCallback(async () => {
+		await showToast(
+			presentation.primary === "already-streaming"
+				? {
+						style: Toast.Style.Failure,
+						title: `Already streaming ${app.name} on this PC`,
+						message:
+							"Switch to the Moonlight window, or end the session first.",
+					}
+				: {
+						style: Toast.Style.Failure,
+						title: `${host.name} is busy (${runningName} running)`,
+						message: "Quit the running app first to start another one.",
+					},
+		);
+	}, [presentation.primary, host.name, app.name, runningName]);
 
 	let primary: React.ReactNode;
-	switch (action.kind) {
+	switch (presentation.primary) {
 		case "already-streaming":
 			primary = (
 				<Action
-					title="Show Why Streaming Is Unavailable"
+					title="Already Streaming"
 					icon={Icon.Info01}
-					onAction={handleAlreadyStreaming}
+					onAction={handleExplain}
 				/>
+			);
+			break;
+		case "host-busy":
+			primary = (
+				<Action title="Host Busy" icon={Icon.Info01} onAction={handleExplain} />
 			);
 			break;
 		case "resume":
 			primary = (
 				<Action title="Resume Stream" icon={Icon.Play} onAction={handleStart} />
-			);
-			break;
-		case "quit-and-start":
-			primary = (
-				<Action
-					title="Quit Running App & Start"
-					icon={Icon.Play}
-					onAction={handleQuitAndStart}
-				/>
 			);
 			break;
 		default:
@@ -235,23 +293,34 @@ function AppItem({
 			);
 	}
 
-	const subtitle =
-		action.kind === "quit-and-start" && action.runningAppName
-			? `${action.runningAppName} is running`
-			: undefined;
+	// Vicinae has no disabled list items: approximate with a muted icon.
+	const icon = presentation.disabled
+		? {
+				value: { source: Icon.GameController, tintColor: Color.SecondaryText },
+				tooltip: `Unavailable: ${runningName} is running on ${host.name}`,
+			}
+		: boxArt
+			? { source: boxArt }
+			: Icon.GameController;
 
 	return (
 		<List.Item
 			id={`${host.index}:${app.id}`}
 			title={app.name}
 			keywords={[host.name]}
-			icon={boxArt ? { source: boxArt } : Icon.GameController}
-			subtitle={subtitle}
-			accessories={appAccessories(app, action)}
+			icon={icon}
+			accessories={appAccessories(app, presentation)}
 			actions={
 				<ActionPanel>
 					<ActionPanel.Section>
 						{primary}
+						{presentation.offerQuitAndStart && (
+							<Action
+								title="Quit Running App & Start"
+								icon={Icon.Play}
+								onAction={handleQuitAndStart}
+							/>
+						)}
 						<Action.CopyToClipboard
 							title="Copy Stream Command"
 							content={command}
@@ -259,7 +328,7 @@ function AppItem({
 						/>
 					</ActionPanel.Section>
 					<ActionPanel.Section title={host.name}>
-						<HostActions host={host} onRefresh={onRefresh} />
+						<HostActions host={host} session={session} onRefresh={onRefresh} />
 					</ActionPanel.Section>
 				</ActionPanel>
 			}
@@ -279,14 +348,25 @@ function safeStreamArgs(host: string, app: string): string[] {
 function HostSection({
 	host,
 	state,
+	showHidden,
 	onRefresh,
 }: {
 	host: MoonlightHost;
 	state: HostState;
+	showHidden: boolean;
 	onRefresh: () => void;
 }) {
+	const session = resolveHostSession(
+		state.apps,
+		state.serverInfo,
+		state.localStream,
+	);
+	const apps = visibleApps(state.apps, showHidden, session.runningAppId);
 	return (
-		<List.Section title={host.name} subtitle={sectionSubtitle(host, state)}>
+		<List.Section
+			title={host.name}
+			subtitle={sectionSubtitle(host, state, session)}
+		>
 			{state.error && (
 				<List.Item
 					id={`${host.index}:error`}
@@ -304,28 +384,32 @@ function HostSection({
 					}
 				/>
 			)}
-			{state.apps.map((app) => (
+			{apps.map((app) => (
 				<AppItem
 					key={app.id}
 					host={host}
 					app={app}
-					action={decideAppAction(
-						app,
-						state.apps,
-						state.serverInfo,
-						state.localStream,
-					)}
+					session={session}
+					presentation={decideAppPresentation(app, session)}
 					onRefresh={onRefresh}
 				/>
 			))}
-			{!state.error && !state.refreshing && state.apps.length === 0 && (
+			{!state.error && !state.refreshing && apps.length === 0 && (
 				<List.Item
 					id={`${host.index}:empty`}
-					title="No apps found on this host"
+					title={
+						state.apps.length > 0
+							? "All apps on this host are hidden"
+							: "No apps found on this host"
+					}
 					icon={Icon.Info01}
 					actions={
 						<ActionPanel>
-							<HostActions host={host} onRefresh={onRefresh} />
+							<HostActions
+								host={host}
+								session={session}
+								onRefresh={onRefresh}
+							/>
 						</ActionPanel>
 					}
 				/>
@@ -335,6 +419,7 @@ function HostSection({
 }
 
 function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
+	const showHidden = useMemo(() => getPreferences().showHidden === true, []);
 	const timeout = useMemo(() => getServerInfoTimeout(), []);
 	useEffect(() => {
 		if (timeout.error) {
@@ -361,7 +446,7 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 			}));
 			// Session state is fast (~3 s timeout) and independent of the app list.
 			void fetchServerInfo(host, timeout.ms).then((serverInfo) => {
-				const localStream = hasLocalStream(host);
+				const localStream = findLocalStream(host);
 				setStates((prev) => {
 					const current = prev[host.index] ?? initialState(host);
 					return {
@@ -426,6 +511,7 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 						key={host.index}
 						host={host}
 						state={state}
+						showHidden={showHidden}
 						onRefresh={() => void refreshHost(host)}
 					/>
 				);
