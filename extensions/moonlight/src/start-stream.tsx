@@ -210,7 +210,7 @@ function appAccessories(app: MoonlightApp, presentation: AppPresentation) {
 	} else if (presentation.marker === "status-unknown") {
 		accessories.push({
 			icon: { source: Icon.QuestionMarkCircle, tintColor: Color.SecondaryText },
-			tooltip: "Host status unknown — Moonlight will handle a busy host",
+			tooltip: "Host status unknown — couldn't check whether the host is busy",
 		});
 	}
 	if (app.hdr) {

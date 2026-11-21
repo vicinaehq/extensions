@@ -349,8 +349,8 @@ export interface AppPresentation {
  * stream ports forwarded), and blocking or waiting for the status would add
  * up to the full status timeout of latency to every start. A second local
  * stream is still prevented by the /proc check, which does not depend on
- * serverinfo, and if the host turns out to be busy, Moonlight itself resolves
- * that on start (it resumes the running app or asks before quitting it).
+ * serverinfo. If the host turns out to be busy, the start goes through
+ * Moonlight's own `moonlight stream` flow, exactly as from the Moonlight window.
  */
 export function decideAppPresentation(
 	app: MoonlightApp,

@@ -32,7 +32,8 @@ settings and box art.
     every app gets a small gray marker and Enter is *Start Stream (Status Unknown)*. Starting is still allowed on
     purpose: the status port can be unreachable while streaming works (VPN, or a remote address with only the stream
     ports open), and a start never waits for the status check. A second stream from this PC is still prevented,
-    because that check reads local processes, and Moonlight itself handles a host that turns out to be busy.
+    because that check reads local processes. If the host turns out to be busy, Moonlight's own start flow applies,
+    exactly as when starting from the Moonlight window.
     *Retry Host Status* asks again.
 - **End Session**, which ends a stream properly: it stops the local client, quits the app on the host and refreshes.
 - **Hidden apps stay hidden**, because Moonlight's own *Hidden* flag is respected. A preference brings them back.
