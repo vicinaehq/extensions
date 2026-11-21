@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, closeMainWindow, showInFileBrowser } from "@vicinae/api";
+import { Action, ActionPanel, closeMainWindow, Icon } from "@vicinae/api";
 import type { RecentProject } from "../types";
 import { openProject } from "../zed-cli";
 
@@ -14,7 +14,7 @@ export function ProjectActions({ project, onRemove }: ProjectActionsProps) {
                 icon={Icon.Code}
                 title="Open in Zed"
                 onAction={async () => {
-                    closeMainWindow();
+                    await closeMainWindow();
                     await openProject(project);
                 }}
                 shortcut={{ modifiers: [], key: "enter" }}
