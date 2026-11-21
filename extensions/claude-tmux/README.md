@@ -50,13 +50,13 @@ Run it from Vicinae's root search ("Coding Agent Sessions") or bind the toggle d
 Hyprland:
 
 ```lua
-hl.bind("ALT + K", hl.dsp.exec_cmd("vicinae vicinae://launch/@coffebar/claude-tmux/claude-sessions?toggle=true"))
+hl.bind("ALT + K", hl.dsp.exec_cmd("vicinae vicinae://launch/@coffebar/store.vicinae.claude-tmux/claude-sessions?toggle=true"))
 ```
 
 i3:
 
 ```
-bindsym Mod1+k exec --no-startup-id vicinae vicinae://launch/@coffebar/claude-tmux/claude-sessions?toggle=true
+bindsym Mod1+k exec --no-startup-id vicinae vicinae://launch/@coffebar/store.vicinae.claude-tmux/claude-sessions?toggle=true
 ```
 
 ## Limitations
