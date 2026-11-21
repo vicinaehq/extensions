@@ -1,0 +1,163 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "google-calendar",
+  "title": "Google Calendar",
+  "description": "Browse calendars, list events, and create events in Google Calendar.",
+  "version": "0.1.0",
+  "icon": "icon.png",
+  "author": "VariableThe",
+  "license": "MIT",
+  "categories": ["Productivity"],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts"
+  },
+  "commands": [
+    {
+      "name": "list-events",
+      "title": "List Events",
+      "subtitle": "Google Calendar",
+      "description": "List upcoming events across your calendars.",
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "daysToShow",
+          "title": "Days to Show",
+          "description": "How many days ahead to list events for.",
+          "type": "dropdown",
+          "required": false,
+          "default": "7",
+          "data": [
+            { "title": "1 day", "value": "1" },
+            { "title": "3 days", "value": "3" },
+            { "title": "7 days", "value": "7" },
+            { "title": "14 days", "value": "14" },
+            { "title": "30 days", "value": "30" }
+          ]
+        },
+        {
+          "name": "showLocation",
+          "title": "Show Location",
+          "label": "Show event locations in the list",
+          "description": "Show event locations in the list.",
+          "type": "checkbox",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "openCommandJoinsMeeting",
+          "title": "Open Action Joins Meeting",
+          "label": "Join the attached video meeting on open",
+          "description": "Make the open action join the attached video meeting when one exists.",
+          "type": "checkbox",
+          "required": false,
+          "default": false
+        }
+      ]
+    },
+    {
+      "name": "list-calendars",
+      "title": "List Calendars",
+      "subtitle": "Google Calendar",
+      "description": "List the calendars in your Google account.",
+      "mode": "view"
+    },
+    {
+      "name": "create-event",
+      "title": "Create Event",
+      "subtitle": "Google Calendar",
+      "description": "Create a new event with title, time, and calendar.",
+      "mode": "view"
+    },
+    {
+      "name": "create-quick-event",
+      "title": "Create Quick Event",
+      "subtitle": "Google Calendar",
+      "description": "Create an event from natural-language text (e.g. \"Lunch tomorrow at noon\").",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "googleClientId",
+      "title": "Google OAuth Client ID",
+      "description": "Client ID of your Google Cloud \"Desktop app\" OAuth client.",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "xxx.apps.googleusercontent.com"
+    },
+    {
+      "name": "googleClientSecret",
+      "title": "Google OAuth Client Secret",
+      "description": "Client secret — only needed if your Google client type requires one.",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "refreshToken",
+      "title": "Refresh Token",
+      "description": "Refresh Token — paste one to authenticate without a browser flow.",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "defaultCalendarId",
+      "title": "Default Calendar ID override",
+      "description": "Calendar ID used when creating events (defaults to primary).",
+      "type": "textfield",
+      "required": false,
+      "placeholder": "primary"
+    },
+    {
+      "name": "defaultEventDuration",
+      "title": "Default Event Duration",
+      "description": "Default duration for new events.",
+      "type": "dropdown",
+      "required": false,
+      "default": "30",
+      "data": [
+        { "title": "15 minutes", "value": "15" },
+        { "title": "30 minutes", "value": "30" },
+        { "title": "45 minutes", "value": "45" },
+        { "title": "60 minutes", "value": "60" },
+        { "title": "90 minutes", "value": "90" },
+        { "title": "120 minutes", "value": "120" }
+      ]
+    },
+    {
+      "name": "sendInvitations",
+      "title": "Send Invitations",
+      "description": "Who receives invitation emails when an event is created.",
+      "type": "dropdown",
+      "required": false,
+      "default": "all",
+      "data": [
+        { "title": "All Guests", "value": "all" },
+        { "title": "External Guests Only", "value": "externalOnly" },
+        { "title": "None", "value": "none" }
+      ]
+    },
+    {
+      "name": "addSignature",
+      "title": "Add Signature",
+      "label": "Append a Created with Vicinae signature to new events",
+      "description": "Append a one-line Created with Vicinae signature to the description of new events.",
+      "type": "checkbox",
+      "required": false,
+      "default": true
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "^0.29.1",
+    "chrono-node": "^2.9.1",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.2"
+  }
+}
