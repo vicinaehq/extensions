@@ -1,0 +1,66 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "depot",
+  "title": "Depot",
+  "description": "Update and clean APT and Flatpak software on Ubuntu and Debian-based Linux",
+  "categories": ["Applications", "System"],
+  "license": "MIT",
+  "platforms": ["Linux"],
+  "author": "kcnewman",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.svg",
+  "commands": [
+    {
+      "name": "update",
+      "title": "Depot Update",
+      "subtitle": "APT · Flatpak",
+      "description": "Review and install available software updates",
+      "keywords": ["update software", "upgrade", "package updates", "apt", "flatpak"],
+      "mode": "view"
+    },
+    {
+      "name": "clean",
+      "title": "Depot Clean",
+      "subtitle": "APT · Flatpak",
+      "description": "Review and remove unused packages, runtimes, and obsolete package archives",
+      "keywords": ["clean system", "cleanup", "autoremove", "autoclean", "unused packages", "unused runtimes", "apt", "flatpak"],
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "aptEnabled",
+      "title": "Package Sources",
+      "description": "Review and install APT updates and clean unused packages and obsolete archives",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enable APT"
+    },
+    {
+      "name": "flatpakEnabled",
+      "title": "",
+      "description": "Review and install Flatpak updates and clean unused runtimes when Flatpak is installed",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enable Flatpak"
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.28.1",
+    "dbus-native": "^0.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "5.9.2"
+  }
+}
