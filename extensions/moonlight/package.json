@@ -1,0 +1,132 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "moonlight",
+  "title": "Moonlight",
+  "description": "Start Moonlight game streaming sessions on your paired hosts",
+  "icon": "extension_icon.png",
+  "author": "MartinLoeper",
+  "license": "MIT",
+  "categories": ["Media", "Fun"],
+  "keywords": ["moonlight", "stream", "game streaming", "sunshine", "gamestream", "remote desktop"],
+  "platforms": ["Linux"],
+  "commands": [
+    {
+      "name": "start-stream",
+      "title": "Show Streams",
+      "description": "List the apps of your paired Moonlight hosts and start streaming one",
+      "mode": "view",
+      "keywords": ["moonlight", "stream", "play"]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "moonlightPath",
+      "title": "Moonlight Binary",
+      "description": "Name or absolute path of the moonlight-qt executable",
+      "type": "textfield",
+      "required": false,
+      "default": "moonlight"
+    },
+    {
+      "name": "configPath",
+      "title": "Moonlight Config File",
+      "description": "Path to Moonlight.conf. Leave empty to auto-detect (native, then Flatpak).",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "serverInfoTimeout",
+      "title": "Host Status Timeout (seconds)",
+      "description": "How long to wait for a host's status, e.g. 1.5. Leave empty for 3 seconds (allowed range 0.5 to 30)",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "showHidden",
+      "title": "Hidden Apps",
+      "label": "Show Hidden Apps",
+      "description": "Also list apps that are marked as hidden in Moonlight",
+      "type": "checkbox",
+      "required": false,
+      "default": false
+    },
+    {
+      "name": "resolution",
+      "title": "Resolution",
+      "description": "Stream resolution passed to moonlight stream",
+      "type": "dropdown",
+      "required": false,
+      "default": "default",
+      "data": [
+        { "title": "Moonlight default", "value": "default" },
+        { "title": "720p", "value": "720" },
+        { "title": "1080p", "value": "1080" },
+        { "title": "1440p", "value": "1440" },
+        { "title": "4K", "value": "4K" }
+      ]
+    },
+    {
+      "name": "fps",
+      "title": "Frame Rate",
+      "description": "Stream frame rate (e.g. 60). Leave empty to use the Moonlight default",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "bitrate",
+      "title": "Bitrate (Kbps)",
+      "description": "Video bitrate in Kbps (e.g. 20000). Leave empty to use the Moonlight default",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "displayMode",
+      "title": "Display Mode",
+      "description": "Window mode of the stream",
+      "type": "dropdown",
+      "required": false,
+      "default": "default",
+      "data": [
+        { "title": "Moonlight default", "value": "default" },
+        { "title": "Borderless", "value": "borderless" },
+        { "title": "Fullscreen", "value": "fullscreen" },
+        { "title": "Windowed", "value": "windowed" }
+      ]
+    },
+    {
+      "name": "quitAfter",
+      "title": "Quit App After Stream",
+      "description": "Whether to quit the app on the host when the stream ends",
+      "type": "dropdown",
+      "required": false,
+      "default": "default",
+      "data": [
+        { "title": "Moonlight default", "value": "default" },
+        { "title": "Quit app after streaming", "value": "quit" },
+        { "title": "Keep app running", "value": "no-quit" }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src test",
+    "lint": "vici lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.30.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.7",
+    "@types/node": "^22.20.5",
+    "@types/react": "19.1.17",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.0"
+  }
+}
