@@ -1,0 +1,122 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "depot",
+  "title": "Depot",
+  "description": "Manage APT, Flatpak, and local AppImage software on Ubuntu and Debian-based Linux",
+  "categories": ["Applications", "System"],
+  "license": "MIT",
+  "platforms": ["Linux"],
+  "author": "kcnewman",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.svg",
+  "commands": [
+    {
+      "name": "install",
+      "title": "Depot Install",
+      "subtitle": "APT · Flatpak · Local",
+      "description": "Search software, install local packages, use bundles, or import a profile",
+      "keywords": ["install software", "add software", "local package", "package list", "bundle", "import profile", "deb", "apt", "flatpak", "appimage"],
+      "mode": "view"
+    },
+    {
+      "name": "manage",
+      "title": "Depot Manage",
+      "subtitle": "APT · Flatpak · AppImage",
+      "description": "Launch, inspect, remove, and export installed software",
+      "keywords": ["installed software", "applications", "launch", "manage", "remove", "uninstall", "export profile", "apt", "flatpak", "appimage"],
+      "mode": "view"
+    },
+    {
+      "name": "update",
+      "title": "Depot Update",
+      "subtitle": "APT · Flatpak",
+      "description": "Review and install available software updates",
+      "keywords": ["update software", "upgrade", "package updates", "apt", "flatpak"],
+      "mode": "view"
+    },
+    {
+      "name": "clean",
+      "title": "Depot Clean",
+      "subtitle": "APT · Flatpak",
+      "description": "Review and remove unused packages, runtimes, and obsolete package archives",
+      "keywords": ["clean system", "cleanup", "autoremove", "autoclean", "unused packages", "unused runtimes", "apt", "flatpak"],
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "aptEnabled",
+      "title": "Package Sources",
+      "description": "Search and manage software from configured APT repositories",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enable APT"
+    },
+    {
+      "name": "flatpakEnabled",
+      "title": "",
+      "description": "Search and manage applications from configured Flatpak remotes when Flatpak is installed",
+      "type": "checkbox",
+      "required": false,
+      "default": true,
+      "label": "Enable Flatpak"
+    },
+    {
+      "name": "flatpakScope",
+      "title": "Preferred Flatpak Scope",
+      "description": "Scope used for local Flatpak files, and preferred when an application is available in both scopes",
+      "type": "dropdown",
+      "required": false,
+      "default": "user",
+      "data": [
+        {
+          "title": "User",
+          "value": "user"
+        },
+        {
+          "title": "System",
+          "value": "system"
+        }
+      ]
+    },
+    {
+      "name": "preferredSource",
+      "title": "Preferred Source",
+      "description": "Rank this source first when equivalent APT and Flatpak results are available; alternatives remain visible",
+      "type": "dropdown",
+      "required": false,
+      "default": "all",
+      "data": [
+        {
+          "title": "Always Show All",
+          "value": "all"
+        },
+        {
+          "title": "Prefer APT",
+          "value": "apt"
+        },
+        {
+          "title": "Prefer Flatpak",
+          "value": "flatpak"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "0.28.1",
+    "dbus-native": "^0.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "5.9.2"
+  }
+}
