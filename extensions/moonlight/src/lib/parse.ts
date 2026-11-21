@@ -10,6 +10,8 @@ export interface MoonlightHost {
 	localAddress?: string;
 	remoteAddress?: string;
 	manualAddress?: string;
+	/** HTTP port of the host (`localport`, usually 47989). */
+	localPort?: number;
 	/** Apps as last seen by the Moonlight GUI (used as a fallback before the first refresh). */
 	apps: MoonlightApp[];
 }
@@ -135,6 +137,8 @@ export function parseHosts(ini: string): MoonlightHost[] {
 			localAddress: get(`${prefix}localaddress`) || undefined,
 			remoteAddress: get(`${prefix}remoteaddress`) || undefined,
 			manualAddress: get(`${prefix}manualaddress`) || undefined,
+			localPort:
+				Number.parseInt(get(`${prefix}localport`) ?? "", 10) || undefined,
 			apps,
 		});
 	}

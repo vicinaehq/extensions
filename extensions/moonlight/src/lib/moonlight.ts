@@ -1,5 +1,11 @@
 import { execFile, spawn } from "node:child_process";
-import { accessSync, constants, existsSync, readFileSync } from "node:fs";
+import {
+	accessSync,
+	constants,
+	existsSync,
+	readdirSync,
+	readFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,6 +19,14 @@ import {
 	parseHosts,
 	type StreamPreferences,
 } from "./parse";
+import {
+	hostIdentifiers,
+	isStreamProcessForHost,
+	parseServerInfo,
+	type ServerInfo,
+	serverInfoUrl,
+	splitCmdline,
+} from "./session";
 
 export interface Preferences extends StreamPreferences {
 	moonlightPath?: string;
@@ -221,4 +235,53 @@ export function saveCachedApps(
 		cacheKey(host),
 		JSON.stringify({ apps, updatedAt: Date.now() } satisfies CachedApps),
 	);
+}
+
+// ---- Session detection ----------------------------------------------------
+
+const SERVERINFO_TIMEOUT_MS = 3_000;
+
+/**
+ * Query the host's unauthenticated serverinfo endpoint. Returns undefined
+ * ("unknown") on any failure; this never throws.
+ */
+export async function fetchServerInfo(
+	host: MoonlightHost,
+): Promise<ServerInfo | undefined> {
+	try {
+		const response = await fetch(serverInfoUrl(host), {
+			signal: AbortSignal.timeout(SERVERINFO_TIMEOUT_MS),
+		});
+		if (!response.ok) return undefined;
+		return parseServerInfo(await response.text());
+	} catch {
+		return undefined;
+	}
+}
+
+/**
+ * Whether this machine is already running `moonlight stream` for the host.
+ * Scans /proc/<pid>/cmdline. A stream started from the Moonlight GUI runs in
+ * the argument-less main process and cannot be attributed to a host, so it is
+ * not detected here (the host's serverinfo still reports it as busy).
+ */
+export function hasLocalStream(host: MoonlightHost): boolean {
+	const identifiers = hostIdentifiers(host);
+	let pids: string[];
+	try {
+		pids = readdirSync("/proc").filter((entry) => /^\d+$/.test(entry));
+	} catch {
+		return false;
+	}
+	for (const pid of pids) {
+		let raw: string;
+		try {
+			raw = readFileSync(`/proc/${pid}/cmdline`, "utf-8");
+		} catch {
+			continue;
+		}
+		if (!raw.includes("stream")) continue;
+		if (isStreamProcessForHost(splitCmdline(raw), identifiers)) return true;
+	}
+	return false;
 }
