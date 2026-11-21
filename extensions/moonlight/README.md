@@ -46,7 +46,7 @@ settings and box art.
 
 ## Usage
 
-Open **Moonlight Streams**, type to filter, and press **Enter** on an app. You can give the command an alias
+Open **Streams** (shown as *Streams · Moonlight* in Vicinae), type to filter, and press **Enter** on an app. You can give the command an alias
 (e.g. `ml`) or a hotkey in Vicinae's settings, under Extensions › Moonlight.
 
 ### Actions
