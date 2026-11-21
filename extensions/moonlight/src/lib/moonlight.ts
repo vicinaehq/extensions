@@ -20,6 +20,11 @@ import {
 	type StreamPreferences,
 } from "./parse";
 import {
+	chooseConfigPath,
+	parseTimeoutSeconds,
+	type TimeoutSetting,
+} from "./prefs";
+import {
 	hostIdentifiers,
 	isStreamProcessForHost,
 	parseServerInfo,
@@ -30,6 +35,8 @@ import {
 
 export interface Preferences extends StreamPreferences {
 	moonlightPath?: string;
+	configPath?: string;
+	serverInfoTimeout?: string;
 }
 
 const LIST_TIMEOUT_MS = 45_000;
@@ -82,17 +89,26 @@ const CONFIG_CANDIDATES = [
 	),
 ];
 
-export function findConfigPath(): string | undefined {
-	return CONFIG_CANDIDATES.find((p) => existsSync(p));
+/**
+ * The Moonlight.conf to use: the `configPath` preference if set, otherwise the
+ * first existing auto-detected file (native, then Flatpak).
+ */
+export function findConfigPath(): { path?: string; explicit: boolean } {
+	return chooseConfigPath(
+		getPreferences().configPath,
+		CONFIG_CANDIDATES,
+		existsSync,
+		homedir(),
+	);
 }
 
 /**
- * Read paired hosts from Moonlight.conf. Only the [hosts] section is parsed;
- * the rest of the file (which contains the client key pair) is discarded.
+ * Read paired hosts from the given Moonlight.conf. Only the [hosts] section is
+ * parsed; the rest of the file (which contains the client key pair) is
+ * discarded. Throws if the file cannot be read.
  */
-export function readHosts(): MoonlightHost[] {
-	const configPath = findConfigPath();
-	if (!configPath) return [];
+export function readHosts(configPath: string): MoonlightHost[] {
+	if (!existsSync(configPath)) throw new Error("The file does not exist.");
 	return parseHosts(readFileSync(configPath, "utf-8"));
 }
 
@@ -239,7 +255,10 @@ export function saveCachedApps(
 
 // ---- Session detection ----------------------------------------------------
 
-const SERVERINFO_TIMEOUT_MS = 3_000;
+/** Host status timeout from the `serverInfoTimeout` preference (default 3 s). */
+export function getServerInfoTimeout(): TimeoutSetting {
+	return parseTimeoutSeconds(getPreferences().serverInfoTimeout);
+}
 
 /**
  * Query the host's unauthenticated serverinfo endpoint. Returns undefined
@@ -247,10 +266,11 @@ const SERVERINFO_TIMEOUT_MS = 3_000;
  */
 export async function fetchServerInfo(
 	host: MoonlightHost,
+	timeoutMs: number,
 ): Promise<ServerInfo | undefined> {
 	try {
 		const response = await fetch(serverInfoUrl(host), {
-			signal: AbortSignal.timeout(SERVERINFO_TIMEOUT_MS),
+			signal: AbortSignal.timeout(timeoutMs),
 		});
 		if (!response.ok) return undefined;
 		return parseServerInfo(await response.text());

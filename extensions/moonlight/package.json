@@ -28,6 +28,22 @@
       "default": "moonlight"
     },
     {
+      "name": "configPath",
+      "title": "Moonlight Config File",
+      "description": "Path to Moonlight.conf. Leave empty to auto-detect (native, then Flatpak).",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "serverInfoTimeout",
+      "title": "Host Status Timeout (seconds)",
+      "description": "How long to wait for a host's status, e.g. 1.5. Leave empty for 3 seconds (allowed range 0.5 to 30)",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
       "name": "resolution",
       "title": "Resolution",
       "description": "Stream resolution passed to moonlight stream",

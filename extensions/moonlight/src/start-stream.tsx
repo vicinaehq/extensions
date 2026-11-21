@@ -15,6 +15,7 @@ import {
 	fetchServerInfo,
 	findConfigPath,
 	getMoonlightBinary,
+	getServerInfoTimeout,
 	hasLocalStream,
 	listApps,
 	loadCachedApps,
@@ -334,61 +335,74 @@ function HostSection({
 }
 
 function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
+	const timeout = useMemo(() => getServerInfoTimeout(), []);
+	useEffect(() => {
+		if (timeout.error) {
+			void showToast({
+				style: Toast.Style.Failure,
+				title: "Invalid preference",
+				message: timeout.error,
+			});
+		}
+	}, [timeout]);
 	const [states, setStates] = useState<Record<number, HostState>>(() =>
 		Object.fromEntries(hosts.map((h) => [h.index, initialState(h)])),
 	);
 
-	const refreshHost = useCallback(async (host: MoonlightHost) => {
-		setStates((prev) => ({
-			...prev,
-			[host.index]: {
-				...(prev[host.index] ?? initialState(host)),
-				refreshing: true,
-				statusLoading: true,
-			},
-		}));
-		// Session state is fast (~3 s timeout) and independent of the app list.
-		void fetchServerInfo(host).then((serverInfo) => {
-			const localStream = hasLocalStream(host);
-			setStates((prev) => {
-				const current = prev[host.index] ?? initialState(host);
-				return {
-					...prev,
-					[host.index]: {
-						...current,
-						serverInfo,
-						localStream,
-						statusLoading: false,
-					},
-				};
-			});
-		});
-		try {
-			const apps = await listApps(host.name);
-			saveCachedApps(host, apps);
+	const refreshHost = useCallback(
+		async (host: MoonlightHost) => {
 			setStates((prev) => ({
 				...prev,
 				[host.index]: {
 					...(prev[host.index] ?? initialState(host)),
-					apps,
-					refreshing: false,
-					error: undefined,
+					refreshing: true,
+					statusLoading: true,
 				},
 			}));
-		} catch (error) {
-			setStates((prev) => {
-				const current = prev[host.index] ?? initialState(host);
-				return {
+			// Session state is fast (~3 s timeout) and independent of the app list.
+			void fetchServerInfo(host, timeout.ms).then((serverInfo) => {
+				const localStream = hasLocalStream(host);
+				setStates((prev) => {
+					const current = prev[host.index] ?? initialState(host);
+					return {
+						...prev,
+						[host.index]: {
+							...current,
+							serverInfo,
+							localStream,
+							statusLoading: false,
+						},
+					};
+				});
+			});
+			try {
+				const apps = await listApps(host.name);
+				saveCachedApps(host, apps);
+				setStates((prev) => ({
 					...prev,
 					[host.index]: {
-						...current,
+						...(prev[host.index] ?? initialState(host)),
+						apps,
 						refreshing: false,
-						error: errorMessage(error),
+						error: undefined,
 					},
-				};
-			});
-		}
-	}, []);
+				}));
+			} catch (error) {
+				setStates((prev) => {
+					const current = prev[host.index] ?? initialState(host);
+					return {
+						...prev,
+						[host.index]: {
+							...current,
+							refreshing: false,
+							error: errorMessage(error),
+						},
+					};
+				});
+			}
+		},
+		[timeout.ms],
+	);
 
 	const refreshAll = useCallback(() => {
 		for (const host of hosts) void refreshHost(host);
@@ -453,12 +467,15 @@ Open the Moonlight app, add your host (Sunshine or GeForce Experience) and compl
 export default function Command() {
 	const binary = useMemo(() => resolveMoonlightBinary(), []);
 	const result = useMemo(() => {
+		const config = findConfigPath();
+		// Auto-detection found nothing: treat as "no paired hosts".
+		if (!config.path) return { hosts: [] as MoonlightHost[] };
 		try {
-			return { hosts: readHosts(), configPath: findConfigPath() };
+			return { hosts: readHosts(config.path), configPath: config.path };
 		} catch (error) {
 			return {
-				hosts: [],
-				configPath: findConfigPath(),
+				hosts: [] as MoonlightHost[],
+				configPath: config.path,
 				error: errorMessage(error),
 			};
 		}
