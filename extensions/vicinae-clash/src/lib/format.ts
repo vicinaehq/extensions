@@ -16,5 +16,20 @@ export function titleCase(value: string): string {
 }
 
 export function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+  if (!(error instanceof Error)) return String(error);
+
+  const messages: string[] = [];
+  const seen = new Set<Error>();
+  let current: unknown = error;
+  while (current instanceof Error && !seen.has(current)) {
+    seen.add(current);
+    // Node's AggregateError can have an empty message but still expose a network error code.
+    const code = "code" in current && typeof current.code === "string" ? current.code : "";
+    const message = current.message || code;
+    if (message && !messages.includes(message)) messages.push(message);
+    current = current.cause;
+  }
+
+  if (current != null && !(current instanceof Error)) messages.push(String(current));
+  return messages.join(": ");
 }

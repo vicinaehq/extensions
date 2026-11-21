@@ -6,8 +6,6 @@
 
 A Vicinae extension for monitoring and controlling a Clash-compatible REST API.
 
-Source repository: [xiaozhuai/vicinae-clash](https://github.com/xiaozhuai/vicinae-clash)
-
 ## Screenshots
 
 ### Dashboard

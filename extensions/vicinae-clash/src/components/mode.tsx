@@ -5,7 +5,7 @@ import { titleCase } from "../lib/format";
 import { showError } from "../lib/toast";
 import type { Mode as ModeValue } from "../types";
 
-const MODES: ModeValue[] = ["rule", "global", "direct", "script"];
+const MODES: ModeValue[] = ["rule", "global", "direct"];
 
 export default function Mode() {
   const [current, setCurrent] = useState<ModeValue>();
