@@ -68,6 +68,11 @@ function parseBool(value: string | undefined): boolean {
  * Extract the raw key/value pairs of the `[hosts]` section only. Every other
  * section (notably `[General]`, which holds the client private key and
  * certificate) is skipped without being retained.
+ *
+ * Store review note (SECURITY-003): this is the only place Moonlight.conf is
+ * parsed. Lines outside `[hosts]` are never stored, returned or logged, so the
+ * client key pair cannot leak through the UI, the cache or error messages.
+ * Covered by a unit test with a fake `[General]` key/certificate.
  */
 export function extractHostsSection(ini: string): Map<string, string> {
 	const entries = new Map<string, string>();
@@ -295,7 +300,13 @@ export function buildStreamArgs(
 	return ["stream", ...buildStreamFlags(prefs), host, app];
 }
 
-/** Quote an argument for POSIX shells (used for the "Copy stream command" action). */
+/**
+ * Quote an argument for POSIX shells (used for the "Copy stream command" action).
+ *
+ * Store review note (SECURITY-002): the quoted string is only copied to the
+ * clipboard for the user to read or paste. The extension never executes it;
+ * every command it runs uses an argument array without a shell.
+ */
 export function shellQuote(arg: string): string {
 	if (/^[A-Za-z0-9_@%+=:,./-]+$/.test(arg)) return arg;
 	return `'${arg.replace(/'/g, `'\\''`)}'`;

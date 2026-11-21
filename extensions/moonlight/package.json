@@ -12,7 +12,7 @@
   "commands": [
     {
       "name": "start-stream",
-      "title": "Start Stream",
+      "title": "Moonlight Streams",
       "description": "List the apps of your paired Moonlight hosts and start streaming one",
       "mode": "view",
       "keywords": ["moonlight", "stream", "play"]
