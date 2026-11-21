@@ -1,0 +1,129 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "kcd-connect",
+	"title": "KCD Connect",
+	"description": "Control your paired phones and tablets from the launcher, over the kcd daemon socket",
+	"categories": [
+		"System",
+		"Communication"
+	],
+	"license": "MIT",
+	"author": "dagimg-dot",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension_icon.png",
+	"commands": [
+		{
+			"name": "devices",
+			"title": "Devices",
+			"description": "Live overview of every paired device, with battery, signal and all actions",
+			"mode": "view",
+			"keywords": [
+				"kcd",
+				"kde",
+				"connect",
+				"phone",
+				"tablet",
+				"battery"
+			]
+		},
+		{
+			"name": "send-file",
+			"title": "Send File",
+			"description": "Pick files and send them to a device, with live transfer progress",
+			"mode": "view",
+			"keywords": [
+				"share",
+				"files",
+				"transfer",
+				"phone"
+			]
+		},
+		{
+			"name": "send-clipboard",
+			"title": "Send Clipboard",
+			"description": "Push the current clipboard contents to a device",
+			"mode": "no-view",
+			"keywords": [
+				"clipboard",
+				"copy",
+				"paste",
+				"share"
+			]
+		},
+		{
+			"name": "ring-device",
+			"title": "Ring Device",
+			"description": "Make a device play a loud ringtone so you can find it",
+			"mode": "no-view",
+			"keywords": [
+				"find",
+				"ring",
+				"locate",
+				"phone",
+				"lost"
+			]
+		},
+		{
+			"name": "send-sms",
+			"title": "Send SMS",
+			"description": "Compose and send a text message through your phone",
+			"mode": "view",
+			"keywords": [
+				"sms",
+				"text",
+				"message",
+				"contacts"
+			]
+		},
+		{
+			"name": "media-control",
+			"title": "Media Control",
+			"description": "Control media playing on your paired devices",
+			"mode": "view",
+			"keywords": [
+				"media",
+				"music",
+				"player",
+				"mpris",
+				"volume"
+			]
+		},
+		{
+			"name": "pair-device",
+			"title": "Pair Device",
+			"description": "Discover nearby devices and pair them with this computer",
+			"mode": "view",
+			"keywords": [
+				"pair",
+				"pairing",
+				"discover",
+				"connect",
+				"trust"
+			]
+		}
+	],
+	"preferences": [
+		{
+			"name": "socketPath",
+			"type": "textfield",
+			"required": false,
+			"title": "Socket Path",
+			"description": "Override the kcd IPC socket path. Leave empty to use $XDG_RUNTIME_DIR/kcd/kcd.sock",
+			"default": ""
+		}
+	],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"check": "biome check --write .",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.29.0"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.2",
+		"@biomejs/biome": "2.3.2"
+	}
+}
