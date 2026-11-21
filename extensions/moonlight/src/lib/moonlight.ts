@@ -26,7 +26,10 @@ import {
 } from "./prefs";
 import {
 	hostIdentifiers,
+	buildLaunchCommand,
+	isExitedState,
 	type LocalStream,
+	parseProcStatState,
 	localStreamTarget,
 	type ProcessEntry,
 	selectStreamPids,
@@ -72,9 +75,13 @@ export function resolveMoonlightBinary(): string | undefined {
 			: bin;
 		return isExecutable(expanded) ? expanded : undefined;
 	}
+	return findOnPath(bin);
+}
+
+function findOnPath(name: string): string | undefined {
 	for (const dir of (process.env.PATH ?? "").split(path.delimiter)) {
 		if (!dir) continue;
-		const candidate = path.join(dir, bin);
+		const candidate = path.join(dir, name);
 		if (isExecutable(candidate)) return candidate;
 	}
 	return undefined;
@@ -210,10 +217,17 @@ export function streamArgs(hostName: string, appName: string): string[] {
  * closes. Resolves once the process has been spawned.
  */
 export function startStream(hostName: string, appName: string): Promise<void> {
-	const bin = getMoonlightBinary();
-	const args = streamArgs(hostName, appName);
+	const bin = resolveMoonlightBinary() ?? getMoonlightBinary();
+	const launch = buildLaunchCommand(
+		bin,
+		streamArgs(hostName, appName),
+		findOnPath("setsid"),
+	);
 	return new Promise((resolve, reject) => {
-		const child = spawn(bin, args, { detached: true, stdio: "ignore" });
+		const child = spawn(launch.command, launch.args, {
+			detached: true,
+			stdio: "ignore",
+		});
 		child.once("error", (error: NodeJS.ErrnoException) => {
 			reject(
 				error.code === "ENOENT" ? new Error(`"${bin}" was not found`) : error,
@@ -320,7 +334,20 @@ export function findLocalStream(host: MoonlightHost): LocalStream | undefined {
 	return undefined;
 }
 
+/**
+ * Whether a process is still running. Zombies count as exited: stream
+ * processes spawned by older versions are children of the extension host,
+ * which never reaps them. Falls back to kill(pid, 0) if /proc is unreadable.
+ */
 function isAlive(pid: number): boolean {
+	try {
+		const state = parseProcStatState(
+			readFileSync(`/proc/${pid}/stat`, "utf-8"),
+		);
+		if (state) return !isExitedState(state);
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+	}
 	try {
 		process.kill(pid, 0);
 		return true;

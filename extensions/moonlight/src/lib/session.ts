@@ -271,3 +271,42 @@ export function decideAppPresentation(
 		offerQuitAndStart: !session.streamingHere,
 	};
 }
+
+// ---- Process state ----------------------------------------------------------
+
+/**
+ * Extract the state letter from /proc/<pid>/stat. The comm field is wrapped
+ * in parentheses and may itself contain spaces or parentheses, so parse from
+ * the last ")".
+ */
+export function parseProcStatState(stat: string): string | undefined {
+	const close = stat.lastIndexOf(")");
+	if (close < 0) return undefined;
+	const state = stat
+		.slice(close + 1)
+		.trim()
+		.split(/\s+/)[0];
+	return state && /^[A-Za-z]$/.test(state) ? state : undefined;
+}
+
+/** Zombie (Z) and dead (X/x) processes have exited even if their PID remains. */
+export function isExitedState(state: string): boolean {
+	return state === "Z" || state === "X" || state === "x";
+}
+
+/**
+ * Command used to launch a detached stream. With `setsid -f`, setsid forks
+ * and exits immediately, so moonlight is reparented to the user's subreaper
+ * (e.g. systemd --user) which reaps it, instead of lingering as a zombie
+ * child of the extension host. The moonlight process keeps its plain argv
+ * (`moonlight stream <host> <app>`), so /proc matching still finds it.
+ */
+export function buildLaunchCommand(
+	bin: string,
+	args: string[],
+	setsidPath?: string,
+): { command: string; args: string[] } {
+	return setsidPath
+		? { command: setsidPath, args: ["-f", bin, ...args] }
+		: { command: bin, args };
+}

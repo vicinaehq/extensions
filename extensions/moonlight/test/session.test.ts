@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { MoonlightApp, MoonlightHost } from "../src/lib/parse";
 import {
+	buildLaunchCommand,
 	decideAppPresentation,
+	isExitedState,
+	parseProcStatState,
 	hostIdentifiers,
 	hostStatusSummary,
 	localStreamTarget,
@@ -393,5 +396,77 @@ describe("decideAppPresentation", () => {
 				offerQuitAndStart: false,
 			});
 		}
+	});
+});
+
+describe("parseProcStatState / isExitedState", () => {
+	it("parses a normal stat line", () => {
+		expect(parseProcStatState("429589 (moonlight) S 21595 429589 0 0 -1")).toBe(
+			"S",
+		);
+	});
+
+	it("handles comm with spaces and parentheses", () => {
+		expect(parseProcStatState("123 (my (weird) proc) R 1 2 3")).toBe("R");
+		expect(parseProcStatState("124 (a) b) Z 1 2 3")).toBe("Z");
+	});
+
+	it("detects zombies and dead processes", () => {
+		const zombie = "429589 (.moonlight-wrap) Z 21595 429589 0 0 -1 4227084";
+		expect(parseProcStatState(zombie)).toBe("Z");
+		expect(isExitedState("Z")).toBe(true);
+		expect(isExitedState(parseProcStatState("5 (x) X 1") ?? "")).toBe(true);
+		expect(isExitedState("S")).toBe(false);
+		expect(isExitedState("R")).toBe(false);
+		expect(isExitedState("D")).toBe(false);
+	});
+
+	it("rejects malformed input", () => {
+		expect(parseProcStatState("")).toBeUndefined();
+		expect(parseProcStatState("123 moonlight S")).toBeUndefined();
+		expect(parseProcStatState("123 (moonlight)")).toBeUndefined();
+	});
+});
+
+describe("buildLaunchCommand", () => {
+	const args = ["stream", "Martins-Mac-mini.local", "Desktop"];
+
+	it("launches through setsid -f when available", () => {
+		expect(
+			buildLaunchCommand(
+				"/run/current-system/sw/bin/moonlight",
+				args,
+				"/run/current-system/sw/bin/setsid",
+			),
+		).toEqual({
+			command: "/run/current-system/sw/bin/setsid",
+			args: ["-f", "/run/current-system/sw/bin/moonlight", ...args],
+		});
+	});
+
+	it("falls back to a direct spawn without setsid", () => {
+		expect(buildLaunchCommand("moonlight", args)).toEqual({
+			command: "moonlight",
+			args,
+		});
+	});
+
+	it("keeps the moonlight argv recognisable for /proc matching", () => {
+		const { args: launched } = buildLaunchCommand(
+			"/usr/bin/moonlight",
+			args,
+			"/usr/bin/setsid",
+		);
+		// After the fork, setsid execs moonlight with everything after "-f".
+		const moonlightArgv = launched.slice(1);
+		expect(isStreamProcessForHost(moonlightArgv, hostIdentifiers(host))).toBe(
+			true,
+		);
+		expect(
+			selectStreamPids(
+				[{ pid: 500, argv: moonlightArgv }],
+				hostIdentifiers(host),
+			),
+		).toEqual([500]);
 	});
 });
