@@ -3,7 +3,7 @@
 Start, resume and end [Moonlight](https://moonlight-stream.org) game-streaming sessions from
 [Vicinae](https://vicinae.com). Pick a host and an app, press Enter, and you're streaming.
 
-![Searching for "start moonlight" in Vicinae and opening the extension, which lists the paired host and its apps](docs/demo.webp)
+![Searching for "moonlight" in Vicinae and opening Show Streams, which lists the paired host and its apps](docs/demo.webp)
 
 ## Why
 
