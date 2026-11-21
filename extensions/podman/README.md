@@ -17,6 +17,7 @@ A Vicinae extension for managing Podman containers and images on Linux and macOS
 ## Requirements
 
 - Linux or macOS system with Podman installed
+- The extension looks for `podman` on `PATH` and in common install locations (`/opt/homebrew/bin`, `/usr/local/bin`, `/opt/podman/bin`, `/home/linuxbrew/.linuxbrew/bin`, `~/.local/bin`). To use a different binary, set the **Podman Binary** preference to its full path.
 - Appropriate permissions to manage containers (may require sudo for some operations)
 
 ## Remote Connections
