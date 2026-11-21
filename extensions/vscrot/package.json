@@ -74,6 +74,10 @@
           "value": "grimblast"
         },
         {
+          "title": "grimshot (Sway)",
+          "value": "grimshot"
+        },
+        {
           "title": "grim + slurp (Wayland)",
           "value": "grim"
         },
