@@ -76,39 +76,37 @@ export function GameActions(props: {
   const alternates = game.alternates ?? [];
   return (
     <ActionPanel title={game.title}>
+      {/*
+        Only launch actions go in this first section. Vicinae binds Enter and
+        Shift+Enter to the first two actions of the section holding the first
+        action, so Shift+Enter always means "launch with the next launcher" and
+        is unbound for games found in a single launcher.
+      */}
       <ActionPanel.Section>
         <Action
           title={alternates.length ? `Launch with ${LAUNCHER_NAMES[game.source]}` : "Launch Game"}
           icon={Icon.Play}
           onAction={() => launch(game)}
         />
-        {alternates.map((copy, i) => (
+        {alternates.map((copy) => (
           <Action
             key={copy.id}
             title={`Launch with ${LAUNCHER_NAMES[copy.source]}`}
             icon={Icon.Play}
-            shortcut={i === 0 ? { modifiers: ["ctrl"], key: "return" } : undefined}
             onAction={() => launch(copy)}
           />
         ))}
-        {appid !== undefined && (
-          <Action
-            title="Show in Steam Library"
-            icon={Icon.GameController}
-            shortcut={{ modifiers: ["ctrl"], key: "l" }}
-            onAction={() => openSteamUri(`steam://nav/games/details/${appid}`)}
-          />
-        )}
-        {game.installDir && (
-          <Action.ShowInFinder title="Open Install Folder" path={game.installDir} shortcut={{ modifiers: ["ctrl"], key: "o" }} />
-        )}
       </ActionPanel.Section>
       {appid !== undefined && (
         <ActionPanel.Section title="Steam">
           <Action
+            title="Show in Steam Library"
+            icon={Icon.GameController}
+            onAction={() => openSteamUri(`steam://nav/games/details/${appid}`)}
+          />
+          <Action
             title="Open Store Page"
             icon={Icon.Store}
-            shortcut={{ modifiers: ["ctrl"], key: "s" }}
             onAction={() => openSteamUri(`steam://store/${appid}`)}
           />
           <Action.OpenInBrowser
@@ -125,11 +123,15 @@ export function GameActions(props: {
         </ActionPanel.Section>
       )}
       <ActionPanel.Section>
+        {game.installDir && (
+          <Action.ShowInFinder title="Open Install Folder" path={game.installDir} shortcut={{ modifiers: ["ctrl"], key: "o" }} />
+        )}
         {layoutActions}
         <Action
           title={isHidden ? "Unhide Game" : "Hide Game"}
           icon={isHidden ? Icon.Eye : Icon.EyeDisabled}
-          shortcut={{ modifiers: ["ctrl"], key: "h" }}
+          // Ctrl+H/J/K/L are Vicinae's navigation keys on Linux, so action shortcuts must avoid them.
+          shortcut={{ modifiers: ["ctrl", "shift"], key: "h" }}
           onAction={() => onToggleHidden(game)}
         />
         {settingsActions}

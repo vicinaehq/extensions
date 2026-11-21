@@ -60,14 +60,14 @@ running yet (e.g. Steam), it starts first and then launches the game. You can gi
 | Action | Shortcut | Notes |
 | --- | --- | --- |
 | Launch Game | Enter | "Launch with Steam" when the game is installed in several launchers. |
-| Launch with *other launcher* | Ctrl+Enter | First alternate launcher; any further ones are in the action panel. |
-| Show in Steam Library | Ctrl+L | Steam games. |
-| Open Install Folder | Ctrl+O | |
-| Open Store Page | Ctrl+S | Steam games, opens in the Steam client. |
+| Launch with *other launcher* | Shift+Enter | First alternate launcher; any further ones are in the action panel. |
+| Show in Steam Library | | Steam games. |
+| Open Store Page | | Steam games, opens in the Steam client. |
 | View on ProtonDB | Ctrl+Shift+D | Steam games, opens in your browser. |
 | Copy App ID | Ctrl+Shift+C | Steam games. |
+| Open Install Folder | Ctrl+O | |
 | Show / Hide Details | Ctrl+D | List layout only. |
-| Hide Game / Unhide Game | Ctrl+H | See [Hiding games](#hiding-games). |
+| Hide Game / Unhide Game | Ctrl+Shift+H | See [Hiding games](#hiding-games). |
 | Settings | Ctrl+, | |
 | Launcher Priority… | | When more than one launcher is enabled. |
 | Clear Artwork Cache… | | Asks for confirmation first. |
