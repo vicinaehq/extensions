@@ -3,6 +3,8 @@
 Start, resume and end [Moonlight](https://moonlight-stream.org) game-streaming sessions from
 [Vicinae](https://vicinae.com). Pick a host and an app, press Enter, and you're streaming.
 
+![Searching for "start moonlight" in Vicinae and opening the extension, which lists the paired host and its apps](docs/demo.webp)
+
 ## Why
 
 Moonlight, the open-source client, and [Sunshine](https://github.com/LizardByte/Sunshine), the self-hosted
