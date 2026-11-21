@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	Action,
 	ActionPanel,
@@ -125,7 +125,19 @@ function HostActions({
 		});
 		try {
 			const result = await endSession(host);
-			if (result.stillRunning.length > 0) {
+			if (result.quitError) {
+				toast.style = Toast.Style.Failure;
+				if (result.stillRunning.length > 0) {
+					toast.title = `Failed to end session on ${host.name}`;
+					toast.message = `Moonlight process ${result.stillRunning.join(", ")} did not exit after SIGTERM, and quitting the host app failed: ${result.quitError}`;
+				} else if (result.terminated.length > 0) {
+					toast.title = `Local stream ended, but quitting the app on ${host.name} failed`;
+					toast.message = result.quitError;
+				} else {
+					toast.title = `Failed to quit app on ${host.name}`;
+					toast.message = result.quitError;
+				}
+			} else if (result.stillRunning.length > 0) {
 				toast.style = Toast.Style.Failure;
 				toast.title = "Host app quit, but the local stream is still running";
 				toast.message = `Moonlight process ${result.stillRunning.join(", ")} did not exit after SIGTERM`;
@@ -233,6 +245,18 @@ function AppItem({
 	}, [host.name, app.name]);
 
 	const handleQuitAndStart = useCallback(async () => {
+		// Validate the stream preferences before touching the host, so an
+		// invalid frame rate or bitrate never quits the running app for nothing.
+		try {
+			streamArgs(host.name, app.name);
+		} catch (error) {
+			await showToast({
+				style: Toast.Style.Failure,
+				title: "Failed to start stream",
+				message: errorMessage(error),
+			});
+			return;
+		}
 		const toast = await showToast({
 			style: Toast.Style.Animated,
 			title: `Quitting ${runningName} on ${host.name}…`,
@@ -247,7 +271,7 @@ function AppItem({
 			return;
 		}
 		await handleStart();
-	}, [host.name, runningName, handleStart, onRefresh]);
+	}, [host.name, app.name, runningName, handleStart, onRefresh]);
 
 	const handleExplain = useCallback(async () => {
 		await showToast(
@@ -434,8 +458,15 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 		Object.fromEntries(hosts.map((h) => [h.index, initialState(h)])),
 	);
 
+	// Per-host refresh generation: results of a superseded refresh are dropped,
+	// so a slow, older `moonlight list` cannot overwrite a newer result.
+	const generations = useRef<Record<number, number>>({});
+
 	const refreshHost = useCallback(
 		async (host: MoonlightHost) => {
+			const generation = (generations.current[host.index] ?? 0) + 1;
+			generations.current[host.index] = generation;
+			const isCurrent = () => generations.current[host.index] === generation;
 			setStates((prev) => ({
 				...prev,
 				[host.index]: {
@@ -446,6 +477,7 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 			}));
 			// Session state is fast (~3 s timeout) and independent of the app list.
 			void fetchServerInfo(host, timeout.ms).then((serverInfo) => {
+				if (!isCurrent()) return;
 				const localStream = findLocalStream(host);
 				setStates((prev) => {
 					const current = prev[host.index] ?? initialState(host);
@@ -462,6 +494,7 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 			});
 			try {
 				const apps = await listApps(host.name);
+				if (!isCurrent()) return;
 				saveCachedApps(host, apps);
 				setStates((prev) => ({
 					...prev,
@@ -473,6 +506,7 @@ function StreamList({ hosts }: { hosts: MoonlightHost[] }) {
 					},
 				}));
 			} catch (error) {
+				if (!isCurrent()) return;
 				setStates((prev) => {
 					const current = prev[host.index] ?? initialState(host);
 					return {

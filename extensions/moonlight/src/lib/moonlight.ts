@@ -21,6 +21,7 @@ import {
 } from "./parse";
 import {
 	chooseConfigPath,
+	expandHome,
 	parseTimeoutSeconds,
 	type TimeoutSetting,
 } from "./prefs";
@@ -35,7 +36,7 @@ import {
 	selectStreamPids,
 	parseServerInfo,
 	type ServerInfo,
-	serverInfoUrl,
+	serverInfoUrls,
 	splitCmdline,
 } from "./session";
 
@@ -53,8 +54,14 @@ export function getPreferences(): Preferences {
 	return getPreferenceValues<Preferences>();
 }
 
+/**
+ * The Moonlight Binary preference with a leading `~` expanded. Every caller
+ * (startup check, list/quit, stream, copied command) uses this, so a `~/` path
+ * behaves the same everywhere.
+ */
 export function getMoonlightBinary(): string {
-	return getPreferences().moonlightPath?.trim() || "moonlight";
+	const raw = getPreferences().moonlightPath?.trim() || "moonlight";
+	return expandHome(raw, homedir());
 }
 
 function isExecutable(file: string): boolean {
@@ -69,12 +76,7 @@ function isExecutable(file: string): boolean {
 /** Resolve the moonlight binary on PATH without executing it. */
 export function resolveMoonlightBinary(): string | undefined {
 	const bin = getMoonlightBinary();
-	if (bin.includes("/")) {
-		const expanded = bin.startsWith("~/")
-			? path.join(homedir(), bin.slice(2))
-			: bin;
-		return isExecutable(expanded) ? expanded : undefined;
-	}
+	if (bin.includes("/")) return isExecutable(bin) ? bin : undefined;
 	return findOnPath(bin);
 }
 
@@ -157,7 +159,7 @@ export function resolveBoxArt(
 }
 
 function runMoonlight(args: string[], timeout: number): Promise<string> {
-	const bin = getMoonlightBinary();
+	const bin = resolveMoonlightBinary() ?? getMoonlightBinary();
 	return new Promise((resolve, reject) => {
 		execFile(
 			bin,
@@ -278,31 +280,45 @@ export function getServerInfoTimeout(): TimeoutSetting {
 	return parseTimeoutSeconds(getPreferences().serverInfoTimeout);
 }
 
+async function fetchServerInfoFrom(
+	url: string,
+	signal: AbortSignal,
+): Promise<ServerInfo> {
+	const response = await fetch(url, { signal });
+	if (!response.ok) throw new Error(`HTTP ${response.status}`);
+	const info = parseServerInfo(await response.text());
+	if (!info) throw new Error("Not a serverinfo response");
+	return info;
+}
+
 /**
- * Query the host's unauthenticated serverinfo endpoint. Returns undefined
- * ("unknown") on any failure; this never throws.
+ * Query the host's unauthenticated serverinfo endpoint. All stored addresses
+ * (each with its own port) are probed in parallel and the first valid answer
+ * wins, so a host paired on the LAN still reports its state when reached via
+ * its manual or remote address. Returns undefined ("unknown") on any
+ * failure; this never throws.
  */
 export async function fetchServerInfo(
 	host: MoonlightHost,
 	timeoutMs: number,
 ): Promise<ServerInfo | undefined> {
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), timeoutMs);
 	try {
-		const response = await fetch(serverInfoUrl(host), {
-			signal: AbortSignal.timeout(timeoutMs),
-		});
-		if (!response.ok) return undefined;
-		return parseServerInfo(await response.text());
+		return await Promise.any(
+			serverInfoUrls(host).map((url) =>
+				fetchServerInfoFrom(url, controller.signal),
+			),
+		);
 	} catch {
 		return undefined;
+	} finally {
+		clearTimeout(timer);
+		// Cancel the probes that lost the race.
+		controller.abort();
 	}
 }
 
-/**
- * Whether this machine is already running `moonlight stream` for the host.
- * Scans /proc/<pid>/cmdline. A stream started from the Moonlight GUI runs in
- * the argument-less main process and cannot be attributed to a host, so it is
- * not detected here (the host's serverinfo still reports it as busy).
- */
 /** List processes whose command line mentions "stream" (Linux /proc scan). */
 function listStreamCandidates(): ProcessEntry[] {
 	let pids: string[];
@@ -325,9 +341,30 @@ function listStreamCandidates(): ProcessEntry[] {
 	return processes;
 }
 
+const SNAPSHOT_TTL_MS = 1_000;
+let snapshot: { at: number; processes: ProcessEntry[] } | undefined;
+
+/**
+ * A /proc scan shared by all hosts: refreshing N hosts at once (on mount or
+ * Refresh All) scans /proc once instead of N times.
+ */
+function streamCandidatesSnapshot(): ProcessEntry[] {
+	const now = Date.now();
+	if (!snapshot || now - snapshot.at > SNAPSHOT_TTL_MS) {
+		snapshot = { at: now, processes: listStreamCandidates() };
+	}
+	return snapshot.processes;
+}
+
+/**
+ * Whether this machine is already running `moonlight stream` for the host.
+ * Scans /proc/<pid>/cmdline. A stream started from the Moonlight GUI runs in
+ * the argument-less main process and cannot be attributed to a host, so it is
+ * not detected here (the host's serverinfo still reports it as busy).
+ */
 export function findLocalStream(host: MoonlightHost): LocalStream | undefined {
 	const identifiers = hostIdentifiers(host);
-	for (const proc of listStreamCandidates()) {
+	for (const proc of streamCandidatesSnapshot()) {
 		const target = localStreamTarget(proc.argv, identifiers);
 		if (target) return target;
 	}
@@ -361,6 +398,8 @@ export interface EndSessionResult {
 	terminated: number[];
 	/** Processes still alive after the grace period (never SIGKILLed). */
 	stillRunning: number[];
+	/** Set when `moonlight quit <host>` failed; the local part still ran. */
+	quitError?: string;
 }
 
 const END_SESSION_GRACE_MS = 5_000;
@@ -368,8 +407,9 @@ const END_SESSION_GRACE_MS = 5_000;
 /**
  * End a session cleanly: SIGTERM the local `moonlight stream` processes for
  * the host (never SIGKILL), wait up to 5 s for them to exit, then run
- * `moonlight quit <host>` so the app on the host ends too. Throws if the
- * quit command fails.
+ * `moonlight quit <host>` so the app on the host ends too. A failing quit
+ * (e.g. the host is unreachable) does not throw: it is reported in
+ * `quitError` next to the local outcome.
  */
 export async function endSession(
 	host: MoonlightHost,
@@ -394,6 +434,15 @@ export async function endSession(
 		await new Promise((r) => setTimeout(r, 200));
 		stillRunning = stillRunning.filter(isAlive);
 	}
-	await quitApp(host.name);
+	snapshot = undefined;
+	try {
+		await quitApp(host.name);
+	} catch (error) {
+		return {
+			terminated,
+			stillRunning,
+			quitError: error instanceof Error ? error.message : String(error),
+		};
+	}
 	return { terminated, stillRunning };
 }

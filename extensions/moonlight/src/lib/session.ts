@@ -32,25 +32,50 @@ export function parseServerInfo(xml: string): ServerInfo | undefined {
 	const parsedGame = Number.parseInt(rawGame ?? "0", 10);
 	const currentGame = Number.isNaN(parsedGame) ? 0 : parsedGame;
 
-	let state: ServerState = "unknown";
-	if (rawState?.toUpperCase().endsWith("_SERVER_BUSY")) state = "busy";
-	else if (rawState?.toUpperCase().endsWith("_SERVER_FREE")) state = "free";
-	// GeForce Experience reports other state strings; fall back to currentgame.
-	if (state === "unknown" && rawGame !== undefined) {
-		state = currentGame > 0 ? "busy" : "free";
+	// Same rule as moonlight-qt's NvHTTP::getCurrentGame: currentgame is only
+	// trusted when the state ends in _SERVER_BUSY, because GeForce Experience
+	// 2.8+ keeps currentgame set to the last played game while idle. Only
+	// when there is no <state> at all is currentgame used on its own.
+	if (rawState === undefined) {
+		return { state: currentGame > 0 ? "busy" : "free", currentGame };
 	}
-	return { state, currentGame };
+	if (rawState.toUpperCase().endsWith("_SERVER_BUSY")) {
+		return { state: "busy", currentGame };
+	}
+	return { state: "free", currentGame: 0 };
 }
 
-/** Build the serverinfo URL for a host from its Moonlight.conf entry. */
-export function serverInfoUrl(host: MoonlightHost): string {
-	const address = host.localAddress || host.manualAddress || host.name;
+const DEFAULT_HTTP_PORT = 47989;
+
+function buildServerInfoUrl(address: string, port: number | undefined): string {
 	const formatted =
 		address.includes(":") && !address.startsWith("[")
 			? `[${address}]`
 			: address;
-	const port = host.localPort && host.localPort > 0 ? host.localPort : 47989;
-	return `http://${formatted}:${port}/serverinfo?uniqueid=0123456789ABCDEF`;
+	const p = port && port > 0 ? port : DEFAULT_HTTP_PORT;
+	return `http://${formatted}:${p}/serverinfo?uniqueid=0123456789ABCDEF`;
+}
+
+/**
+ * All serverinfo URLs worth trying for a host, in order of preference: each
+ * stored address (local, manual, remote) with its own port, then the host
+ * name on the local port. Duplicates are removed. Probing all of them lets a
+ * host paired on the LAN still report its state when reached remotely.
+ */
+export function serverInfoUrls(host: MoonlightHost): string[] {
+	const candidates: [string | undefined, number | undefined][] = [
+		[host.localAddress, host.localPort],
+		[host.manualAddress, host.manualPort],
+		[host.remoteAddress, host.remotePort],
+		[host.name, host.localPort],
+	];
+	const urls: string[] = [];
+	for (const [address, port] of candidates) {
+		if (!address) continue;
+		const url = buildServerInfoUrl(address, port);
+		if (!urls.includes(url)) urls.push(url);
+	}
+	return urls;
 }
 
 /** All identifiers a user may have passed to `moonlight stream` for this host. */
@@ -97,14 +122,49 @@ export function localStreamTarget(
 	if (!exe || !MOONLIGHT_EXE.test(exe)) return undefined;
 	const streamIndex = argv.indexOf("stream", 1);
 	if (streamIndex < 0) return undefined;
+	const positionals = streamPositionals(argv.slice(streamIndex + 1));
+	if (positionals.length === 0) return undefined;
+	// `moonlight stream [options] <host> <app>`: with an unknown option that
+	// takes a value the extra positional comes first, so count from the end.
+	const hostArg =
+		positionals.length >= 2
+			? positionals[positionals.length - 2]
+			: positionals[0];
+	const appName = positionals.length >= 2 ? positionals.at(-1) : undefined;
 	const ids = new Set(identifiers.map((i) => i.toLowerCase()));
-	for (let i = streamIndex + 1; i < argv.length; i++) {
-		if (ids.has((argv[i] ?? "").toLowerCase())) {
-			const next = argv[i + 1];
-			return { appName: next && !next.startsWith("--") ? next : undefined };
+	if (!hostArg || !ids.has(hostArg.toLowerCase())) return undefined;
+	return { appName };
+}
+
+/** moonlight-qt `stream` options that consume the following argument. */
+const VALUE_OPTIONS = new Set([
+	"--resolution",
+	"--fps",
+	"--bitrate",
+	"--packet-size",
+	"--display-mode",
+	"--audio-config",
+	"--video-codec",
+	"--video-decoder",
+	"--capture-system-keys",
+]);
+
+/** Positional arguments of `moonlight stream`, with options and their values removed. */
+function streamPositionals(args: string[]): string[] {
+	const positionals: string[] = [];
+	for (let i = 0; i < args.length; i++) {
+		const arg = args[i] ?? "";
+		if (arg === "--") {
+			positionals.push(...args.slice(i + 1));
+			break;
 		}
+		if (arg.startsWith("-") && arg.length > 1) {
+			if (!arg.includes("=") && VALUE_OPTIONS.has(arg)) i++;
+			continue;
+		}
+		positionals.push(arg);
 	}
-	return undefined;
+	return positionals;
 }
 
 export interface ProcessEntry {

@@ -10,8 +10,12 @@ export interface MoonlightHost {
 	localAddress?: string;
 	remoteAddress?: string;
 	manualAddress?: string;
-	/** HTTP port of the host (`localport`, usually 47989). */
+	/** HTTP port for the local address (`localport`, usually 47989). */
 	localPort?: number;
+	/** HTTP port for the manual address (`manualport`). */
+	manualPort?: number;
+	/** HTTP port for the remote address (`remoteport`). */
+	remotePort?: number;
 	/** Apps as last seen by the Moonlight GUI (used as a fallback before the first refresh). */
 	apps: MoonlightApp[];
 }
@@ -137,12 +141,17 @@ export function parseHosts(ini: string): MoonlightHost[] {
 			localAddress: get(`${prefix}localaddress`) || undefined,
 			remoteAddress: get(`${prefix}remoteaddress`) || undefined,
 			manualAddress: get(`${prefix}manualaddress`) || undefined,
-			localPort:
-				Number.parseInt(get(`${prefix}localport`) ?? "", 10) || undefined,
+			localPort: parsePort(get(`${prefix}localport`)),
+			manualPort: parsePort(get(`${prefix}manualport`)),
+			remotePort: parsePort(get(`${prefix}remoteport`)),
 			apps,
 		});
 	}
 	return hosts;
+}
+
+function parsePort(raw: string | undefined): number | undefined {
+	return Number.parseInt(raw ?? "", 10) || undefined;
 }
 
 /** Split one CSV line into fields, honouring double quotes and `""` escapes. */

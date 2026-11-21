@@ -79,7 +79,7 @@ All preferences are optional. With the defaults, the extension behaves exactly l
 | **Display Mode** | Moonlight default | `Borderless`, `Fullscreen` or `Windowed`. |
 | **Quit App After Stream** | Moonlight default | Quit the app on the host when the stream ends, or keep it running. |
 
-Invalid numbers (frame rate, bitrate, timeout) show an error toast and fall back to the default; nothing is guessed.
+An invalid frame rate or bitrate refuses to start the stream with an error toast (*Quit Running App & Start* checks this before quitting anything on the host). An invalid timeout shows an error toast and falls back to the default. Nothing is guessed.
 
 ## Under the hood
 
@@ -118,9 +118,9 @@ each host one unauthenticated status question, and runs the `moonlight` command 
 
 | Source | What for | Notes |
 |---|---|---|
-| `Moonlight.conf`: `$XDG_CONFIG_HOME/Moonlight Game Streaming Project/Moonlight.conf`, or the Flatpak path `~/.var/app/com.moonlight_stream.Moonlight/config/Moonlight Game Streaming Project/Moonlight.conf` | paired hosts: name, local/manual address, HTTP port, and Moonlight's cached app list as an instant fallback | **Only the `[hosts]` section is parsed.** The `[General]` section, which holds Moonlight's client certificate and private key, is skipped and never logged. |
+| `Moonlight.conf`: `$XDG_CONFIG_HOME/Moonlight Game Streaming Project/Moonlight.conf`, or the Flatpak path `~/.var/app/com.moonlight_stream.Moonlight/config/Moonlight Game Streaming Project/Moonlight.conf` | paired hosts: name, local/manual/remote addresses with their HTTP ports, and Moonlight's cached app list as an instant fallback | **Only the `[hosts]` section is parsed.** The `[General]` section, which holds Moonlight's client certificate and private key, is skipped and never logged. |
 | `moonlight list --csv <host>` | app names, IDs, HDR support, the *Hidden* flag, box art | Box art paths point into Moonlight's own cache (`$XDG_CACHE_HOME/Moonlight Game Streaming Project/…`) and are shown as icons. Results are cached by Vicinae, so the list opens instantly next time. |
-| `GET http://<host>:<port>/serverinfo` | is the host free or busy, and which app is running (`state`, `currentgame`) | The same plain-HTTP status endpoint Moonlight polls. It doesn't need the pairing certificate. Short timeout (3 s by default); failure means "unknown", never an error page. |
+| `GET http://<host>:<port>/serverinfo` | is the host free or busy, and which app is running (`state`, `currentgame`) | The same plain-HTTP status endpoint Moonlight polls. It doesn't need the pairing certificate. The local, manual and remote addresses are probed in parallel (each on its own port) and the first answer wins. Short timeout (3 s by default); failure means "unknown", never an error page. |
 | `/proc/*/cmdline` | is *this* PC streaming that host, and which app | Matches `moonlight … stream <host> <app>` by host name or address. |
 
 ### What it runs

@@ -40,6 +40,8 @@ size=0
 1\ipv6address=2a02:db8::1
 1\localaddress=192.168.0.86
 1\localport=47989
+1\manualport=48989
+1\remoteport=50000
 1\mac=@ByteArray(\0\0\0\0\0\0)
 1\manualaddress=martins-mac-mini.local
 1\remoteaddress=203.0.113.7
@@ -63,6 +65,9 @@ describe("parseHosts", () => {
 			localAddress: "192.168.0.86",
 			manualAddress: "martins-mac-mini.local",
 			remoteAddress: "203.0.113.7",
+			localPort: 47989,
+			manualPort: 48989,
+			remotePort: 50000,
 		});
 		expect(mac?.apps).toEqual([
 			{

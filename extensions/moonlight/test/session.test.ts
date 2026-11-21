@@ -13,7 +13,7 @@ import {
 	visibleApps,
 	isStreamProcessForHost,
 	parseServerInfo,
-	serverInfoUrl,
+	serverInfoUrls,
 	splitCmdline,
 } from "../src/lib/session";
 
@@ -63,10 +63,29 @@ describe("parseServerInfo", () => {
 		});
 	});
 
-	it("falls back to currentgame for unknown state strings (GeForce Experience)", () => {
+	it("ignores a sticky currentgame unless the state is _SERVER_BUSY (GeForce Experience)", () => {
 		expect(
 			parseServerInfo(
 				'<root status_code="200"><currentgame>5</currentgame><state>MJOLNIR_STATE_X</state></root>',
+			),
+		).toEqual({
+			state: "free",
+			currentGame: 0,
+		});
+		expect(
+			parseServerInfo(
+				'<root status_code="200"><currentgame>5</currentgame><state>SUNSHINE_SERVER_FREE</state></root>',
+			),
+		).toEqual({
+			state: "free",
+			currentGame: 0,
+		});
+	});
+
+	it("uses currentgame alone only when there is no <state>", () => {
+		expect(
+			parseServerInfo(
+				'<root status_code="200"><currentgame>5</currentgame></root>',
 			),
 		).toEqual({
 			state: "busy",
@@ -96,29 +115,55 @@ describe("parseServerInfo", () => {
 	});
 });
 
-describe("serverInfoUrl", () => {
-	it("uses the local address and port", () => {
-		expect(serverInfoUrl(host)).toBe(
-			"http://192.168.0.86:47989/serverinfo?uniqueid=0123456789ABCDEF",
-		);
+describe("serverInfoUrls", () => {
+	const q = "/serverinfo?uniqueid=0123456789ABCDEF";
+
+	it("tries every stored address, local first", () => {
+		expect(serverInfoUrls(host)).toEqual([
+			`http://192.168.0.86:47989${q}`,
+			`http://martins-mac-mini.local:47989${q}`,
+			`http://203.0.113.7:47989${q}`,
+			`http://Martins-Mac-mini.local:47989${q}`,
+		]);
+	});
+
+	it("pairs each address with its own port", () => {
+		expect(
+			serverInfoUrls({
+				index: 4,
+				name: "pc",
+				localAddress: "192.168.1.5",
+				localPort: 47989,
+				manualAddress: "pc.tailnet.ts.net",
+				manualPort: 48989,
+				remoteAddress: "198.51.100.2",
+				remotePort: 50000,
+				apps: [],
+			}),
+		).toEqual([
+			`http://192.168.1.5:47989${q}`,
+			`http://pc.tailnet.ts.net:48989${q}`,
+			`http://198.51.100.2:50000${q}`,
+			`http://pc:47989${q}`,
+		]);
 	});
 
 	it("falls back to the hostname and default port", () => {
-		expect(serverInfoUrl({ index: 2, name: "box.local", apps: [] })).toBe(
-			"http://box.local:47989/serverinfo?uniqueid=0123456789ABCDEF",
-		);
+		expect(serverInfoUrls({ index: 2, name: "box.local", apps: [] })).toEqual([
+			`http://box.local:47989${q}`,
+		]);
 	});
 
-	it("brackets IPv6 addresses", () => {
+	it("brackets IPv6 addresses and removes duplicates", () => {
 		expect(
-			serverInfoUrl({
+			serverInfoUrls({
 				index: 3,
-				name: "v6",
+				name: "fd00::1",
 				localAddress: "fd00::1",
 				localPort: 1234,
 				apps: [],
 			}),
-		).toBe("http://[fd00::1]:1234/serverinfo?uniqueid=0123456789ABCDEF");
+		).toEqual([`http://[fd00::1]:1234${q}`]);
 	});
 });
 
@@ -208,6 +253,41 @@ describe("localStreamTarget", () => {
 		expect(
 			localStreamTarget(["moonlight", "stream", "other", "Desktop"], ids),
 		).toBeUndefined();
+	});
+
+	it("only compares the host positional, not the app or flag values", () => {
+		const desktopHost = hostIdentifiers({
+			index: 5,
+			name: "Desktop",
+			manualAddress: "60",
+			apps: [],
+		});
+		// App argument equals the other host's name.
+		expect(
+			localStreamTarget(
+				["moonlight", "stream", "gaming-pc", "Desktop"],
+				desktopHost,
+			),
+		).toBeUndefined();
+		// Flag value equals the other host's address.
+		expect(
+			localStreamTarget(
+				["moonlight", "stream", "--fps", "60", "gaming-pc", "Steam"],
+				desktopHost,
+			),
+		).toBeUndefined();
+		expect(
+			localStreamTarget(
+				["moonlight", "stream", "--fps", "60", "--1080", "Desktop", "Steam"],
+				desktopHost,
+			),
+		).toEqual({ appName: "Steam" });
+		expect(
+			localStreamTarget(
+				["moonlight", "stream", "--display-mode=windowed", "Desktop", "Steam"],
+				desktopHost,
+			),
+		).toEqual({ appName: "Steam" });
 	});
 });
 
