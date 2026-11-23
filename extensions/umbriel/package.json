@@ -1,0 +1,99 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "umbriel",
+	"title": "Umbriel",
+	"description": "Inspect and control the Umbriel Wayland compositor: outputs, virtual outputs, windows, workspaces, scratchpads, layers, keyboard layouts, screencasts, and keybinds. All changes are runtime-only and never edit the Umbriel config. Requires the umbriel CLI and a running Umbriel session.",
+	"categories": [
+		"System",
+		"Productivity"
+	],
+	"license": "MIT",
+	"author": "xwaleedahmad",
+	"contributors": [],
+	"pastContributors": [],
+	"platforms": [
+		"Linux"
+	],
+	"icon": "extension_icon.png",
+	"commands": [
+		{
+			"name": "outputs",
+			"title": "Outputs",
+			"subtitle": "Inspect and manage monitors",
+			"description": "List connected outputs, enable or disable them, control DPMS, and copy monitor details.",
+			"mode": "view"
+		},
+		{
+			"name": "windows",
+			"title": "Windows",
+			"subtitle": "Inspect and manage windows",
+			"description": "Browse windows grouped by monitor and workspace, then focus, warp the cursor to, close, or kill the selected window.",
+			"mode": "view"
+		},
+		{
+			"name": "workspaces",
+			"title": "Workspaces",
+			"subtitle": "Manage workspaces and layouts",
+			"description": "Browse workspaces by output, switch between them, reorder them, move them between outputs, and change their runtime layout.",
+			"mode": "view"
+		},
+		{
+			"name": "scratchpads",
+			"title": "Scratchpads",
+			"subtitle": "Manage scratchpad windows",
+			"description": "Browse configured scratchpads and toggle them by name.",
+			"mode": "view"
+		},
+		{
+			"name": "layers",
+			"title": "Layers",
+			"subtitle": "Inspect layer-shell surfaces",
+			"description": "Browse layer-shell surfaces with their output, layer, namespace, geometry, anchors, and keyboard interactivity.",
+			"mode": "view"
+		},
+		{
+			"name": "keyboard-layouts",
+			"title": "Keyboard Layouts",
+			"subtitle": "Inspect keyboard layouts",
+			"description": "Show configured keyboard layouts, the active layout, and cycle to the next layout.",
+			"mode": "view"
+		},
+		{
+			"name": "screencast",
+			"title": "Screencast",
+			"subtitle": "Share and follow windows or outputs",
+			"description": "Select a window or output to share, follow the focused window or output, stop following, or clear the current screencast target.",
+			"mode": "view"
+		},
+		{
+			"name": "virtual-outputs",
+			"title": "Virtual Outputs",
+			"subtitle": "Create and destroy virtual monitors",
+			"description": "Create a virtual output with an optional mode and destroy virtual outputs. Physical outputs cannot be destroyed.",
+			"mode": "view"
+		},
+		{
+			"name": "keybinds",
+			"title": "Keybinds",
+			"subtitle": "Browse configured keybinds",
+			"description": "Read keybinds from the Umbriel config and included files, grouped by the action sections reported by umbriel msg --help.",
+			"mode": "view"
+		}
+	],
+	"preferences": [],
+	"scripts": {
+		"build": "vici build",
+		"dev": "vici develop",
+		"typecheck": "tsc --noEmit",
+		"format": "biome format --write src",
+		"lint": "vici lint"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.30.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.2",
+		"@types/node": "^26.6.6",
+		"typescript": "^5.9.2"
+	}
+}
