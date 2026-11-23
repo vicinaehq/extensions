@@ -1,0 +1,916 @@
+{
+	"$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+	"name": "paneru",
+	"title": "Paneru",
+	"description": "Control Paneru, the scrollable tiling window manager for macOS. Run any Paneru command, from focusing and swapping windows to resizing, stacking, and virtual workspaces, via paneru send-cmd.",
+	"categories": [
+		"Productivity",
+		"System"
+	],
+	"license": "MIT",
+	"platforms": [
+		"macOS"
+	],
+	"author": "joshwilsonvu",
+	"contributors": [],
+	"pastContributors": [],
+	"icon": "extension_icon.png",
+	"keywords": [
+		"paneru",
+		"tiling",
+		"scrolling",
+		"window manager",
+		"window",
+		"macos"
+	],
+	"commands": [
+		{
+			"name": "paneru",
+			"title": "Paneru Commands",
+			"subtitle": "Paneru",
+			"description": "Browse and run every Paneru window management command.",
+			"mode": "view",
+			"keywords": [
+				"window",
+				"tiling",
+				"scroll",
+				"manager"
+			]
+		},
+		{
+			"name": "window-focus-west",
+			"title": "Focus Window Left",
+			"subtitle": "Paneru",
+			"description": "Focus the window to the left.",
+			"mode": "no-view",
+			"keywords": [
+				"focus",
+				"west",
+				"left",
+				"h"
+			]
+		},
+		{
+			"name": "window-focus-east",
+			"title": "Focus Window Right",
+			"subtitle": "Paneru",
+			"description": "Focus the window to the right.",
+			"mode": "no-view",
+			"keywords": [
+				"focus",
+				"east",
+				"right",
+				"l"
+			]
+		},
+		{
+			"name": "window-focus-north",
+			"title": "Focus Window Up",
+			"subtitle": "Paneru",
+			"description": "Focus the window up in the stack, or the display in that direction.",
+			"mode": "no-view",
+			"keywords": [
+				"focus",
+				"north",
+				"up",
+				"above",
+				"k"
+			]
+		},
+		{
+			"name": "window-focus-south",
+			"title": "Focus Window Down",
+			"subtitle": "Paneru",
+			"description": "Focus the window down in the stack, or the display in that direction.",
+			"mode": "no-view",
+			"keywords": [
+				"focus",
+				"south",
+				"down",
+				"below",
+				"j"
+			]
+		},
+		{
+			"name": "window-focus-first",
+			"title": "Focus Window First",
+			"subtitle": "Paneru",
+			"description": "Jump to the first window in the strip.",
+			"mode": "no-view",
+			"keywords": [
+				"focus",
+				"first",
+				"start",
+				"leftmost",
+				"home"
+			]
+		},
+		{
+			"name": "window-focus-last",
+			"title": "Focus Window Last",
+			"subtitle": "Paneru",
+			"description": "Jump to the last window in the strip.",
+			"mode": "no-view",
+			"keywords": [
+				"focus",
+				"last",
+				"end",
+				"rightmost"
+			]
+		},
+		{
+			"name": "window-focus-number",
+			"title": "Focus Window by Column Number",
+			"subtitle": "Paneru",
+			"description": "Focus the Nth column, counting from 1 on the left.",
+			"mode": "no-view",
+			"keywords": [
+				"focus",
+				"column",
+				"index",
+				"nth",
+				"jump"
+			],
+			"arguments": [
+				{
+					"name": "number",
+					"placeholder": "Column",
+					"type": "text",
+					"required": true
+				}
+			]
+		},
+		{
+			"name": "window-focus-managed",
+			"title": "Focus Last Tiled Window",
+			"subtitle": "Paneru",
+			"description": "Focus the previously focused managed (tiled) window on this workspace.",
+			"mode": "no-view",
+			"keywords": [
+				"focus",
+				"managed",
+				"tiled",
+				"previous"
+			]
+		},
+		{
+			"name": "window-focus-unmanaged",
+			"title": "Focus Last Floating Window",
+			"subtitle": "Paneru",
+			"description": "Focus the previously focused floating window on this workspace.",
+			"mode": "no-view",
+			"keywords": [
+				"focus",
+				"unmanaged",
+				"floating",
+				"previous"
+			]
+		},
+		{
+			"name": "window-swap-west",
+			"title": "Swap Window Left",
+			"subtitle": "Paneru",
+			"description": "Swap the focused window with its left neighbour.",
+			"mode": "no-view",
+			"keywords": [
+				"swap",
+				"move",
+				"west",
+				"left",
+				"h"
+			]
+		},
+		{
+			"name": "window-swap-east",
+			"title": "Swap Window Right",
+			"subtitle": "Paneru",
+			"description": "Swap the focused window with its right neighbour.",
+			"mode": "no-view",
+			"keywords": [
+				"swap",
+				"move",
+				"east",
+				"right",
+				"l"
+			]
+		},
+		{
+			"name": "window-swap-north",
+			"title": "Swap Window Up",
+			"subtitle": "Paneru",
+			"description": "Swap the window up in the stack, or move it to the display in that direction.",
+			"mode": "no-view",
+			"keywords": [
+				"swap",
+				"move",
+				"north",
+				"up",
+				"above",
+				"k"
+			]
+		},
+		{
+			"name": "window-swap-south",
+			"title": "Swap Window Down",
+			"subtitle": "Paneru",
+			"description": "Swap the window down in the stack, or move it to the display in that direction.",
+			"mode": "no-view",
+			"keywords": [
+				"swap",
+				"move",
+				"south",
+				"down",
+				"below",
+				"j"
+			]
+		},
+		{
+			"name": "window-swap-first",
+			"title": "Swap Window First",
+			"subtitle": "Paneru",
+			"description": "Move the focused window to the start of the strip.",
+			"mode": "no-view",
+			"keywords": [
+				"swap",
+				"move",
+				"first",
+				"start",
+				"leftmost",
+				"home"
+			]
+		},
+		{
+			"name": "window-swap-last",
+			"title": "Swap Window Last",
+			"subtitle": "Paneru",
+			"description": "Move the focused window to the end of the strip.",
+			"mode": "no-view",
+			"keywords": [
+				"swap",
+				"move",
+				"last",
+				"end",
+				"rightmost"
+			]
+		},
+		{
+			"name": "window-center",
+			"title": "Center Window",
+			"subtitle": "Paneru",
+			"description": "Center the focused window in the viewport.",
+			"mode": "no-view",
+			"keywords": [
+				"center",
+				"middle"
+			]
+		},
+		{
+			"name": "window-grow",
+			"title": "Grow Window Width",
+			"subtitle": "Paneru",
+			"description": "Cycle the focused window to the next preset column width.",
+			"mode": "no-view",
+			"keywords": [
+				"resize",
+				"grow",
+				"wider",
+				"width",
+				"preset"
+			]
+		},
+		{
+			"name": "window-shrink",
+			"title": "Shrink Window Width",
+			"subtitle": "Paneru",
+			"description": "Cycle the focused window to the previous preset column width.",
+			"mode": "no-view",
+			"keywords": [
+				"resize",
+				"shrink",
+				"narrower",
+				"width",
+				"preset"
+			]
+		},
+		{
+			"name": "window-vertical-grow",
+			"title": "Grow Window Height",
+			"subtitle": "Paneru",
+			"description": "Cycle a stacked window to the next preset height.",
+			"mode": "no-view",
+			"keywords": [
+				"resize",
+				"vertical",
+				"grow",
+				"taller",
+				"height",
+				"stack"
+			]
+		},
+		{
+			"name": "window-vertical-shrink",
+			"title": "Shrink Window Height",
+			"subtitle": "Paneru",
+			"description": "Cycle a stacked window to the previous preset height.",
+			"mode": "no-view",
+			"keywords": [
+				"resize",
+				"vertical",
+				"shrink",
+				"shorter",
+				"height",
+				"stack"
+			]
+		},
+		{
+			"name": "window-fullwidth",
+			"title": "Toggle Full Width",
+			"subtitle": "Paneru",
+			"description": "Toggle full-width mode for the focused window.",
+			"mode": "no-view",
+			"keywords": [
+				"fullwidth",
+				"maximize",
+				"full",
+				"width"
+			]
+		},
+		{
+			"name": "window-balance",
+			"title": "Balance Columns",
+			"subtitle": "Paneru",
+			"description": "Make all columns in the strip match the focused window's width.",
+			"mode": "no-view",
+			"keywords": [
+				"balance",
+				"equal",
+				"width",
+				"columns"
+			]
+		},
+		{
+			"name": "window-snap",
+			"title": "Snap Window into View",
+			"subtitle": "Paneru",
+			"description": "Resize and reposition an overflowing window to fit the visible viewport.",
+			"mode": "no-view",
+			"keywords": [
+				"snap",
+				"fit",
+				"viewport",
+				"overflow"
+			]
+		},
+		{
+			"name": "window-stack",
+			"title": "Stack Window",
+			"subtitle": "Paneru",
+			"description": "Stack the focused window onto the column to its left.",
+			"mode": "no-view",
+			"keywords": [
+				"stack",
+				"column",
+				"merge"
+			]
+		},
+		{
+			"name": "window-unstack",
+			"title": "Unstack Window",
+			"subtitle": "Paneru",
+			"description": "Pull the focused window out of its stack into its own column.",
+			"mode": "no-view",
+			"keywords": [
+				"unstack",
+				"column",
+				"split"
+			]
+		},
+		{
+			"name": "window-equalize",
+			"title": "Equalize Stack Heights",
+			"subtitle": "Paneru",
+			"description": "Give all windows in the focused stack equal height.",
+			"mode": "no-view",
+			"keywords": [
+				"equalize",
+				"equal",
+				"height",
+				"stack"
+			]
+		},
+		{
+			"name": "window-tabbeddisplay",
+			"title": "Toggle Tabbed Stack",
+			"subtitle": "Paneru",
+			"description": "Toggle the focused stack between split and tabbed display.",
+			"mode": "no-view",
+			"keywords": [
+				"tabbed",
+				"tabs",
+				"stack",
+				"monocle"
+			]
+		},
+		{
+			"name": "window-nextdisplay",
+			"title": "Move Window to Next Display",
+			"subtitle": "Paneru",
+			"description": "Move the focused window to the next display and follow it.",
+			"mode": "no-view",
+			"keywords": [
+				"display",
+				"monitor",
+				"screen",
+				"move",
+				"follow"
+			]
+		},
+		{
+			"name": "window-nextdisplaysend",
+			"title": "Send Window to Next Display",
+			"subtitle": "Paneru",
+			"description": "Move the focused window to the next display but stay here.",
+			"mode": "no-view",
+			"keywords": [
+				"display",
+				"monitor",
+				"screen",
+				"send",
+				"stay"
+			]
+		},
+		{
+			"name": "mouse-nextdisplay",
+			"title": "Move Mouse to Next Display",
+			"subtitle": "Paneru",
+			"description": "Warp the mouse pointer to the next display.",
+			"mode": "no-view",
+			"keywords": [
+				"mouse",
+				"pointer",
+				"cursor",
+				"display",
+				"monitor",
+				"warp"
+			]
+		},
+		{
+			"name": "window-virtual-north",
+			"title": "Switch to Previous Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Switch to the previous virtual workspace row.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"row",
+				"switch",
+				"north",
+				"up",
+				"above",
+				"k"
+			]
+		},
+		{
+			"name": "window-virtual-south",
+			"title": "Switch to Next Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Switch to the next virtual workspace row.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"row",
+				"switch",
+				"south",
+				"down",
+				"below",
+				"j"
+			]
+		},
+		{
+			"name": "window-virtual-first",
+			"title": "Switch to First Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Switch to the first virtual workspace row.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"row",
+				"switch",
+				"first",
+				"start",
+				"leftmost",
+				"home"
+			]
+		},
+		{
+			"name": "window-virtual-last",
+			"title": "Switch to Last Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Switch to the last virtual workspace row.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"row",
+				"switch",
+				"last",
+				"end",
+				"rightmost"
+			]
+		},
+		{
+			"name": "window-virtualfocus-north",
+			"title": "Focus Up or Switch Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Focus the stacked window above, or switch to the previous virtual workspace if there is none.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"focus",
+				"north",
+				"up",
+				"above",
+				"k"
+			]
+		},
+		{
+			"name": "window-virtualfocus-south",
+			"title": "Focus Down or Switch Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Focus the stacked window below, or switch to the next virtual workspace if there is none.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"focus",
+				"south",
+				"down",
+				"below",
+				"j"
+			]
+		},
+		{
+			"name": "window-virtualnum",
+			"title": "Switch to Virtual Workspace…",
+			"subtitle": "Paneru",
+			"description": "Switch directly to a numbered virtual workspace.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"number",
+				"switch",
+				"go"
+			],
+			"arguments": [
+				{
+					"name": "number",
+					"placeholder": "Workspace",
+					"type": "text",
+					"required": true
+				}
+			]
+		},
+		{
+			"name": "window-virtualadd",
+			"title": "New Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Create a new empty virtual workspace after the last one and switch to it.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"add",
+				"new",
+				"create"
+			]
+		},
+		{
+			"name": "window-virtualmove-north",
+			"title": "Move Window to Previous Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Move the focused window to the previous virtual workspace and follow it.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"move",
+				"follow",
+				"north",
+				"up",
+				"above",
+				"k"
+			]
+		},
+		{
+			"name": "window-virtualmove-south",
+			"title": "Move Window to Next Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Move the focused window to the next virtual workspace and follow it.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"move",
+				"follow",
+				"south",
+				"down",
+				"below",
+				"j"
+			]
+		},
+		{
+			"name": "window-virtualmove-first",
+			"title": "Move Window to First Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Move the focused window to the first virtual workspace and follow it.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"move",
+				"follow",
+				"first",
+				"start",
+				"leftmost",
+				"home"
+			]
+		},
+		{
+			"name": "window-virtualmove-last",
+			"title": "Move Window to Last Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Move the focused window to the last virtual workspace and follow it.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"move",
+				"follow",
+				"last",
+				"end",
+				"rightmost"
+			]
+		},
+		{
+			"name": "window-virtualmovenum",
+			"title": "Move Window to Virtual Workspace…",
+			"subtitle": "Paneru",
+			"description": "Move the focused window to a numbered virtual workspace and follow it.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"move",
+				"follow",
+				"number"
+			],
+			"arguments": [
+				{
+					"name": "number",
+					"placeholder": "Workspace",
+					"type": "text",
+					"required": true
+				}
+			]
+		},
+		{
+			"name": "window-virtualsend-north",
+			"title": "Send Window to Previous Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Send the focused window to the previous virtual workspace but stay here.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"send",
+				"stay",
+				"north",
+				"up",
+				"above",
+				"k"
+			]
+		},
+		{
+			"name": "window-virtualsend-south",
+			"title": "Send Window to Next Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Send the focused window to the next virtual workspace but stay here.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"send",
+				"stay",
+				"south",
+				"down",
+				"below",
+				"j"
+			]
+		},
+		{
+			"name": "window-virtualsend-first",
+			"title": "Send Window to First Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Send the focused window to the first virtual workspace but stay here.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"send",
+				"stay",
+				"first",
+				"start",
+				"leftmost",
+				"home"
+			]
+		},
+		{
+			"name": "window-virtualsend-last",
+			"title": "Send Window to Last Virtual Workspace",
+			"subtitle": "Paneru",
+			"description": "Send the focused window to the last virtual workspace but stay here.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"send",
+				"stay",
+				"last",
+				"end",
+				"rightmost"
+			]
+		},
+		{
+			"name": "window-virtualsendnum",
+			"title": "Send Window to Virtual Workspace…",
+			"subtitle": "Paneru",
+			"description": "Send the focused window to a numbered virtual workspace but stay here.",
+			"mode": "no-view",
+			"keywords": [
+				"virtual",
+				"workspace",
+				"send",
+				"stay",
+				"number"
+			],
+			"arguments": [
+				{
+					"name": "number",
+					"placeholder": "Workspace",
+					"type": "text",
+					"required": true
+				}
+			]
+		},
+		{
+			"name": "window-manage",
+			"title": "Toggle Floating",
+			"subtitle": "Paneru",
+			"description": "Toggle the focused window between tiled and floating.",
+			"mode": "no-view",
+			"keywords": [
+				"manage",
+				"float",
+				"floating",
+				"tile",
+				"unmanage"
+			]
+		},
+		{
+			"name": "window-raise-floating",
+			"title": "Raise Floating Windows",
+			"subtitle": "Paneru",
+			"description": "Bring floating windows on this display to the front and focus the last one.",
+			"mode": "no-view",
+			"keywords": [
+				"raise",
+				"floating",
+				"front",
+				"show"
+			]
+		},
+		{
+			"name": "window-togglefloatlayer",
+			"title": "Toggle Floating Layer",
+			"subtitle": "Paneru",
+			"description": "Switch between the floating and tiled layers of this workspace.",
+			"mode": "no-view",
+			"keywords": [
+				"floating",
+				"layer",
+				"toggle",
+				"tiled",
+				"front",
+				"behind"
+			]
+		},
+		{
+			"name": "window-copyrule",
+			"title": "Copy Window Rule",
+			"subtitle": "Paneru",
+			"description": "Copy a [windows] configuration rule template for the focused window.",
+			"mode": "no-view",
+			"keywords": [
+				"copy",
+				"rule",
+				"config",
+				"clipboard",
+				"window rule"
+			]
+		},
+		{
+			"name": "paneru-showmenu",
+			"title": "Show Menu Bar Item",
+			"subtitle": "Paneru",
+			"description": "Show the Paneru menu bar item and remember the choice.",
+			"mode": "no-view",
+			"keywords": [
+				"menu",
+				"menubar",
+				"show",
+				"status"
+			]
+		},
+		{
+			"name": "paneru-hidemenu",
+			"title": "Hide Menu Bar Item",
+			"subtitle": "Paneru",
+			"description": "Hide the Paneru menu bar item and remember the choice.",
+			"mode": "no-view",
+			"keywords": [
+				"menu",
+				"menubar",
+				"hide",
+				"status"
+			]
+		},
+		{
+			"name": "paneru-printstate",
+			"title": "Print Debug State",
+			"subtitle": "Paneru",
+			"description": "Print Paneru's internal ECS state to its debug log.",
+			"mode": "no-view",
+			"keywords": [
+				"debug",
+				"state",
+				"log",
+				"print"
+			]
+		},
+		{
+			"name": "paneru-restart",
+			"title": "Restart Paneru",
+			"subtitle": "Paneru",
+			"description": "Restart the Paneru service.",
+			"mode": "no-view",
+			"keywords": [
+				"restart",
+				"reload",
+				"service"
+			]
+		},
+		{
+			"name": "paneru-quit",
+			"title": "Quit Paneru",
+			"subtitle": "Paneru",
+			"description": "Quit Paneru.",
+			"mode": "no-view",
+			"keywords": [
+				"quit",
+				"exit",
+				"stop"
+			]
+		}
+	],
+	"preferences": [
+		{
+			"name": "paneruPath",
+			"title": "Paneru Binary",
+			"description": "Path to the paneru executable. Leave empty to search PATH, Homebrew, Cargo and Nix locations.",
+			"type": "textfield",
+			"required": false,
+			"placeholder": "/opt/homebrew/bin/paneru"
+		}
+	],
+	"scripts": {
+		"generate": "node scripts/generate.mts",
+		"build": "npm run generate && vici build",
+		"dev": "npm run generate && vici develop",
+		"format": "biome format --write src scripts",
+		"lint": "vici lint",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@vicinae/api": "^0.30.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.2",
+		"@types/node": "^26.6.6",
+		"typescript": "^5.9.2"
+	}
+}
