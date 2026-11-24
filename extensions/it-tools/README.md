@@ -1,6 +1,6 @@
 # IT Tools
 
-> Access 469+ developer and IT tools directly from Vicinae
+> Access 483+ developer and IT tools directly from Vicinae
 
 Browse and quickly open a comprehensive collection of IT tools including encoders, decoders, converters, formatters, generators, and utilities for everyday development tasks.
 
@@ -10,7 +10,7 @@ This tool is built on top of https://github.com/sharevb/it-tools, which is a for
 
 ## Features
 
-- **469+ Tools**: Access a vast collection of developer utilities
+- **483+ Tools**: Access a vast collection of developer utilities
 - **Quick Search**: Find tools instantly with keyword-based search
 - **Flexible Configuration**: Use the public IT-tools.tech or your own self-hosted instance
 - **One-Click Access**: Open any tool directly in your browser
@@ -58,6 +58,7 @@ The tools list is maintained in `src/tools-data.json`. To update it with the lat
 2. Open browser console
 3. Run the extraction script (see below) in your console.
 4. Update `src/tools-data.json` with the results
+5. Run `npm run format` so the pasted JSON matches the repo formatting
 
 ```js
 (() => {
