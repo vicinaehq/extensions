@@ -1,0 +1,16 @@
+/node_modules/
+/dist/
+/coverage/
+/vicinae-env.d.ts
+*.tsbuildinfo
+*.log
+
+# Local VPN profiles and credentials
+.env
+.env.*
+!.env.example
+*.ovpn
+*.key
+*.pem
+*.p12
+*.pfx
