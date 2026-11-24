@@ -1,17 +1,17 @@
-import { mkdir, readFile, writeFile } from "fs/promises";
-import { dirname } from "path";
-import { handleError } from "./global-utils";
-import { OutputConfigUpdate } from "./types";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import {
   ensureActiveInclude,
   findActiveOutputBlocks,
   findSingleActiveOutputBlock,
   formatNewOutputBlock,
-  getMonitorsConfigPath,
+  getMonitorsConfigTarget,
   getNiriConfigPath,
   setBareLine,
   setValueLine,
 } from "./config-utils";
+import { handleError } from "./global-utils";
+import type { OutputConfigUpdate } from "./types";
 
 const HEADER_COMMENT =
   "// This file is generated and managed by the Vicinae Niri Monitors extension.\n\n";
@@ -22,7 +22,6 @@ export async function upsertOutputConfig(
 ): Promise<boolean> {
   try {
     const configPath = getNiriConfigPath();
-    const monitorsPath = getMonitorsConfigPath();
 
     let mainConfig = "";
     try {
@@ -30,6 +29,9 @@ export async function upsertOutputConfig(
     } catch {
       mainConfig = "";
     }
+
+    const monitorsTarget = getMonitorsConfigTarget(mainConfig);
+    const monitorsPath = monitorsTarget.configPath;
 
     let monitorsConfig = "";
     try {
@@ -41,7 +43,10 @@ export async function upsertOutputConfig(
     let mainConfigModified = false;
 
     // 1. Ensure active include directive in main config
-    const includeResult = ensureActiveInclude(mainConfig);
+    const includeResult = ensureActiveInclude(
+      mainConfig,
+      monitorsTarget.includePath,
+    );
     if (includeResult.modified) {
       mainConfig = includeResult.config;
       mainConfigModified = true;
