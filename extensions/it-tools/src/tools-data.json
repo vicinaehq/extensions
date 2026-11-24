@@ -307,6 +307,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2210%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M15%208h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2012h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2016h10%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Sound Tester",
+			"path": "sound-tester",
+			"description": "Test your speakers and headphones by playing test sounds. Adjust volume and check for audio clarity.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%208a3%203%200%200%201%200%206%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%208v11a1%201%200%200%201-1%201H8a1%201%200%200%201-1-1v-5%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%208h0l4.524-3.77A.9.9%200%200%201%2018%204.922v12.156a.9.9%200%200%201-1.476.692L12%2014H4a1%201%200%200%201-1-1V9a1%201%200%200%201%201-1h8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "TCPDump Generator",
 			"path": "tcpdump-generator",
 			"description": "Generate tcpdump command line",
@@ -529,6 +535,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M19%204v16H7a2%202%200%200%201-2-2V6a2%202%200%200%201%202-2h12z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19%2016H7a2%202%200%200%200-2%202%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%208h6%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "CLI Banner Generator",
+			"path": "cli-banner-generator",
+			"description": "Generate ASCII banners, Message of the Day (MOTD) for your CLI applications, terminal or router.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%209l3%203l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%2015h3%22%3E%3C%2Fpath%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%3E%3C%2Frect%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Distinct Words",
 			"path": "distinct-words",
 			"description": "Extract and count occurences of each unique word in a text",
@@ -745,6 +757,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11%203h10v8h-3l-4%202v-2h-3z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4a1%201%200%200%201-1%201H6a1%201%200%200%201-1-1V6a1%201%200%200%201%201-1h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2018v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Whitespace Cleaner",
+			"path": "whitespace-cleaner",
+			"description": "Clean terminal and Claude Code output: strip line numbers, ANSI codes, box drawing, bullet markers, diff markers, and extra whitespace.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M17%2015l4%204m0-4l-4%204%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%206V5h11v1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2019h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M13%205L9%2019%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Zalgo Generator/Banner",
 			"path": "zalgo",
 			"description": "Generate Zalgo text and clean zalgo generated text",
@@ -755,6 +773,24 @@
 			"path": "amortization-calculator",
 			"description": "Calculate loan amortization schedules with monthly payment breakdowns",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%205H7a2%202%200%200%200-2%202v12a2%202%200%200%200%202%202h10a2%202%200%200%200%202-2V7a2%202%200%200%200-2-2h-2%22%3E%3C%2Fpath%3E%3Crect%20x%3D%229%22%20y%3D%223%22%20width%3D%226%22%20height%3D%224%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M14%2011h-2.5a1.5%201.5%200%200%200%200%203h1a1.5%201.5%200%200%201%200%203H10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v1m0-8v1%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Analog scaling calculator",
+			"path": "analog-scaling-calculator",
+			"description": "Scale a raw PLC analog value (Siemens 0-27648, Schneider 0-10000, 12/15/16 bits...) into an engineering value and back.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%226%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M4%206h8%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%206h4%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%228%22%20cy%3D%2212%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M4%2012h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2012h10%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2218%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M4%2018h11%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19%2018h1%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "4-20 mA converter",
+			"path": "current-loop-4-20ma-converter",
+			"description": "Convert a 4-20 mA (or 0-20 mA) current into an engineering value and back, with NAMUR NE 43 loop diagnostic.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M13.41%2010.59L16%208%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2012a5%205%200%200%201%205-5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "0-10 V converter",
+			"path": "voltage-0-10v-converter",
+			"description": "Convert a 0-10 V, 2-10 V, 0-5 V, 1-5 V or ±10 V voltage into an engineering value and back.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M13%203v7h6l-8%2011v-7H5l8-11%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "ANSI Escape Tester",
@@ -1225,6 +1261,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20width%3D%221.2em%22%20height%3D%221.2em%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M17%207h5v10h-5v2a1%201%200%200%200%201%201h2v2h-2.5c-.55%200-1.5-.45-1.5-1c0%20.55-.95%201-1.5%201H12v-2h2a1%201%200%200%200%201-1V5a1%201%200%200%200-1-1h-2V2h2.5c.55%200%201.5.45%201.5%201c0-.55.95-1%201.5-1H20v2h-2a1%201%200%200%200-1%201zM2%207h11v2H4v6h9v2H2zm18%208V9h-3v6zM8.5%2012A1.5%201.5%200%200%200%207%2010.5A1.5%201.5%200%200%200%205.5%2012A1.5%201.5%200%200%200%207%2013.5A1.5%201.5%200%200%200%208.5%2012m4.5-1.11c-.61-.56-1.56-.51-2.12.11c-.56.6-.51%201.55.12%202.11c.55.52%201.43.52%202%200z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Ping",
+			"path": "ping",
+			"description": "Ping a set of hostname, IPs, CIDR or IP range",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13%2012v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2021h18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2021V5a2%202%200%200%201%202-2h6m4%2010.5V21%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M21%207h-7m3-3l-3%203l3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Port Numbers",
 			"path": "port-numbers",
 			"description": "Search for assigned usage of a given port and protocol",
@@ -1253,6 +1295,12 @@
 			"path": "random-port-generator",
 			"description": "Generate random port numbers outside of the range of \"known\" ports (0-1023).",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%228%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%2218%22%20height%3D%228%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%208v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2016v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Restic Command Generator",
+			"path": "restic-command-generator",
+			"description": "Generate restic CLI commands to restore a Backrest or plain restic repository: a whole snapshot, only some files, or a browsable mount.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%3E%3C%2Fellipse%3E%3Cpath%20d%3D%22M4%206v8m5.009.783c.924.14%201.933.217%202.991.217c4.418%200%208-1.343%208-3V6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M11.252%2020.987c.246.009.496.013.748.013c4.418%200%208-1.343%208-3v-6M2%2019h7m-3-3l3%203l-3%203%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Rsync Generator",
@@ -1303,6 +1351,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2217%22%20r%3D%222%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M7%2018h8m4%200h2v-6a5%205%200%200%200-5-5h-1l1.5%205H21%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2018V7h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%2017v-5h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M3%209l18-6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%2012V8%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "URL Redirection Checker",
+			"path": "url-redirection-checker",
+			"description": "Check if a URL redirects to another URL.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2010l3-3l3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2014l3%203l3-3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Visual Subnet Calculator",
 			"path": "visual-subnet-calculator",
 			"description": "A tool for quickly designing networks and collaborating on that design with others. It focuses on expediting the work of network administrators, not academic subnetting math.",
@@ -1336,12 +1390,6 @@
 			"name": "ZPOOL RAID calculator",
 			"path": "zpool-calculator",
 			"description": "Determine the usable capacity and other metrics of a ZFS storage pool and compare layouts including stripe, mirror, RAIDZ1, RAIDZ2, RAIDZ3, and dRAID.",
-			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
-		},
-		{
-			"name": "ZPool Cheatsheet",
-			"path": "zpool-memo",
-			"description": "OpenZFS/ZPool usage commands and info",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
@@ -1385,6 +1433,12 @@
 			"path": "barcode-reader",
 			"description": "Barcode reader",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%207V6a2%202%200%200%201%202-2h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2017v1a2%202%200%200%200%202%202h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%204h2a2%202%200%200%201%202%202v1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2020h2a2%202%200%200%200%202-2v-1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2011h1v2H5z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2011v2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2011h1v2h-1z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19%2011v2%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "EPC QRCode Generator",
+			"path": "epc-qrcode-generator",
+			"description": "Generate an European Payments Council (EPC) QR Code for initiating a SEPA credit transfer",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%205H7a2%202%200%200%200-2%202v12a2%202%200%200%200%202%202h10a2%202%200%200%200%202-2V7a2%202%200%200%200-2-2h-2%22%3E%3C%2Fpath%3E%3Crect%20x%3D%229%22%20y%3D%223%22%20width%3D%226%22%20height%3D%224%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M14%2011h-2.5a1.5%201.5%200%200%200%200%203h1a1.5%201.5%200%200%201%200%203H10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v1m0-8v1%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "GTIN Validator",
@@ -1681,10 +1735,22 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2012v3a1%201%200%200%201-1%201H4a1%201%200%200%201-1-1V5a1%201%200%200%201%201-1h9%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M17%204h4v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%209l5-5%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "ZPool Cheatsheet",
+			"path": "zpool-memo",
+			"description": "OpenZFS/ZPool usage commands and info",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2020h10%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M9%2016v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M15%2016v4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Binary Calculator",
 			"path": "binary-calculator",
 			"description": "Calculate bitwise/binary operations (AND, OR, XOR, NOT, shifts) between two numbers",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%224%22%20y%3D%223%22%20width%3D%2216%22%20height%3D%2218%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Crect%20x%3D%228%22%20y%3D%227%22%20width%3D%228%22%20height%3D%223%22%20rx%3D%221%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M8%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2014v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2017v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2017v.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2017v.01%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Fraction Decimal Converter",
+			"path": "fraction-decimal-converter",
+			"description": "Convert fractions to decimals and vice versa including inches and metric conversions.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2012h18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%203v18%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16.5%204.5l3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M19.5%204.5l-3%203%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M6%204v4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%206h4%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2016h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M18%2020h.01%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2018h4%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Math evaluator",
@@ -1961,6 +2027,12 @@
 			"path": "ocr-image",
 			"description": "Perform OCR (Tesseract) on an image or PDF",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%207V6a2%202%200%200%201%202-2h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4%2017v1a2%202%200%200%200%202%202h2%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%204h2a2%202%200%200%201%202%202v1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2020h2a2%202%200%200%200%202-2v-1%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M5%2012h14%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "Paste Image",
+			"path": "paste-image",
+			"description": "Paste an image from your clipboard, convert it to PNG, JPEG, or WebP, and download it.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M15%208h.01%22%3E%3C%2Fpath%3E%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%223%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M4%2015l4-4a3%205%200%200%201%203%200l5%205%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2014l1-1a3%205%200%200%201%203%200l2%202%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "Image to SVG (potrace)",
@@ -2617,6 +2689,12 @@
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2015V9l2%202l2-2v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2013l2%202l2-2m-2%202V9%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 		},
 		{
+			"name": "Format Converter",
+			"path": "markdown-format-converter",
+			"description": "Convert between standard Markdown, Obsidian, Logseq, Slack, Jira, and other formats.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%3E%3C%2Frect%3E%3Cpath%20d%3D%22M7%2015V9l2%202l2-2v6%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M14%2013l2%202l2-2m-2%202V9%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
 			"name": "Markdown Lorem Ipsum",
 			"path": "markdown-lorem-ipsum",
 			"description": "Generate Lorem Ipsum in markdown",
@@ -2735,6 +2813,12 @@
 			"path": "objgen-html",
 			"description": "Generate xomplex HTML from TOML like syntax",
 			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%204H5v16h3%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%204h3v16h-3%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+		},
+		{
+			"name": "XML diff",
+			"path": "xml-diff",
+			"description": "Compare two XML documents and get the differences between them.",
+			"icon": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M9.01%2014H3c-.55%200-1%20.45-1%201s.45%201%201%201h6.01v1.79c0%20.45.54.67.85.35l2.78-2.79c.19-.2.19-.51%200-.71l-2.78-2.79c-.31-.32-.85-.09-.85.35V14zm5.98-2.21V10H21c.55%200%201-.45%201-1s-.45-1-1-1h-6.01V6.21c0-.45-.54-.67-.85-.35l-2.78%202.79c-.19.2-.19.51%200%20.71l2.78%202.79a.5.5%200%200%200%20.85-.36z%22%20fill%3D%22currentColor%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E"
 		},
 		{
 			"name": "XML formatter",
