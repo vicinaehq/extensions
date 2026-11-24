@@ -1,0 +1,93 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "gif-selector",
+  "title": "GIF Selector",
+  "description": "Search Klipy and/or Giphy for GIFs and copy them directly to your clipboard",
+  "categories": [
+    "Media",
+    "Fun"
+  ],
+  "license": "MIT",
+  "author": "RealThanosP",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "gif-selector",
+      "title": "Search GIFs",
+      "subtitle": "Giphy & Klipy",
+      "description": "Search for GIFs and copy them to your clipboard",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "provider",
+      "title": "GIF Provider",
+      "description": "Select whether to use Giphy or Klipy by default.",
+      "type": "dropdown",
+      "required": false,
+      "default": "klipy",
+      "data": [
+        {
+          "title": "Klipy",
+          "value": "klipy"
+        },
+        {
+          "title": "Giphy",
+          "value": "giphy"
+        }
+      ]
+    },
+    {
+      "name": "klipyApiKey",
+      "title": "Klipy API Key",
+      "description": "Your Klipy API key. Get one for free at https://klipy.com/developers",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "giphyApiKey",
+      "title": "Giphy API Key",
+      "description": "Your Giphy API key. Get one at https://developers.giphy.com",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "previewQuality",
+      "title": "Preview Quality",
+      "description": "Choose the GIF preview quality in the details panel. Lower quality loads faster.",
+      "type": "dropdown",
+      "required": false,
+      "default": "medium",
+      "data": [
+        {
+          "title": "Low (Fastest)",
+          "value": "low"
+        },
+        {
+          "title": "Medium (Balanced)",
+          "value": "medium"
+        },
+        {
+          "title": "High (Best Quality)",
+          "value": "high"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.21.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
