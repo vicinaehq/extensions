@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "screenshots",
+  "title": "Screenshots",
+  "description": "Browse screenshots in a directory as a grid, paste them into the active app or copy them to the clipboard. The floating full-size preview requires Hyprland and imv.",
+  "categories": ["Media", "Productivity"],
+  "license": "MIT",
+  "author": "prdlk",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "search-screenshots",
+      "title": "Search Screenshots",
+      "description": "Search, preview, paste or copy screenshots from your screenshots directory",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "screenshotsDirectory",
+      "title": "Screenshots Directory",
+      "description": "Directory to search for PNG, JPEG and WebP screenshots. A leading ~ is expanded to your home directory.",
+      "type": "directory",
+      "default": "~/Pictures/Screenshots",
+      "required": false
+    },
+    {
+      "name": "columns",
+      "title": "Grid Columns",
+      "description": "Screenshots per row. Fewer columns give larger previews.",
+      "type": "dropdown",
+      "default": "2",
+      "required": false,
+      "data": [
+        { "title": "2", "value": "2" },
+        { "title": "3", "value": "3" },
+        { "title": "4", "value": "4" }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.30.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@biomejs/biome": "2.3.2"
+  }
+}
