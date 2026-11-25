@@ -1,6 +1,6 @@
 # OpenVPN 3 for Vicinae
 
-Manage an OpenVPN 3 Linux profile from the Vicinae launcher. The `openvpn3` executable must be on Vicinae’s `PATH`, and your desktop must be able to open a browser for SSO profiles. Profiles that require terminal prompts are not supported.
+An unofficial Vicinae integration for OpenVPN 3 Linux. The `openvpn3` executable must be on Vicinae’s `PATH`, and your desktop must be able to open a browser for SSO profiles. Profiles that require terminal prompts are not supported.
 
 1. **Configure**: enter an absolute file path or a `~/` path to your OpenVPN configuration. The extension stores the path locally, not the profile contents.
 2. **Connect**: starts that profile and lets OpenVPN 3 open the browser if authentication is required. Complete sign-in there. The extension checks the session before reporting that it is connected.
