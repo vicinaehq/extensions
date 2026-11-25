@@ -14,20 +14,23 @@ export default async function Connect() {
     if (!profile) throw new Error("Run Configure first to set your VPN profile.");
 
     const result = await connectProfile(await validateProfile(profile));
-    toast.style = Toast.Style.Success;
     toast.message = undefined;
     switch (result) {
       case "connected":
+        toast.style = Toast.Style.Success;
         toast.title = "VPN connected";
         break;
       case "already-connected":
+        toast.style = Toast.Style.Success;
         toast.title = "VPN already connected";
         break;
       case "already-active":
-        toast.title = "VPN session already exists";
+        toast.style = Toast.Style.Failure;
+        toast.title = "VPN session exists but is not yet connected";
         toast.message = "Use Show Status to check its state.";
         break;
       case "pending":
+        toast.style = Toast.Style.Failure;
         toast.title = "VPN connection not yet confirmed";
         toast.message = "Finish browser authentication and check Show Status.";
         break;
