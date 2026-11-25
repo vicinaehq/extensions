@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="0 0 92 92">
+  <!-- Left: a filled outer semicircle with a transparent inner semicircle. -->
+  <path fill="#000" d="M46 0a46 46 0 0 0 0 92V69a23 23 0 0 1 0-46Z"/>
+  <!-- Right: the inner semicircle and a four-unit inner edge on the outer ring. -->
+  <path fill="#000" d="M46 23a23 23 0 0 1 0 46Z"/>
+  <path fill="#000" d="M46 0a46 46 0 0 1 0 92v-4a42 42 0 0 0 0-84Z"/>
+</svg>
