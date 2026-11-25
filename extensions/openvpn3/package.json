@@ -1,0 +1,54 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "openvpn3",
+  "title": "OpenVPN 3",
+  "description": "Connect, disconnect, and inspect OpenVPN 3 Linux sessions.",
+  "categories": [],
+  "license": "MIT",
+  "author": "afkdev8",
+  "contributors": [],
+  "pastContributors": [],
+  "icon": "extension_icon.png",
+  "commands": [
+    {
+      "name": "connect",
+      "title": "Connect",
+      "description": "Connect using the configured OpenVPN profile.",
+      "mode": "no-view"
+    },
+    {
+      "name": "disconnect",
+      "title": "Disconnect",
+      "description": "Disconnect the configured OpenVPN profile.",
+      "mode": "no-view"
+    },
+    {
+      "name": "status",
+      "title": "Show Status",
+      "description": "Show the configured VPN state and all OpenVPN 3 sessions.",
+      "mode": "view"
+    },
+    {
+      "name": "configure",
+      "title": "Configure",
+      "description": "Set the path to your OpenVPN profile.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "format": "biome format --write src",
+    "lint": "vici lint",
+    "test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.30.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.2",
+    "@types/node": "^24.19.2",
+    "typescript": "^5.9.2"
+  }
+}
