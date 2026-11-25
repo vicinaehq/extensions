@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "dark-mode-switcher",
   "title": "Dark Mode Switcher",
-  "description": "An extension to quickly switch between dark and light system appearance.",
+  "description": "Quickly switch system appearance on macOS and Linux desktops that honor GNOME's color-scheme setting.",
   "categories": [],
   "license": "MIT",
   "platforms": [
@@ -22,7 +22,7 @@
         "light",
         "theme"
       ],
-      "description": "Switch between dark and light system appearance",
+      "description": "Switch system appearance on macOS and Linux desktops that honor GNOME's color-scheme setting",
       "mode": "no-view"
     }
   ],
