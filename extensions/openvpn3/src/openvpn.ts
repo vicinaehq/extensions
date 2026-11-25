@@ -111,12 +111,25 @@ export async function connectProfile(
   return "pending";
 }
 
-export async function disconnectProfile(profile: string, run: Run = runOpenVPN): Promise<boolean> {
+export async function disconnectProfile(
+  profile: string,
+  run: Run = runOpenVPN,
+  wait: () => Promise<void> = () => sleep(1000),
+  attempts = 15,
+): Promise<"already-disconnected" | "disconnected" | "pending"> {
   const matching = (await listSessions(run)).sessions.filter((session) => session.profile === profile);
-  if (!matching.length) return false;
+  if (!matching.length) return "already-disconnected";
   if (matching.length > 1) {
     throw new Error("Multiple sessions match this profile. Use Show Status to find the session to disconnect in a terminal.");
   }
-  await run(["session-manage", "--disconnect", "--session-path", matching[0].path]);
-  return true;
+  const { path } = matching[0];
+  await run(["session-manage", "--disconnect", "--session-path", path]);
+
+  // session-manage acknowledges the request before the session is removed.
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    if (attempt > 0) await wait();
+    const { sessions } = await listSessions(run);
+    if (!sessions.some((session) => session.path === path)) return "disconnected";
+  }
+  return "pending";
 }

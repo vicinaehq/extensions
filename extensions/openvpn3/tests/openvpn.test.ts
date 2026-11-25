@@ -69,9 +69,21 @@ test("connect surfaces CLI failure, browser launch failure, and vanished session
 test("disconnect uses only the configured session path and refuses ambiguous matches", async () => {
   const own = session(path, profile, connected);
   const other = session(otherPath, "other", connected);
-  assert.equal(await disconnectProfile(profile, mock([list, other + own], [disconnect, ""])), true);
-  assert.equal(await disconnectProfile(profile, mock([list, other])), false);
+  let waits = 0;
+  const run = mock([list, other + own], [disconnect, "Initiated session shutdown."],
+    [list, other + own], [list, other]);
+  assert.equal(await disconnectProfile(profile, run, async () => { waits++; }, 2), "disconnected");
+  assert.equal(waits, 1);
+  assert.equal(await disconnectProfile(profile, mock([list, other])), "already-disconnected");
   await assert.rejects(disconnectProfile(profile, mock([list, own + session(otherPath, profile, connected)])), /Multiple sessions/);
+});
+
+test("disconnect does not report success if the target session is still present or cannot be checked", async () => {
+  const own = session(path, profile, connected);
+  assert.equal(await disconnectProfile(profile, mock([list, own], [disconnect, ""], [list, own]),
+    noWait, 1), "pending");
+  await assert.rejects(disconnectProfile(profile, mock([list, own], [disconnect, ""],
+    [list, new Error("status unavailable")])), /status unavailable/);
 });
 
 test("profile validation rejects relative paths, directories, and missing files", async () => {
