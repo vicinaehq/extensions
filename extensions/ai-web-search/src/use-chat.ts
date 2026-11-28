@@ -20,6 +20,7 @@ import {
 	createInlineDraft,
 	deidentifyForWeb,
 	getDaemonStatus,
+	unifiedQuery,
 } from "./daemon";
 import {
 	clearChatThreads,
@@ -161,17 +162,14 @@ export function useChatController(options: {
 			const screenContext =
 				turnOptions?.screenContext ??
 				(mode === "regenerate" ? prevLatest?.screenContext : undefined);
-			const localDocs =
+			let localDocs =
 				turnOptions?.localDocs ??
 				(mode === "regenerate" || mode === "followup" ? prevLatest?.localDocs : undefined);
-			const localMessages =
+			let localMessages =
 				turnOptions?.localMessages ??
 				(mode === "regenerate" || mode === "followup" ? prevLatest?.localMessages : undefined);
 
 			const useWeb = turnOptions?.useWeb ?? screenContext === undefined;
-			const sensitivity = highestSensitivity(localDocs ?? [], localMessages ?? []);
-			const hasPrivateData = sensitivity === "private_local";
-
 			let activeThread: ChatThread;
 			let priorChronological: ConversationTurn[] = [];
 			let turnId: string;
@@ -218,6 +216,30 @@ export function useChatController(options: {
 
 			try {
 				let ollamaHealth = turnOptions?.ollama;
+				if (!screenContext && !localDocs && !localMessages && mode !== "followup") {
+					const unified = await unifiedQuery(query, 6);
+					if (controller.signal.aborted || !mountedRef.current) return;
+					if (unified) {
+						if (unified.docs.length > 0) localDocs = unified.docs;
+						if (unified.messages.length > 0) localMessages = unified.messages;
+						ollamaHealth = ollamaHealth ?? unified.ollama;
+						if (localDocs?.length || localMessages?.length) {
+							updateTurnById(
+								turnId,
+								(t) => ({
+									...t,
+									localDocs,
+									localMessages,
+								}),
+								false,
+							);
+						}
+					}
+				}
+
+				const sensitivity = highestSensitivity(localDocs ?? [], localMessages ?? []);
+				const hasPrivateData = sensitivity === "private_local";
+
 				if (hasPrivateData && !ollamaHealth) {
 					ollamaHealth = (await getDaemonStatus())?.ollama;
 				}

@@ -129,7 +129,7 @@ export async function unifiedQuery(
 			drafts?: DraftRecord[];
 			max_sensitivity?: string;
 			ollama?: OllamaHealth;
-		}>({ op: "unified_query", query, limit }, 1200);
+		}>({ op: "unified_query", query, limit }, 4000);
 		if (resp.status === "unified_results" && resp.ollama) {
 			return {
 				docs: resp.docs ?? [],
