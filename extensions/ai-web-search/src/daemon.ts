@@ -20,13 +20,56 @@ export interface DocumentHit {
 	score: number;
 }
 
+export interface MessageHit {
+	id: string;
+	connector: string;
+	chat_or_folder: string;
+	thread_id: string;
+	sender: string;
+	subject: string;
+	sent_at: number;
+	sensitivity: string;
+	snippet: string;
+	attachments: string[];
+	score: number;
+}
+
+export interface DraftRecord {
+	draft_id: string;
+	connector: string;
+	to: string[];
+	cc: string[];
+	subject: string;
+	body: string;
+	attachments: string[];
+	reply_to_message_id?: string | null;
+	status: string;
+	created_at: number;
+	expires_at: number;
+	sent_message_id?: string | null;
+}
+
+export interface PendingApprovalEntry {
+	draft: DraftRecord;
+	challenge?: string | null;
+}
+
+export interface SendOutcomePayload {
+	draft_id: string;
+	outcome: string;
+	sent_message_id?: string | null;
+}
+
 export interface DaemonStatus {
 	daemonRunning: boolean;
 	pid?: number;
+	emailEnabled?: boolean;
+	emailAddress?: string | null;
 	stats: {
 		document_count: number;
 		chunk_count: number;
 		message_count: number;
+		pending_drafts_count: number;
 		db_size_bytes: number;
 	};
 	roots?: string[];
@@ -37,7 +80,7 @@ function getSocketPath(): string {
 	return join(runtime, "omafind.sock");
 }
 
-function sendIpcRequest<T>(payload: Record<string, unknown>, timeoutMs = 1500): Promise<T> {
+function sendIpcRequest<T>(payload: Record<string, unknown>, timeoutMs = 2000): Promise<T> {
 	return new Promise((resolve, reject) => {
 		const sock = net.createConnection(getSocketPath());
 		let buf = "";
@@ -105,7 +148,7 @@ export async function searchPersonalDocuments(
 			return resp.hits;
 		}
 	} catch {
-		// Fall through to direct CLI FTS5 lookup if daemon socket is unavailable
+		// Fall through to direct CLI FTS5 lookup
 	}
 
 	const args = ["search", query, "--json", "--include-private", "--limit", String(options?.limit ?? 25)];
@@ -117,11 +160,92 @@ export async function searchPersonalDocuments(
 	return Array.isArray(parsed.hits) ? parsed.hits : [];
 }
 
+export async function searchPersonalMessages(
+	query: string,
+	options?: { connector?: string; limit?: number },
+): Promise<MessageHit[]> {
+	try {
+		const resp = await sendIpcRequest<{
+			status: string;
+			hits?: MessageHit[];
+		}>({
+			op: "search_messages",
+			query,
+			connector: options?.connector ?? null,
+			sender: null,
+			since_ts: null,
+			allow_private: true,
+			limit: options?.limit ?? 20,
+		});
+		if (resp.status === "message_results" && Array.isArray(resp.hits)) {
+			return resp.hits;
+		}
+	} catch {
+		// Ignore when daemon offline
+	}
+	return [];
+}
+
+export async function listPendingApprovals(): Promise<PendingApprovalEntry[]> {
+	try {
+		const resp = await sendIpcRequest<{
+			status: string;
+			entries?: PendingApprovalEntry[];
+			message?: string;
+		}>({ op: "list_pending_approvals" }, 2000);
+		if (resp.status === "pending_approvals" && Array.isArray(resp.entries)) {
+			return resp.entries;
+		}
+		if (resp.status === "error" && resp.message) {
+			throw new Error(resp.message);
+		}
+	} catch {
+		const { stdout } = await execFileAsync("omafind", ["drafts", "list", "--json"], {
+			timeout: 3000,
+		});
+		const parsed = JSON.parse(stdout) as { drafts?: DraftRecord[] };
+		return (parsed.drafts ?? []).map((draft) => ({ draft, challenge: null }));
+	}
+	return [];
+}
+
+export async function resolveDraft(
+	draftId: string,
+	approve: boolean,
+	challenge?: string | null,
+): Promise<SendOutcomePayload> {
+	const resp = await sendIpcRequest<{
+		status: string;
+		draft_id?: string;
+		outcome?: string;
+		sent_message_id?: string | null;
+		message?: string;
+	}>(
+		{
+			op: "resolve_draft",
+			draft_id: draftId,
+			approve,
+			challenge: challenge ?? null,
+		},
+		25_000,
+	);
+	if (resp.status === "error") {
+		throw new Error(resp.message || "Draft action failed");
+	}
+	return {
+		draft_id: resp.draft_id ?? draftId,
+		outcome: resp.outcome ?? (approve ? "sent" : "discarded"),
+		sent_message_id: resp.sent_message_id ?? null,
+	};
+}
+
 export async function getDaemonStatus(): Promise<DaemonStatus | null> {
 	try {
 		const resp = await sendIpcRequest<{
 			status: string;
 			pid?: number;
+			email_enabled?: boolean;
+			email_address?: string | null;
 			stats?: DaemonStatus["stats"];
 			roots?: string[];
 		}>({ op: "status" }, 800);
@@ -129,6 +253,8 @@ export async function getDaemonStatus(): Promise<DaemonStatus | null> {
 			return {
 				daemonRunning: true,
 				pid: resp.pid,
+				emailEnabled: resp.email_enabled,
+				emailAddress: resp.email_address,
 				stats: resp.stats,
 				roots: resp.roots,
 			};
@@ -154,12 +280,20 @@ export async function triggerReindex(): Promise<string> {
 	return stdout.trim() || "Index updated";
 }
 
+export async function triggerEmailSync(): Promise<string> {
+	const { stdout } = await execFileAsync("omafind", ["sync"], {
+		timeout: 30_000,
+	});
+	return stdout.trim() || "Email synced";
+}
+
 export async function launchAgyHandoff(params: {
 	query?: string;
 	cwd?: string;
 	screenContext?: ScreenContext;
 	thread?: ChatThread;
 	documents?: DocumentHit[];
+	messages?: MessageHit[];
 }): Promise<void> {
 	const runtime = process.env.XDG_RUNTIME_DIR || "/tmp";
 	const tmpCtx = join(runtime, `omafind-vicinae-handoff-${Date.now()}.json`);
@@ -178,15 +312,19 @@ export async function launchAgyHandoff(params: {
 			lines: `${d.start_line}-${d.end_line}`,
 			sensitivity: d.sensitivity,
 		})),
+		selectedMessages: params.messages?.map((m) => ({
+			id: m.id,
+			thread_id: m.thread_id,
+			sender: m.sender,
+			subject: m.subject,
+			sent_at: m.sent_at,
+		})),
 	};
 
 	writeFileSync(tmpCtx, JSON.stringify(payload, null, 2), { encoding: "utf8", mode: 0o600 });
 	chmodSync(tmpCtx, 0o600);
 
-	const cwd =
-		params.cwd ||
-		params.screenContext?.terminal?.cwd ||
-		"";
+	const cwd = params.cwd || params.screenContext?.terminal?.cwd || "";
 	const args = ["handoff", "--context-file", tmpCtx];
 	if (cwd) args.push("--cwd", cwd);
 	if (payload.query) args.push("--query", payload.query);

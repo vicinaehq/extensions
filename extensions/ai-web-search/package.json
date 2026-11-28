@@ -32,7 +32,13 @@
     {
       "name": "personal",
       "title": "Search Personal Context",
-      "description": "Search full-text contents of indexed Desktop/Documents files, notes, and PDFs locally",
+      "description": "Search full-text contents of indexed Desktop/Documents files, notes, PDFs, and emails locally",
+      "mode": "view"
+    },
+    {
+      "name": "drafts",
+      "title": "Review Drafts",
+      "description": "Review, confirm, or discard pending email drafts before SMTP dispatch",
       "mode": "view"
     }
   ],
