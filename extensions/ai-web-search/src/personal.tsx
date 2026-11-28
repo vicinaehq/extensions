@@ -23,10 +23,11 @@ import {
 } from "./daemon";
 
 const SCOPE_FILTERS = [
-	{ id: "all", title: "All Sources (Files + Email)" },
+	{ id: "all", title: "All Sources (Files + Email + WhatsApp)" },
 	{ id: "desktop", title: "Desktop Only (~/Desktop)" },
 	{ id: "documents", title: "Documents Only (~/Documents)" },
 	{ id: "email", title: "Email Messages Only" },
+	{ id: "whatsapp", title: "WhatsApp Messages Only" },
 	{ id: "markdown", title: "Markdown Notes Only" },
 	{ id: "pdf", title: "PDF Documents Only" },
 ];
@@ -100,8 +101,15 @@ export default function SearchPersonalContextCommand(props: LaunchProps) {
 		setLoading(true);
 		setErrorMsg(null);
 		try {
-			const wantDocs = activeScope !== "email";
-			const wantMsgs = activeScope === "all" || activeScope === "email";
+			const wantDocs = activeScope !== "email" && activeScope !== "whatsapp";
+			const wantMsgs =
+				activeScope === "all" ||
+				activeScope === "email" ||
+				activeScope === "whatsapp";
+			const msgConnector =
+				activeScope === "email" || activeScope === "whatsapp"
+					? activeScope
+					: undefined;
 
 			const pathPrefix =
 				activeScope === "desktop"
@@ -121,7 +129,7 @@ export default function SearchPersonalContextCommand(props: LaunchProps) {
 					? searchPersonalDocuments(q, { pathPrefix, fileTypes, limit: 20 })
 					: Promise.resolve([]),
 				wantMsgs
-					? searchPersonalMessages(q, { connector: "email", limit: 15 })
+					? searchPersonalMessages(q, { connector: msgConnector, limit: 15 })
 					: Promise.resolve([]),
 			]);
 			setDocHits(docsRes);
@@ -259,17 +267,18 @@ export default function SearchPersonalContextCommand(props: LaunchProps) {
 			)}
 
 			{msgHits.length > 0 && (
-				<List.Section title="Email Messages">
+				<List.Section title="Email & WhatsApp">
 					{msgHits.map((msg) => {
 						const isPrivate = msg.sensitivity === "private_local";
 						return (
 							<List.Item
 								key={msg.id}
 								id={`msg:${msg.id}`}
-								title={msg.subject || "(No Subject)"}
+								title={msg.subject || msg.chat_or_folder || "(Message)"}
 								subtitle={msg.sender}
 								icon={{
-									source: Icon.Envelope,
+									source:
+										msg.connector === "whatsapp" ? Icon.SpeechBubble : Icon.Envelope,
 									tintColor: isPrivate ? Color.Orange : Color.Green,
 								}}
 								accessories={[

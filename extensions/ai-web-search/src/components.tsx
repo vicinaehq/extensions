@@ -6,17 +6,20 @@ import {
 	Grid,
 	Icon,
 	List,
+	Toast,
 	openExtensionPreferences,
+	showToast,
 	useNavigation,
 } from "@vicinae/api";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { extractDomain } from "./api";
-import { launchAgyHandoff } from "./daemon";
+import { launchAgyHandoff, resolveDraft } from "./daemon";
 import { getHistoryFilePath } from "./storage";
 import type {
 	ChatThread,
 	ConversationTurn,
+	DraftRecordRef,
 	TavilyImage,
 	TavilyResult,
 	TurnPhase,
@@ -36,20 +39,67 @@ export function formatRelativeTime(timestamp: number): string {
 	return `${diffDay}d ago`;
 }
 
-function renderTurnBody(turn: ConversationTurn): string {
-	if (turn.phase === "searching") return "_Searching web..._";
+function buildMailtoHref(draft: DraftRecordRef): string {
+	const params = new URLSearchParams();
+	params.set("subject", draft.subject);
+	params.set("body", draft.body);
+	if (draft.cc.length > 0) params.set("cc", draft.cc.join(","));
+	return `mailto:${draft.to.join(",")}?${params.toString()}`;
+}
+
+function renderOllamaFallbackMarkdown(turn: ConversationTurn): string {
+	const lines = [
+		`> **Protected Offline (${turn.statusNote ?? "Ollama unavailable"}):** Private email, WhatsApp, or document context matched this query and was kept on your machine.`,
+	];
+	if (turn.localDocs && turn.localDocs.length > 0) {
+		lines.push("### Matched Local Documents");
+		for (const d of turn.localDocs.slice(0, 4)) {
+			lines.push(`* **${d.title}** (\`${d.path}\` L${d.start_line}–${d.end_line})\n  > ${d.snippet.replace(/\n/g, " ")}`);
+		}
+	}
+	if (turn.localMessages && turn.localMessages.length > 0) {
+		lines.push("### Matched Personal Messages");
+		for (const m of turn.localMessages.slice(0, 4)) {
+			lines.push(`* **${m.subject || m.chat_or_folder}** — *${m.sender}*\n  > ${m.snippet.replace(/\n/g, " ")}`);
+		}
+	}
+	lines.push(
+		"\nChoose **Copy Ollama Setup Command** or **Use Cloud Once** in Actions (`Cmd/Ctrl + K`).",
+	);
+	return lines.join("\n\n");
+}
+
+function renderTurnBody(turn: ConversationTurn, draftStateOverride?: string): string {
+	if (turn.needsOllamaFallback) return renderOllamaFallbackMarkdown(turn);
+	if (turn.phase === "searching") return "_Gathering local context & web sources..._";
 	if (turn.errorMsg && !turn.answer) return `> **Error:** ${turn.errorMsg}`;
 	const text =
 		turn.answer || (turn.phase === "synthesizing" ? "_Thinking..._" : "");
-	return turn.errorMsg && turn.answer
-		? `${text}\n\n> **Note:** ${turn.errorMsg}`
-		: text;
+	const base =
+		turn.errorMsg && turn.answer
+			? `${text}\n\n> **Note:** ${turn.errorMsg}`
+			: text;
+
+	if (turn.inlineDraft) {
+		const d = turn.inlineDraft;
+		const st = draftStateOverride ?? d.status;
+		const statusLabel =
+			st === "sent" ? "Sent" : st === "discarded" ? "Discarded" : "Ready to Confirm (`Enter` / `Ctrl+Shift+S`)";
+		return `${base}\n\n---\n### Email Draft · ${statusLabel}\n**To:** ${d.to.join(", ")}  \n**Subject:** ${d.subject}\n\n> ${d.body.split("\n").join("\n> ")}`;
+	}
+	return base;
 }
 
-export function formatThreadMarkdown(turns: ConversationTurn[]): string {
+export function formatThreadMarkdown(
+	turns: ConversationTurn[],
+	draftStateOverride?: string,
+): string {
 	if (turns.length === 0) return "";
 	const [latest, ...previous] = turns;
-	const sections: string[] = [`## ${latest.query}`, renderTurnBody(latest)];
+	const sections: string[] = [
+		`## ${latest.query}`,
+		renderTurnBody(latest, draftStateOverride),
+	];
 
 	if (latest.phase === "done" && latest.images.length > 0) {
 		const thumbs = latest.images
@@ -311,7 +361,7 @@ export function ConversationDetailView(props: {
 	onRunTurn: (
 		query: string,
 		mode: TurnRunMode,
-		opts?: { useWeb?: boolean },
+		opts?: { useWeb?: boolean; forceCloudConsent?: boolean },
 	) => void;
 	onStop: () => void;
 	onSelectThread: (thread: ChatThread) => void;
@@ -323,19 +373,63 @@ export function ConversationDetailView(props: {
 		latest.phase === "searching" || latest.phase === "synthesizing";
 	const status = phaseStatus(latest.phase);
 	const hadWebSearch = latest.results.length > 0;
+	const [draftStatus, setDraftStatus] = useState<string | undefined>(
+		latest.inlineDraft?.status,
+	);
+	useEffect(() => {
+		setDraftStatus(latest.inlineDraft?.status);
+	}, [latest.id, latest.inlineDraft?.status]);
+
+	const inlineDraft = latest.inlineDraft;
+	const draftActionable =
+		inlineDraft && (draftStatus ?? inlineDraft.status) === "pending";
+
+	const handleInlineDraftDecision = async (approve: boolean) => {
+		if (!inlineDraft) return;
+		const toast = await showToast({
+			style: Toast.Style.Animated,
+			title: approve ? "Sending email via SMTP..." : "Discarding draft...",
+		});
+		try {
+			const res = await resolveDraft(inlineDraft.draft_id, approve, null);
+			setDraftStatus(res.outcome);
+			toast.style = Toast.Style.Success;
+			toast.title = approve ? "Email Sent" : "Draft Discarded";
+			toast.message = res.sent_message_id ?? res.outcome;
+		} catch (err) {
+			toast.style = Toast.Style.Failure;
+			toast.title = approve ? "Send Failed" : "Discard Failed";
+			toast.message = err instanceof Error ? err.message : String(err);
+		}
+	};
 
 	return (
 		<Detail
 			isLoading={isLoading}
 			navigationTitle={latest.query}
-			markdown={formatThreadMarkdown(props.thread.turns)}
+			markdown={formatThreadMarkdown(props.thread.turns, draftStatus)}
 			metadata={
 				<Detail.Metadata>
 					<Detail.Metadata.Label title="Status" text={status} />
+					{latest.statusNote && (
+						<Detail.Metadata.Label title="Route" text={latest.statusNote} />
+					)}
 					<Detail.Metadata.Label
 						title="Turns"
 						text={String(props.thread.turns.length)}
 					/>
+					{latest.localDocs && latest.localDocs.length > 0 && (
+						<Detail.Metadata.Label
+							title="Local Files"
+							text={latest.localDocs.slice(0, 2).map((d) => d.title).join(", ")}
+						/>
+					)}
+					{latest.localMessages && latest.localMessages.length > 0 && (
+						<Detail.Metadata.Label
+							title="Messages"
+							text={`${latest.localMessages.length} synced`}
+						/>
+					)}
 					{latest.screenContext?.window && (
 						<Detail.Metadata.Label
 							title="Window"
@@ -378,6 +472,43 @@ export function ConversationDetailView(props: {
 			}
 			actions={
 				<ActionPanel>
+					{draftActionable && inlineDraft && (
+						<>
+							<Action
+								title="Send Email Now"
+								icon={Icon.Envelope}
+								onAction={() => void handleInlineDraftDecision(true)}
+							/>
+							<Action.OpenInBrowser
+								title="Open in Mail Client"
+								url={buildMailtoHref(inlineDraft)}
+							/>
+							<Action
+								title="Discard Draft"
+								icon={Icon.Trash}
+								style={Action.Style.Destructive}
+								onAction={() => void handleInlineDraftDecision(false)}
+							/>
+						</>
+					)}
+					{latest.needsOllamaFallback && (
+						<>
+							<Action.CopyToClipboard
+								title="Copy Ollama Setup Command"
+								content="omarchy pkg add ollama && systemctl --user enable --now ollama && ollama pull qwen2.5:7b && ollama pull nomic-embed-text"
+							/>
+							<Action
+								title="Use Cloud Once (Consent)"
+								icon={Icon.Globe01}
+								onAction={() =>
+									props.onRunTurn(latest.query, "regenerate", {
+										useWeb: hadWebSearch,
+										forceCloudConsent: true,
+									})
+								}
+							/>
+						</>
+					)}
 					<Action.Push
 						title="Ask Follow-up"
 						icon={Icon.SpeechBubble}

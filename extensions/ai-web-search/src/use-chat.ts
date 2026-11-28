@@ -9,9 +9,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	buildSynthesisPrompt,
 	buildTavilyQuery,
+	extractInlineDraftSuggestion,
+	highestSensitivity,
 	searchTavily,
+	streamOllamaSynthesis,
 	streamSynthesis,
 } from "./api";
+import {
+	type OllamaHealth,
+	createInlineDraft,
+	deidentifyForWeb,
+	getDaemonStatus,
+} from "./daemon";
 import {
 	clearChatThreads,
 	deleteChatThread,
@@ -21,7 +30,10 @@ import {
 import type {
 	ChatThread,
 	ConversationTurn,
+	DocumentHitRef,
+	MessageHitRef,
 	Preferences,
+	RouteMode,
 	ScreenContext,
 	TavilyImage,
 	TavilyResult,
@@ -35,6 +47,8 @@ function makeId(prefix: string): string {
 export function createTurn(
 	query: string,
 	screenContext?: ScreenContext,
+	localDocs?: DocumentHitRef[],
+	localMessages?: MessageHitRef[],
 ): ConversationTurn {
 	return {
 		id: makeId("turn"),
@@ -43,6 +57,8 @@ export function createTurn(
 		results: [],
 		images: [],
 		screenContext,
+		localDocs,
+		localMessages,
 		phase: screenContext ? "synthesizing" : "searching",
 		errorMsg: null,
 		createdAt: Date.now(),
@@ -51,8 +67,10 @@ export function createTurn(
 
 export function createThread(
 	query: string,
-	kind: "web" | "screen" = "web",
+	kind: "web" | "screen" | "personal" = "web",
 	screenContext?: ScreenContext,
+	localDocs?: DocumentHitRef[],
+	localMessages?: MessageHitRef[],
 ): ChatThread {
 	const now = Date.now();
 	return {
@@ -61,7 +79,7 @@ export function createThread(
 		kind,
 		createdAt: now,
 		updatedAt: now,
-		turns: [createTurn(query, screenContext)],
+		turns: [createTurn(query, screenContext, localDocs, localMessages)],
 	};
 }
 
@@ -122,7 +140,14 @@ export function useChatController(options: {
 		async (
 			rawQuery: string,
 			mode: TurnRunMode,
-			turnOptions?: { screenContext?: ScreenContext; useWeb?: boolean },
+			turnOptions?: {
+				screenContext?: ScreenContext;
+				useWeb?: boolean;
+				localDocs?: DocumentHitRef[];
+				localMessages?: MessageHitRef[];
+				ollama?: OllamaHealth;
+				forceCloudConsent?: boolean;
+			},
 		) => {
 			const query = rawQuery.trim();
 			if (!query) return;
@@ -132,11 +157,20 @@ export function useChatController(options: {
 			abortRef.current = controller;
 
 			const current = threadRef.current;
+			const prevLatest = current?.turns[0];
 			const screenContext =
 				turnOptions?.screenContext ??
-				(mode === "regenerate" ? current?.turns[0]?.screenContext : undefined);
-			const useWeb =
-				turnOptions?.useWeb ?? (screenContext === undefined);
+				(mode === "regenerate" ? prevLatest?.screenContext : undefined);
+			const localDocs =
+				turnOptions?.localDocs ??
+				(mode === "regenerate" || mode === "followup" ? prevLatest?.localDocs : undefined);
+			const localMessages =
+				turnOptions?.localMessages ??
+				(mode === "regenerate" || mode === "followup" ? prevLatest?.localMessages : undefined);
+
+			const useWeb = turnOptions?.useWeb ?? screenContext === undefined;
+			const sensitivity = highestSensitivity(localDocs ?? [], localMessages ?? []);
+			const hasPrivateData = sensitivity === "private_local";
 
 			let activeThread: ChatThread;
 			let priorChronological: ConversationTurn[] = [];
@@ -148,7 +182,10 @@ export function useChatController(options: {
 			} else if (mode === "regenerate" && current && current.turns.length > 0) {
 				turnId = current.turns[0].id;
 				priorChronological = current.turns.slice(1).reverse();
-				const regenerated = { ...createTurn(query, screenContext), id: turnId };
+				const regenerated = {
+					...createTurn(query, screenContext, localDocs, localMessages),
+					id: turnId,
+				};
 				regenerated.phase = useWeb ? "searching" : "synthesizing";
 				activeThread = {
 					...current,
@@ -157,7 +194,7 @@ export function useChatController(options: {
 				};
 			} else if (mode === "followup" && current) {
 				priorChronological = [...current.turns].reverse();
-				const nextTurn = createTurn(query, screenContext);
+				const nextTurn = createTurn(query, screenContext, localDocs, localMessages);
 				nextTurn.phase = useWeb ? "searching" : "synthesizing";
 				turnId = nextTurn.id;
 				activeThread = {
@@ -166,8 +203,12 @@ export function useChatController(options: {
 					turns: [nextTurn, ...current.turns],
 				};
 			} else {
-				const kind = screenContext ? "screen" : "web";
-				activeThread = createThread(query, kind, screenContext);
+				const kind = screenContext
+					? "screen"
+					: (localDocs?.length || localMessages?.length)
+						? "personal"
+						: "web";
+				activeThread = createThread(query, kind, screenContext, localDocs, localMessages);
 				activeThread.turns[0].phase = useWeb ? "searching" : "synthesizing";
 				turnId = activeThread.turns[0].id;
 			}
@@ -176,11 +217,69 @@ export function useChatController(options: {
 			const prefs = getPreferenceValues<Preferences>();
 
 			try {
+				let ollamaHealth = turnOptions?.ollama;
+				if (hasPrivateData && !ollamaHealth) {
+					ollamaHealth = (await getDaemonStatus())?.ollama;
+				}
+
+				// Fail closed cleanly if private_local context is active while Ollama is offline
+				if (
+					hasPrivateData &&
+					!turnOptions?.forceCloudConsent &&
+					(!ollamaHealth?.reachable || !ollamaHealth?.has_chat_model)
+				) {
+					updateTurnById(
+						turnId,
+						(t) => ({
+							...t,
+							routeMode: "local",
+							phase: "error",
+							needsOllamaFallback: true,
+							statusNote: ollamaHealth?.reachable
+								? `Pull local model first: ollama pull ${ollamaHealth.chat_model}`
+								: "Local Ollama is not running — private context stayed offline",
+							errorMsg: null,
+						}),
+						true,
+					);
+					return;
+				}
+
+				const routeMode: RouteMode =
+					hasPrivateData && !turnOptions?.forceCloudConsent
+						? useWeb
+							? "hybrid"
+							: "local"
+						: "cloud";
+
+				updateTurnById(turnId, (t) => ({
+					...t,
+					routeMode,
+					needsOllamaFallback: false,
+					statusNote:
+						routeMode === "hybrid"
+							? "Hybrid Split-Synthesis (Local De-identify + Anon Web)"
+							: routeMode === "local"
+								? `Private · Local Ollama (${ollamaHealth?.chat_model ?? "local"})`
+								: "Cloud AI",
+				}));
+
 				let results: TavilyResult[] = [];
 				let images: TavilyImage[] = [];
 
 				if (useWeb) {
-					const tavilyQuery = buildTavilyQuery(query, priorChronological);
+					let tavilyQuery = buildTavilyQuery(query, priorChronological);
+					if (routeMode === "hybrid") {
+						const snippets = [
+							...(localDocs ?? []).slice(0, 3).map((d) => `${d.title}: ${d.snippet}`),
+							...(localMessages ?? []).slice(0, 3).map((m) => `${m.subject}: ${m.snippet}`),
+						];
+						const cleanPublic = await deidentifyForWeb(query, snippets);
+						if (cleanPublic) {
+							tavilyQuery = cleanPublic;
+						}
+					}
+
 					const fetched = await searchTavily(
 						tavilyQuery,
 						prefs,
@@ -203,24 +302,53 @@ export function useChatController(options: {
 					priorChronological,
 					results,
 					screenContext,
+					localDocs,
+					localMessages,
 				);
 
-				await streamSynthesis(
-					prompt,
-					prefs,
-					(batch) => {
-						if (!controller.signal.aborted && mountedRef.current) {
-							updateTurnById(turnId, (t) => ({
-								...t,
-								answer: t.answer + batch,
-							}));
-						}
-					},
-					controller.signal,
-				);
+				let fullRawAnswer = "";
+				const handleDelta = (batch: string) => {
+					fullRawAnswer += batch;
+					if (!controller.signal.aborted && mountedRef.current) {
+						updateTurnById(turnId, (t) => ({
+							...t,
+							answer: t.answer + batch,
+						}));
+					}
+				};
+
+				if ((routeMode === "local" || routeMode === "hybrid") && ollamaHealth) {
+					await streamOllamaSynthesis(
+						prompt,
+						ollamaHealth.url,
+						ollamaHealth.chat_model,
+						handleDelta,
+						controller.signal,
+					);
+				} else {
+					await streamSynthesis(prompt, prefs, handleDelta, controller.signal);
+				}
 
 				if (!controller.signal.aborted && mountedRef.current) {
-					updateTurnById(turnId, (t) => ({ ...t, phase: "done" }), true);
+					const parsedDraft = extractInlineDraftSuggestion(fullRawAnswer);
+					let createdDraft = undefined;
+					if (parsedDraft.draft) {
+						try {
+							createdDraft = await createInlineDraft(parsedDraft.draft);
+						} catch {
+							// Keep clean answer text even if draft store fails
+						}
+					}
+					updateTurnById(
+						turnId,
+						(t) => ({
+							...t,
+							answer: parsedDraft.cleanAnswer,
+							inlineDraft: createdDraft,
+							phase: "done",
+						}),
+						true,
+					);
 				}
 			} catch (err) {
 				if (controller.signal.aborted || !mountedRef.current) return;

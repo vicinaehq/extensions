@@ -47,6 +47,48 @@ export interface ScreenContext {
 	capturedAt: number;
 }
 
+export type RouteMode = "cloud" | "local" | "hybrid";
+
+export interface DocumentHitRef {
+	path: string;
+	title: string;
+	source_type: string;
+	sensitivity: string;
+	start_line: number;
+	end_line: number;
+	snippet: string;
+	score: number;
+}
+
+export interface MessageHitRef {
+	id: string;
+	connector: string;
+	chat_or_folder: string;
+	thread_id: string;
+	sender: string;
+	subject: string;
+	sent_at: number;
+	sensitivity: string;
+	snippet: string;
+	attachments: string[];
+	score: number;
+}
+
+export interface DraftRecordRef {
+	draft_id: string;
+	connector: string;
+	to: string[];
+	cc: string[];
+	subject: string;
+	body: string;
+	attachments: string[];
+	reply_to_message_id?: string | null;
+	status: string;
+	created_at: number;
+	expires_at: number;
+	sent_message_id?: string | null;
+}
+
 export type TurnPhase = "searching" | "synthesizing" | "done" | "error";
 
 export interface ConversationTurn {
@@ -56,6 +98,12 @@ export interface ConversationTurn {
 	results: TavilyResult[];
 	images: TavilyImage[];
 	screenContext?: ScreenContext;
+	routeMode?: RouteMode;
+	statusNote?: string;
+	needsOllamaFallback?: boolean;
+	localDocs?: DocumentHitRef[];
+	localMessages?: MessageHitRef[];
+	inlineDraft?: DraftRecordRef;
 	phase: TurnPhase;
 	errorMsg: string | null;
 	createdAt: number;
@@ -64,7 +112,7 @@ export interface ConversationTurn {
 export interface ChatThread {
 	id: string;
 	title: string;
-	kind?: "web" | "screen";
+	kind?: "web" | "screen" | "personal";
 	createdAt: number;
 	updatedAt: number;
 	/** Ordered newest turn first (index 0 is the latest turn). */

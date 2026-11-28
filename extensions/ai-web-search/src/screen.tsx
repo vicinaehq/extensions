@@ -41,39 +41,40 @@ function buildContextPreviewMarkdown(ctx: ScreenContext | null): string {
 		return `> **Privacy protection active:** ${ctx.reason ?? "Sensitive window detected."}\n\nScreen and clipboard capture were blocked.`;
 	}
 
-	const blocks: string[] = [];
-	if (ctx.window) {
-		blocks.push(`**Window:** \`${ctx.window.className}\` — ${ctx.window.title}`);
-	}
-	if (ctx.terminal?.cwd || ctx.terminal?.command) {
-		const parts: string[] = [];
-		if (ctx.terminal.cwd) parts.push(`\`${ctx.terminal.cwd}\``);
-		if (ctx.terminal.command) parts.push(`(${ctx.terminal.command})`);
-		blocks.push(`**Terminal:** ${parts.join(" ")}`);
-	}
+	const summaryChips: string[] = [];
+	if (ctx.window) summaryChips.push(`\`${ctx.window.className}\``);
+	if (ctx.terminal?.cwd) summaryChips.push(`\`${ctx.terminal.cwd}\``);
 	if (ctx.activeTab) {
-		blocks.push(
-			`**Tab:** [${ctx.activeTab.title || ctx.activeTab.url}](${ctx.activeTab.url})`,
-		);
+		summaryChips.push(`[${ctx.activeTab.title || "Active Tab"}](${ctx.activeTab.url})`);
+	}
+	if (ctx.ocrText) {
+		summaryChips.push(`${ctx.ocrText.split("\n").length} OCR lines`);
+	}
+
+	const blocks: string[] = [];
+	if (summaryChips.length > 0) {
+		blocks.push(`**Context:** ${summaryChips.join(" · ")}`);
+	}
+	if (ctx.window?.title) {
+		blocks.push(`*Window:* ${ctx.window.title}`);
 	}
 	if (ctx.visibleWindows && ctx.visibleWindows.length > 0) {
 		const list = ctx.visibleWindows.map((w) => `\`${w.className}\``).join(", ");
-		blocks.push(`**Also open:** ${list}`);
+		blocks.push(`*Also open:* ${list}`);
 	}
 	if (ctx.selection) {
 		blocks.push(
-			`**Selection:**\n\`\`\`\n${ctx.selection.slice(0, 500)}\n\`\`\``,
+			`**Selected Text**\n\`\`\`\n${ctx.selection.slice(0, 450)}\n\`\`\``,
 		);
 	}
 	if (ctx.clipboard) {
 		blocks.push(
-			`**Clipboard:**\n\`\`\`\n${ctx.clipboard.slice(0, 500)}\n\`\`\``,
+			`**Clipboard**\n\`\`\`\n${ctx.clipboard.slice(0, 450)}\n\`\`\``,
 		);
 	}
 	if (ctx.ocrText) {
-		const lineCount = ctx.ocrText.split("\n").length;
 		blocks.push(
-			`**Screen OCR (${lineCount} lines):**\n\`\`\`\n${ctx.ocrText.slice(0, 1100)}\n\`\`\``,
+			`**Visible Text Excerpt**\n\`\`\`\n${ctx.ocrText.slice(0, 750)}\n\`\`\``,
 		);
 	}
 	if (blocks.length === 0) {

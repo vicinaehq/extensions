@@ -5,48 +5,29 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { Toast, closeMainWindow, showToast } from "@vicinae/api";
-import type { ChatThread, ScreenContext } from "./types";
+import type {
+	ChatThread,
+	DocumentHitRef,
+	DraftRecordRef,
+	MessageHitRef,
+	ScreenContext,
+} from "./types";
 
 const execFileAsync = promisify(execFile);
 
-export interface DocumentHit {
-	path: string;
-	title: string;
-	source_type: string;
-	sensitivity: string;
-	start_line: number;
-	end_line: number;
-	snippet: string;
-	score: number;
-}
+export type DocumentHit = DocumentHitRef;
+export type MessageHit = MessageHitRef;
+export type DraftRecord = DraftRecordRef;
 
-export interface MessageHit {
-	id: string;
-	connector: string;
-	chat_or_folder: string;
-	thread_id: string;
-	sender: string;
-	subject: string;
-	sent_at: number;
-	sensitivity: string;
-	snippet: string;
-	attachments: string[];
-	score: number;
-}
-
-export interface DraftRecord {
-	draft_id: string;
-	connector: string;
-	to: string[];
-	cc: string[];
-	subject: string;
-	body: string;
-	attachments: string[];
-	reply_to_message_id?: string | null;
-	status: string;
-	created_at: number;
-	expires_at: number;
-	sent_message_id?: string | null;
+export interface OllamaHealth {
+	enabled: boolean;
+	url: string;
+	reachable: boolean;
+	chat_model: string;
+	embed_model: string;
+	has_chat_model: boolean;
+	has_embed_model: boolean;
+	available_models: string[];
 }
 
 export interface PendingApprovalEntry {
@@ -65,14 +46,27 @@ export interface DaemonStatus {
 	pid?: number;
 	emailEnabled?: boolean;
 	emailAddress?: string | null;
+	whatsappEnabled?: boolean;
+	ollama?: OllamaHealth;
 	stats: {
 		document_count: number;
 		chunk_count: number;
 		message_count: number;
+		email_count: number;
+		whatsapp_count: number;
 		pending_drafts_count: number;
+		embedded_chunks_count: number;
 		db_size_bytes: number;
 	};
 	roots?: string[];
+}
+
+export interface UnifiedQueryResponse {
+	docs: DocumentHit[];
+	messages: MessageHit[];
+	drafts: DraftRecord[];
+	max_sensitivity: string;
+	ollama: OllamaHealth;
 }
 
 function getSocketPath(): string {
@@ -123,6 +117,78 @@ function sendIpcRequest<T>(payload: Record<string, unknown>, timeoutMs = 2000): 
 	});
 }
 
+export async function unifiedQuery(
+	query: string,
+	limit = 8,
+): Promise<UnifiedQueryResponse | null> {
+	try {
+		const resp = await sendIpcRequest<{
+			status: string;
+			docs?: DocumentHit[];
+			messages?: MessageHit[];
+			drafts?: DraftRecord[];
+			max_sensitivity?: string;
+			ollama?: OllamaHealth;
+		}>({ op: "unified_query", query, limit }, 1200);
+		if (resp.status === "unified_results" && resp.ollama) {
+			return {
+				docs: resp.docs ?? [],
+				messages: resp.messages ?? [],
+				drafts: resp.drafts ?? [],
+				max_sensitivity: resp.max_sensitivity ?? "workspace",
+				ollama: resp.ollama,
+			};
+		}
+	} catch {
+		// Fallback silently if daemon offline
+	}
+	return null;
+}
+
+export async function deidentifyForWeb(
+	query: string,
+	snippets: string[],
+): Promise<string | null> {
+	try {
+		const resp = await sendIpcRequest<{
+			status: string;
+			public_query?: string;
+		}>({ op: "deidentify_for_web", query, snippets }, 20_000);
+		if (resp.status === "deidentified_query" && resp.public_query) {
+			return resp.public_query;
+		}
+	} catch {
+		// Fall back if de-identification fails
+	}
+	return null;
+}
+
+export async function createInlineDraft(params: {
+	to: string[];
+	cc?: string[];
+	subject: string;
+	body: string;
+	attachments?: string[];
+}): Promise<DraftRecord> {
+	const resp = await sendIpcRequest<{
+		status: string;
+		draft?: DraftRecord;
+		message?: string;
+	}>({
+		op: "create_draft",
+		to: params.to,
+		cc: params.cc ?? [],
+		subject: params.subject,
+		body: params.body,
+		attachments: params.attachments ?? [],
+		reply_to_message_id: null,
+	});
+	if (resp.status === "draft_created" && resp.draft) {
+		return resp.draft;
+	}
+	throw new Error(resp.message || "Failed creating draft");
+}
+
 export async function searchPersonalDocuments(
 	query: string,
 	options?: {
@@ -148,10 +214,17 @@ export async function searchPersonalDocuments(
 			return resp.hits;
 		}
 	} catch {
-		// Fall through to direct CLI FTS5 lookup
+		// Fall through to CLI FTS5 lookup
 	}
 
-	const args = ["search", query, "--json", "--include-private", "--limit", String(options?.limit ?? 25)];
+	const args = [
+		"search",
+		query,
+		"--json",
+		"--include-private",
+		"--limit",
+		String(options?.limit ?? 25),
+	];
 	if (options?.pathPrefix) {
 		args.push("--path-prefix", options.pathPrefix);
 	}
@@ -246,6 +319,8 @@ export async function getDaemonStatus(): Promise<DaemonStatus | null> {
 			pid?: number;
 			email_enabled?: boolean;
 			email_address?: string | null;
+			whatsapp_enabled?: boolean;
+			ollama?: OllamaHealth;
 			stats?: DaemonStatus["stats"];
 			roots?: string[];
 		}>({ op: "status" }, 800);
@@ -255,6 +330,8 @@ export async function getDaemonStatus(): Promise<DaemonStatus | null> {
 				pid: resp.pid,
 				emailEnabled: resp.email_enabled,
 				emailAddress: resp.email_address,
+				whatsappEnabled: resp.whatsapp_enabled,
+				ollama: resp.ollama,
 				stats: resp.stats,
 				roots: resp.roots,
 			};
