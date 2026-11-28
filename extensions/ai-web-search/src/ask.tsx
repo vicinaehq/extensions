@@ -30,7 +30,7 @@ export default function AskWebCommand(props: LaunchProps) {
 			<ConversationDetailView
 				thread={thread}
 				history={history}
-				onRunTurn={(q, mode) => void runTurn(q, mode)}
+				onRunTurn={(q, mode, opts) => void runTurn(q, mode, opts)}
 				onStop={stopStreaming}
 				onSelectThread={openThread}
 				onDeleteThread={removeThread}

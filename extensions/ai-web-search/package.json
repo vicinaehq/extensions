@@ -22,6 +22,12 @@
       "title": "AI Search History",
       "description": "Browse, resume, and delete previous AI web search chats",
       "mode": "view"
+    },
+    {
+      "name": "screen",
+      "title": "Ask Screen",
+      "description": "Ask AI about the active window, selected text, and on-screen content",
+      "mode": "view"
     }
   ],
   "preferences": [

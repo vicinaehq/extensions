@@ -22,6 +22,9 @@ import type {
 	ChatThread,
 	ConversationTurn,
 	Preferences,
+	ScreenContext,
+	TavilyImage,
+	TavilyResult,
 	TurnRunMode,
 } from "./types";
 
@@ -29,27 +32,36 @@ function makeId(prefix: string): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-export function createTurn(query: string): ConversationTurn {
+export function createTurn(
+	query: string,
+	screenContext?: ScreenContext,
+): ConversationTurn {
 	return {
 		id: makeId("turn"),
 		query,
 		answer: "",
 		results: [],
 		images: [],
-		phase: "searching",
+		screenContext,
+		phase: screenContext ? "synthesizing" : "searching",
 		errorMsg: null,
 		createdAt: Date.now(),
 	};
 }
 
-export function createThread(query: string): ChatThread {
+export function createThread(
+	query: string,
+	kind: "web" | "screen" = "web",
+	screenContext?: ScreenContext,
+): ChatThread {
 	const now = Date.now();
 	return {
 		id: makeId("chat"),
 		title: query,
+		kind,
 		createdAt: now,
 		updatedAt: now,
-		turns: [createTurn(query)],
+		turns: [createTurn(query, screenContext)],
 	};
 }
 
@@ -72,39 +84,46 @@ export function useChatController(options: {
 	const mountedRef = useRef(true);
 	const didAutoLaunchRef = useRef(false);
 
-	const persistThread = useCallback((nextThread: ChatThread) => {
-		const updated = upsertChatThread(nextThread);
-		if (mountedRef.current) {
-			setHistory(updated);
-		}
-	}, []);
+	const commitThread = useCallback(
+		(nextThread: ChatThread | null, persist = false) => {
+			threadRef.current = nextThread;
+			if (mountedRef.current) {
+				setThread(nextThread);
+			}
+			if (persist && nextThread) {
+				const updated = upsertChatThread(nextThread);
+				if (mountedRef.current) {
+					setHistory(updated);
+				}
+			}
+		},
+		[],
+	);
 
-	const updateLatestTurn = useCallback(
+	const updateTurnById = useCallback(
 		(
 			turnId: string,
 			updater: (prev: ConversationTurn) => ConversationTurn,
 			persist = false,
 		) => {
-			setThread((prev) => {
-				if (!prev) return prev;
-				const nextThread: ChatThread = {
-					...prev,
-					updatedAt: Date.now(),
-					turns: prev.turns.map((t) => (t.id === turnId ? updater(t) : t)),
-				};
-				threadRef.current = nextThread;
-				if (persist) {
-					const updated = upsertChatThread(nextThread);
-					setHistory(updated);
-				}
-				return nextThread;
-			});
+			const current = threadRef.current;
+			if (!current) return;
+			const nextThread: ChatThread = {
+				...current,
+				updatedAt: Date.now(),
+				turns: current.turns.map((t) => (t.id === turnId ? updater(t) : t)),
+			};
+			commitThread(nextThread, persist);
 		},
-		[],
+		[commitThread],
 	);
 
 	const runTurn = useCallback(
-		async (rawQuery: string, mode: TurnRunMode) => {
+		async (
+			rawQuery: string,
+			mode: TurnRunMode,
+			turnOptions?: { screenContext?: ScreenContext; useWeb?: boolean },
+		) => {
 			const query = rawQuery.trim();
 			if (!query) return;
 
@@ -113,6 +132,12 @@ export function useChatController(options: {
 			abortRef.current = controller;
 
 			const current = threadRef.current;
+			const screenContext =
+				turnOptions?.screenContext ??
+				(mode === "regenerate" ? current?.turns[0]?.screenContext : undefined);
+			const useWeb =
+				turnOptions?.useWeb ?? (screenContext === undefined);
+
 			let activeThread: ChatThread;
 			let priorChronological: ConversationTurn[] = [];
 			let turnId: string;
@@ -123,14 +148,17 @@ export function useChatController(options: {
 			} else if (mode === "regenerate" && current && current.turns.length > 0) {
 				turnId = current.turns[0].id;
 				priorChronological = current.turns.slice(1).reverse();
+				const regenerated = { ...createTurn(query, screenContext), id: turnId };
+				regenerated.phase = useWeb ? "searching" : "synthesizing";
 				activeThread = {
 					...current,
 					updatedAt: Date.now(),
-					turns: [{ ...createTurn(query), id: turnId }, ...current.turns.slice(1)],
+					turns: [regenerated, ...current.turns.slice(1)],
 				};
 			} else if (mode === "followup" && current) {
 				priorChronological = [...current.turns].reverse();
-				const nextTurn = createTurn(query);
+				const nextTurn = createTurn(query, screenContext);
+				nextTurn.phase = useWeb ? "searching" : "synthesizing";
 				turnId = nextTurn.id;
 				activeThread = {
 					...current,
@@ -138,41 +166,51 @@ export function useChatController(options: {
 					turns: [nextTurn, ...current.turns],
 				};
 			} else {
-				activeThread = createThread(query);
+				const kind = screenContext ? "screen" : "web";
+				activeThread = createThread(query, kind, screenContext);
+				activeThread.turns[0].phase = useWeb ? "searching" : "synthesizing";
 				turnId = activeThread.turns[0].id;
 			}
 
-			threadRef.current = activeThread;
-			if (mountedRef.current) {
-				setThread(activeThread);
-			}
-			persistThread(activeThread);
-
+			commitThread(activeThread, true);
 			const prefs = getPreferenceValues<Preferences>();
 
 			try {
-				const tavilyQuery = buildTavilyQuery(query, priorChronological);
-				const { results, images } = await searchTavily(
-					tavilyQuery,
-					prefs,
-					controller.signal,
-				);
-				if (controller.signal.aborted || !mountedRef.current) return;
+				let results: TavilyResult[] = [];
+				let images: TavilyImage[] = [];
 
-				updateLatestTurn(turnId, (t) => ({
-					...t,
+				if (useWeb) {
+					const tavilyQuery = buildTavilyQuery(query, priorChronological);
+					const fetched = await searchTavily(
+						tavilyQuery,
+						prefs,
+						controller.signal,
+					);
+					if (controller.signal.aborted || !mountedRef.current) return;
+					results = fetched.results;
+					images = fetched.images;
+
+					updateTurnById(turnId, (t) => ({
+						...t,
+						results,
+						images,
+						phase: "synthesizing",
+					}));
+				}
+
+				const prompt = buildSynthesisPrompt(
+					query,
+					priorChronological,
 					results,
-					images,
-					phase: "synthesizing",
-				}));
+					screenContext,
+				);
 
-				const prompt = buildSynthesisPrompt(query, priorChronological, results);
 				await streamSynthesis(
 					prompt,
 					prefs,
 					(batch) => {
 						if (!controller.signal.aborted && mountedRef.current) {
-							updateLatestTurn(turnId, (t) => ({
+							updateTurnById(turnId, (t) => ({
 								...t,
 								answer: t.answer + batch,
 							}));
@@ -182,12 +220,12 @@ export function useChatController(options: {
 				);
 
 				if (!controller.signal.aborted && mountedRef.current) {
-					updateLatestTurn(turnId, (t) => ({ ...t, phase: "done" }), true);
+					updateTurnById(turnId, (t) => ({ ...t, phase: "done" }), true);
 				}
 			} catch (err) {
 				if (controller.signal.aborted || !mountedRef.current) return;
 				const message = err instanceof Error ? err.message : String(err);
-				updateLatestTurn(
+				updateTurnById(
 					turnId,
 					(t) => ({ ...t, phase: "error", errorMsg: message }),
 					true,
@@ -203,36 +241,40 @@ export function useChatController(options: {
 				}
 			}
 		},
-		[persistThread, updateLatestTurn],
+		[commitThread, updateTurnById],
 	);
 
-	const openThread = useCallback((selected: ChatThread) => {
-		abortRef.current?.abort();
-		threadRef.current = selected;
-		setThread(selected);
-	}, []);
+	const openThread = useCallback(
+		(selected: ChatThread) => {
+			abortRef.current?.abort();
+			commitThread(selected, false);
+		},
+		[commitThread],
+	);
 
-	const removeThread = useCallback(async (target: ChatThread) => {
-		const confirmed = await confirmAlert({
-			title: "Delete chat?",
-			message: `Remove "${target.title}" from search history.`,
-			primaryAction: {
-				title: "Delete",
-				style: Alert.ActionStyle.Destructive,
-			},
-		});
-		if (!confirmed) return false;
+	const removeThread = useCallback(
+		async (target: ChatThread) => {
+			const confirmed = await confirmAlert({
+				title: "Delete chat?",
+				message: `Remove "${target.title}" from search history.`,
+				primaryAction: {
+					title: "Delete",
+					style: Alert.ActionStyle.Destructive,
+				},
+			});
+			if (!confirmed) return false;
 
-		const updated = deleteChatThread(target.id);
-		if (mountedRef.current) {
-			setHistory(updated);
-			if (threadRef.current?.id === target.id) {
-				threadRef.current = null;
-				setThread(null);
+			const updated = deleteChatThread(target.id);
+			if (mountedRef.current) {
+				setHistory(updated);
+				if (threadRef.current?.id === target.id) {
+					commitThread(null, false);
+				}
 			}
-		}
-		return true;
-	}, []);
+			return true;
+		},
+		[commitThread],
+	);
 
 	const clearAllThreads = useCallback(async () => {
 		const confirmed = await confirmAlert({
@@ -258,7 +300,7 @@ export function useChatController(options: {
 		if (!current || current.turns.length === 0) return;
 		const latest = current.turns[0];
 		if (latest.phase === "searching" || latest.phase === "synthesizing") {
-			updateLatestTurn(
+			updateTurnById(
 				latest.id,
 				(t) => ({
 					...t,
@@ -268,7 +310,7 @@ export function useChatController(options: {
 				true,
 			);
 		}
-	}, [updateLatestTurn]);
+	}, [updateTurnById]);
 
 	useEffect(() => {
 		mountedRef.current = true;

@@ -18,7 +18,7 @@ export default function SearchHistoryCommand() {
 			<ConversationDetailView
 				thread={thread}
 				history={history}
-				onRunTurn={(q, mode) => void runTurn(q, mode)}
+				onRunTurn={(q, mode, opts) => void runTurn(q, mode, opts)}
 				onStop={stopStreaming}
 				onSelectThread={openThread}
 				onDeleteThread={removeThread}

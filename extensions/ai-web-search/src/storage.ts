@@ -1,4 +1,5 @@
 import {
+	chmodSync,
 	existsSync,
 	mkdirSync,
 	readFileSync,
@@ -11,6 +12,8 @@ import type { ChatThread, ConversationTurn } from "./types";
 
 const HISTORY_FILE = "chats.json";
 const MAX_THREADS = 50;
+const MAX_STORED_SNIPPET_CHARS = 1500;
+const MAX_STORED_OCR_CHARS = 3000;
 
 interface StoredHistory {
 	version: 1;
@@ -38,6 +41,28 @@ function normalizeLoadedTurn(raw: ConversationTurn): ConversationTurn {
 	};
 }
 
+function compactThreadForStorage(thread: ChatThread): ChatThread {
+	return {
+		...thread,
+		turns: thread.turns.map((turn) => ({
+			...turn,
+			results: turn.results.map((r) => ({
+				...r,
+				content:
+					r.content.length > MAX_STORED_SNIPPET_CHARS
+						? `${r.content.slice(0, MAX_STORED_SNIPPET_CHARS)}...`
+						: r.content,
+			})),
+			screenContext: turn.screenContext
+				? {
+						...turn.screenContext,
+						ocrText: turn.screenContext.ocrText?.slice(0, MAX_STORED_OCR_CHARS),
+					}
+				: undefined,
+		})),
+	};
+}
+
 export function loadChatThreads(): ChatThread[] {
 	const filePath = getHistoryFilePath();
 	if (!existsSync(filePath)) return [];
@@ -50,7 +75,12 @@ export function loadChatThreads(): ChatThread[] {
 		return parsed.threads
 			.filter(
 				(t): t is ChatThread =>
-					Boolean(t && typeof t.id === "string" && Array.isArray(t.turns) && t.turns.length > 0),
+					Boolean(
+						t &&
+							typeof t.id === "string" &&
+							Array.isArray(t.turns) &&
+							t.turns.length > 0,
+					),
 			)
 			.map((t) => ({
 				...t,
@@ -65,22 +95,28 @@ export function loadChatThreads(): ChatThread[] {
 
 function writeChatThreads(threads: ChatThread[]): void {
 	const dir = environment.supportPath;
-	mkdirSync(dir, { recursive: true });
+	mkdirSync(dir, { recursive: true, mode: 0o700 });
+	try {
+		chmodSync(dir, 0o700);
+	} catch {
+		// Best-effort on filesystems without POSIX mode bits
+	}
+
 	const target = join(dir, HISTORY_FILE);
 	const tmp = join(dir, `${HISTORY_FILE}.${process.pid}.tmp`);
 
 	const payload: StoredHistory = {
 		version: 1,
-		threads: threads.slice(0, MAX_THREADS),
+		threads: threads.slice(0, MAX_THREADS).map(compactThreadForStorage),
 	};
 
-	writeFileSync(tmp, JSON.stringify(payload), "utf8");
+	writeFileSync(tmp, JSON.stringify(payload), { encoding: "utf8", mode: 0o600 });
 	renameSync(tmp, target);
 }
 
 export function upsertChatThread(thread: ChatThread): ChatThread[] {
 	const existing = loadChatThreads().filter((t) => t.id !== thread.id);
-	const next = [thread, ...existing]
+	const next = [compactThreadForStorage(thread), ...existing]
 		.sort((a, b) => b.updatedAt - a.updatedAt)
 		.slice(0, MAX_THREADS);
 	writeChatThreads(next);

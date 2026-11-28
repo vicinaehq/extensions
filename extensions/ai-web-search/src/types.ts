@@ -18,6 +18,21 @@ export interface TavilyImage {
 	url: string;
 }
 
+export interface ScreenWindowInfo {
+	className: string;
+	title: string;
+	workspace?: string;
+}
+
+export interface ScreenContext {
+	blocked: boolean;
+	reason?: string;
+	window?: ScreenWindowInfo;
+	selection?: string;
+	ocrText?: string;
+	capturedAt: number;
+}
+
 export type TurnPhase = "searching" | "synthesizing" | "done" | "error";
 
 export interface ConversationTurn {
@@ -26,6 +41,7 @@ export interface ConversationTurn {
 	answer: string;
 	results: TavilyResult[];
 	images: TavilyImage[];
+	screenContext?: ScreenContext;
 	phase: TurnPhase;
 	errorMsg: string | null;
 	createdAt: number;
@@ -34,6 +50,7 @@ export interface ConversationTurn {
 export interface ChatThread {
 	id: string;
 	title: string;
+	kind?: "web" | "screen";
 	createdAt: number;
 	updatedAt: number;
 	/** Ordered newest turn first (index 0 is the latest turn). */

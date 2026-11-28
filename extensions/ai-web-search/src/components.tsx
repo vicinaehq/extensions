@@ -9,6 +9,7 @@ import {
 	openExtensionPreferences,
 	useNavigation,
 } from "@vicinae/api";
+import type React from "react";
 import { useState } from "react";
 import { extractDomain } from "./api";
 import { getHistoryFilePath } from "./storage";
@@ -150,16 +151,16 @@ export function PromptInputView(props: {
 	title: string;
 	placeholder: string;
 	priorTurns?: ConversationTurn[];
-	onSubmit: (query: string) => void;
+	onSubmit: (query: string, useWeb: boolean) => void;
 }) {
 	const [text, setText] = useState("");
 	const { pop } = useNavigation();
 	const trimmed = text.trim();
 
-	const submit = () => {
+	const submit = (useWeb: boolean) => {
 		if (!trimmed) return;
 		pop();
-		props.onSubmit(trimmed);
+		props.onSubmit(trimmed, useWeb);
 	};
 
 	return (
@@ -176,7 +177,17 @@ export function PromptInputView(props: {
 				icon={{ source: Icon.Stars, tintColor: Color.Purple }}
 				actions={
 					<ActionPanel>
-						<Action title="Ask" icon={Icon.ArrowRight} onAction={submit} />
+						<Action
+							title="Ask with Web Search"
+							icon={Icon.ArrowRight}
+							onAction={() => submit(true)}
+						/>
+						<Action
+							title="Ask Using Existing Context Only"
+							icon={Icon.SpeechBubble}
+							shortcut={{ modifiers: ["ctrl"], key: "return" }}
+							onAction={() => submit(false)}
+						/>
 						<Action
 							title="Preferences"
 							onAction={openExtensionPreferences}
@@ -208,7 +219,8 @@ export function HistoryThreadItem(props: {
 }) {
 	const { thread } = props;
 	const turnCount = thread.turns.length;
-	const label = `${turnCount} ${turnCount === 1 ? "turn" : "turns"} · ${formatRelativeTime(thread.updatedAt)}`;
+	const kindPrefix = thread.kind === "screen" ? "Screen · " : "";
+	const label = `${kindPrefix}${turnCount} ${turnCount === 1 ? "turn" : "turns"} · ${formatRelativeTime(thread.updatedAt)}`;
 
 	return (
 		<List.Item
@@ -217,7 +229,7 @@ export function HistoryThreadItem(props: {
 			title={thread.title}
 			accessories={[{ text: label }]}
 			keywords={[thread.title, ...thread.turns.map((t) => t.query)]}
-			icon={Icon.SpeechBubble}
+			icon={thread.kind === "screen" ? Icon.Stars : Icon.SpeechBubble}
 			detail={<List.Item.Detail markdown={formatThreadMarkdown(thread.turns)} />}
 			actions={
 				<ActionPanel>
@@ -295,7 +307,11 @@ export function ChatHistoryView(props: {
 export function ConversationDetailView(props: {
 	thread: ChatThread;
 	history: ChatThread[];
-	onRunTurn: (query: string, mode: TurnRunMode) => void;
+	onRunTurn: (
+		query: string,
+		mode: TurnRunMode,
+		opts?: { useWeb?: boolean },
+	) => void;
 	onStop: () => void;
 	onSelectThread: (thread: ChatThread) => void;
 	onDeleteThread: (thread: ChatThread) => Promise<boolean>;
@@ -305,6 +321,7 @@ export function ConversationDetailView(props: {
 	const isLoading =
 		latest.phase === "searching" || latest.phase === "synthesizing";
 	const status = phaseStatus(latest.phase);
+	const hadWebSearch = latest.results.length > 0;
 
 	return (
 		<Detail
@@ -318,6 +335,12 @@ export function ConversationDetailView(props: {
 						title="Turns"
 						text={String(props.thread.turns.length)}
 					/>
+					{latest.screenContext?.window && (
+						<Detail.Metadata.Label
+							title="Window"
+							text={latest.screenContext.window.className}
+						/>
+					)}
 					{latest.images.length > 0 && (
 						<Detail.Metadata.Label
 							title="Images"
@@ -349,7 +372,9 @@ export function ConversationDetailView(props: {
 								title="Follow-up"
 								placeholder="Ask a follow-up question..."
 								priorTurns={props.thread.turns}
-								onSubmit={(q) => props.onRunTurn(q, "followup")}
+								onSubmit={(q, useWeb) =>
+									props.onRunTurn(q, "followup", { useWeb })
+								}
 							/>
 						}
 					/>
@@ -396,7 +421,11 @@ export function ConversationDetailView(props: {
 						title="Regenerate"
 						icon={Icon.ArrowClockwise}
 						shortcut={{ modifiers: ["ctrl"], key: "r" }}
-						onAction={() => props.onRunTurn(latest.query, "regenerate")}
+						onAction={() =>
+							props.onRunTurn(latest.query, "regenerate", {
+								useWeb: hadWebSearch || !latest.screenContext,
+							})
+						}
 					/>
 					{isLoading ? (
 						<Action
@@ -413,7 +442,7 @@ export function ConversationDetailView(props: {
 								<PromptInputView
 									title="New Search"
 									placeholder="Ask a new question..."
-									onSubmit={(q) => props.onRunTurn(q, "new")}
+									onSubmit={(q, useWeb) => props.onRunTurn(q, "new", { useWeb })}
 								/>
 							}
 						/>
