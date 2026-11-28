@@ -341,6 +341,19 @@ export function ConversationDetailView(props: {
 							text={latest.screenContext.window.className}
 						/>
 					)}
+					{latest.screenContext?.terminal?.cwd && (
+						<Detail.Metadata.Label
+							title="Directory"
+							text={latest.screenContext.terminal.cwd}
+						/>
+					)}
+					{latest.screenContext?.activeTab && (
+						<Detail.Metadata.Link
+							title="Tab"
+							target={latest.screenContext.activeTab.url}
+							text={extractDomain(latest.screenContext.activeTab.url)}
+						/>
+					)}
 					{latest.images.length > 0 && (
 						<Detail.Metadata.Label
 							title="Images"

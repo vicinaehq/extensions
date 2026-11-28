@@ -164,9 +164,35 @@ export function buildSynthesisPrompt(
 				`Active window: ${screenContext.window.className} — "${screenContext.window.title}"`,
 			);
 		}
+		if (screenContext.terminal?.cwd || screenContext.terminal?.command) {
+			const parts: string[] = [];
+			if (screenContext.terminal.cwd) {
+				parts.push(`cwd=${screenContext.terminal.cwd}`);
+			}
+			if (screenContext.terminal.command) {
+				parts.push(`process=${redactSecrets(screenContext.terminal.command)}`);
+			}
+			screenLines.push(`Terminal: ${parts.join(", ")}`);
+		}
+		if (screenContext.activeTab) {
+			screenLines.push(
+				`Active browser tab: ${screenContext.activeTab.title ?? ""} (${redactSecrets(screenContext.activeTab.url)})`,
+			);
+		}
+		if (screenContext.visibleWindows && screenContext.visibleWindows.length > 0) {
+			const others = screenContext.visibleWindows
+				.map((w) => `${w.className} ("${w.title}")`)
+				.join("; ");
+			screenLines.push(`Other visible windows: ${others}`);
+		}
 		if (screenContext.selection) {
 			screenLines.push(
-				`Selected text:\n"""\n${redactSecrets(screenContext.selection)}\n"""`,
+				`Primary selection:\n"""\n${redactSecrets(screenContext.selection)}\n"""`,
+			);
+		}
+		if (screenContext.clipboard) {
+			screenLines.push(
+				`Clipboard:\n"""\n${redactSecrets(screenContext.clipboard)}\n"""`,
 			);
 		}
 		if (screenContext.ocrText) {
@@ -175,7 +201,12 @@ export function buildSynthesisPrompt(
 			);
 		}
 		if (screenLines.length > 0) {
-			parts.push("", "<untrusted_screen_context>", ...screenLines, "</untrusted_screen_context>");
+			parts.push(
+				"",
+				"<untrusted_screen_context>",
+				...screenLines,
+				"</untrusted_screen_context>",
+			);
 		}
 	}
 

@@ -23,12 +23,14 @@ const QUICK_SCREEN_PROMPTS = [
 	{
 		id: "explain-error",
 		title: "Explain error or issue shown",
-		query: "Explain any error, warning, or issue visible on screen and how to fix it.",
+		query:
+			"Explain any error, warning, or issue visible on screen and how to fix it.",
 	},
 	{
 		id: "next-steps",
 		title: "Suggest next steps",
-		query: "Based on the active window and text on screen, what should I do next?",
+		query:
+			"Based on the active window and text on screen, what should I do next?",
 	},
 ];
 
@@ -42,11 +44,36 @@ function buildContextPreviewMarkdown(ctx: ScreenContext | null): string {
 	if (ctx.window) {
 		blocks.push(`**Window:** \`${ctx.window.className}\` — ${ctx.window.title}`);
 	}
+	if (ctx.terminal?.cwd || ctx.terminal?.command) {
+		const parts: string[] = [];
+		if (ctx.terminal.cwd) parts.push(`\`${ctx.terminal.cwd}\``);
+		if (ctx.terminal.command) parts.push(`(${ctx.terminal.command})`);
+		blocks.push(`**Terminal:** ${parts.join(" ")}`);
+	}
+	if (ctx.activeTab) {
+		blocks.push(
+			`**Tab:** [${ctx.activeTab.title || ctx.activeTab.url}](${ctx.activeTab.url})`,
+		);
+	}
+	if (ctx.visibleWindows && ctx.visibleWindows.length > 0) {
+		const list = ctx.visibleWindows.map((w) => `\`${w.className}\``).join(", ");
+		blocks.push(`**Also open:** ${list}`);
+	}
 	if (ctx.selection) {
-		blocks.push(`**Selection / Clipboard:**\n\`\`\`\n${ctx.selection.slice(0, 500)}\n\`\`\``);
+		blocks.push(
+			`**Selection:**\n\`\`\`\n${ctx.selection.slice(0, 500)}\n\`\`\``,
+		);
+	}
+	if (ctx.clipboard) {
+		blocks.push(
+			`**Clipboard:**\n\`\`\`\n${ctx.clipboard.slice(0, 500)}\n\`\`\``,
+		);
 	}
 	if (ctx.ocrText) {
-		blocks.push(`**Visible OCR Text:**\n\`\`\`\n${ctx.ocrText.slice(0, 900)}\n\`\`\``);
+		const lineCount = ctx.ocrText.split("\n").length;
+		blocks.push(
+			`**Screen OCR (${lineCount} lines):**\n\`\`\`\n${ctx.ocrText.slice(0, 1100)}\n\`\`\``,
+		);
 	}
 	if (blocks.length === 0) {
 		blocks.push("_No text captured from the active window._");
@@ -141,13 +168,17 @@ export default function AskScreenCommand(props: LaunchProps) {
 						<Action
 							title="Ask Screen"
 							icon={Icon.ArrowRight}
-							onAction={() => submitPrompt(trimmed || QUICK_SCREEN_PROMPTS[0].query, false)}
+							onAction={() =>
+								submitPrompt(trimmed || QUICK_SCREEN_PROMPTS[0].query, false)
+							}
 						/>
 						<Action
 							title="Ask Screen + Web Search"
 							icon={Icon.Globe01}
 							shortcut={{ modifiers: ["ctrl"], key: "return" }}
-							onAction={() => submitPrompt(trimmed || QUICK_SCREEN_PROMPTS[0].query, true)}
+							onAction={() =>
+								submitPrompt(trimmed || QUICK_SCREEN_PROMPTS[0].query, true)
+							}
 						/>
 						<Action
 							title="Preferences"

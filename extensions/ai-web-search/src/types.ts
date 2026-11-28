@@ -24,11 +24,25 @@ export interface ScreenWindowInfo {
 	workspace?: string;
 }
 
+export interface TerminalContextInfo {
+	cwd?: string;
+	command?: string;
+}
+
+export interface BrowserTabInfo {
+	title?: string;
+	url: string;
+}
+
 export interface ScreenContext {
 	blocked: boolean;
 	reason?: string;
 	window?: ScreenWindowInfo;
+	visibleWindows?: ScreenWindowInfo[];
+	terminal?: TerminalContextInfo;
+	activeTab?: BrowserTabInfo;
 	selection?: string;
+	clipboard?: string;
 	ocrText?: string;
 	capturedAt: number;
 }
