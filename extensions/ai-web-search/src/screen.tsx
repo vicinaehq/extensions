@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { ConversationDetailView } from "./components";
 import { captureScreenContext } from "./context";
+import { launchAgyHandoff } from "./daemon";
 import type { ScreenContext } from "./types";
 import { useChatController } from "./use-chat";
 
@@ -181,6 +182,17 @@ export default function AskScreenCommand(props: LaunchProps) {
 							}
 						/>
 						<Action
+							title="Continue in Antigravity (agy)"
+							icon={Icon.Terminal}
+							shortcut={{ modifiers: ["ctrl", "shift"], key: "g" }}
+							onAction={() =>
+								void launchAgyHandoff({
+									query: trimmed || QUICK_SCREEN_PROMPTS[0].query,
+									screenContext: screenContext ?? undefined,
+								})
+							}
+						/>
+						<Action
 							title="Preferences"
 							onAction={openExtensionPreferences}
 						/>
@@ -208,6 +220,17 @@ export default function AskScreenCommand(props: LaunchProps) {
 									icon={Icon.Globe01}
 									shortcut={{ modifiers: ["ctrl"], key: "return" }}
 									onAction={() => submitPrompt(preset.query, true)}
+								/>
+								<Action
+									title="Continue in Antigravity (agy)"
+									icon={Icon.Terminal}
+									shortcut={{ modifiers: ["ctrl", "shift"], key: "g" }}
+									onAction={() =>
+										void launchAgyHandoff({
+											query: preset.query,
+											screenContext: screenContext ?? undefined,
+										})
+									}
 								/>
 							</ActionPanel>
 						}

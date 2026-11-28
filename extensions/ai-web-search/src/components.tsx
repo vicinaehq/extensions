@@ -12,6 +12,7 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { extractDomain } from "./api";
+import { launchAgyHandoff } from "./daemon";
 import { getHistoryFilePath } from "./storage";
 import type {
 	ChatThread,
@@ -428,6 +429,18 @@ export function ConversationDetailView(props: {
 								onDelete={props.onDeleteThread}
 								onClearAll={props.onClearHistory}
 							/>
+						}
+					/>
+					<Action
+						title="Continue in Antigravity (agy)"
+						icon={Icon.Terminal}
+						shortcut={{ modifiers: ["ctrl", "shift"], key: "g" }}
+						onAction={() =>
+							void launchAgyHandoff({
+								query: latest.query,
+								screenContext: latest.screenContext,
+								thread: props.thread,
+							})
 						}
 					/>
 					<Action

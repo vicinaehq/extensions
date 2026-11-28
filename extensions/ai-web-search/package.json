@@ -28,6 +28,12 @@
       "title": "Ask Screen",
       "description": "Ask AI about the active window, selected text, and on-screen content",
       "mode": "view"
+    },
+    {
+      "name": "personal",
+      "title": "Search Personal Context",
+      "description": "Search full-text contents of indexed Desktop/Documents files, notes, and PDFs locally",
+      "mode": "view"
     }
   ],
   "preferences": [
