@@ -11,6 +11,7 @@ import {
 	buildTavilyQuery,
 	extractInlineDraftSuggestion,
 	highestSensitivity,
+	prefersLocalOnly,
 	searchTavily,
 	streamOllamaSynthesis,
 	streamSynthesis,
@@ -169,7 +170,8 @@ export function useChatController(options: {
 				turnOptions?.localMessages ??
 				(mode === "regenerate" || mode === "followup" ? prevLatest?.localMessages : undefined);
 
-			const useWeb = turnOptions?.useWeb ?? screenContext === undefined;
+			const useWeb =
+				turnOptions?.useWeb ?? (screenContext === undefined && !prefersLocalOnly(query));
 			let activeThread: ChatThread;
 			let priorChronological: ConversationTurn[] = [];
 			let turnId: string;
@@ -319,6 +321,8 @@ export function useChatController(options: {
 					}));
 				}
 
+				const isOllamaRoute =
+					(routeMode === "local" || routeMode === "hybrid") && Boolean(ollamaHealth);
 				const prompt = buildSynthesisPrompt(
 					query,
 					priorChronological,
@@ -326,6 +330,7 @@ export function useChatController(options: {
 					screenContext,
 					localDocs,
 					localMessages,
+					isOllamaRoute,
 				);
 
 				let fullRawAnswer = "";
@@ -339,7 +344,7 @@ export function useChatController(options: {
 					}
 				};
 
-				if ((routeMode === "local" || routeMode === "hybrid") && ollamaHealth) {
+				if (isOllamaRoute && ollamaHealth) {
 					await streamOllamaSynthesis(
 						prompt,
 						ollamaHealth.url,

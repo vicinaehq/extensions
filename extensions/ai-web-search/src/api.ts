@@ -21,6 +21,16 @@ const MAX_HISTORY_ANSWER_CHARS = 800;
 const STREAM_FLUSH_MS = 50;
 const TAVILY_TIMEOUT_MS = 15_000;
 const CHAT_TIMEOUT_MS = 60_000;
+const OLLAMA_TIMEOUT_MS = 180_000;
+
+const PERSONAL_ONLY_RE =
+	/\b(my\s+(email|emails|mail|inbox|sent|draft|drafts|messages?|whatsapp|chats?|notes?|files?|documents?|desktop)|emails?\s+from|messages?\s+from|did\s+\w+\s+(email|send|message|text)|recent\s+(emails?|messages?|chats?))\b/i;
+const WEB_EXPLICIT_RE =
+	/\b(web|online|public|internet|latest\s+(price|pricing|news|version|release)|verify|compare\s+with\s+public|search\s+online)\b/i;
+
+export function prefersLocalOnly(query: string): boolean {
+	return PERSONAL_ONLY_RE.test(query) && !WEB_EXPLICIT_RE.test(query);
+}
 
 const ANAPHORA_RE =
 	/\b(it|its|they|them|their|this|that|those|these|he|him|his|she|her|there|above|same)\b|^(and|but|also|what about|how about|why|when|where|how much|how many)\b/i;
@@ -192,19 +202,24 @@ export function buildSynthesisPrompt(
 	screenContext?: ScreenContext,
 	localDocs?: DocumentHitRef[],
 	localMessages?: MessageHitRef[],
+	compactLocal = false,
 ): string {
+	const maxHits = compactLocal ? 4 : 5;
+	const maxSnippetChars = compactLocal ? 480 : 1200;
 	const historyBlock = priorChronological
 		.filter((t) => t.answer.trim().length > 0)
-		.slice(-MAX_HISTORY_TURNS_IN_PROMPT)
+		.slice(-(compactLocal ? 2 : MAX_HISTORY_TURNS_IN_PROMPT))
 		.map(
 			(t) =>
-				`Q: ${t.query}\nA: ${t.answer.slice(0, MAX_HISTORY_ANSWER_CHARS).replace(/\s+/g, " ").trim()}`,
+				`Q: ${t.query}\nA: ${t.answer.slice(0, compactLocal ? 400 : MAX_HISTORY_ANSWER_CHARS).replace(/\s+/g, " ").trim()}`,
 		)
 		.join("\n\n");
 
 	const sourcesBlock = results
+		.slice(0, compactLocal ? 3 : results.length)
 		.map((item, idx) => {
-			const snippet = redactSecrets(item.content.replace(/\s+/g, " ").trim());
+			const raw = redactSecrets(item.content.replace(/\s+/g, " ").trim());
+			const snippet = compactLocal ? raw.slice(0, 320) : raw;
 			return `[${idx + 1}] ${item.title} (${item.url})\n${snippet}`;
 		})
 		.join("\n\n");
@@ -267,10 +282,10 @@ export function buildSynthesisPrompt(
 
 	if (localDocs && localDocs.length > 0) {
 		const docText = localDocs
-			.slice(0, 5)
+			.slice(0, maxHits)
 			.map(
 				(d) =>
-					`[${d.title}] (${d.path}, L${d.start_line}-${d.end_line}):\n${redactSecrets(d.snippet)}`,
+					`[${d.title}] (${d.path}, L${d.start_line}-${d.end_line}):\n${redactSecrets(d.snippet).slice(0, maxSnippetChars)}`,
 			)
 			.join("\n\n");
 		parts.push("", "<untrusted_local_documents>", docText, "</untrusted_local_documents>");
@@ -278,10 +293,10 @@ export function buildSynthesisPrompt(
 
 	if (localMessages && localMessages.length > 0) {
 		const msgText = localMessages
-			.slice(0, 5)
+			.slice(0, maxHits)
 			.map(
 				(m) =>
-					`[${m.connector}:${m.chat_or_folder}] From: ${redactSecrets(m.sender)} | Subject: ${redactSecrets(m.subject)}\n${redactSecrets(m.snippet)}`,
+					`[${m.connector}:${m.chat_or_folder}] From: ${redactSecrets(m.sender)} | Subject: ${redactSecrets(m.subject)}\n${redactSecrets(m.snippet).slice(0, maxSnippetChars)}`,
 			)
 			.join("\n\n");
 		parts.push("", "<untrusted_personal_messages>", msgText, "</untrusted_personal_messages>");
@@ -362,6 +377,8 @@ async function streamOpenAiCompatibleAnswer(params: {
 	onChunk: (chunk: string) => void;
 	signal: AbortSignal;
 	providerLabel: string;
+	timeoutMs?: number;
+	maxTokens?: number;
 }): Promise<void> {
 	const res = await fetch(params.url, {
 		method: "POST",
@@ -370,9 +387,10 @@ async function streamOpenAiCompatibleAnswer(params: {
 			model: params.model,
 			stream: true,
 			temperature: 0.2,
+			...(params.maxTokens ? { max_tokens: params.maxTokens } : {}),
 			messages: [{ role: "user", content: params.prompt }],
 		}),
-		signal: combineSignals(params.signal, CHAT_TIMEOUT_MS),
+		signal: combineSignals(params.signal, params.timeoutMs ?? CHAT_TIMEOUT_MS),
 	});
 
 	if (!res.ok || !res.body) {
@@ -467,6 +485,8 @@ export async function streamOllamaSynthesis(
 			onChunk: batcher.push,
 			signal,
 			providerLabel: "Ollama",
+			timeoutMs: OLLAMA_TIMEOUT_MS,
+			maxTokens: 512,
 		});
 	} finally {
 		batcher.flush();

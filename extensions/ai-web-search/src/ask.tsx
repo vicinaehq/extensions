@@ -11,6 +11,7 @@ import {
 } from "@vicinae/api";
 import { homedir } from "node:os";
 import { useEffect, useState } from "react";
+import { prefersLocalOnly } from "./api";
 import { ConversationDetailView, HistoryThreadItem } from "./components";
 import {
 	type DraftRecord,
@@ -146,15 +147,21 @@ export default function AskWebCommand(props: LaunchProps) {
 				actions={
 					<ActionPanel>
 						<Action
-							title={isPrivate ? "Ask With Private + Web Hybrid" : "Ask With Context + Web"}
-							icon={Icon.ArrowRight}
-							onAction={() => submitUnified(true)}
+							title={
+								prefersLocalOnly(trimmed)
+									? "Ask Local Context (Private)"
+									: isPrivate
+										? "Ask With Private + Web Hybrid"
+										: "Ask With Context + Web"
+							}
+							icon={prefersLocalOnly(trimmed) ? Icon.Lock : Icon.ArrowRight}
+							onAction={() => submitUnified(!prefersLocalOnly(trimmed))}
 						/>
 						<Action
-							title="Ask Using Local Context Only"
-							icon={Icon.Lock}
+							title={prefersLocalOnly(trimmed) ? "Include Web Results Too" : "Ask Using Local Context Only"}
+							icon={prefersLocalOnly(trimmed) ? Icon.Globe01 : Icon.Lock}
 							shortcut={{ modifiers: ["ctrl"], key: "return" }}
-							onAction={() => submitUnified(false)}
+							onAction={() => submitUnified(prefersLocalOnly(trimmed))}
 						/>
 						{trimmed && (
 							<Action
