@@ -10,8 +10,8 @@ import {
 	showToast,
 } from "@vicinae/api";
 import { homedir } from "node:os";
-import { useEffect, useState } from "react";
-import { prefersLocalOnly } from "./api";
+import { useEffect, useRef, useState } from "react";
+import { prefersLocalOnly, warmOllamaModel } from "./api";
 import { ConversationDetailView, HistoryThreadItem } from "./components";
 import {
 	type DraftRecord,
@@ -49,13 +49,20 @@ export default function AskWebCommand(props: LaunchProps) {
 
 	const [directQuery, setDirectQuery] = useState("");
 	const [unified, setUnified] = useState<UnifiedQueryResponse | null>(null);
+	const didWarmRef = useRef(false);
 
 	useEffect(() => {
 		if (thread) return;
 		let active = true;
 		const timer = setTimeout(() => {
 			void unifiedQuery(directQuery.trim(), 6).then((res) => {
-				if (active && res) setUnified(res);
+				if (active && res) {
+					setUnified(res);
+					if (!didWarmRef.current && res.ollama.reachable && res.ollama.has_chat_model) {
+						didWarmRef.current = true;
+						warmOllamaModel(res.ollama.url, res.ollama.chat_model);
+					}
+				}
 			});
 		}, directQuery.trim() ? 75 : 0);
 		return () => {

@@ -9,12 +9,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	buildSynthesisPrompt,
 	buildTavilyQuery,
+	buildUserContextPrompt,
 	extractInlineDraftSuggestion,
 	highestSensitivity,
 	prefersLocalOnly,
 	searchTavily,
 	streamOllamaSynthesis,
 	streamSynthesis,
+	tryZeroLlmLookupAnswer,
 } from "./api";
 import {
 	type OllamaHealth,
@@ -321,17 +323,30 @@ export function useChatController(options: {
 					}));
 				}
 
+				if (!useWeb && !screenContext && mode !== "regenerate" && mode !== "followup") {
+					const instantLookup = tryZeroLlmLookupAnswer(
+						query,
+						localDocs ?? [],
+						localMessages ?? [],
+					);
+					if (instantLookup) {
+						updateTurnById(
+							turnId,
+							(t) => ({
+								...t,
+								routeMode: hasPrivateData ? "local" : routeMode,
+								statusNote: "Instant Local Recall · 0ms LLM (Ctrl+R for Ollama)",
+								answer: instantLookup,
+								phase: "done",
+							}),
+							true,
+						);
+						return;
+					}
+				}
+
 				const isOllamaRoute =
 					(routeMode === "local" || routeMode === "hybrid") && Boolean(ollamaHealth);
-				const prompt = buildSynthesisPrompt(
-					query,
-					priorChronological,
-					results,
-					screenContext,
-					localDocs,
-					localMessages,
-					isOllamaRoute,
-				);
 
 				let fullRawAnswer = "";
 				const handleDelta = (batch: string) => {
@@ -345,14 +360,32 @@ export function useChatController(options: {
 				};
 
 				if (isOllamaRoute && ollamaHealth) {
+					const userPrompt = buildUserContextPrompt(
+						query,
+						priorChronological,
+						results,
+						screenContext,
+						localDocs,
+						localMessages,
+						true,
+					);
 					await streamOllamaSynthesis(
-						prompt,
+						userPrompt,
 						ollamaHealth.url,
 						ollamaHealth.chat_model,
 						handleDelta,
 						controller.signal,
 					);
 				} else {
+					const prompt = buildSynthesisPrompt(
+						query,
+						priorChronological,
+						results,
+						screenContext,
+						localDocs,
+						localMessages,
+						false,
+					);
 					await streamSynthesis(prompt, prefs, handleDelta, controller.signal);
 				}
 
