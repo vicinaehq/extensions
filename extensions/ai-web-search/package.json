@@ -1,0 +1,117 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "ai-web-search",
+  "title": "AI Web Search",
+  "description": "Search the web with Tavily and synthesize answers directly inside Vicinae using an LLM",
+  "categories": [
+    "Web",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "author": "deecube",
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "ask",
+      "title": "AI Web Search",
+      "description": "Search the web and draft an AI-synthesized answer inline",
+      "mode": "view"
+    },
+    {
+      "name": "history",
+      "title": "AI Search History",
+      "description": "Browse, resume, and delete previous AI web search chats",
+      "mode": "view"
+    },
+    {
+      "name": "screen",
+      "title": "Ask Screen",
+      "description": "Ask AI about the active window, selected text, and on-screen content",
+      "mode": "view"
+    },
+    {
+      "name": "personal",
+      "title": "Search Personal Context",
+      "description": "Search full-text contents of indexed Desktop/Documents files, notes, PDFs, and emails locally",
+      "mode": "view"
+    },
+    {
+      "name": "drafts",
+      "title": "Review Drafts",
+      "description": "Review, confirm, or discard pending email drafts before SMTP dispatch",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "tavilyApiKey",
+      "title": "Tavily API Key",
+      "description": "Your Tavily API key (tvly-...)",
+      "type": "password",
+      "required": true
+    },
+    {
+      "name": "groqApiKey",
+      "title": "Groq API Key (Optional)",
+      "description": "Optional Groq API key (gsk_...). Leave blank to use Vicinae's configured AI (Settings -> AI).",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "groqModel",
+      "title": "Groq Model",
+      "description": "Model used when a Groq API key is set above",
+      "type": "textfield",
+      "default": "llama-3.3-70b-versatile",
+      "required": false
+    },
+    {
+      "name": "searchDepth",
+      "title": "Search Depth",
+      "description": "Tavily search depth",
+      "type": "dropdown",
+      "default": "basic",
+      "required": false,
+      "data": [
+        { "title": "Basic (faster)", "value": "basic" },
+        { "title": "Advanced (deeper snippets)", "value": "advanced" }
+      ]
+    },
+    {
+      "name": "maxResults",
+      "title": "Max Sources",
+      "description": "Number of web results to retrieve and cite",
+      "type": "dropdown",
+      "default": "5",
+      "required": false,
+      "data": [
+        { "title": "3 sources", "value": "3" },
+        { "title": "5 sources", "value": "5" },
+        { "title": "8 sources", "value": "8" }
+      ]
+    },
+    {
+      "name": "includeImages",
+      "title": "Include Images",
+      "label": "Fetch web images with answers",
+      "description": "Fetch and display relevant web images with answers",
+      "type": "checkbox",
+      "default": true,
+      "required": false
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "lint": "vici lint"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.30.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "react": "^19.1.1",
+    "typescript": "^5.9.2"
+  }
+}
